@@ -21,7 +21,7 @@ const publicDonation = (d) => (d ? { name: d.name, amount: d.amount, at: d.creat
 
 export async function onConfig({ env }) {
   const cfg = providerConfig(env)
-  return json({ ok: true, enabled: !!(cfg.username && cfg.unitPrice && env.DB), unitPrice: cfg.unitPrice, maxQuantity: MAX_QTY, direct: cfg.hasDirect, embedUrl: cfg.embedUrl }, 200, 'public, max-age=300')
+  return json({ ok: true, enabled: !!(cfg.username && cfg.unitPrice && env.DB), unitPrice: cfg.unitPrice, maxQuantity: MAX_QTY, direct: cfg.hasDirect }, 200, 'public, max-age=300')
 }
 
 export async function onCreate({ request, env }) {
@@ -57,7 +57,7 @@ export async function onCreate({ request, env }) {
     .bind(id, name, quantity, amount, mode, direct.ok ? direct.ref || null : null, ip, now)
     .run()
   const expiresAt = Math.min(now + INTENT_TTL, direct.ok && direct.expiresAt > now ? direct.expiresAt : Infinity)
-  return json({ ok: true, id, mode, amount, quantity, name, expiresAt, ...(direct.ok ? { qr: direct.qr } : { url: cfg.pageUrl(quantity), embedUrl: cfg.embedUrl }) })
+  return json({ ok: true, id, mode, amount, quantity, name, expiresAt, ...(direct.ok ? { qr: direct.qr } : { url: cfg.pageUrl(quantity) }) })
 }
 
 /** Mencari donasi sukses yang cocok dengan niat infaq dan belum dipakai niat lain. */

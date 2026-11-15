@@ -1,10 +1,10 @@
-// Infaq pengembang: pilih nominal → kode pembayaran / halaman pembayaran → menunggu → terima kasih.
+// Infaq pengembang: pilih nominal → halaman pembayaran terbuka otomatis dengan jumlah unit yang sama (atau kode QRIS)
+// → menunggu → terima kasih.
 // Seluruh status dikonfirmasi server dari data transaksi sukses; halaman ini tidak pernah menganggap lunas sendiri.
 import { pageHeader, skeleton } from '../components/navbar.js'
 import { icon } from '../components/icons.js'
 import { getDonors } from '../api/donors-api.js'
 import { getInfaqConfig, createInfaq, getInfaqStatus, claimInfaq } from '../api/infaq-api.js'
-import { openSheet } from '../components/modal.js'
 import { $, esc, toast } from '../utils/helpers.js'
 import { formatRupiah, formatDateTime } from '../utils/format.js'
 
@@ -76,7 +76,7 @@ export default function infaq(root) {
   let quantity = 2 // diganti setelah konfigurasi dimuat: pilihan yang paling dekat dengan Rp10.000
   let timer = null
   let tick = null
-  let popup = null
+  let payWin = null // tab pembayaran yang dibuka saat tombol ditekan
   let pollSeq = 0
   let alive = true
   let data = null
@@ -124,28 +124,68 @@ export default function infaq(root) {
     if (!fromCustom) $('[data-custom]', flow).value = ''
   }
 
-  // ---------- Langkah 2: menyiapkan ----------
+  // ---------- Langkah 2: menyiapkan → halaman pembayaran terbuka sendiri ----------
+  // Tab pembayaran harus dibuka LANGSUNG di dalam ketukan pengguna (kalau tidak, peramban memblokirnya),
+  // jadi tab kosong dibuka dulu lalu diarahkan setelah alamat pembayaran diterima dari server.
+  const preOpen = () => {
+    if (cfg && cfg.direct) return null // mode QRIS: kode ditampilkan di halaman ini, tidak perlu tab
+    try {
+      const w = window.open('', '_blank')
+      if (w) {
+        try {
+          w.document.title = 'Menyiapkan pembayaran…'
+          w.document.body.innerHTML = '<p style="font:16px system-ui;padding:24px;text-align:center">Menyiapkan halaman pembayaran…</p>'
+        } catch {}
+      }
+      return w
+    } catch {
+      return null
+    }
+  }
+  const sendTo = (w, url) => {
+    if (!w || w.closed) return false
+    try {
+      w.opener = null
+      w.location.replace(url)
+      return true
+    } catch {
+      return false
+    }
+  }
+  const closeWin = (w) => {
+    try {
+      w && !w.closed && w.close()
+    } catch {}
+  }
+
   async function pay() {
     const name = $('[data-name]', flow).value.trim()
     const message = $('[data-msg]', flow).value.trim()
     try {
       localStorage.setItem(STORE + ':name', name)
     } catch {}
-    flow.innerHTML = `<div class="infaq-wait"><span class="spinner" aria-hidden="true"></span><h3>Menyiapkan pembayaran…</h3><p class="muted">Mohon tunggu sebentar, kode pembayaran sedang dibuat.</p></div>`
+    const win = preOpen()
+    flow.innerHTML = `<div class="infaq-wait"><span class="spinner" aria-hidden="true"></span><h3>Menyiapkan pembayaran…</h3><p class="muted">Mohon tunggu sebentar.</p></div>`
     try {
       const it = await createInfaq({ quantity, name, message })
-      if (!alive) return
+      if (!alive) return closeWin(win)
       if (it.mode === 'redirect' && !it.url) throw Object.assign(new Error('x'), { code: 'not_configured' })
       intent = { ...it, createdAt: Date.now() }
       saveIntent(intent)
-      showPayment()
+      let opened = false
+      if (it.mode === 'redirect') {
+        opened = sendTo(win, it.url)
+        if (opened) payWin = win
+      } else closeWin(win)
+      showPayment(opened)
     } catch (e) {
+      closeWin(win)
       if (alive) showForm(errText(e))
     }
   }
 
   // ---------- Langkah 3: bayar & menunggu ----------
-  function showPayment() {
+  function showPayment(opened = false) {
     stopTimers()
     const it = intent
     const head = `<div class="infaq-total big"><span>Infaq atas nama ${esc(it.name || 'Hamba Allah')}</span><b>${formatRupiah(it.amount)}</b></div>`
@@ -165,8 +205,9 @@ export default function infaq(root) {
       })
     } else {
       flow.innerHTML = `<p class="eyebrow">${icon('gift')} Selesaikan pembayaran</p>${head}
-        <p class="hint center">Pembayaran dibuka dalam jendela di halaman ini. Setelah selesai, tutup jendelanya — status di bawah akan diperbarui sendiri.</p>
-        <button class="btn btn-gold btn-block" data-open>${icon('gift')}Bayar sekarang</button>
+        <p class="hint center">${opened ? 'Halaman pembayaran sudah dibuka di tab baru' : 'Ketuk tombol di bawah untuk membuka halaman pembayaran'} dengan jumlah <b>${it.quantity} unit</b> (${formatRupiah(it.amount)}) sudah terisi. Selesaikan pembayaran di sana, lalu kembali ke sini — status diperbarui otomatis.</p>
+        <a class="btn ${opened ? '' : 'btn-gold '}btn-block" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer" data-open>${icon('gift')}${opened ? 'Buka lagi halaman pembayaran' : 'Buka halaman pembayaran'}</a>
+        <p class="hint center">Agar dikenali otomatis, jangan ubah jumlah unit di halaman pembayaran${it.name && it.name !== 'Hamba Allah' ? ` dan isi nama <b>${esc(it.name)}</b>` : ''}.</p>
 ${waiting}${tail}`
     }
     const left = $('[data-left]', flow)
@@ -179,62 +220,6 @@ ${waiting}${tail}`
     tick = setInterval(countdown, 1000)
     poll()
   }
-
-  // Jendela pembayaran (popup) di dalam aplikasi: memuat formulir pembayaran penyedia dalam bingkai.
-  function openPayPopup() {
-    const it = intent
-    if (!it) return
-    const embedUrl = it.embedUrl || (cfg && cfg.embedUrl) // niat lama (sebelum ada popup) memakai alamat dari konfigurasi
-    if (!embedUrl) return void window.open(it.url, '_blank', 'noopener,noreferrer')
-    closePopup()
-    const origin = new URL(embedUrl).origin
-    // Sama persis dengan skrip tombol resmi penyedia (trbtn-overlay): alamat diberi ?embedId=…&ref=…,
-    // lalu setelah bingkai termuat dikirimi pesan "embed.openModal"; penyedia membalas "embed.modalClosed" saat ditutup.
-    const frameUrl = `${embedUrl}${embedUrl.includes('?') ? '&' : '?'}embedId=0&ref=${location.origin}/`
-    let frameEl = null
-    const openModal = () => {
-      try {
-        frameEl && frameEl.contentWindow && frameEl.contentWindow.postMessage({ type: 'embed.openModal' }, origin)
-      } catch {}
-    }
-    const onMsg = (e) => {
-      if (e.origin !== origin) return
-      const type = typeof e.data === 'string' ? e.data : e.data && (e.data.type || e.data.event)
-      if (/clos/i.test(String(type || ''))) closePopup()
-    }
-    const sheet = openSheet({
-      title: 'Pembayaran infaq',
-      wide: true,
-      content: `<div class="pay-frame"><div class="pay-loading" data-loading><span class="spinner" aria-hidden="true"></span><p class="muted">Memuat pembayaran…</p></div>
-          <iframe data-frame title="Pembayaran infaq" src="${esc(frameUrl)}" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-write"></iframe></div>
-        <p class="hint center pay-note">Isi nama <b>${esc(it.name || 'Hamba Allah')}</b> dan jumlah <b>${it.quantity}</b> (${formatRupiah(it.amount)}) agar infaq dikenali otomatis.
-          Bila jendela di atas kosong atau menampilkan pesan galat, pakai tombol di bawah.</p>
-        <a class="btn btn-block pay-ext" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer" data-ext>${icon('share')}Buka halaman pembayaran</a>`,
-      onOpen(body) {
-        body.classList.add('pay-body')
-        const frame = body.querySelector('[data-frame]')
-        const done = () => body.querySelector('[data-loading]')?.remove()
-        frameEl = frame
-        frame.addEventListener('load', () => {
-          done()
-          // Pendengar pesan di dalam bingkai bisa terpasang sedikit setelah "load" — kirim beberapa kali.
-          for (const ms of [0, 600, 1800]) setTimeout(openModal, ms)
-        })
-        setTimeout(done, 8000)
-        addEventListener('message', onMsg)
-      },
-      onClose() {
-        removeEventListener('message', onMsg)
-        popup = null
-        if (alive && intent) {
-          clearTimeout(timer)
-          poll() // periksa status segera setelah jendela ditutup
-        }
-      }
-    })
-    popup = sheet
-  }
-  const closePopup = () => popup && popup.close()
 
   async function poll() {
     if (!alive || !intent) return
@@ -275,9 +260,10 @@ ${waiting}${tail}`
   // ---------- Langkah 4: hasil ----------
   function showResult(kind, s) {
     stopTimers()
-    closePopup()
     const it = intent
     if (kind === 'paid') {
+      closeWin(payWin) // tab pembayaran yang kita buka ditutup setelah terkonfirmasi
+      payWin = null
       saveIntent(null)
       intent = null
       const d = (s && s.donation) || { name: it.name, amount: it.amount, at: Date.now() }
@@ -353,7 +339,6 @@ ${waiting}${tail}`
     if (q) return setQuantity(+q.dataset.q)
     if (t.closest('[data-pay]')) return pay()
     if (t.closest('[data-claim]')) return claim()
-    if (t.closest('[data-open]')) return openPayPopup()
     if (t.closest('[data-cancel]') || t.closest('[data-again]')) return showForm()
     if (t.closest('[data-dl]')) {
       const canvas = $('[data-qr]', flow)
