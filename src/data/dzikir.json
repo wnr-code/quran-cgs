@@ -15,7 +15,8 @@
    "fawaid": "",
    "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
    "group": "Doa Sebelum Berwudhu",
-   "from": "nu"
+   "from": "nu",
+   "step": 1
   },
   {
    "title": "Basmalah sebelum berwudhu",
@@ -26,7 +27,8 @@
    "fawaid": "",
    "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
    "group": "Doa Sebelum Berwudhu",
-   "from": "nu"
+   "from": "nu",
+   "step": 2
   },
   {
    "title": "Tahmid atas nikmat Islam sebelum berwudhu",
@@ -37,7 +39,8 @@
    "fawaid": "",
    "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
    "group": "Doa Sebelum Berwudhu",
-   "from": "nu"
+   "from": "nu",
+   "step": 3
   },
   {
    "title": "Tahmid atas nikmat air sebelum berwudhu",
@@ -48,7 +51,8 @@
    "fawaid": "",
    "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
    "group": "Doa Sebelum Berwudhu",
-   "from": "nu"
+   "from": "nu",
+   "step": 4
   },
   {
    "title": "Ta‘awudz dari was-was setan",
@@ -59,7 +63,8 @@
    "fawaid": "Lafaz ini berasal dari Surat Al-Mukminun ayat 97-98.",
    "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
    "group": "Doa Sebelum Berwudhu",
-   "from": "nu"
+   "from": "nu",
+   "step": 5
   },
   {
    "title": "Dua kalimat syahadat sebelum berwudhu",
@@ -70,7 +75,8 @@
    "fawaid": "",
    "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
    "group": "Doa Sebelum Berwudhu",
-   "from": "nu"
+   "from": "nu",
+   "step": 6
   },
   {
    "title": "Doa Sesudah Berwudhu",
@@ -79,126 +85,294 @@
    "translation": "Aku bersaksi bahwa tidak ada tuhan selain Allah semata yang tidak ada sekutu bagi-Nya dan aku pun bersaksi bahwa Muhammad adalah hamba sekaligus Rasul utusan-Nya. Ya Allah, jadikanlah aku termasuk orang-orang yang bertaubat dan jadikanlah aku termasuk orang-orang yang bersuci. Maha Suci Engkau wahai tuhan kami dan segala puji bagi-Mu. Aku bersaksi bahwa tiada tuhan selain Engkau. Aku memohon ampunan dan bertaubat kepada-Mu.",
    "notes": "",
    "fawaid": "Barang siapa yang mengucapkan doa tersebut maka akan dibukakan baginya delapan pintu Surga. Dia memasukinya dari arah mana saja yang ia kehendaki.",
-   "source": "HR. Muslim, at-Tirmidzi dan an-Nasa'i"
+   "source": "HR. Muslim, at-Tirmidzi dan an-Nasa'i",
+   "step": 7
   }
  ],
  "salat": [
   {
+   "step": 1,
    "title": "Istighfar",
-   "arabic": "أَسْتَغْفِرُ اللَّهَ",
-   "latin": "Astaghfirullāh",
-   "translation": "Aku minta ampun kepada Allah.",
+   "arabic": "أَسْتَغْفِرُ اللهَ الْعَظِـيْمَ الَّذِيْ لَااِلَهَ اِلَّا هُوَ الْحَيُّ الْقَيُّوْمُ وَأَتُوْبُ إِلَيْهِ",
+   "latin": "Astaghfirullāhal ‘azhīm, alladzī lā ilāha illā huwal hayyul qayyūmu wa atūbu ilaih.",
+   "translation": "Aku memohon ampun kepada Allah Yang Mahaagung, yang tiada tuhan selain Dia, Yang Mahahidup lagi terus-menerus mengurus makhluk-Nya, dan aku bertobat kepada-Nya.",
    "notes": "Dibaca 3x",
-   "fawaid": "Rasulullah shallallahu 'alaihi wa sallam jika selesai dari shalatnya beliau beristighfar sebanyak tiga kali dan membaca dzikir di atas. Al Auza'i menyatakan bahwa bacaan istighfar adalah astaghfirullah, astaghfirullah.",
-   "source": "HR. Muslim No. 591"
-  },
-  {
-   "title": "Allah yang Memberi Keselamatan",
-   "arabic": "اَللَّهُمَّ أَنْتَ السَّلاَمُ، وَمِنْكَ السَّلاَمُ، تَبَارَكْتَ يَا ذَا الْجَلاَلِ وَاْلإِكْرَامِ",
-   "latin": "Allāhumma antas salām wa minkas salām tabārakta yā żal jalāli wal ikrām",
-   "translation": "Ya Allah, Engkau pemberi keselamatan, dan dari-Mu keselaatan, Maha Suci Engkau, wahai tuhan yang pemilik keagungan dan kemuliaan.",
-   "notes": "Dibaca 1x",
-   "fawaid": "Rasulullah shallallahu 'alaihi wa sallam jika selesai dari shalatnya beliau beristighfar sebanyak tiga kali dan membaca dzikir di atas. Al Auza'i menyatakan bahwa bacaan istighfar adalah astaghfirullah, astaghfirullah.",
-   "source": "HR. Muslim No. 591"
-  },
-  {
-   "title": "Allah yang Menghalangi dan yang Memberikan Segala Sesuatu",
-   "arabic": "لاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيْكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيْرُ، اَللَّهُمَّ لاَ مَانِعَ لِمَا أَعْطَيْتَ، وَلاَ مُعْطِيَ لِمَا مَنَعْتَ، وَلاَ يَنْفَعُ ذَا الْجَدِّ مِنْكَ الْجَدُّ",
-   "latin": "Lā ilāha illāllāh waḥdahu lā syarīka lah, lahul mulku wa lahul ḥamdu wa huwa 'alā kulli syai'in qadīr. Allāhumma lā māni'a limā a'thaita wa lā mu'ṭiya limā mana'ta wa lā yanfa'u żal jaddi minkaljaddu",
-   "translation": "Tiada Rabb yang berhak disembah selain Allah yang Maha Esa, tidak ada sekutu bagi-Nya. Bagi-Nya puji dan bagi-Nya kerajaan. Dia Maha Kuasa atas segala sesuatu. Ya Allah, tidak ada yang mencegah apa yang Engkau berikan dan tidak ada yang memberi apa yang Engkau cegah. Tidak berguna kekayaan dan kemuliaan itu bagi pemiliknya (selain iman dan amal shalihnya yang menyelamatkan dari siksaan). Hanya dari-Mu kekayaan dan kemuliaan.",
-   "notes": "Dibaca 1x",
    "fawaid": "",
-   "source": "HR. Bukhari No. 844 dan Muslim No. 593"
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
   },
   {
-   "title": "Allah yang Memiliki Segalanya dan yang Berhak Diibadahi",
-   "arabic": "لاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيْكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيْرُ. لاَ حَوْلَ وَلاَ قُوَّةَ إِلاَّ بِاللهِ، لاَ إِلَـهَ إِلاَّ اللهُ، وَلاَ نَعْبُدُ إِلاَّ إِيَّاهُ، لَهُ النِّعْمَةُ وَلَهُ الْفَضْلُ وَلَهُ الثَّنَاءُ الْحَسَنُ، لاَ إِلَـهَ إِلاَّ اللهُ مُخْلِصِيْنَ لَهُ الدِّيْنَ وَلَوْ كَرِهَ الْكَافِرُوْنَ",
-   "latin": "Lā ilāha illāllāh waḥdahu lā syarīka lah. Lahul mulku wa lahul ḥamdu wa huwa 'alā kulli syai'in qadīr. Lā ḥawla wa lā quwwata illā billāh. Lā ilāha illāllāh wa lā na'budu illā iyyāh. Lahun ni'mah wa lahul faḍl wa lahuṡ ṡanāul ḥasan. Lā ilāha illāllāh mukhlishīna lahud dīn wa law karihal kāfirūn",
-   "translation": "Tiada Rabb (yang berhak disembah) kecuali Allah, Yang Maha Esa, tidak ada sekutu bagi-Nya. Bagi-Nya kerajaan dan pujaan. Dia Mahakuasa atas segala sesuatu. Tidak ada daya dan kekuatan kecuali (dengan pertolongan) Allah. Tiada Rabb (yang hak disembah) kecuali Allah. Kami tidak menyembah kecuali kepada-Nya. Bagi-Nya nikmat, anugerah dan pujaan yang baik. Tiada Rabb (yang hak disembah) kecuali Allah, dengan memurnikan ibadah kepada-Nya, sekalipun orang-orang kafir sama benci.",
-   "notes": "Dibaca 1x",
-   "fawaid": "Dikatakan oleh 'Abdullāh bin Zubair, Nabi shallallāhu 'alaihi wa sallam biasa membaca tahlil (lā ilāha illāllāh) di akhir shalat.",
-   "source": "HR. Muslim No. 594"
+   "step": 2,
+   "title": "Memuji Allah",
+   "arabic": "اَللَّهُمَّ أَنْتَ السَّلاَمُ وَمِنْكَ السَّلَامُ تَبَارَكْتَ يَا ذَاالْـجَلَالِ وَاْلإِكْرَام",
+   "latin": "Allāhumma antas salām, wa minkas salām, tabārakta yā dzal jalāli wal ikrām.",
+   "translation": "Ya Allah, Engkaulah As-Salām (Yang Mahasejahtera) dan dari-Mu keselamatan. Mahaberkah Engkau, wahai Pemilik keagungan dan kemuliaan.",
+   "notes": "",
+   "fawaid": "Berdasarkan hadits riwayat Imam Muslim.",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat · HR Muslim",
+   "links": [],
+   "from": "nu"
   },
   {
+   "step": 2,
+   "title": "Memuji Allah (riwayat lain)",
+   "arabic": "اَللَّهُمَّ أَنْتَ السَّلاَمُ، وَمِنْكَ السَّلَامُ، وَإِلَيْكَ يَعُوْدُ السَّلَامُ فَحَيِّنَارَبَّنَا بِالسَّلَامِ وَاَدْخِلْنَا الْـجَنَّةَ دَارَ السَّلَامِ تَبَارَكْتَ رَبَّنَا وَتَعَالَيْتَ يَا ذَاالْـجَلَالِ وَاْلإِكْرَامِ",
+   "latin": "Allāhumma antas salām, wa minkas salām, wa ilaika ya‘ūdus salām, fa hayyinā rabbanā bis salām, wa adkhilnal jannata dāras salām, tabārakta rabbanā wa ta‘ālaita yā dzal jalāli wal ikrām.",
+   "translation": "Ya Allah, Engkaulah As-Salām, dari-Mu keselamatan, dan kepada-Mu kembali keselamatan. Maka hidupkanlah kami, wahai Tuhan kami, dengan keselamatan, dan masukkanlah kami ke surga, negeri keselamatan. Mahaberkah Engkau, wahai Tuhan kami, dan Mahatinggi Engkau, wahai Pemilik keagungan dan kemuliaan.",
+   "notes": "",
+   "fawaid": "Riwayat lain sebagaimana dikutip dalam Bidāyatul Hidāyah. Pilih salah satu dari dua bacaan nomor 2.",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat · Bidāyatul Hidāyah",
+   "links": [],
+   "from": "nu"
+  },
+  {
+   "step": 3,
+   "title": "Tiada yang mencegah pemberian-Nya",
+   "arabic": "اَللَّهُمَّ لَا مَانِعَ لِمَا أَعْطَيْتَ، وَلاَ مُعْطِيَ لِمَا مَنَعْتَ، وَلَا يَنْفَعُ ذَاالْجَدِّ مِنْكَ الْجَدُّ",
+   "latin": "Allāhumma lā māni‘a limā a‘thaita, wa lā mu‘thiya limā mana‘ta, wa lā yanfa‘u dzal jaddi minkal jadd.",
+   "translation": "Ya Allah, tidak ada yang dapat mencegah apa yang Engkau berikan, tidak ada yang dapat memberi apa yang Engkau cegah, dan kekayaan tidak berguna bagi pemiliknya di hadapan-Mu.",
+   "notes": "",
+   "fawaid": "Menurut artikel NU Online, bacaan ini terdapat dalam riwayat muttafaqun ‘alaih.",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat · muttafaqun ‘alaih",
+   "links": [],
+   "from": "nu"
+  },
+  {
+   "step": 3,
+   "title": "Tiada yang mencegah pemberian-Nya (riwayat lain)",
+   "arabic": "اَللَّهُمَّ لَا مَانِعَ لِمَا أَعْطَيْتَ، وَلاَ مُعْطِيَ لِمَا مَنَعْتَ، وَلَا رَآدَّ لِمَا قَضَيْتَ وَلَا يَنْفَعُ ذَاالْجَدِّ مِنْكَ الْجَدُّ",
+   "latin": "Allāhumma lā māni‘a limā a‘thaita, wa lā mu‘thiya limā mana‘ta, wa lā rādda limā qadhaita, wa lā yanfa‘u dzal jaddi minkal jadd.",
+   "translation": "Ya Allah, tidak ada yang dapat mencegah apa yang Engkau berikan, tidak ada yang dapat memberi apa yang Engkau cegah, tidak ada yang dapat menolak apa yang Engkau tetapkan, dan kekayaan tidak berguna bagi pemiliknya di hadapan-Mu.",
+   "notes": "",
+   "fawaid": "Lafaz sebagaimana disebutkan dalam Bidāyatul Hidāyah. Pilih salah satu dari dua bacaan nomor 3.",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat · Bidāyatul Hidāyah",
+   "links": [],
+   "from": "nu"
+  },
+  {
+   "step": 4,
+   "title": "Memohon pertolongan untuk berzikir, bersyukur, dan beribadah",
+   "arabic": "اَللَّـهُمَّ اَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ.",
+   "latin": "Allāhumma a‘innī ‘alā dzikrika wa syukrika wa husni ‘ibādatik.",
+   "translation": "Ya Allah, tolonglah aku untuk mengingat-Mu, bersyukur kepada-Mu, dan beribadah kepada-Mu dengan baik.",
+   "notes": "",
+   "fawaid": "",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat · HR Abu Dawud",
+   "links": [],
+   "from": "nu"
+  },
+  {
+   "step": 5,
+   "title": "Tahlil",
+   "arabic": "لَاإِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيْكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ يُحْيِيْ وَيُمِيْتُ وَهُوَ عَلَى كُلِّ شَيْئٍ قَدِيْرٌ",
+   "latin": "Lā ilāha illallāhu wahdahū lā syarīka lah, lahul mulku wa lahul hamdu yuhyī wa yumītu wa huwa ‘alā kulli syai’in qadīr.",
+   "translation": "Tiada tuhan selain Allah semata, tiada sekutu bagi-Nya. Milik-Nya kerajaan dan milik-Nya segala puji. Dia menghidupkan dan mematikan, dan Dia Mahakuasa atas segala sesuatu.",
+   "notes": "Dibaca 3x",
+   "fawaid": "Dibaca tiga kali tiap selesai salat fardu; khusus setelah Magrib dan Subuh sepuluh kali.",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
+  },
+  {
+   "step": 6,
+   "title": "Memohon perlindungan dari neraka",
+   "arabic": "اَللَّهُمَّ أَجِرْنِـى مِنَ النَّارِ",
+   "latin": "Allāhumma ajirnī minan nār.",
+   "translation": "Ya Allah, lindungilah aku dari neraka.",
+   "notes": "Dibaca 7x bakda Magrib & Subuh",
+   "fawaid": "",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
+  },
+  {
+   "step": 7,
+   "title": "Ayat Kursi",
+   "arabic": "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ. بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيْمِ. اَللهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَّلَانَوْمٌ، لَهُ مَافِي السَّمَاوَاتِ وَمَافِي اْلأَرْضِ مَن ذَا الَّذِيْ يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَابَيْنَ أَيْدِيْهِمْ وَمَاخَلْفَهُمْ وَلَا يُحِيْطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَآءَ، وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَاْلأَرْضَ وَلَا يَـؤدُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيْمُ.",
+   "latin": "",
+   "translation": "",
+   "notes": "",
+   "fawaid": "",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [
+    {
+     "s": 2,
+     "a": 255,
+     "label": "QS. Al-Baqarah 2:255"
+    }
+   ],
+   "from": "nu"
+  },
+  {
+   "step": 8,
+   "title": "Surat Al-Baqarah ayat 285–286",
+   "arabic": "آمَنَ الرَّسُولُ بِمَا أُنْزِلَ إِلَيْهِ مِنْ رَبِّهِ وَالْمُؤْمِنُونَ، كُلٌّ آمَنَ بِاللَّهِ وَمَلَائِكَتِهِ وَكُتُبِهِ وَرُسُلِهِ لَا نُفَرِّقُ بَيْنَ أَحَدٍ مِنْ رُسُلِهِ، وَقَالُوا سَمِعْنَا وَأَطَعْنَا غُفْرَانَكَ رَبَّنَا وَإِلَيْكَ الْمَصِيرُ. لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا، لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا اكْتَسَبَتْ. رَبَّنَا لَا تُؤَاخِذْنَا إِنْ نَسِينَا أَوْ أَخْطَأْنَا، رَبَّنَا وَلَا تَحْمِلْ عَلَيْنَا إِصْرًا كَمَا حَمَلْتَهُ عَلَى الَّذِينَ مِنْ قَبْلِنَا، رَبَّنَا وَلَا تُحَمِّلْنَا مَا لَا طَاقَةَ لَنَا بِهِ، وَاعْفُ عَنَّا وَاغْفِرْ لَنَا وَارْحَمْنَا، أَنْتَ مَوْلَانَا فَانْصُرْنَا عَلَى الْقَوْمِ الْكَافِرِينَ",
+   "latin": "",
+   "translation": "",
+   "notes": "",
+   "fawaid": "",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [
+    {
+     "s": 2,
+     "a": 285,
+     "label": "QS. Al-Baqarah 2:285–286"
+    }
+   ],
+   "from": "nu"
+  },
+  {
+   "step": 9,
+   "title": "Penggalan Surat Ali Imran",
+   "arabic": "شَهِدَ اللَّهُ أَنَّهُ لَا إِلَٰهَ إِلَّا هُوَ وَالْمَلَائِكَةُ وَأُولُو الْعِلْمِ قَائِمًا بِالْقِسْطِ، لَا إِلَٰهَ إِلَّا هُوَ الْعَزِيزُ الْحَكِيمُ، إِنَّ الدِّينَ عِنْدَ اللَّهِ الْإِسْلَامُ، قُلِ اللَّهُمَّ مَالِكَ الْمُلْكِ تُؤْتِي الْمُلْكَ مَنْ تَشَاءُ وَتَنْزِعُ الْمُلْكَ مِمَّنْ تَشَاءُ وَتُعِزُّ مَنْ تَشَاءُ وَتُذِلُّ مَنْ تَشَاءُ، بِيَدِكَ الْخَيْرُ،  إِنَّكَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ. تُولِجُ اللَّيْلَ فِي النَّهَارِ وَتُولِجُ النَّهَارَ فِي اللَّيْلِ، وَتُخْرِجُ الْحَيَّ مِنَ الْمَيِّتِ وَتُخْرِجُ الْمَيِّتَ مِنَ الْحَيِّ، وَتَرْزُقُ مَنْ تَشَاءُ بِغَيْرِ حِسَابٍ",
+   "latin": "",
+   "translation": "",
+   "notes": "",
+   "fawaid": "",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [
+    {
+     "s": 3,
+     "a": 18,
+     "label": "QS. Ali Imran 3:18–19"
+    },
+    {
+     "s": 3,
+     "a": 26,
+     "label": "QS. Ali Imran 3:26–27"
+    }
+   ],
+   "from": "nu"
+  },
+  {
+   "step": 10,
+   "title": "Surat Al-Ikhlas, Al-Falaq, An-Nas, lalu Al-Fatihah",
+   "arabic": "",
+   "latin": "",
+   "translation": "",
+   "notes": "",
+   "fawaid": "Artikel NU Online hanya menyebut nama surahnya; bacalah dari mushaf.",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [
+    {
+     "s": 112,
+     "a": 1,
+     "label": "Al-Ikhlas"
+    },
+    {
+     "s": 113,
+     "a": 1,
+     "label": "Al-Falaq"
+    },
+    {
+     "s": 114,
+     "a": 1,
+     "label": "An-Nas"
+    },
+    {
+     "s": 1,
+     "a": 1,
+     "label": "Al-Fatihah"
+    }
+   ],
+   "from": "nu"
+  },
+  {
+   "step": 11,
    "title": "Tasbih",
    "arabic": "سُبْحَانَ اللهِ",
-   "latin": "Subḥānallāh",
-   "translation": "Maha Suci Allah",
+   "latin": "Subhānallāh.",
+   "translation": "Mahasuci Allah.",
    "notes": "Dibaca 33x",
    "fawaid": "",
-   "source": ""
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
   },
   {
-   "title": "Tahmid",
-   "arabic": "الْحَمْدُ لِلَّهِ",
-   "latin": "Alhamdulillāh",
-   "translation": "Segala puji bagi Allah",
+   "step": 11,
+   "title": "Hamdalah",
+   "arabic": "اَلْحَمْدُلِلهِ",
+   "latin": "Alhamdulillāh.",
+   "translation": "Segala puji bagi Allah.",
    "notes": "Dibaca 33x",
    "fawaid": "",
-   "source": ""
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
   },
   {
+   "step": 11,
    "title": "Takbir",
-   "arabic": "اللهُ أَكْبَرُ",
-   "latin": "Allāhu akbar",
-   "translation": "Allah Maha Besar",
+   "arabic": "اَللهُ اَكْبَرْ",
+   "latin": "Allāhu akbar.",
+   "translation": "Allah Mahabesar.",
    "notes": "Dibaca 33x",
    "fawaid": "",
-   "source": ""
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
   },
   {
-   "title": "Tidak Ada Sekutu Bagi Allah dan Baginyalah Segala Sesuatu",
-   "arabic": "لاَ إِلَـهَ إِلاَّ اللهُ وَحْدَهُ لاَ شَرِيْكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيْرُ",
-   "latin": "Lā ilāha illāllāh waḥda, lā syarīka lah. Lahul mulku wa lahul ḥamdu wa huwa 'alā kulli syai'in qadīr",
-   "translation": "Tidak ada Rabb (yang berhak disembah) kecuali Allah Yang Maha Esa, tidak ada sekutu bagi-Nya. Bagi-Nya kerajaan. Bagi-Nya pujaan. Dia-lah Yang Mahakuasa atas segala sesuatu.",
-   "notes": "Dibaca 1x",
-   "fawaid": "Siapa yang membaca dzikir di atas, maka dosa-dosanya diampuni walau sebanyak buih di lautan. Kata Imām Nawawī raḥimahullāh, tekstual hadits menunjukkan bahwa bacaan Subḥānallāh, Alhamdulillāh, Allāhu akbar, masing-masing dibaca 33 kali secara terpisah.",
-   "source": "Syarh Shahih Muslim, 5: 84"
+   "step": 12,
+   "title": "Takbir, tahmid, tasbih, dan tahlil",
+   "arabic": "اَللهُ اَكْبَرْ كَبِيْرًا وَالْحَمْدُ لِلهِ كَثِيْرًا وَسُبْحَانَ اللهِ بُكْرَةً وَأَصِيْلًا، لَاإِلَهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيْكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُيُحْيِيْ وَيُمِيْتُ وَهُوَ عَلَى كُلِّ شَيْئٍ قَدِيْرٌ، وَلَاحَوْلَ وَلَاقُوَّةَ إِلَّابِا للهِ الْعَلِـىِّ الْعَظِيْمِ. أَفْضَلُ ذِكْرِ فَاعْلَمْ أَنَّهُ",
+   "latin": "Allāhu akbar kabīrā, wal hamdu lillāhi katsīrā, wa subhānallāhi bukratan wa ashīlā. Lā ilāha illallāhu wahdahū lā syarīka lah, lahul mulku wa lahul hamdu yuhyī wa yumītu wa huwa ‘alā kulli syai’in qadīr. Wa lā haula wa lā quwwata illā billāhil ‘aliyyil ‘azhīm. Afdhaludz dzikri fa‘lam annahū …",
+   "translation": "Allah Mahabesar dengan sebesar-besarnya, segala puji bagi Allah dengan sebanyak-banyaknya, dan Mahasuci Allah pada waktu pagi dan petang. Tiada tuhan selain Allah semata, tiada sekutu bagi-Nya. Milik-Nya kerajaan dan milik-Nya segala puji. Dia menghidupkan dan mematikan, dan Dia Mahakuasa atas segala sesuatu. Tiada daya dan kekuatan kecuali dengan pertolongan Allah Yang Mahatinggi lagi Mahaagung. Ketahuilah, zikir yang paling utama adalah …",
+   "notes": "",
+   "fawaid": "Disambung langsung dengan bacaan lā ilāha illallāh di bawah.",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
   },
   {
-   "title": "Ayat al-Kursi",
-   "arabic": "ٱللَّهُ لَآ إِلَٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ لَا تَأْخُذُهُۥ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُۥ مَا فِى ٱلسَّمَٰوَٰتِ وَمَا فِى ٱلْأَرْضِ ۗ مَن ذَا ٱلَّذِى يَشْفَعُ عِندَهُۥٓ إِلَّا بِإِذْنِهِۦ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَىْءٍ مِّنْ عِلْمِهِۦٓ إِلَّا بِمَا شَآءَ ۚ وَسِعَ كُرْسِيُّهُ ٱلسَّمَٰوَٰتِ وَٱلْأَرْضَ ۖ وَلَا يَـُٔودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ",
-   "latin": "Allāhu lā ilāha illā huwalḥayyul qayyụm, lā ta`khużuhụ sinatuw wa lā na`ụm, lahụ mā fis samāwāti wa mā fil arḍ, man żallażī yasyfa'u 'indahū illā bi`iżnih, ya'lamu mā baina aidīhim wa mā khalfahum, wa lā yuḥīṭụna bisyai`im min 'ilmihī illā bimā syā`, wasi'a kursiyyuhus samāwāti wal arḍ, wa lā ya`ụduhụ ḥifẓuhumā, wa huwal 'aliyyul 'aẓīm",
-   "translation": "Allah, tidak ada Tuhan (yang berhak disembah) melainkan Dia Yang Hidup kekal lagi terus menerus mengurus (makhluk-Nya); tidak mengantuk dan tidak tidur. Kepunyaan-Nya apa yang di langit dan di bumi. Tiada yang dapat memberi syafa'at di sisi Allah tanpa izin-Nya? Allah mengetahui apa-apa yang di hadapan mereka dan di belakang mereka, dan mereka tidak mengetahui apa-apa dari ilmu Allah melainkan apa yang dikehendaki-Nya. Kursi Allah meliputi langit dan bumi. Dan Allah tidak merasa berat memelihara keduanya, dan Allah Maha Tinggi lagi Maha Besar.",
-   "notes": "Dibaca 1x",
-   "fawaid": "Barang siapa yang membaca ayat kursi setelah selesai shalat, maka tidak ada yang menghalanginya masuk surga kecuali kematian.",
-   "source": "HR. an-Nasai dalam Al-Kubro 9: 44. Hadits ini dinyatakan shahih oleh Ibnu Hibban, sebagaimana disebut oleh Ibnu Hajar dalam Bulughul Maram"
+   "step": 12,
+   "title": "Lā ilāha illallāh",
+   "arabic": "لَاإِلَهَ إِلَّا اللهُ",
+   "latin": "Lā ilāha illallāh.",
+   "translation": "Tiada tuhan selain Allah.",
+   "notes": "",
+   "fawaid": "Dibaca 300 kali bakda Subuh, 100 kali bakda Isya, 50 kali bakda Zuhur, 50 kali bakda Asar, dan 100 kali bakda Magrib.",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
   },
   {
-   "title": "Al-Ikhlas",
-   "arabic": "قُلْ هُوَ ٱللَّهُ أَحَدٌ (1) ٱللَّهُ ٱلصَّمَدُ (2) لَمْ يَلِدْ وَلَمْ يُولَدْ (3) وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ (4)",
-   "latin": "Qul huwallāhu aḥad (1) Allāhuṣ ṣamad (2) lam yalid wa lam yụlad (3) wa lam yakul lahụ kufuwan aḥad (4)",
-   "translation": "Katakanlah: \"Dialah Allah, Yang Maha Esa. Allah adalah Tuhan yang bergantung kepada-Nya segala sesuatu. Dia tiada beranak dan tidak pula diperanakkan, dan tidak ada seorangpun yang setara dengan Dia\".",
-   "notes": "Dibaca 3x",
-   "fawaid": "Rasulullah shallallahu 'alaihi wa sallam bersabda: Katakanlah (bacalah surat), Qulhuwallahu ahad, dan Al-Muawwidzatain (Al-Falaq dan An-Naas) ketika petang dan pagi tiga kali, maka dengan ayat ini akan mencukupkanmu (menjagamu) dari segala sesuatu.",
-   "source": "HR. Abu Dawud No. 1523 dan an-Nasa'i No. 1337. Al Hafizh Abu Thohir mengatakan bahwa sanad hadits ini hasan"
+   "step": 12,
+   "title": "Shalawat",
+   "arabic": "صَلَّى اللهُ عَلَى مُحَمَّدٍ",
+   "latin": "Shallallāhu ‘alā Muhammad.",
+   "translation": "Semoga Allah melimpahkan rahmat kepada Nabi Muhammad.",
+   "notes": "",
+   "fawaid": "Dibaca bakda Subuh 300 atau 100 kali.",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
   },
   {
-   "title": "Al-Falaq",
-   "arabic": "قُلْ أَعُوذُ بِرَبِّ ٱلْفَلَقِ (1) مِن شَرِّ مَا خَلَقَ (2) وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ (3) وَمِن شَرِّ ٱلنَّفَّٰثَٰتِ فِى ٱلْعُقَدِ (4) وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ (5)",
-   "latin": "Qul a'ụżu birabbil falaq (1) min syarri mā khalaq (2) wa min syarri gāsiqin iżā waqab (3) wa min syarrin naffāṡāti fil 'uqad (4) wa min syarri ḥāsidin iżā ḥasad (5)",
-   "translation": "Katakanlah: \"Aku berlindung kepada Tuhan Yang Menguasai subuh, dari kejahatan makhluk-Nya, dan dari kejahatan malam apabila telah gelap gulita, dan dari kejahatan wanita-wanita tukang sihir yang menghembus pada buhul-buhul, dan dari kejahatan pendengki bila ia dengki\".",
-   "notes": "Dibaca 3x",
-   "fawaid": "Rasulullah shallallahu 'alaihi wa sallam bersabda: Katakanlah (bacalah surat), Qulhuwallahu ahad, dan Al-Muawwidzatain (Al-Falaq dan An-Naas) ketika petang dan pagi tiga kali, maka dengan ayat ini akan mencukupkanmu (menjagamu) dari segala sesuatu.",
-   "source": "HR. Abu Dawud No. 1523 dan an-Nasa'i No. 1337. Al Hafizh Abu Thohir mengatakan bahwa sanad hadits ini hasan"
+   "step": 12,
+   "title": "Penutup tahlil",
+   "arabic": "لَاإِلَهَ إِلَّا اللهُ مُحَمَّدٌ رَسُوْلُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ",
+   "latin": "Lā ilāha illallāhu Muhammadur rasūlullāhi shallallāhu ‘alaihi wa sallam.",
+   "translation": "Tiada tuhan selain Allah, Muhammad adalah utusan Allah; semoga Allah melimpahkan rahmat dan salam kepadanya.",
+   "notes": "",
+   "fawaid": "",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
   },
   {
-   "title": "An-Naas",
-   "arabic": "قُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ (1) مَلِكِ ٱلنَّاسِ (2) إِلَٰهِ ٱلنَّاسِ (3) مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ (4) ٱلَّذِى يُوَسْوِسُ فِى صُدُورِ ٱلنَّاسِ (5) مِنَ ٱلْجِنَّةِ وَٱلنَّاسِ (6)",
-   "latin": "Qul a'ụżu birabbin nās (1) malikin nās (2) ilāhin nās (3) min syarril waswāsil khannās (4) allażī yuwaswisu fī ṣudụrin nās (5) minal jinnati wan nās (6)",
-   "translation": "Katakanlah: “Aku berlindung kepada Tuhan (yang memelihara dan menguasai) manusia. (1) Raja manusia. (2) Sembahan manusia. (3) Dari kejahatan (bisikan) syaitan yang biasa bersembunyi, (4) yang membisikkan (kejahatan) ke dalam dada manusia, (5) dari (golongan) jin dan manusia. (6)",
-   "notes": "Dibaca 3x",
-   "fawaid": "Rasulullah shallallahu 'alaihi wa sallam bersabda: Katakanlah (bacalah surat), Qulhuwallahu ahad, dan Al-Muawwidzatain (Al-Falaq dan An-Naas) ketika petang dan pagi tiga kali, maka dengan ayat ini akan mencukupkanmu (menjagamu) dari segala sesuatu.",
-   "source": "HR. Abu Dawud No. 1523 dan an-Nasa'i No. 1337. Al Hafizh Abu Thohir mengatakan bahwa sanad hadits ini hasan"
-  },
-  {
-   "title": "Doa Meminta Ilmu Yang Bermanfaat, Rezeki yang Baik, dan Amal yang Diterima",
-   "arabic": "اللَّهُمَّ إِنِّى أَسْأَلُكَ عِلْمًا نَافِعًا وَرِزْقًا طَيِّبًا وَعَمَلاً مُتَقَبَّلاً",
-   "latin": "Allahumma innī as'aluka 'ilman nāfi'a, wa rizqan thayyiba, wa 'amalan mutaqabbala",
-   "translation": "Ya Allah, sungguh aku memohon kepada-Mu ilmu yang bermanfaat (bagi diriku dan orang lain), rizki yang halal dan amal yang diterima (di sisi-Mu dan mendapatkan ganjaran yang baik).",
-   "notes": "Dibaca 1x setelah salam dari shalat Shubuh",
-   "fawaid": "Ilmu yang bermanfaat adalah bekal yang memudahkan kehidupan, mendapatkan rizki yang baik menjadi tujuan seseorang dalam bekerja, dan amalan yang diterima harapan setiap orang yang beramal. Maka seyogyanya seorang hamba senantiasa meminta 3 hal ini pada setiap pagi sebelum memulai berbagai aktivitasnya.",
-   "source": "HR. Ibnu Majah No. 925 dan Ahmad 6: 305, 322. Al-Hafizh Abu Thohir mengatakan bahwa hadits ini shahih"
+   "step": 13,
+   "title": "Doa penutup",
+   "arabic": "",
+   "latin": "",
+   "translation": "",
+   "notes": "",
+   "fawaid": "Wirid kemudian ditutup dengan doa sesuai dengan harapan masing-masing.",
+   "source": "NU Online — Susunan Wirid Sesudah Shalat",
+   "links": [],
+   "from": "nu"
   }
  ],
  "sourceNU": {
@@ -206,5 +380,12 @@
   "url": "https://islam.nu.or.id/doa/doa-sebelum-berwudhu-M7e7B",
   "author": "Alhafiz Kurniawan",
   "published": "2020-12-14"
+ },
+ "sourceWirid": {
+  "name": "NU Online (islam.nu.or.id)",
+  "url": "https://islam.nu.or.id/shalat/susunan-bacaan-wirid-sesudah-shalat-lima-waktu-aLgk4",
+  "author": "Mahbib Khoiron",
+  "published": "2017-07-02",
+  "title": "Susunan Bacaan Wirid Sesudah Shalat Lima Waktu"
  }
 }

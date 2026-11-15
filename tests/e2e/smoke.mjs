@@ -306,8 +306,9 @@ await step('Doa wudhu & wirid setelah salat (tersimpan di aplikasi)', async () =
   assert.match(await text('.dzikir:first-child .doa-ref'), /NU Online/)
   await go('/doa/salat')
   await page.waitForSelector('.dzikir')
-  assert.equal(await count('.dzikir'), 13)
-  assert.match(await text('.dzikir:first-child .doa-ref'), /HR\. Muslim/)
+  assert.equal(await count('.dzikir'), 20)
+  assert.match(await text('.dzikir:first-child .doa-ref'), /NU Online/)
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
   const c = '.dzikir:first-child [data-count]'
   for (let i = 0; i < 3; i++) await page.$eval(c, (b) => b.click())
   assert.equal(await text(c), '3 / 3')
