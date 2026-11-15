@@ -32,7 +32,7 @@ Terakhir diperbarui: 15 November 2026.
 ## Belum teruji — mohon diuji setelah deploy
 | Hal | Catatan |
 |---|---|
-| Deploy Cloudflare Pages, domain, proxy `/api/quran` | Belum dilakukan; Cloudflare tidak dapat dijangkau dari lingkungan pembuatan. |
+| Deploy Cloudflare (Workers), domain, proxy `/api/quran` | Konfigurasi lolos `wrangler deploy --dry-run`; deploy sungguhan dijalankan oleh Cloudflare saat push ke `main` dan belum saya lihat hasilnya. |
 | Papan donatur di D1 sungguhan + webhook Trakteer sungguhan | Logika teruji di SQLite lokal. Tabel belum dibuat di database `quran`; lihat [INFAQ.md](INFAQ.md). |
 | Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
 | Notifikasi dan kompas kiblat | Memerlukan perangkat fisik. |
@@ -40,7 +40,7 @@ Terakhir diperbarui: 15 November 2026.
 | Instalasi PWA di ponsel, Lighthouse, iOS Safari | Belum diuji. |
 
 ## Belum dikerjakan / berbeda dari spesifikasi
-- **Data lokal cadangan terakhir** (`/data/`, dari paket `quran-json`) hanya berisi teks, terjemahan, dan transliterasi ejaan Inggris — tanpa audio dan tanpa tafsir. Berkas ini disajikan dari domain aplikasi, jadi tetap memerlukan koneksi ke situs; untuk pemakaian tanpa internet gunakan *Kelola Offline → Unduh semua teks*.
+- **Data lokal cadangan terakhir** (`/data/`, dari paket `quran-json`) hanya berisi **teks Arab** — tanpa terjemahan, transliterasi, audio, dan tafsir (terjemahan paket itu tidak dipublikasikan karena hak redistribusinya tidak jelas). Berkas ini disajikan dari domain aplikasi, jadi tetap memerlukan koneksi ke situs; untuk pemakaian tanpa internet gunakan *Kelola Offline → Unduh semua teks*.
 - **Pengingat hanya berjalan selama aplikasi terbuka atau masih hidup di latar.** Tidak ada server push (akan memerlukan layanan tambahan). Android dapat menghentikan aplikasi di latar, sehingga pengingat tidak dijamin tepat waktu.
 - **Hari besar Islam pada kalender** dihitung dari kalender Umm al-Qura dan dapat berbeda 1–2 hari dari ketetapan pemerintah RI; tersedia koreksi ±2 hari di pengaturan.
 - **Jadwal salat** adalah hisab lokal (Subuh 20°, Isya 18°, ihtiyat 2 menit) dan dapat berbeda 1–2 menit dari jadwal resmi Kemenag. Waktu ditampilkan dalam zona waktu perangkat.

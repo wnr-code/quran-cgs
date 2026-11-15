@@ -44,7 +44,7 @@ export default async function infaq(root) {
         ? `<ul class="donor-list">${data.latest.map((r) => `<li><span class="medal">${icon('heart')}</span><span class="donor-name">${esc(r.name)}<small>${r.quantity ? `${r.quantity} ${esc(r.unit)} · ` : ''}${formatDateTime(r.at)}</small></span><b>${formatRupiah(r.amount)}</b></li>`).join('')}</ul><p class="hint">Total terkumpul: ${formatRupiah(data.totals.amount)} dari ${data.totals.count} infaq.</p>`
         : '<p class="muted">Belum ada donatur tercatat.</p>'
     } catch {
-      const msg = `<div class="state small">${icon('cloudOff', 'state-icon')}<p>${navigator.onLine ? 'Papan donatur belum aktif atau tidak dapat dihubungi. Fitur ini memerlukan Cloudflare Pages Functions + D1 (lihat docs/INFAQ.md).' : 'Papan donatur memerlukan koneksi internet.'}</p><button class="btn sm" data-reload>${icon('refresh')}Muat ulang</button></div>`
+      const msg = `<div class="state small">${icon('cloudOff', 'state-icon')}<p>${navigator.onLine ? 'Papan donatur belum aktif atau tidak dapat dihubungi. Fitur ini memerlukan Cloudflare Workers + D1 (lihat docs/INFAQ.md).' : 'Papan donatur memerlukan koneksi internet.'}</p><button class="btn sm" data-reload>${icon('refresh')}Muat ulang</button></div>`
       topEl.innerHTML = msg
       latestEl.innerHTML = '<p class="muted">—</p>'
     }

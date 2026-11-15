@@ -1,6 +1,6 @@
 # Infaq pengembang (Trakteer) + papan donatur
 
-Alur: pengguna menekan tombol Infaq → halaman Trakteer Anda terbuka → setelah pembayaran, Trakteer memanggil webhook → Pages Function menyimpan ke D1 → halaman Infaq menampilkan nama donatur dan Top Donatur Harian / Mingguan / Bulanan.
+Alur: pengguna menekan tombol Infaq → halaman Trakteer Anda terbuka → setelah pembayaran, Trakteer memanggil webhook → Worker menyimpan ke D1 → halaman Infaq menampilkan nama donatur dan Top Donatur Harian / Mingguan / Bulanan.
 
 ## 1. Tombol infaq
 Sudah diatur ke `https://trakteer.id/anichinapk/tip` (`src/config.js`). Untuk mengganti, isi variabel lingkungan `VITE_TRAKTEER_USERNAME` lalu deploy ulang.
@@ -12,13 +12,13 @@ Database `quran` (`ff7eac46-cb79-409d-9edd-a743f299b50e`) sudah didaftarkan seba
 2. Tempel isi `migrations/0001_donations.sql`, jalankan.
    (Atau: `npx wrangler d1 execute quran --remote --file migrations/0001_donations.sql`.)
 
-Catatan: `name` di `wrangler.toml` (`quran-cgs`) harus sama dengan nama proyek Pages Anda; ubah bila berbeda. Karena `wrangler.toml` ada, binding proyek dikelola dari berkas itu, bukan dari dashboard.
+Catatan: `name` di `wrangler.toml` (`quran-cgs`) harus sama dengan nama Worker Anda; ubah bila berbeda. Binding dikelola dari berkas itu.
 
 ## 3. Token webhook
 1. Trakteer → **Integrations → Webhook**: aktifkan, URL
    `https://quran.cgs.my.id/api/trakteer-webhook`
 2. Salin **Webhook Token** dari halaman tersebut.
-3. Proyek Pages → **Settings → Variables and Secrets → Add**: tipe **Secret**, nama **`TRAKTEER_WEBHOOK_TOKEN`**, nilai token tadi.
+3. Worker `quran-cgs` → **Settings → Variables and Secrets → Add**: tipe **Secret**, nama **`TRAKTEER_WEBHOOK_TOKEN`**, nilai token tadi.
 4. Deploy ulang (binding dan secret baru berlaku pada deployment berikutnya).
 
 ## 4. Uji

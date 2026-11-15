@@ -1,14 +1,14 @@
 # QuranKu
 
 Aplikasi Al-Qur'an digital berbahasa Indonesia: **PWA** (web) + **Android TWA** (Google Play) dari satu basis kode.
-Gratis, tanpa iklan, tanpa akun, tanpa pelacak. Seluruhnya berjalan di layanan free-tier (Cloudflare Pages).
+Gratis, tanpa iklan, tanpa akun, tanpa pelacak. Seluruhnya berjalan di layanan free-tier (Cloudflare Workers).
 
 | | |
 |---|---|
 | Nama | QuranKu |
 | Package Android | `id.cgs.quranku` |
 | Domain | https://quran.cgs.my.id |
-| Hosting | Cloudflare Pages (build `npm run build`, output `dist`) |
+| Hosting | Cloudflare Workers + aset statis (`npx wrangler deploy`; build otomatis, output `dist`) |
 | Teknologi | HTML, CSS, JavaScript ES Modules, Vite, IndexedDB, Service Worker, Cache API |
 
 ## Menjalankan
@@ -23,7 +23,7 @@ npm run preview    # menyajikan dist/ di http://localhost:4173
 
 Service worker hanya aktif pada hasil build (`npm run build && npm run preview`), tidak pada `npm run dev`.
 
-Konfigurasi opsional (salin `.env.example` → `.env`, atau isi di Cloudflare Pages → Settings → Environment variables):
+Konfigurasi opsional (salin `.env.example` → `.env`, atau isi di Cloudflare → Worker → Settings → Builds → Variables):
 
 | Variabel | Isi |
 |---|---|
@@ -58,7 +58,8 @@ src/components/       navbar, modal, kartu ayat, toolbar baca, pemutar audio
 src/utils/            angka Arab-Indic, metadata juz/halaman, Hijriah, validasi
 src/data/             metadata Quran (hasil scripts/gen-meta.mjs), Asmaul Husna, kota
 src/styles/           tema, komponen, reader, responsif
-functions/            Cloudflare Pages Functions: proxy EQuran, webhook Trakteer, papan donatur
+functions/            handler API: proxy EQuran, webhook Trakteer, papan donatur
+worker/               entry Cloudflare Worker (merutekan /api/* + aset statis)
 migrations/           skema D1 untuk papan donatur
 android/              proyek Android TWA (Gradle) + twa-manifest.json (Bubblewrap)
 store/                materi Google Play (deskripsi, grafis, screenshot, Data Safety)
@@ -72,7 +73,7 @@ docs/                 panduan deploy, Android, infaq, status fitur
 |---|---|
 | Teks Arab, terjemahan, transliterasi, tafsir, audio | [EQuran.id API v2](https://equran.id/apidev/v2) (utama) |
 | Cadangan teks & audio | [Al Quran Cloud API](https://alquran.cloud/api) (`quran-uthmani`, `id.indonesian`, `en.transliteration`) |
-| Cadangan terakhir (teks saja) | paket [`quran-json`](https://github.com/risan/quran-json) (CC BY 4.0), disalin ke `public/data/` saat build |
+| Cadangan terakhir (teks Arab saja) | paket [`quran-json`](https://github.com/risan/quran-json) (CC BY 4.0), disalin ke `public/data/` saat build |
 | Juz, halaman mushaf (Madinah 604 hlm.), sajdah | paket `quran-meta` (riwayat Hafs) |
 | Asmaul Husna | [wnr-code/asmaul_husna](https://github.com/wnr-code/asmaul_husna) (MIT) |
 | Jadwal salat | hisab lokal dengan pustaka `adhan` |
@@ -84,7 +85,7 @@ Tidak ada ayat, tafsir, doa, atau nomor halaman yang dibuat oleh aplikasi. Satu 
 
 ## Dokumentasi
 
-- [docs/DEPLOY-CLOUDFLARE.md](docs/DEPLOY-CLOUDFLARE.md) — deploy ke Cloudflare Pages + domain
+- [docs/DEPLOY-CLOUDFLARE.md](docs/DEPLOY-CLOUDFLARE.md) — deploy ke Cloudflare + domain
 - [docs/ANDROID.md](docs/ANDROID.md) — build APK/AAB, signing, asset links, Play Console
 - [docs/INFAQ.md](docs/INFAQ.md) — Trakteer + papan donatur (D1)
 - [docs/STATUS.md](docs/STATUS.md) — **apa yang sudah diuji, apa yang belum, dan batasan**
