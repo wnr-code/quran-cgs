@@ -3,6 +3,7 @@ import { getSurah, getTafsir, forgetSurah, clearMemory } from '../api/api-adapte
 import { surahRepo, tafsirRepo, audioRepo } from '../database/repositories.js'
 import { emit, toast } from '../utils/helpers.js'
 import { getAudioState } from './audio.js'
+import { APP } from '../config.js'
 
 export const AUDIO_CACHE = 'quranku-audio-v1'
 
@@ -27,12 +28,56 @@ export async function registerServiceWorker() {
       document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && !getAudioState().playing && reload())
     })
     // Aplikasi yang lama terbuka (TWA/PWA) tetap memeriksa versi baru saat kembali ke layar.
-    document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && navigator.onLine && reg.update().catch(() => {}))
+    document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && navigator.onLine && checkForUpdate().catch(() => {}))
+    // PWA terpasang sering dibuka dari keadaan tersimpan (tanpa navigasi baru), jadi versi diperiksa sendiri saat mulai.
+    setTimeout(() => navigator.onLine && checkForUpdate().catch(() => {}), 3000)
     return reg
   } catch (e) {
     console.warn('[sw] gagal mendaftar', e)
     return null
   }
+}
+
+/**
+ * Memeriksa versi yang ada di server dan memasangnya bila berbeda dari yang sedang berjalan.
+ * Mengembalikan 'latest' | 'updating' | 'offline'. Dipanggil saat aplikasi dibuka dan dari tombol "Periksa pembaruan".
+ */
+export async function checkForUpdate({ force = false } = {}) {
+  if (!import.meta.env.PROD) return 'latest'
+  let remote
+  try {
+    const res = await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+    if (!res.ok) throw new Error(String(res.status))
+    remote = await res.json()
+  } catch {
+    return 'offline'
+  }
+  const same = remote.version === APP.version && remote.number === APP.build
+  if (same && !force) return 'latest'
+  const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null
+  if (same) {
+    if (reg) reg.update().catch(() => {})
+    return 'latest'
+  }
+  // Paling banyak satu kali muat ulang per build, supaya tidak pernah terjadi lingkaran muat ulang.
+  const mark = 'qk-update:' + remote.version + ':' + remote.number
+  if (!reg) {
+    if (!force && sessionStorage.getItem(mark)) return 'latest'
+    sessionStorage.setItem(mark, '1')
+    location.reload()
+    return 'updating'
+  }
+  await reg.update().catch(() => {})
+  // Service Worker baru akan mengambil alih lalu halaman dimuat ulang (lihat controllerchange di atas).
+  // Jaring pengaman: bila setelah 20 detik belum berganti (SW tersangkut), buang cache cangkang lalu muat ulang.
+  if (force)
+    setTimeout(async () => {
+      try {
+        for (const k of await caches.keys()) if (k.startsWith('quranku-shell-')) await caches.delete(k)
+      } catch {}
+      location.reload()
+    }, 20000)
+  return 'updating'
 }
 
 export function watchConnectivity() {

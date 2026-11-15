@@ -75,3 +75,13 @@ Terakhir diperbarui: 15 November 2026.
   - Suara adzan: `cdn.aladhan.com` (6 rekaman yang tercantum di aladhan.com/play), diperiksa oleh `tests/live/adzan.mjs`.
 - **Kompas kiblat** baru: piringan SVG berderajat, penanda Ka'bah, pusat derajat, cahaya & getar saat tepat kiblat, kartu statistik.
 - **Versi naik otomatis** tiap merge ke `main` (`.github/workflows/version.yml`, patch +1).
+
+## Pembaruan 1.3.0 — Navigasi mengambang, baca tanpa gangguan, Murottal & Asmaul Husna baru
+
+- **Versi & pembaruan PWA terpasang.** Build menulis `version.json` (tidak pernah di-cache). Aplikasi membandingkannya saat dibuka / kembali ke layar dan memasang versi baru sendiri (`checkForUpdate` di `src/services/offline.js`). Di **Lainnya** ada kartu versi + tombol **Periksa**.
+  - Catatan: angka "versi" di *Info aplikasi* Android untuk PWA yang dipasang lewat Chrome (WebAPK) dibuat oleh Chrome, **bukan** versi QuranKu, dan tidak bisa diatur dari situs. Versi yang benar adalah yang tertulis di Lainnya/Tentang. APK (TWA) memakai versi `package.json`.
+  - `version.yml`: bila PR sudah menaikkan versi sendiri, angka itu dipakai apa adanya; selain itu patch +1.
+- **Navigasi bawah mengambang** dengan tombol tengah bulat terangkat (Quran). Di ponsel, halaman baca tampil tanpa navigasi bawah.
+- **Baca tanpa gangguan**: pada mode Mushaf & Halaman, menyentuh teks ayat tidak membuka apa pun; terjemahan & aksi dibuka dengan menyentuh **nomor ayat**.
+- **Murottal**: pemutar baru (piringan berputar, riak, ekualiser saat memutar), baris surah aktif ditandai, pengaturan pemutar dilipat.
+- **Asmaul Husna**: kartu baru, ayat QS. Al-A'raf 7:180 (diambil dari sumber teks aplikasi), tampilan detail dengan Sebelumnya/Berikutnya/Salin.

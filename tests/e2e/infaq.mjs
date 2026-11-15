@@ -42,13 +42,19 @@ const step = async (name, fn) => {
   }
 }
 
+// Navigasi bawah mengambang menutupi tepi bawah layar: gulir elemen ke tengah dulu sebelum disentuh.
+const tap = async (sel) => {
+  await page.$eval(sel, (e) => e.scrollIntoView({ block: 'center' }))
+  await page.click(sel)
+}
+
 await step('Formulir infaq tampil tanpa nama penyedia pembayaran', async () => {
   await page.goto(`${BASE}/#/infaq`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('[data-pay]', T)
   const text = await page.$eval('#view', (e) => e.textContent)
   assert.ok(!/trakteer/i.test(text), 'nama penyedia masih tampil')
   assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp10.000')
-  await page.click('[data-q="5"]')
+  await tap('[data-q="5"]')
   assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp25.000')
   await page.type('[data-custom]', '15000')
   assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp15.000')
@@ -56,10 +62,10 @@ await step('Formulir infaq tampil tanpa nama penyedia pembayaran', async () => {
   await page.screenshot({ path: `${SHOTS}/10-infaq.png` })
 })
 await step('Mode halaman pembayaran: menunggu → otomatis “terima kasih” setelah webhook', async () => {
-  await page.click('[data-pay]')
+  await tap('[data-pay]')
   await page.waitForSelector('[data-open]', T)
   // Popup pembayaran: bingkai di dalam aplikasi, bukan tab baru
-  await page.click('[data-open]')
+  await tap('[data-open]')
   await page.waitForSelector('.sheet-wrap.open iframe[data-frame]', T)
   assert.equal(await page.$eval('iframe[data-frame]', (f) => f.getAttribute('src')), 'https://trakteer.id/lanteraku/tip/embed/modal')
   assert.equal(page.url().startsWith(BASE), true, 'tetap di halaman aplikasi')
@@ -84,10 +90,10 @@ await step('Mode halaman pembayaran: menunggu → otomatis “terima kasih” se
 await step('Mode QRIS: kode QR digambar, dapat diunduh, lalu terkonfirmasi lewat ID transaksi', async () => {
   fakeQris = true
   await page.setBypassServiceWorker(true) // permintaan lewat Service Worker tidak bisa dicegat penguji
-  await page.click('[data-again]')
+  await tap('[data-again]')
   await page.waitForSelector('[data-pay]', T)
-  await page.click('[data-q="2"]')
-  await page.click('[data-pay]')
+  await tap('[data-q="2"]')
+  await tap('[data-pay]')
   await page.waitForSelector('[data-qr]', T)
   await page.waitForFunction(() => document.querySelector('[data-qr]').width > 200, T)
   const dark = await page.$eval('[data-qr]', (c) => {
@@ -101,13 +107,13 @@ await step('Mode QRIS: kode QR digambar, dapat diunduh, lalu terkonfirmasi lewat
   await page.screenshot({ path: `${SHOTS}/14-infaq-qris.png` })
   // Donatur memakai nama lain saat membayar → tidak otomatis; konfirmasi dengan ID transaksi
   await webhook({ transaction_id: 'e2e-b-' + uniq, supporter_name: 'Orang Lain ' + uniq, price: 10000, quantity: 2, unit: 'Kopi' })
-  await page.click('.infaq-claim summary')
+  await tap('.infaq-claim summary')
   await page.type('[data-ref]', 'id-salah-123')
-  await page.click('[data-claim]')
+  await tap('[data-claim]')
   await page.waitForFunction(() => /belum ditemukan/.test(document.querySelector('[data-claim-msg]').textContent), T)
   await page.$eval('[data-ref]', (i) => (i.value = ''))
   await page.type('[data-ref]', 'e2e-b-' + uniq)
-  await page.click('[data-claim]')
+  await tap('[data-claim]')
   await page.waitForSelector('.infaq-result.ok', T)
 })
 await step('Tidak ada error JavaScript', async () => assert.deepEqual(errors, []))
