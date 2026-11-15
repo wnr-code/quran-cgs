@@ -334,6 +334,80 @@ await step('Membaca tanpa gangguan: sentuh teks ayat tidak membuka apa pun, nomo
   assert.equal(await page.$eval('.navbar', (e) => getComputedStyle(e).display), 'none')
   await page.$eval('.rd-tabs [data-mode="continuous"]', (b) => b.click())
 })
+await step('Teks ayat rapi (rata tengah) & pilih teks → menu kecil: Tandai, Salin, Hapus tanda', async () => {
+  await go('/surah/36')
+  await page.waitForSelector('.rd-tabs [data-mode]')
+  await page.$eval('.rd-tabs [data-mode="continuous"]', (b) => b.click())
+  await page.waitForSelector('.mushaf-flow .ayah[data-a="3"] .ayah-text')
+  assert.equal(await page.$eval('.mushaf-flow', (e) => getComputedStyle(e).textAlign), 'center')
+  // Jarak antarkata alami: lebar spasi antara dua kata bertetangga tidak melebihi 0,6 × ukuran huruf.
+  const gap = await page.evaluate(() => {
+    const el = document.querySelector('.mushaf-flow .ayah[data-a="3"] .ayah-text')
+    const node = el.firstChild
+    const i = node.data.indexOf(' ')
+    const r = document.createRange()
+    r.setStart(node, i)
+    r.setEnd(node, i + 1)
+    return r.getBoundingClientRect().width / parseFloat(getComputedStyle(el).fontSize)
+  })
+  assert.ok(gap < 0.6, 'spasi antarkata terlalu lebar: ' + gap.toFixed(2) + 'em')
+  // Pilih kata kedua ayat 3 (seperti tekan lama lalu geser).
+  const selectWord = () => page.evaluate(() => {
+    const node = document.querySelector('.mushaf-flow .ayah[data-a="3"] .ayah-text').firstChild
+    const a = node.data.indexOf(' ') + 1
+    const b = node.data.indexOf(' ', a)
+    const r = document.createRange()
+    r.setStart(node, a + 1) // sengaja mulai di tengah kata → dibulatkan ke kata utuh
+    r.setEnd(node, b)
+    const sel = getSelection()
+    sel.removeAllRanges()
+    sel.addRange(r)
+    return node.data.slice(a, b)
+  })
+  const word = await selectWord()
+  await page.waitForSelector('.sel-menu:not([hidden])')
+  assert.deepEqual(await page.$$eval('.sel-menu button', (b) => b.map((x) => x.textContent.trim())), ['Salin', 'Tandai', 'Bookmark', 'Bagikan', 'Lainnya'])
+  const pos = await page.evaluate(() => {
+    const m = document.querySelector('.sel-menu').getBoundingClientRect()
+    return m.left >= 0 && m.right <= innerWidth && m.top >= 0 && m.bottom <= innerHeight
+  })
+  assert.equal(pos, true, 'menu berada di dalam layar')
+  await shot('24-pilih-teks')
+  await page.click('.sel-menu [data-sel="mark"]')
+  await page.waitForSelector('.mushaf-flow .ayah[data-a="3"] mark.hl')
+  assert.equal(await text('.mushaf-flow .ayah[data-a="3"] mark.hl'), word)
+  assert.equal(await count('.sel-menu:not([hidden])'), 0)
+  assert.equal(await count('.sheet-wrap'), 0)
+  // Tanda tersimpan: tetap ada setelah dimuat ulang dan di mode lain.
+  await page.reload({ waitUntil: 'networkidle2' })
+  await page.waitForSelector('.mushaf-flow .ayah[data-a="3"] mark.hl')
+  await page.$eval('.rd-tabs [data-mode="focus"]', (b) => b.click())
+  await page.waitForSelector('.mushaf-focus .ayah[data-a="3"] .ayah-ar mark.hl')
+  await page.$eval('.rd-tabs [data-mode="continuous"]', (b) => b.click())
+  await page.waitForSelector('.mushaf-flow .ayah[data-a="3"] mark.hl')
+  // Sentuh bagian bertanda → menu menawarkan "Hapus tanda".
+  await page.$eval('.mushaf-flow .ayah[data-a="3"] mark.hl', (m) => m.click())
+  await page.waitForFunction(() => { const b = document.querySelector('.sel-menu:not([hidden]) [data-sel="mark"]'); return b && b.textContent.trim() === 'Hapus tanda' })
+  await page.click('.sel-menu [data-sel="mark"]')
+  await page.waitForFunction(() => !document.querySelector('.mushaf-flow mark.hl'))
+  assert.equal(await page.evaluate(() => localStorage.getItem('quranku:tanda')), '{}')
+  // Pilihan lintas ayat → Salin menyertakan rujukan.
+  await page.evaluate(() => {
+    const a = document.querySelector('.mushaf-flow .ayah[data-a="2"] .ayah-text').firstChild
+    const b = document.querySelector('.mushaf-flow .ayah[data-a="3"] .ayah-text').firstChild
+    const r = document.createRange()
+    r.setStart(a, 0)
+    r.setEnd(b, b.data.length)
+    getSelection().removeAllRanges()
+    getSelection().addRange(r)
+    window.__copied = ''
+    navigator.clipboard.writeText = async (t) => { window.__copied = t }
+  })
+  await page.waitForSelector('.sel-menu:not([hidden])')
+  await page.click('.sel-menu [data-sel="copy"]')
+  await page.waitForFunction(() => window.__copied)
+  assert.match(await page.evaluate(() => window.__copied), /\(QS\. .+ 36:2–3\)$/)
+})
 await step('Navigasi mengambang dengan tombol tengah (FAB)', async () => {
   await go('/')
   await page.waitForSelector('.navbar .nav-fab .fab-disc')

@@ -7,8 +7,8 @@ const KEY = 'quranku:settings'
 export const READER_DEFAULTS = {
   mode: 'continuous', // 'continuous' (mushaf mengalir) | 'focus' (per ayat + terjemahan) | 'page' (per halaman, geser ke samping)
   preset: 'ivory', // 'classic' | 'ivory' | 'dark' | 'night'
-  fontSize: 30,
-  lineHeight: 2.4,
+  fontSize: 28,
+  lineHeight: 2.1,
   gap: 18, // jarak antar blok/ayat (px)
   width: 760, // lebar area bacaan (px)
   margin: 20, // margin kiri-kanan (px)
@@ -41,6 +41,8 @@ function load() {
   } catch {}
   const s = { ...DEFAULTS, ...saved }
   for (const k of ['reader', 'audio', 'goal', 'reminders', 'adzan']) s[k] = { ...DEFAULTS[k], ...(saved[k] || {}) }
+  // 1.3.2: bawaan lama (30px / 2,4) terasa renggang — pindahkan ke bawaan baru bila belum pernah diubah pengguna.
+  if (s.reader.fontSize === 30 && s.reader.lineHeight === 2.4) Object.assign(s.reader, { fontSize: 28, lineHeight: 2.1 })
   return s
 }
 

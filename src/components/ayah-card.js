@@ -7,6 +7,7 @@ import { isSajda, isPageStart, pageOf, juzOf } from '../utils/quran-meta.js'
 import { bookmarkRepo, noteRepo } from '../database/repositories.js'
 import { playAyah } from '../services/audio.js'
 import { APP } from '../config.js'
+import { highlightHtml } from '../services/highlight.js'
 
 const numHtml = (n) => `<span class="ayah-num" aria-label="Ayat ${n}">${ayahMarker(n)}</span>`
 const sajdaHtml = (s, a) => (isSajda(s, a) ? '<span class="sajda" title="Ayat sajdah">۩</span>' : '')
@@ -21,7 +22,7 @@ export function flowHtml(surah, marks) {
     .map((a) => {
       const k = a.nomorAyat
       const cls = (marks.bookmarks.has(k) ? ' is-bookmarked' : '') + (marks.notes.has(k) ? ' has-note' : '')
-      return `${pageSep(n, k)}<span class="ayah${cls}" data-a="${k}" tabindex="0" role="button"><span class="ayah-text">${esc(a.teksArab)}</span>${sajdaHtml(n, k)}&nbsp;${numHtml(k)}</span> `
+      return `${pageSep(n, k)}<span class="ayah${cls}" data-a="${k}" tabindex="0" role="button"><span class="ayah-text">${highlightHtml(n, k, a.teksArab)}</span>${sajdaHtml(n, k)}&nbsp;${numHtml(k)}</span> `
     })
     .join('')
 }
@@ -45,7 +46,7 @@ export function focusHtml(surah, marks) {
             <button class="icon-btn sm" data-act="more" aria-label="Catatan & aksi lain ayat ${k}">${icon('more')}</button>
           </span>
         </header>
-        <p class="ayah-ar" dir="rtl" lang="ar">${esc(a.teksArab)}${sajdaHtml(n, k)}</p>
+        <p class="ayah-ar" dir="rtl" lang="ar"><span class="ayah-text">${highlightHtml(n, k, a.teksArab)}</span>${sajdaHtml(n, k)}</p>
         ${a.teksLatin ? `<p class="ayah-latin" dir="ltr">${esc(a.teksLatin)}</p>` : ''}
         ${a.teksIndonesia ? `<p class="ayah-id" dir="ltr">${esc(a.teksIndonesia)}</p>` : ''}
       </article>`
@@ -78,7 +79,7 @@ export function pagesHtml(surah, marks, { basmalah = '' } = {}) {
         .map((a) => {
           const k = a.nomorAyat
           const cls = (marks.bookmarks.has(k) ? ' is-bookmarked' : '') + (marks.notes.has(k) ? ' has-note' : '')
-          return `<span class="ayah${cls}" data-a="${k}" tabindex="0" role="button"><span class="ayah-text">${esc(a.teksArab)}</span>${sajdaHtml(n, k)}&nbsp;${numHtml(k)}</span> `
+          return `<span class="ayah${cls}" data-a="${k}" tabindex="0" role="button"><span class="ayah-text">${highlightHtml(n, k, a.teksArab)}</span>${sajdaHtml(n, k)}&nbsp;${numHtml(k)}</span> `
         })
         .join('')
       return `<section class="mpage" data-p="${g.page}" data-first="${first}" data-last="${last}" aria-label="Halaman ${g.page}">

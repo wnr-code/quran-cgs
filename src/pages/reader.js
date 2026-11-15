@@ -5,6 +5,7 @@ import { skeleton, errorState } from '../components/navbar.js'
 import { flowHtml, focusHtml, pagesHtml, openAyahSheet, ayahShareText } from '../components/ayah-card.js'
 import { applyReaderStyle, openReaderSettings, openJumpSheet } from '../components/reading-toolbar.js'
 import { openSheet } from '../components/modal.js'
+import { initSelectionMenu } from '../components/selection-menu.js'
 import { getSettings, saveSettings } from '../services/storage.js'
 import { savePosition, getLastRead, addHistory } from '../services/reading-position.js'
 import { markRead } from '../services/progress.js'
@@ -403,7 +404,8 @@ export default async function reader(root, { params, query, initial }) {
       if (actions[act]) actions[act]()
       return
     }
-    if (e.target.closest('a, button, input, .rd-bar')) return
+    if (e.target.closest('a, button, input, .rd-bar, mark.hl')) return
+    if (window.getSelection && !window.getSelection().isCollapsed) return // sedang memilih teks
     // Mode mushaf/halaman: menyentuh teks TIDAK membuka apa pun agar bacaan tidak terganggu.
     // Terjemahan & aksi ayat hanya dibuka lewat nomor ayat (seperti quran.com).
     const num = e.target.closest('.mushaf-flow .ayah-num, .mushaf-pages .ayah-num')
@@ -443,6 +445,8 @@ export default async function reader(root, { params, query, initial }) {
   }), on('audio:state', highlightPlaying)]
 
   renderContent()
+  // Tekan lama lalu geser untuk memilih teks → menu kecil (Salin, Tandai, Bookmark, Bagikan, Lainnya).
+  const offSelection = initSelectionMenu(content, { surah, onBookmark: (a) => toggleBookmark(a), onMore: (a) => openAyahSheet(surah, a, sheetOpts) })
   updateInfo()
   addHistory(n, current, surah.namaLatin)
 
@@ -470,6 +474,7 @@ export default async function reader(root, { params, query, initial }) {
     document.removeEventListener('fullscreenchange', onFsChange)
     window.removeEventListener('pagehide', onHide)
     offAudio.forEach((f) => f())
+    offSelection()
     document.body.classList.remove('reading-mode', 'reader-paged')
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
   }
