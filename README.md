@@ -94,7 +94,7 @@ docs/                 panduan deploy, Android, infaq, status fitur
 | Ikon font | [Font Awesome Free 6.7.2](https://fontawesome.com) (subset, disajikan sendiri) | ikon CC BY 4.0, font SIL OFL 1.1 |
 | Pembayaran infaq | [Trakteer](https://trakteer.id) | — |
 
-Daftar lengkap beserta keterangan pemakaian tampil di aplikasi: **Lainnya → Tentang → Sumber Data** (`src/data/sources.js`).
+Daftar lengkap beserta keterangan pemakaian tampil di aplikasi: **Lainnya → Sumber Data** (`src/data/sources.js`).
 
 Tidak ada ayat, tafsir, doa, atau nomor halaman yang dibuat oleh aplikasi. Satu surah tidak pernah menggabungkan dua edisi yang berbeda.
 

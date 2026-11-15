@@ -22,7 +22,8 @@ const GROUPS = [
   ]],
   ['Aplikasi', [
     ['/pengaturan', 'settings', 'Pengaturan', 'Tema, angka, cadangan'],
-    ['/tentang', 'info', 'Tentang & Privasi', 'Sumber data, kebijakan']
+    ['/tentang', 'info', 'Tentang', 'Fitur, lisensi, privasi'],
+    ['/sumber', 'book', 'Sumber Data', 'Asal data & terima kasih']
   ]]
 ]
 import { installApp, shouldOfferInstall } from '../services/install.js'

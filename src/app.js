@@ -40,6 +40,7 @@ addRoute('/offline', () => import('./pages/offline.js'))
 addRoute('/infaq', () => import('./pages/infaq.js'))
 addRoute('/pengaturan', () => import('./pages/settings.js'))
 addRoute('/tentang', () => import('./pages/about.js'))
+addRoute('/sumber', () => import('./pages/sources.js'))
 // Pintasan PWA "Lanjutkan membaca"
 addRoute('/lanjut', async () => ({
   default: async () => {

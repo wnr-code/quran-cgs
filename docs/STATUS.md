@@ -245,3 +245,9 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Layar pembuka **bawaan sistem** (ikon + warna latar sebelum halaman dimuat, dari `manifest.webmanifest`) tidak dapat dianimasikan atau diberi tulisan; layar kustom tampil tepat setelahnya dengan warna latar yang sama.
 - **Tema kustom** (Pengaturan → Tema → Kustom): 8 palet siap pakai + tiga warna pilihan (utama, aksen, latar). Variabel lain diturunkan di `src/utils/theme.js`; terang/gelap dikenali dari warna latar, warna utama digeser bila kontrasnya < 3. Disimpan di `settings.customTheme`, ikut ekspor/impor cadangan; variabel jadi disimpan di `quranku:theme-vars` supaya `public/theme-init.js` memasangnya sebelum render pertama.
 - Batasan tema kustom: halaman baca Al-Qur'an memakai preset sendiri ("Aa"); beberapa hiasan berwarna tetap (garis emas ornamen, halaman kiblat/infaq) tidak ikut berubah. Diuji di Chromium desktop (390 px), belum di HP.
+
+## 1.3.25 — Halaman Sumber Data terpisah
+
+- Rute baru `#/sumber` (`src/pages/sources.js`): ucapan terima kasih kepada seluruh sumber, lalu daftar sumber. Alamat sumber ditulis sebagai teks dengan tombol **Salin** (bukan tautan aktif); hanya alamat `github.com` yang tetap tautan aktif.
+- Halaman Tentang tidak lagi memuat daftar sumber, hanya ringkasan + tombol ke Sumber Data. Menu Lainnya dan Pengaturan punya entri "Sumber Data" sendiri.
+- Nama sumber di footer halaman doa dan Asmaul Husna kini menuju `#/sumber`, tidak lagi membuka situs sumber.

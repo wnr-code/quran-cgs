@@ -500,3 +500,18 @@ test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache'
   assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'splash\.js'/)
   assert.match(readFileSync('src/app.js', 'utf8'), /hideSplash\(\)/)
 })
+
+test('sumber data: halaman terpisah, footer tidak menaut langsung ke situs sumber', async () => {
+  const { readFileSync } = await import('node:fs')
+  const rd = (f) => readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8')
+  assert.match(rd('app.js'), /addRoute\('\/sumber'/)
+  for (const f of ['pages/doa.js', 'pages/asmaul.js']) {
+    const foot = rd(f).split('\n').filter((l) => /nuLink =|src-foot/.test(l)).join('\n')
+    assert.ok(!/target="_blank"/.test(foot), f)
+    assert.match(rd(f), /href=\\?"#\/sumber\\?"/)
+  }
+  const page = rd('pages/sources.js')
+  assert.match(page, /isGithub\(s\.url\)\) return `<a /)
+  assert.match(page, /Terima kasih/)
+  assert.ok(!/SOURCES/.test(rd('pages/about.js')))
+})

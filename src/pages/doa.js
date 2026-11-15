@@ -31,7 +31,8 @@ const SOURCE_NOTE = {
   dzikir: 'Teks Arab, Latin, dan arti disalin apa adanya dari Quran NU Online. Judul kartu dan pemisahan bagian disusun QuranKu agar mudah diikuti.'
 }
 const srcFoot = (html) => `<footer class="src-foot">${fi('book-open')}<p>${html}</p></footer>`
-const nuLink = (url, label) => `<a class="link" href="${url}" target="_blank" rel="noopener">${label}</a>`
+// Nama sumber di footer menuju halaman Sumber Data di dalam aplikasi, bukan langsung ke situs sumber.
+const nuLink = (_url, label) => `<a class="link" href="#/sumber">${label}</a>`
 /** Bacaan yang sudah ditandai (selama aplikasi terbuka). */
 const done = { wudhu: new Set(), salat: new Set() }
 const KIND_LABEL = { wirid: 'Wirid', doa: 'Doa', niat: 'Niat' }
@@ -118,7 +119,7 @@ export default function doa(root, { params = {} } = {}) {
     const q = norm(input.value)
     const items = DOA_QURAN.map((d, i) => ({ ...d, i })).filter((d) => !q || norm(d.title).includes(q))
     body.innerHTML = `<div class="list">${items.map((d) => `<details class="doa" data-i="${d.i}"><summary><span><strong>${esc(d.title)}</strong><small>QS. ${d.s}:${d.from}${d.to !== d.from ? '–' + d.to : ''}</small></span>${icon('down')}</summary><div class="doa-body" data-slot>${skeleton(2, 'sk-line')}</div></details>`).join('')}</div>
-      ${srcFoot("<strong>Sumber:</strong> teks ayat dari data Al-Qur'an aplikasi (lihat Tentang → Sumber data). Ayat ditampilkan utuh; lafaz doa terdapat di dalam ayat tersebut.")}`
+      ${srcFoot("<strong>Sumber:</strong> teks ayat dari data Al-Qur'an aplikasi (lihat <a class=\"link\" href=\"#/sumber\">Sumber Data</a>). Ayat ditampilkan utuh; lafaz doa terdapat di dalam ayat tersebut.")}`
   }
 
   async function fillQuran(det) {

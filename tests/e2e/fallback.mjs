@@ -24,7 +24,7 @@ try {
   assert.match(note, /Data lokal QuranKu/)
   assert.equal((await page.$$('.mushaf-flow .ayah')).length, 83)
   console.log('✓ Surah Ya-Sin (83 ayat) terbuka dari data lokal, ditandai sebagai sumber cadangan')
-  await page.goto(`${BASE}/#/tentang`, { waitUntil: 'networkidle0' })
+  await page.goto(`${BASE}/#/sumber`, { waitUntil: 'networkidle0' })
   await page.waitForSelector('.source-group')
   assert.ok((await page.$$('.source-item')).length >= 12)
   await page.screenshot({ path: `${SHOTS}/12-tentang-sumber-data.png`, fullPage: true })

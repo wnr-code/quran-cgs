@@ -5066,3 +5066,14 @@ button.cal-cell:focus-visible {
     animation: none;
   }
 }
+
+/* 1.3.25: halaman Sumber Data terpisah */
+.thanks-card { text-align: center; }
+.thanks-card h2 { margin: 4px 0 8px; font-size: 1.1rem; }
+.thanks-card p { margin: 0; line-height: 1.6; }
+.thanks-ar { font-family: var(--font-ar); font-size: 1.9rem; line-height: 2; color: var(--accent); }
+.src-url { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 6px 6px 6px 10px; border: 1px dashed var(--border); border-radius: 12px; background: var(--surface-2); }
+.src-url code { flex: 1; min-width: 0; font-size: 0.78rem; overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; color: var(--muted); }
+.src-url .btn { flex: none; }
+.source-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.source-head .chip { max-width: 100%; white-space: normal; }
