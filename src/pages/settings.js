@@ -10,8 +10,22 @@ import { $, toast } from '../utils/helpers.js'
 import { toArabicIndic } from '../utils/arabic-numbers.js'
 import { formatHijri } from '../utils/hijri.js'
 import { APP, BASMALAH } from '../config.js'
+import { THEME_PRESETS, deriveTheme } from '../utils/theme.js'
 
 const seg = (key, opts, cur) => `<div class="seg" data-seg="${key}">${opts.map(([v, l]) => `<button data-v="${v}" class="${String(cur) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`
+
+/** Panel tema kustom: palet siap pakai + tiga warna pilihan sendiri. */
+const sw = (p) => `linear-gradient(135deg, ${deriveTheme(p).vars['--hero-2']} 0 50%, ${p.bg} 50% 100%)`
+const customPanel = (c) => `<div class="theme-custom">
+    <p class="theme-label">Palet siap pakai</p>
+    <div class="theme-presets">${THEME_PRESETS.map((p) => `<button class="theme-sw${p.primary === c.primary && p.accent === c.accent && p.bg === c.bg ? ' on' : ''}" data-preset="${p.id}" aria-label="Palet ${p.name}"><i style="background:${sw(p)}"><b style="background:${p.accent}"></b></i><span>${p.name}</span></button>`).join('')}</div>
+    <p class="theme-label">Warna sendiri</p>
+    <div class="theme-pick">
+      ${[['primary', 'Utama', 'tombol & tautan'], ['accent', 'Aksen', 'hiasan & label'], ['bg', 'Latar', 'terang atau gelap']].map(([k, l, d]) => `<label><input type="color" data-color="${k}" value="${c[k]}" aria-label="Warna ${l}" /><span><strong>${l}</strong><small>${d}</small></span></label>`).join('')}
+    </div>
+    <div class="theme-preview" aria-hidden="true"><div class="tp-hero"><strong>QuranKu</strong><small>Pratinjau tema</small></div><div class="tp-body"><span class="tp-chip">Label</span><p>Teks contoh di atas latar pilihan Anda.</p><span class="btn btn-primary sm">Tombol</span></div></div>
+    <p class="hint">Latar gelap atau terang dikenali otomatis dari warna latar. Bila warna utama terlalu mirip latar, aplikasi menggesernya sedikit agar tulisan tetap terbaca. Warna halaman baca Al-Qur'an diatur terpisah lewat tombol “Aa”.</p>
+  </div>`
 
 export default function settings(root) {
   root.innerHTML = `<div class="page">${pageHeader('Pengaturan')}<div data-body></div></div>`
@@ -20,7 +34,8 @@ export default function settings(root) {
     const s = getSettings()
     body.innerHTML = `
       <section class="card"><p class="eyebrow">Tampilan</p>
-        <div class="field"><span>Tema</span>${seg('theme', [['auto', 'Otomatis'], ['light', 'Terang'], ['dark', 'Gelap']], s.theme)}</div>
+        <div class="field"><span>Tema</span>${seg('theme', [['auto', 'Otomatis'], ['light', 'Terang'], ['dark', 'Gelap'], ['custom', 'Kustom']], s.theme)}</div>
+        ${s.theme === 'custom' ? customPanel(s.customTheme) : ''}
         <div class="field"><span>Format angka Al-Qur'an</span>${seg('numerals', [['arabic', `Arab-Indic (${toArabicIndic(123)})`], ['latin', 'Latin (123)']], s.numerals)}</div>
         <div class="field"><span>Font Arab</span>${seg('arabicFont', [['amiri', 'Amiri Quran'], ['scheherazade', 'Scheherazade New']], s.arabicFont)}</div>
         <p class="sample-ar" lang="ar" dir="rtl">${BASMALAH}</p>
@@ -35,7 +50,8 @@ export default function settings(root) {
         <div class="menu-list">
           <a href="#/target">${icon('target')}<span>Target & pengingat tilawah</span>${icon('forward')}</a>
           <a href="#/offline">${icon('download')}<span>Kelola penyimpanan offline</span>${icon('forward')}</a>
-          <a href="#/tentang">${icon('info')}<span>Tentang, sumber data & privasi</span>${icon('forward')}</a>
+          <a href="#/tentang">${icon('info')}<span>Tentang & privasi</span>${icon('forward')}</a>
+          <a href="#/sumber">${icon('book')}<span>Sumber data</span>${icon('forward')}</a>
         </div></section>
       <section class="card danger-zone"><p class="eyebrow">Hapus data</p>
         <p class="muted">Menghapus seluruh data QuranKu di perangkat ini: bookmark, catatan, riwayat, progres, pengaturan, lokasi, teks & audio tersimpan.</p>
@@ -47,6 +63,12 @@ export default function settings(root) {
     if (b) {
       const key = b.closest('[data-seg]').dataset.seg
       saveSettings({ [key]: key === 'hijriAdjust' ? +b.dataset.v : b.dataset.v })
+      return render()
+    }
+    const ps = e.target.closest('[data-preset]')
+    if (ps) {
+      const p = THEME_PRESETS.find((x) => x.id === ps.dataset.preset)
+      saveSettings({ theme: 'custom', customTheme: { primary: p.primary, accent: p.accent, bg: p.bg } })
       return render()
     }
     if (e.target.closest('[data-export]')) return doExport()
@@ -65,6 +87,13 @@ export default function settings(root) {
       toast('Semua data telah dihapus')
       render()
     }
+  })
+  // Pemilih warna: terapkan langsung saat digeser (tanpa menggambar ulang agar pemilih tidak tertutup).
+  body.addEventListener('input', (e) => {
+    const k = e.target.dataset && e.target.dataset.color
+    if (!k) return
+    saveSettings({ theme: 'custom', customTheme: { [k]: e.target.value } })
+    body.querySelectorAll('.theme-sw.on').forEach((b) => b.classList.remove('on'))
   })
   render()
 }

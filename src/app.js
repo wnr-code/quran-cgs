@@ -40,6 +40,7 @@ addRoute('/offline', () => import('./pages/offline.js'))
 addRoute('/infaq', () => import('./pages/infaq.js'))
 addRoute('/pengaturan', () => import('./pages/settings.js'))
 addRoute('/tentang', () => import('./pages/about.js'))
+addRoute('/sumber', () => import('./pages/sources.js'))
 // Pintasan PWA "Lanjutkan membaca"
 addRoute('/lanjut', async () => ({
   default: async () => {
@@ -56,7 +57,23 @@ watchConnectivity()
 startRouter(document.getElementById('view'), (path, meta) => {
   setActiveNav(nav, path)
   document.body.classList.toggle('route-reader', !!meta.reader)
+  hideSplash()
 })
+
+/** Tutup layar pembuka setelah halaman pertama siap. Di aplikasi terpasang ditahan sebentar agar salam sempat terbaca. */
+function hideSplash() {
+  const el = document.getElementById('splash')
+  if (!el || el.dataset.closing) return
+  el.dataset.closing = '1'
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true
+  const wait = Math.max(0, (standalone ? 1400 : 500) - (Date.now() - (window.__splashAt || 0)))
+  setTimeout(() => {
+    el.classList.add('hide')
+    setTimeout(() => el.remove(), 700)
+  }, wait)
+}
+// Pengaman: bila halaman pertama gagal dirender, layar pembuka tetap ditutup.
+setTimeout(hideSplash, 5000)
 
 
 registerServiceWorker()

@@ -20,7 +20,7 @@ export default function asmaul(root) {
     <p class="asma-count" data-count></p>
     <div class="asma-grid" data-list></div>
     <p class="hint pad">Sentuh sebuah nama untuk melihat makna, faedah, dan rujukan ayatnya, lalu salin atau bagikan.</p>
-    <footer class="src-foot">${fi('book-open')}<p><strong>Sumber:</strong> ${esc(data.source)}. Makna &amp; faedah adalah ringkasan dari sumber tersebut; rujukan ayat dapat dibuka untuk dibaca langsung.</p></footer></div>`
+    <footer class="src-foot">${fi('book-open')}<p><strong>Sumber:</strong> <a class="link" href="#/sumber">${esc(data.source)}</a>. Makna &amp; faedah adalah ringkasan dari sumber tersebut; rujukan ayat dapat dibuka untuk dibaca langsung.</p></footer></div>`
   const list = $('[data-list]', root)
   const input = $('input', root)
   const count = $('[data-count]', root)

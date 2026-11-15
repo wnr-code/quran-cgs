@@ -464,3 +464,54 @@ test('bagikan: tautan Asmaul Husna memakai path', async () => {
   const { doaUrl } = await import('../src/utils/doa-share.js')
   assert.equal(doaUrl({ path: '/asmaul-husna' }, 'https://quran.cgs.my.id'), 'https://quran.cgs.my.id/#/asmaul-husna')
 })
+
+test('tema kustom: variabel turunan sah, terbaca, dan tahan masukan rusak', async () => {
+  const { deriveTheme, normalizeCustom, contrast, luminance, THEME_PRESETS, CUSTOM_DEFAULT } = await import('../src/utils/theme.js')
+  const hex = /^#[0-9a-f]{6}$/
+  for (const p of THEME_PRESETS) {
+    const t = deriveTheme(p)
+    for (const [k, v] of Object.entries(t.vars)) assert.match(v, hex, `${p.id} ${k}`)
+    assert.equal(t.base, luminance(p.bg) < 0.18 ? 'dark' : 'light')
+    assert.ok(contrast(t.vars['--text'], t.vars['--bg']) >= 7, p.id + ' teks')
+    assert.ok(contrast(t.vars['--text'], t.vars['--surface']) >= 7, p.id + ' teks di kartu')
+    assert.ok(contrast(t.vars['--primary'], t.vars['--bg']) >= 3, p.id + ' utama')
+    assert.ok(contrast(t.vars['--primary-ink'], t.vars['--primary']) >= 4.5, p.id + ' tombol')
+    assert.ok(contrast(t.vars['--hero-ink'], t.vars['--hero-2']) >= 4.5, p.id + ' kepala')
+    assert.ok(contrast(t.vars['--muted'], t.vars['--bg']) >= 3, p.id + ' redup')
+  }
+  assert.equal(new Set(THEME_PRESETS.map((p) => p.id)).size, THEME_PRESETS.length)
+  // Pilihan ekstrem tetap terbaca: utama = latar.
+  for (const c of ['#ffffff', '#000000', '#ffff00', '#7f7f7f']) {
+    const t = deriveTheme({ primary: c, accent: c, bg: c })
+    assert.ok(contrast(t.vars['--primary'], t.vars['--bg']) >= 3, c)
+    assert.ok(contrast(t.vars['--text'], t.vars['--bg']) >= 4.5, c)
+    assert.ok(contrast(t.vars['--hero-ink'], t.vars['--hero-2']) >= 4.5, c)
+  }
+  assert.deepEqual(normalizeCustom({ primary: 'javascript:1', accent: '#ABCDEF', bg: null }), { primary: CUSTOM_DEFAULT.primary, accent: '#abcdef', bg: CUSTOM_DEFAULT.bg })
+  assert.deepEqual(normalizeCustom(undefined), CUSTOM_DEFAULT)
+})
+
+test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache', () => {
+  const html = readFileSync('index.html', 'utf8')
+  assert.match(html, /<div id="splash"/)
+  assert.ok(html.normalize('NFC').includes('اَلسَّلَامُ عَلَيْكُمْ'.normalize('NFC')))
+  assert.match(html, /<script src="\/splash\.js"><\/script>/)
+  assert.match(html, /sp-bye [^;]*8s/) // menutup sendiri bila aplikasi gagal dimuat
+  assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'splash\.js'/)
+  assert.match(readFileSync('src/app.js', 'utf8'), /hideSplash\(\)/)
+})
+
+test('sumber data: halaman terpisah, footer tidak menaut langsung ke situs sumber', async () => {
+  const { readFileSync } = await import('node:fs')
+  const rd = (f) => readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8')
+  assert.match(rd('app.js'), /addRoute\('\/sumber'/)
+  for (const f of ['pages/doa.js', 'pages/asmaul.js']) {
+    const foot = rd(f).split('\n').filter((l) => /nuLink =|src-foot/.test(l)).join('\n')
+    assert.ok(!/target="_blank"/.test(foot), f)
+    assert.match(rd(f), /href=\\?"#\/sumber\\?"/)
+  }
+  const page = rd('pages/sources.js')
+  assert.match(page, /isGithub\(s\.url\)\) return `<a /)
+  assert.match(page, /Terima kasih/)
+  assert.ok(!/SOURCES/.test(rd('pages/about.js')))
+})
