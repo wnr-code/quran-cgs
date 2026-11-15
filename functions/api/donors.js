@@ -1,5 +1,5 @@
 // Papan donatur publik: donatur terbaru + top donatur harian / mingguan / bulanan / sepanjang waktu.
-// Hanya nama tampilan, jumlah, dan waktu yang dibuka — pesan & data lain tidak disimpan/ditampilkan.
+// Yang dibuka: nama tampilan, jumlah, waktu, dan pesan/doa yang ditulis donatur di formulir Trakteer.
 import { ensureSchema } from '../lib/db.js'
 
 const WIB = 7 * 3600 * 1000
@@ -33,7 +33,7 @@ export async function onRequestGet({ env }) {
       top.bind(starts.weekly),
       top.bind(starts.monthly),
       top.bind(starts.all),
-      env.DB.prepare('SELECT name, amount, unit, quantity, created_at AS at FROM donations WHERE is_test = 0 ORDER BY created_at DESC LIMIT 30'),
+      env.DB.prepare('SELECT name, amount, unit, quantity, message, created_at AS at FROM donations WHERE is_test = 0 ORDER BY created_at DESC LIMIT 30'),
       env.DB.prepare('SELECT COALESCE(SUM(amount), 0) AS amount, COUNT(*) AS count FROM donations WHERE is_test = 0')
     ])
     return json(

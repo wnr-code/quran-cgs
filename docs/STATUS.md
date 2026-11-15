@@ -136,3 +136,13 @@ Terakhir diperbarui: 15 November 2026.
 - Skrip `trbtn.min.js` tidak dimuat: ia memakai `document.writeln` (tidak aman dipanggil setelah halaman selesai dimuat pada SPA) dan hanya menghasilkan tautan biasa, tanpa mode popup. Tombol digambar sendiri dengan identitas yang sama.
 - CSP: `frame-src` mengizinkan `trakteer.id` (+ subdomain, Midtrans, Xendit); `img-src` mengizinkan `mirror-uploads.trakteer.id`.
 - **Belum teruji terhadap Trakteer asli** (sandbox tidak dapat menjangkau trakteer.id). Bila Trakteer mengirim `X-Frame-Options: SAMEORIGIN` / `frame-ancestors`, bingkai akan kosong; pengguna memakai bagian "Formulir tidak tampil atau kosong?" (tautan cadangan), atau aktifkan mode QRIS langsung (lihat di bawah) yang sepenuhnya di dalam aplikasi.
+
+## 1.3.9 — Popup resmi Trakteer + papan donatur dengan ucapan
+
+- Tombol **INFAQ** kini langsung membuka **popup sematan resmi Trakteer** di atas halaman (lapisan penuh berisi `iframe` ke `https://trakteer.id/v1/lanteraku/tip/embed/modal?embedId=0&ref=…`, protokol `embed.openModal` / `embed.modalClosed` seperti `trbtn-overlay.min.js`). Tanpa tab baru, tanpa `window.open`.
+- Penyebab kegagalan sebelumnya: halaman tip biasa (`/lanteraku/tip`) menolak dibingkai ("menolak untuk terhubung"), dan jalur sematan lama tanpa `/v1` menampilkan 404. Jalur `/v1/…/tip/embed/modal` memuat formulir (diperiksa dari sisi server 2026-11-15); **tampilan di dalam aplikasi belum diuji pada perangkat nyata**.
+- Isian nominal/nama di aplikasi dihapus; semuanya diisi di formulir Trakteer. API `/api/infaq/*` (niat/QRIS) tetap ada di server tetapi tidak lagi dipakai halaman.
+- Papan donatur baru: ringkasan total, podium tiga besar, dan "Ucapan & doa donatur" berisi pesan (`supporter_message`) dari webhook. Kolom `donations.message` ditambahkan otomatis (`migrations/0002`). Pesan dibersihkan (tanpa `<>`/karakter kontrol, maks. 280) dan di-escape saat ditampilkan. Donasi lama tidak punya pesan.
+- Menutup popup bukan bukti bayar: papan hanya dimuat ulang; data hanya dari webhook.
+- CSP `frame-src https:` (penyedia pembayaran dapat berpindah ke gerbang pembayaran lain di dalam bingkai).
+- Halaman **Lainnya** disegarkan: kartu identitas, kartu infaq, menu berbentuk ubin berwarna per kelompok.

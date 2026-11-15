@@ -3,7 +3,7 @@ const STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS donations (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, unit TEXT NOT NULL DEFAULT '', quantity INTEGER NOT NULL DEFAULT 1,
     amount INTEGER NOT NULL DEFAULT 0, type TEXT NOT NULL DEFAULT 'tip', is_test INTEGER NOT NULL DEFAULT 0,
-    created_at INTEGER NOT NULL, source TEXT NOT NULL DEFAULT 'webhook')`,
+    created_at INTEGER NOT NULL, source TEXT NOT NULL DEFAULT 'webhook', message TEXT NOT NULL DEFAULT '')`,
   `CREATE INDEX IF NOT EXISTS idx_donations_created ON donations (created_at)`,
   `CREATE TABLE IF NOT EXISTS infaq_intents (
     id TEXT PRIMARY KEY, name TEXT NOT NULL, quantity INTEGER NOT NULL, amount INTEGER NOT NULL,
@@ -28,6 +28,12 @@ export async function ensureSchema(db) {
   } catch {
     /* kolom sudah ada */
   }
+  // Pesan/doa yang ditulis donatur di formulir Trakteer (ditampilkan di papan donatur).
+  try {
+    await db.prepare(`ALTER TABLE donations ADD COLUMN message TEXT NOT NULL DEFAULT ''`).run()
+  } catch {
+    /* kolom sudah ada */
+  }
   ready.add(db)
 }
 
@@ -42,16 +48,24 @@ const DUP_WINDOW = 10 * 60 * 1000
  * @returns {Promise<boolean>} true bila baris baru ditambahkan
  */
 export async function insertDonation(db, d, source) {
+  const msg = d.message || ''
   const exists = await db.prepare('SELECT id FROM donations WHERE id = ?1').bind(d.id).first()
-  if (exists) return false
+  if (exists) {
+    if (msg) await db.prepare(`UPDATE donations SET message = ?2 WHERE id = ?1 AND message = ''`).bind(d.id, msg).run()
+    return false
+  }
   const twin = await db
     .prepare(`SELECT id FROM donations WHERE source != ?1 AND amount = ?2 AND ABS(created_at - ?3) < ?4 AND (LOWER(name) = LOWER(?5) OR ?6 = 1) LIMIT 1`)
     .bind(source, d.amount, d.created_at, DUP_WINDOW, d.name, d.nameUnknown ? 1 : 0)
     .first()
-  if (twin) return false
+  if (twin) {
+    // Jalur lain sudah mencatat transaksi ini lebih dulu; lengkapi pesannya bila belum ada.
+    if (msg) await db.prepare(`UPDATE donations SET message = ?2 WHERE id = ?1 AND message = ''`).bind(twin.id, msg).run()
+    return false
+  }
   await db
-    .prepare('INSERT OR IGNORE INTO donations (id, name, unit, quantity, amount, type, is_test, created_at, source) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)')
-    .bind(d.id, d.name, d.unit || '', d.quantity || 1, d.amount, d.type || 'tip', d.is_test ? 1 : 0, d.created_at, source)
+    .prepare('INSERT OR IGNORE INTO donations (id, name, unit, quantity, amount, type, is_test, created_at, source, message) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)')
+    .bind(d.id, d.name, d.unit || '', d.quantity || 1, d.amount, d.type || 'tip', d.is_test ? 1 : 0, d.created_at, source, msg)
     .run()
   return true
 }

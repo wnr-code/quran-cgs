@@ -3100,138 +3100,49 @@ body.has-player {
   line-height: 1.5;
 }
 
-/* ===== Dialog modal (popup di tengah layar) ===== */
-.dlg-wrap {
-  position: fixed;
-  inset: 0;
-  z-index: 120;
-  display: grid;
-  place-items: center;
-  padding: max(12px, var(--safe-t, 0px)) 12px max(12px, var(--safe-b, 0px));
-}
-.dlg-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(6, 20, 24, 0.62);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.dlg {
-  position: relative;
-  width: min(100%, 520px);
-  max-height: min(100%, 860px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-radius: 22px;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-  transform: translateY(14px) scale(0.98);
-  opacity: 0;
-  transition: transform 0.22s ease, opacity 0.22s ease;
-}
-.dlg-wrap.open .dlg {
-  transform: none;
-  opacity: 1;
-}
-.dlg-wrap.open .dlg-backdrop {
-  opacity: 1;
-}
-.dlg-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 10px 12px 18px;
-  background: var(--dlg-accent, var(--primary));
-  color: #fff;
-}
-.dlg-head h2 {
-  flex: 1;
-  margin: 0;
-  font-size: 1rem;
-  letter-spacing: 0.08em;
-  font-weight: 800;
-}
-.dlg-x {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
-  cursor: pointer;
-}
-.dlg-x:hover {
-  background: rgba(255, 255, 255, 0.28);
-}
-.dlg-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding: 14px 16px 18px;
-}
-/* Ponsel: hampir setinggi layar agar formulir nyaman diisi */
-@media (max-width: 640px) {
-  .dlg-wrap {
-    padding: max(8px, var(--safe-t, 0px)) 8px max(8px, var(--safe-b, 0px));
-  }
-  .dlg {
-    width: 100%;
-    height: 100%;
-    max-height: none;
-    border-radius: 20px;
-  }
-}
-
-/* ===== Infaq: tombol & popup ===== */
-.infaq-dlg {
-  --dlg-accent: #1a6275;
-}
-.infaq-dlg .infaq-flow .btn-primary,
-.infaq-dlg .infaq-flow .amount.on {
-  background: #1a6275;
-  border-color: #1a6275;
-  color: #fff;
-}
-.infaq-dlg .spinner {
-  border-top-color: #1a6275;
-}
-.infaq-cta {
+/* ===== Infaq 1.3.9: tombol, lapisan Trakteer, papan donatur ===== */
+.infaq-hero {
   display: grid;
   justify-items: center;
-  gap: 10px;
-  text-align: center;
+  gap: 8px;
+  padding-bottom: 22px;
+}
+.infaq-hero .np-sub {
+  max-width: 34ch;
 }
 .trbtn-infaq {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-width: 190px;
-  padding: 12px 34px;
+  min-width: 200px;
+  margin-top: 8px;
+  padding: 13px 36px;
   border: 0;
   border-radius: 9999px;
   background: var(--trbtn, #1a6275);
   color: #fff;
   font-weight: 800;
   font-size: 1rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   cursor: pointer;
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--trbtn, #1a6275) 35%, transparent);
+  box-shadow: 0 8px 20px rgba(26, 98, 117, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.trbtn-infaq:active {
+  transform: scale(0.96);
 }
 .trbtn-infaq:hover {
-  opacity: 0.9;
+  opacity: 0.92;
 }
 .trbtn-infaq img {
   width: 22px;
   height: 22px;
   object-fit: contain;
   animation: trbtn-wiggle 3s infinite;
+}
+.trbtn-infaq img[hidden] {
+  display: none;
 }
 @keyframes trbtn-wiggle {
   0%, 75%, 100% {
@@ -3244,36 +3155,402 @@ body.has-player {
     transform: rotate(10deg) scale(1.1);
   }
 }
-.trk-frame {
-  position: relative;
-  height: clamp(420px, 62dvh, 640px);
-  margin: 10px -16px;
-  background: #fff;
-  border-block: 1px solid var(--border);
+.infaq-safe {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.74rem;
+  opacity: 0.85;
 }
-.trk-frame iframe {
+.infaq-safe li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.infaq-safe .icon {
+  width: 14px;
+  height: 14px;
+}
+/* Lapisan penuh berisi popup resmi Trakteer */
+.trk-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(6, 20, 24, 0.66);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.trk-overlay.open {
+  opacity: 1;
+}
+.trk-overlay iframe {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   border: 0;
-  display: block;
+  background: transparent;
+  color-scheme: normal;
 }
-.trk-loading {
+.trk-wait {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(86vw, 320px);
   display: grid;
-  place-content: center;
   justify-items: center;
   gap: 10px;
+  padding: 22px 18px;
+  border-radius: 22px;
   background: var(--surface);
+  color: var(--text);
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
-.trk-help .btn {
+.trk-wait h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  color: #1a6275;
+}
+[data-theme='dark'] .trk-wait h3 {
+  color: #7fc6d8;
+}
+.trk-wait p {
+  margin: 0;
+  font-size: 0.82rem;
+}
+.trk-x {
+  position: absolute;
+  top: calc(8px + var(--safe-t, 0px));
+  right: 8px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(10, 30, 36, 0.72);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+/* Ringkasan */
+.infaq-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 14px 0;
+}
+.infaq-stat {
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.infaq-stat small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+.infaq-stat b {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+/* Podium tiga besar */
+.podium {
+  display: grid;
+  grid-template-columns: 1fr 1.12fr 1fr;
+  align-items: end;
+  gap: 8px;
+  margin: 14px 0 6px;
+}
+.podium-col {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+}
+.podium-ava {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #fff;
+  background: linear-gradient(145deg, var(--primary), color-mix(in srgb, var(--primary) 60%, var(--accent)));
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--ring, var(--border));
+}
+.podium-col.p1 .podium-ava {
+  width: 64px;
+  height: 64px;
+  font-size: 1.35rem;
+}
+.podium-col.p1 { --ring: #d4af37; }
+.podium-col.p2 { --ring: #b9c0c7; }
+.podium-col.p3 { --ring: #c08a5b; }
+.podium-rank {
+  position: absolute;
+  bottom: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: var(--ring);
+  color: #23190a;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.podium-name {
+  max-width: 100%;
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.podium-amt {
+  font-size: 0.78rem;
+  color: var(--primary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.podium-base {
+  width: 100%;
+  margin-top: 6px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ring) 38%, var(--surface)), color-mix(in srgb, var(--ring) 8%, var(--surface)));
+  height: 26px;
+}
+.podium-col.p1 .podium-base {
+  height: 44px;
+}
+.podium-col.p3 .podium-base {
+  height: 16px;
+}
+/* Ucapan & doa donatur */
+.wish-list {
+  display: grid;
+  gap: 12px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.wish {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+.wish-ava {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-weight: 800;
+  color: var(--primary);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--primary) 16%, transparent), color-mix(in srgb, var(--accent) 24%, transparent));
+}
+.wish-body {
+  min-width: 0;
+}
+.wish-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.wish-head strong {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+.wish-head b {
+  font-size: 0.82rem;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.wish-body small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.wish-msg {
+  margin: 6px 0 0;
+  padding: 9px 12px;
+  border-radius: 4px 14px 14px 14px;
+  background: var(--surface-2);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.infaq-empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 18px 8px;
+  text-align: center;
+  color: var(--muted);
+}
+.infaq-empty .icon {
+  width: 30px;
+  height: 30px;
+  color: var(--accent);
+}
+
+/* ===== Halaman Lainnya 1.3.9 ===== */
+.more-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 18px;
+  border-radius: 22px;
+  color: var(--hero-ink);
+  background: linear-gradient(135deg, var(--hero-1), var(--hero-2));
+  box-shadow: 0 12px 28px rgba(11, 61, 46, 0.22);
+}
+.more-hero::after {
+  content: '';
+  position: absolute;
+  right: -40px;
+  top: -40px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.16), transparent 68%);
+  pointer-events: none;
+}
+.more-hero img {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+.more-hero h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+.more-hero p {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+.more-chip {
+  display: inline-block;
   margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.16);
+}
+.more-infaq {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 6px;
+  padding: 14px;
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(135deg, #1a6275, #2a8a9f);
+  box-shadow: 0 10px 22px rgba(26, 98, 117, 0.28);
+  transition: transform 0.15s ease;
+}
+.more-infaq:active {
+  transform: scale(0.98);
+}
+.more-infaq .more-infaq-ic {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.more-infaq span:nth-child(2) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.more-infaq small {
+  font-size: 0.76rem;
+  opacity: 0.88;
+}
+.more-infaq > .icon {
+  opacity: 0.8;
+}
+.more-page .section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+.more-page .section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+.more-page .menu-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.more-page .menu-item {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+.more-page .menu-item .shortcut-ic {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  color: var(--tone, var(--primary));
+  background: color-mix(in srgb, var(--tone, var(--primary)) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone, var(--primary)) 16%, transparent);
+}
+.more-page .tone-ibadah { --tone: #0f6b4f; }
+.more-page .tone-tilawah { --tone: #b8923a; }
+.more-page .tone-aplikasi { --tone: #1a6275; }
+[data-theme='dark'] .more-page .tone-ibadah { --tone: #5fd0a6; }
+[data-theme='dark'] .more-page .tone-tilawah { --tone: #e2c06c; }
+[data-theme='dark'] .more-page .tone-aplikasi { --tone: #7fc6d8; }
+@media (min-width: 720px) {
+  .more-page .menu-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .trbtn-infaq img {
     animation: none;
   }
 }
-.trbtn-infaq img[hidden] {
-  display: none;
+.more-go {
+  font-size: 1.5rem;
+  line-height: 1;
+  opacity: 0.8;
 }
