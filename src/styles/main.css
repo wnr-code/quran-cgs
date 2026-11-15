@@ -4563,3 +4563,337 @@ button.cal-cell:focus-visible {
 .dzikir.is-done .ayah-id {
   opacity: 0.55;
 }
+
+/* ===== 1.3.21: doa per kategori, sumber di footer, salam Arab, penyemangat, transisi ===== */
+.fi-house::before { content: '\f015'; }
+.fi-coins::before { content: '\f51e'; }
+.fi-shield::before { content: '\f3ed'; }
+.fi-heart-pulse::before { content: '\f21e'; }
+.fi-route::before { content: '\f4d7'; }
+.fi-graduation-cap::before { content: '\f19d'; }
+.fi-droplet::before { content: '\f043'; }
+.fi-pray::before { content: '\f683'; }
+.fi-quran::before { content: '\f687'; }
+.fi-sunrise::before { content: '\e52f'; }
+.fi-sun::before { content: '\f185'; }
+.fi-cloud-sun::before { content: '\f6c4'; }
+.fi-moon::before { content: '\f186'; }
+.fi-quote::before { content: '\f10d'; }
+.fi-chevron-right::before { content: '\f054'; }
+.fi-arrow-left::before { content: '\f060'; }
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes soft-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Beranda */
+.salam {
+  font-family: var(--font-ar);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.9;
+  letter-spacing: 0;
+  text-align: left;
+  margin-top: 12px;
+  color: #f4e3b5;
+  animation: rise-in 0.5s 0.05s ease both;
+}
+.greet {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  opacity: 0.92;
+  animation: rise-in 0.5s 0.14s ease both;
+}
+.greet-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 0.86rem;
+  color: #f2cf7a;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(201, 169, 97, 0.35);
+}
+.greet-ic.fi-moon {
+  color: #cfdcff;
+}
+.home-hero .dates {
+  animation: rise-in 0.5s 0.22s ease both;
+}
+.mutiara {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  font-style: italic;
+  opacity: 0.88;
+  animation: soft-in 0.7s 0.35s ease both;
+}
+.mutiara .fi {
+  flex: none;
+  margin-top: 3px;
+  font-size: 0.72rem;
+  color: #f2cf7a;
+  opacity: 0.9;
+}
+.mutiara small {
+  font-style: normal;
+  font-weight: 600;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+.home > section {
+  animation: rise-in 0.45s ease both;
+}
+.home > section:nth-of-type(1) { animation-delay: 0.08s; }
+.home > section:nth-of-type(2) { animation-delay: 0.14s; }
+.home > section:nth-of-type(3) { animation-delay: 0.2s; }
+.home > section:nth-of-type(4) { animation-delay: 0.26s; }
+.home > section:nth-of-type(5) { animation-delay: 0.32s; }
+
+/* Sumber di kaki halaman */
+.src-foot {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 18px 0 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px dashed var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.src-foot .fi {
+  flex: none;
+  margin-top: 3px;
+  color: var(--primary);
+}
+.src-foot strong {
+  color: var(--text);
+}
+
+/* Kategori doa */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.cat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  padding: 14px 13px 12px;
+  text-align: left;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+  animation: rise-in 0.4s calc(var(--i, 0) * 35ms) ease both;
+}
+.cat-card:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) {
+  .cat-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.07);
+    transform: translateY(-2px);
+  }
+}
+.cat-ic {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 7px;
+  border-radius: 13px;
+  font-size: 1rem;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+.cat-card.is-link .cat-ic {
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 16%, transparent);
+}
+.cat-card strong {
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+.cat-card small {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+.cat-card em {
+  margin-top: 7px;
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.cat-card.is-link em {
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+}
+.cat-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  animation: soft-in 0.3s ease both;
+}
+.cat-head .btn {
+  flex: none;
+}
+.cat-head > div {
+  min-width: 0;
+}
+.cat-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+.cat-head h2 .fi {
+  color: var(--primary);
+  font-size: 0.9rem;
+}
+.cat-head small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+.cat-chips {
+  display: flex;
+  gap: 7px;
+  margin: 0 -16px 12px;
+  padding: 2px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cat-chips::-webkit-scrollbar {
+  display: none;
+}
+.cat-chips .chip {
+  flex: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cat-chips .chip.active {
+  color: var(--primary-ink);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.doa-count {
+  margin: 0 2px 10px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.doa-nu {
+  animation: rise-in 0.32s ease both;
+}
+.doa-nu summary {
+  gap: 11px;
+}
+.doa-no {
+  flex: none !important;
+  display: grid !important;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 11%, transparent);
+  transition: background 0.2s, color 0.2s;
+}
+.doa-nu[open] .doa-no {
+  color: var(--primary-ink);
+  background: var(--primary);
+}
+.doa-nu[open] .doa-body {
+  animation: soft-in 0.3s ease both;
+}
+.doa-part + .doa-part {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+.doa-nu .doa-foot {
+  border-top: 0;
+  padding-top: 0;
+}
+.dzikir {
+  animation: rise-in 0.35s ease both;
+}
+
+/* Asmaul Husna: salin & bagikan */
+.asma-detail-acts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 18px;
+}
+.asma-detail-acts .btn {
+  justify-content: center;
+  gap: 7px;
+}
+.asma-detail-nav {
+  margin-top: 8px;
+  align-items: center;
+}
+.asma-pos {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 0 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .salam,
+  .greet,
+  .home-hero .dates,
+  .mutiara,
+  .home > section,
+  .cat-card,
+  .cat-head,
+  .doa-nu,
+  .doa-nu[open] .doa-body,
+  .dzikir {
+    animation: none;
+  }
+  .cat-card {
+    transition: none;
+  }
+}

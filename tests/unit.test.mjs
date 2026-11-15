@@ -411,3 +411,56 @@ test('bagikan doa: teks lengkap & tautan media sosial', async () => {
   const long = shareLinks({ ...p, ar: 'ا'.repeat(500) }, 'https://quran.cgs.my.id')
   assert.ok(decodeURIComponent(new URL(long.x).searchParams.get('text')).length <= 200)
 })
+
+test('doa harian NU: per kategori, lengkap, tanpa duplikat', () => {
+  const nu = JSON.parse(readFileSync('src/data/doa-nu.json', 'utf8'))
+  const dz = JSON.parse(readFileSync('src/data/dzikir.json', 'utf8'))
+  assert.equal(nu.source.url, 'https://quran.nu.or.id/doa')
+  assert.deepEqual(nu.categories.map((c) => [c.slug, c.items.length]), [['doa-keseharian', 19], ['doa-rezeki', 9], ['doa-tolak-bala', 13], ['doa-kesehatan', 5], ['doa-perjalanan', 7], ['doa-ilmu', 9]])
+  const ids = new Set()
+  const titles = new Set()
+  const arabs = new Set([...dz.wudhu, ...dz.salat].map((d) => d.arabic))
+  for (const c of nu.categories) {
+    assert.ok(c.name && c.icon && c.desc)
+    for (const d of c.items) {
+      assert.match(d.id, /^[a-z0-9-]+$/)
+      assert.ok(!ids.has(d.id) && !titles.has(d.title), 'duplikat: ' + d.title)
+      ids.add(d.id)
+      titles.add(d.title)
+      assert.ok(d.parts.length >= 1)
+      for (const x of d.parts) {
+        assert.match(x.ar, /[\u0600-\u06FF]/)
+        assert.ok(x.latin && x.arti && !/[\u0600-\u06FF]/.test(x.latin), d.title)
+        assert.ok(!/[\u200b-\u200f]/.test(x.ar + x.latin + x.arti), 'karakter tak terlihat: ' + d.title)
+        // Bacaan yang sama tidak boleh muncul dua kali (di kategori lain maupun di wudhu/usai salat).
+        assert.ok(!arabs.has(x.ar), 'bacaan ganda: ' + d.title)
+        arabs.add(x.ar)
+      }
+    }
+  }
+  assert.equal(ids.size, 62)
+  // Sumber data lama (EQuran doa) tidak dipakai lagi.
+  assert.ok(!SOURCES.some((g) => g.items.some((i) => /EQuran\.id API Doa/.test(i.name))))
+  assert.ok(SOURCES.some((g) => g.items.some((i) => /Font Awesome/.test(i.name))))
+})
+
+test('beranda: ikon ucapan sesuai waktu & penyemangat berujukan ayat', async () => {
+  const { greeting, greetingIcon } = await import('../src/utils/format.js')
+  const at = (h) => new Date(2026, 0, 1, h, 0)
+  assert.deepEqual([2, 5, 12, 16, 20].map((h) => greetingIcon(at(h))), ['moon', 'sunrise', 'sun', 'cloud-sun', 'moon'])
+  assert.deepEqual([2, 5, 12, 16, 20].map((h) => greeting(at(h))), ['Selamat malam', 'Selamat pagi', 'Selamat siang', 'Selamat sore', 'Selamat malam'])
+  const { MUTIARA } = await import('../src/data/mutiara.js')
+  const meta = JSON.parse(readFileSync('src/data/quran-meta.json', 'utf8'))
+  assert.ok(MUTIARA.length >= 10)
+  for (const m of MUTIARA) {
+    assert.ok(m.t.length > 15 && m.t.length < 120 && /^QS\. /.test(m.r))
+    assert.ok(m.s >= 1 && m.s <= 114 && m.a >= 1)
+    assert.ok(m.r.endsWith(': ' + m.a))
+  }
+  assert.ok(meta)
+})
+
+test('bagikan: tautan Asmaul Husna memakai path', async () => {
+  const { doaUrl } = await import('../src/utils/doa-share.js')
+  assert.equal(doaUrl({ path: '/asmaul-husna' }, 'https://quran.cgs.my.id'), 'https://quran.cgs.my.id/#/asmaul-husna')
+})

@@ -1,8 +1,8 @@
-// Teks & tautan untuk menyalin/membagikan doa. p: { title, ar, latin, arti, ref, tab }
+// Teks & tautan untuk menyalin/membagikan doa. p: { title, ar, latin, arti, ref, tab | path }
 export function doaText(p) {
   return [p.title, p.ar, p.latin, p.arti && `Artinya: ${p.arti}`, p.ref && `(${p.ref})`].filter(Boolean).join('\n\n')
 }
-export const doaUrl = (p, origin) => `${origin}/#/doa/${p.tab}`
+export const doaUrl = (p, origin) => `${origin}/#${p.path || `/doa/${p.tab}`}`
 const cut = (t, n) => (t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t)
 
 /** Tautan bagikan ke media sosial (dibuka di aplikasi/tab masing-masing). */

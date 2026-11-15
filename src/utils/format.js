@@ -55,6 +55,15 @@ export function tempatTurunLabel(v) {
   return v || ''
 }
 
+/** Ikon font untuk ucapan selamat sesuai waktu: pagi, siang, sore, malam. */
+export function greetingIcon(d = new Date()) {
+  const h = d.getHours()
+  if (h < 4) return 'moon'
+  if (h < 11) return 'sunrise'
+  if (h < 15) return 'sun'
+  if (h < 18) return 'cloud-sun'
+  return 'moon'
+}
 export function greeting(d = new Date()) {
   const h = d.getHours()
   if (h < 4) return 'Selamat malam'
