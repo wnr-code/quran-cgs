@@ -1,0 +1,77 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Konfigurasi TWA — ubah di sini bila domain/paket berganti.
+def twa = [
+    applicationId  : 'id.cgs.quranku',
+    hostName       : 'quran.cgs.my.id',
+    launchUrl      : '/',
+    name           : 'QuranKu',
+    themeColor     : '#0B3D2E',
+    navigationColor: '#0B3D2E',
+    backgroundColor: '#0B3D2E',
+]
+
+// Kunci signing TIDAK disimpan di repository. Diisi lewat android/keystore.properties (di-.gitignore)
+// atau variabel lingkungan (CI): QURANKU_KEYSTORE_FILE, QURANKU_KEYSTORE_PASSWORD, QURANKU_KEY_ALIAS, QURANKU_KEY_PASSWORD
+def ksProps = new Properties()
+def ksFile = rootProject.file('keystore.properties')
+if (ksFile.exists()) ksFile.withInputStream { ksProps.load(it) }
+def ks = { String prop, String env -> ksProps.getProperty(prop) ?: System.getenv(env) }
+def hasSigning = ks('storeFile', 'QURANKU_KEYSTORE_FILE') != null
+
+android {
+    namespace 'id.cgs.quranku'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId twa.applicationId
+        minSdk 23
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+
+        manifestPlaceholders = [
+            hostName       : twa.hostName,
+            defaultUrl     : "https://${twa.hostName}${twa.launchUrl}",
+            launcherName   : twa.name
+        ]
+        resValue 'string', 'app_name', twa.name
+        resValue 'color', 'colorPrimary', twa.themeColor
+        resValue 'color', 'navigationColor', twa.navigationColor
+        resValue 'color', 'backgroundColor', twa.backgroundColor
+        resValue 'string', 'asset_statements',
+            """[{ \\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], \\"target\\": { \\"namespace\\": \\"web\\", \\"site\\": \\"https://${twa.hostName}\\" } }]"""
+    }
+
+    signingConfigs {
+        release {
+            if (hasSigning) {
+                storeFile file(ks('storeFile', 'QURANKU_KEYSTORE_FILE'))
+                storePassword ks('storePassword', 'QURANKU_KEYSTORE_PASSWORD')
+                keyAlias ks('keyAlias', 'QURANKU_KEY_ALIAS')
+                keyPassword ks('keyPassword', 'QURANKU_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            if (hasSigning) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // Pustaka resmi Google untuk Trusted Web Activity (sama dengan yang dipakai Bubblewrap).
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
+}

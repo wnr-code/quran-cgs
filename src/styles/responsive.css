@@ -1,0 +1,126 @@
+/* Layar sangat kecil */
+@media (max-width: 360px) {
+  .shortcut-grid {
+    gap: 6px;
+  }
+  .shortcut {
+    font-size: 0.68rem;
+  }
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .preset-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .rd-top .icon-btn {
+    width: 40px;
+  }
+}
+
+/* Tablet */
+@media (min-width: 640px) {
+  .shortcut-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  .menu-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .sheet {
+    border-radius: 22px;
+    margin-bottom: 4vh;
+  }
+  .sheet-wrap {
+    align-items: center;
+  }
+  .home-hero {
+    border-radius: 0 0 28px 28px;
+  }
+}
+
+/* Desktop: navigasi menjadi rel samping */
+@media (min-width: 960px) {
+  :root {
+    --rail: 92px;
+  }
+  .navbar {
+    inset: 0 auto 0 0;
+    width: var(--rail);
+    height: auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    border-top: 0;
+    border-right: 1px solid var(--border);
+    padding: 0;
+  }
+  .nav-item {
+    flex: none;
+    height: 68px;
+    max-width: none;
+  }
+  .nav-item.active::before {
+    top: 50%;
+    left: 0;
+    width: 3px;
+    height: 28px;
+    transform: translateY(-50%);
+    border-radius: 0 4px 4px 0;
+  }
+  #view {
+    margin-left: var(--rail);
+  }
+  .page {
+    max-width: 860px;
+    padding-bottom: calc(var(--player-h) + 40px);
+    padding-inline: 24px;
+  }
+  .page-head {
+    margin: 0 -24px;
+    padding-inline: 20px;
+  }
+  .home-hero {
+    margin: 12px 0 0;
+    border-radius: 28px;
+  }
+  .mini-player {
+    left: calc(var(--rail) + 16px);
+    right: 16px;
+    bottom: 16px;
+  }
+  #toast {
+    bottom: calc(var(--player-h) + 28px);
+  }
+  .rd-bar {
+    left: var(--rail);
+  }
+  .rd-bottom {
+    bottom: 0;
+  }
+  .rd-wrap {
+    padding-bottom: calc(var(--bar-h) + 56px);
+  }
+  body.reading-mode #view {
+    margin-left: 0;
+  }
+  body.reading-mode .rd-bar {
+    left: 0;
+  }
+  .asma-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  .navbar, .mini-player, .rd-bar, #toast {
+    display: none !important;
+  }
+}

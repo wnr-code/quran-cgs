@@ -1,0 +1,62 @@
+// Ikon garis konsisten (24×24, stroke). Dibuat inline agar tersedia offline tanpa permintaan jaringan.
+const P = {
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/>',
+  book: '<path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.500 1.500 2-1.500 5-2 8.500-1.500V5C17 4.500 14 5 12 6.500Z"/><path d="M12 6.500V19.500"/>',
+  headphones: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.500"/><rect x="17" y="14" width="4" height="6" rx="1.500"/>',
+  bookmark: '<path d="M6 3.500h12V21l-6-4.500L6 21Z"/>',
+  grid: '<rect x="3.500" y="3.500" width="7" height="7" rx="1.500"/><rect x="13.500" y="3.500" width="7" height="7" rx="1.500"/><rect x="3.500" y="13.500" width="7" height="7" rx="1.500"/><rect x="13.500" y="13.500" width="7" height="7" rx="1.500"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20.500 20.500-4.500-4.500"/>',
+  play: '<path d="M7 4.500v15l12-7.500Z"/>',
+  pause: '<path d="M7.500 4.500v15M16.500 4.500v15"/>',
+  stop: '<rect x="5.500" y="5.500" width="13" height="13" rx="1.500"/>',
+  next: '<path d="M5 4.500v15l10-7.500Z"/><path d="M19 4.500v15"/>',
+  prev: '<path d="M19 4.500v15L9 12Z"/><path d="M5 4.500v15"/>',
+  repeat: '<path d="M17 2.500 20.500 6 17 9.500"/><path d="M3.500 11V9a3 3 0 0 1 3-3h14"/><path d="M7 21.500 3.500 18 7 14.500"/><path d="M20.500 13v2a3 3 0 0 1-3 3h-14"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2.500v3M12 18.500v3M2.500 12h3M18.500 12h3M5.300 5.300l2.100 2.100M16.600 16.600l2.100 2.100M5.300 18.700l2.100-2.100M16.600 7.400l2.100-2.100"/>',
+  close: '<path d="M5 5l14 14M19 5 5 19"/>',
+  back: '<path d="M15 4.500 7.500 12l7.500 7.500"/>',
+  forward: '<path d="m9 4.500 7.500 7.500L9 19.500"/>',
+  up: '<path d="M4.500 15 12 7.500l7.500 7.500"/>',
+  down: '<path d="M4.500 9 12 16.500 19.500 9"/>',
+  share: '<circle cx="6" cy="12" r="2.500"/><circle cx="18" cy="5.500" r="2.500"/><circle cx="18" cy="18.500" r="2.500"/><path d="m8.200 10.800 7.600-4.100M8.200 13.200l7.600 4.100"/>',
+  copy: '<rect x="8.500" y="8.500" width="12" height="12" rx="2"/><path d="M15.500 5.500v-1a1 1 0 0 0-1-1h-10a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h1"/>',
+  note: '<path d="M4.500 20.500V17L16 5.500l3.500 3.500L8 20.500Z"/><path d="m13.500 8 3.500 3.500"/>',
+  download: '<path d="M12 3.500v12"/><path d="m7 11 5 5 5-5"/><path d="M4.500 20.500h15"/>',
+  trash: '<path d="M4 6.500h16M9.500 6.500v-3h5v3M6.500 6.500l1 14h9l1-14"/>',
+  moon: '<path d="M20 14.500A8.500 8.500 0 0 1 9.500 4a8.500 8.500 0 1 0 10.500 10.500Z"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.500v2M12 19.500v2M2.500 12h2M19.500 12h2M5.300 5.300l1.400 1.400M17.300 17.300l1.400 1.400M5.300 18.700l1.400-1.400M17.300 6.700l1.400-1.400"/>',
+  compass: '<circle cx="12" cy="12" r="9"/><path d="m15.500 8.500-2 5-5 2 2-5Z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5.500l3.500 2"/>',
+  calendar: '<rect x="3.500" y="5" width="17" height="15.500" rx="2"/><path d="M3.500 10h17M8 3v4M16 3v4"/>',
+  heart: '<path d="M12 20.500s-8-4.800-8-10.500a4.500 4.500 0 0 1 8-2.800A4.500 4.500 0 0 1 20 10c0 5.700-8 10.500-8 10.500Z"/>',
+  star: '<path d="m12 3 2.700 5.800 6.300.800-4.600 4.300 1.200 6.200L12 17l-5.600 3.100 1.200-6.200L3 9.600l6.300-.800Z"/>',
+  expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  shrink: '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',
+  list: '<path d="M8.500 6h12M8.500 12h12M8.500 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+  flow: '<path d="M3.500 6h17M3.500 10.500h17M3.500 15h17M9 19.500h11.500"/>',
+  check: '<path d="m4.500 12.500 5 5 10-11"/>',
+  plus: '<path d="M12 4.500v15M4.500 12h15"/>',
+  minus: '<path d="M4.500 12h15"/>',
+  volume: '<path d="M4 9.500v5h3.500l5 4v-13l-5 4Z"/><path d="M16 9a4 4 0 0 1 0 6M18.500 6.500a7.500 7.500 0 0 1 0 11"/>',
+  hands: '<path d="M12 21c-4-1-7-4-7-8V8.500a1.500 1.500 0 0 1 3 0V12l2.500-6.500a1.400 1.400 0 0 1 2.600 1L12 12"/><path d="M12 21c4-1 7-4 7-8V8.500a1.500 1.500 0 0 0-3 0V12l-2.500-6.500"/>',
+  beads: '<circle cx="12" cy="4.500" r="2"/><circle cx="18.500" cy="8.500" r="2"/><circle cx="18.500" cy="15.500" r="2"/><circle cx="12" cy="19.500" r="2"/><circle cx="5.500" cy="15.500" r="2"/><circle cx="5.500" cy="8.500" r="2"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.500v.500"/>',
+  more: '<circle cx="5" cy="12" r="1.300"/><circle cx="12" cy="12" r="1.300"/><circle cx="19" cy="12" r="1.300"/>',
+  type: '<path d="M4 19 9 5l5 14M5.800 14h6.400"/><path d="M16 19v-5.500a2.500 2.500 0 0 1 5 0V19M16 16h5"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  cloudOff: '<path d="M7 18.500h10a4 4 0 0 0 1.500-7.700A6 6 0 0 0 8 8"/><path d="M6 10.500a4 4 0 0 0 1 8M3.500 3.500l17 17"/>',
+  gift: '<rect x="3.500" y="8.500" width="17" height="4" rx="1"/><path d="M5 12.500v8h14v-8M12 8.500v12"/><path d="M12 8.500C10 8.500 7.500 7.500 7.500 5.500S10.500 3 12 8.500ZM12 8.500c2 0 4.500-1 4.500-3S13.500 3 12 8.500Z"/>',
+  trophy: '<path d="M7.500 4h9v6a4.500 4.500 0 0 1-9 0Z"/><path d="M7.500 5.500h-3v2a3 3 0 0 0 3 3M16.500 5.500h3v2a3 3 0 0 1-3 3M12 14.500v3.500M8 20.500h8"/>',
+  mosque: '<path d="M4 20.500v-7h16v7"/><path d="M6.500 13.500a5.500 5.500 0 0 1 11 0"/><path d="M12 8V5.500M12 3.500v.500M2.500 20.500h19M10 20.500v-3a2 2 0 0 1 4 0v3"/>',
+  pin: '<path d="M12 21s7-6.200 7-11.500a7 7 0 0 0-14 0C5 14.800 12 21 12 21Z"/><circle cx="12" cy="9.500" r="2.500"/>',
+  shield: '<path d="M12 3 4.500 6v6c0 4.500 3.200 7.700 7.500 9 4.300-1.300 7.500-4.500 7.500-9V6Z"/>',
+  upload: '<path d="M12 16V4"/><path d="m7 8.500 5-5 5 5"/><path d="M4.500 20.500h15"/>',
+  refresh: '<path d="M20 12a8 8 0 1 1-2.500-5.800"/><path d="M20 4v4.500h-4.500"/>'
+}
+
+export function icon(name, cls = '') {
+  return `<svg class="icon ${cls}" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.700" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || P.info}</svg>`
+}
+
+// Logo QuranKu: bintang delapan (rub el hizb) dengan mushaf terbuka.
+export const LOGO_SVG = `<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="15" fill="#0b3d2e"/><g fill="none" stroke="#c9a961" stroke-width="1.600"><rect x="14" y="14" width="36" height="36" rx="3"/><rect x="14" y="14" width="36" height="36" rx="3" transform="rotate(45 32 32)"/></g><circle cx="32" cy="32" r="14.500" fill="#0f6b4f"/><path d="M32 27c-2.600-1.900-5.800-2.400-9-2v13c3.200-.4 6.400.1 9 2 2.600-1.900 5.800-2.400 9-2V25c-3.200-.4-6.400.1-9 2Z" fill="#fbf7ec"/><path d="M32 27v13" stroke="#0b3d2e" stroke-width="1.300"/></svg>`

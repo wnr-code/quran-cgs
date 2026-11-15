@@ -1,0 +1,10 @@
+# Opsional — hanya diperlukan untuk menjalankan Functions + D1 secara lokal (npx wrangler pages dev dist)
+# atau bila ingin mengelola binding lewat berkas. Di produksi, binding cukup diatur dari dashboard Cloudflare Pages.
+name = "quranku"
+compatibility_date = "2026-11-01"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "quranku"
+database_id = "GANTI_DENGAN_ID_DATABASE_D1"

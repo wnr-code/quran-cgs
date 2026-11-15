@@ -1,0 +1,121 @@
+import { LOGO_SVG, icon } from '../components/icons.js'
+import { getSurah } from '../api/api-adapter.js'
+import { getLastRead } from '../services/reading-position.js'
+import { todayProgress, goalPages, GOAL_TYPES } from '../services/progress.js'
+import { getSettings } from '../services/storage.js'
+import { nextPrayer } from '../api/prayer-api.js'
+import { ayatHariIni } from '../data/ayat-pilihan.js'
+import { formatHijri } from '../utils/hijri.js'
+import { formatGregorian, greeting, formatClock } from '../utils/format.js'
+import { qnum, ayahRef } from '../utils/arabic-numbers.js'
+import { $, esc, on } from '../utils/helpers.js'
+
+const SHORTCUTS = [
+  ['/quran', 'book', 'Baca Quran'],
+  ['/murottal', 'headphones', 'Murottal'],
+  ['/bookmark', 'bookmark', 'Bookmark'],
+  ['/salat', 'clock', 'Jadwal Salat'],
+  ['/doa', 'hands', 'Doa Harian'],
+  ['/asmaul-husna', 'star', 'Asmaul Husna'],
+  ['/kiblat', 'compass', 'Arah Kiblat'],
+  ['/infaq', 'heart', 'Infaq']
+]
+
+export default async function home(root) {
+  const s = getSettings()
+  const now = new Date()
+  const hijri = formatHijri(now, s.hijriAdjust)
+  root.innerHTML = `<div class="page home">
+    <header class="home-hero ornament">
+      <div class="brand">${LOGO_SVG}<div><strong>QuranKu</strong><small>Al-Qur'an Digital</small></div>
+        <a class="icon-btn on-dark" href="#/cari" aria-label="Cari">${icon('search')}</a>
+        <a class="icon-btn on-dark" href="#/pengaturan" aria-label="Pengaturan">${icon('settings')}</a></div>
+      <p class="salam">Assalamu’alaikum</p>
+      <p class="greet">${greeting(now)}, semoga harimu penuh berkah.</p>
+      <div class="dates">${hijri ? `<span>${icon('moon')}${esc(hijri)}</span>` : ''}<span>${icon('calendar')}${esc(formatGregorian(now))}</span></div>
+    </header>
+
+    <section class="card continue" data-continue>
+      <div class="continue-empty"><p class="eyebrow">Mulai membaca</p><h2>Belum ada bacaan terakhir</h2>
+        <a class="btn btn-primary" href="#/surah/1">${icon('book')}Mulai dari Al-Fatihah</a></div>
+    </section>
+
+    <section class="card goal-card" data-goal></section>
+
+    <section aria-label="Pintasan"><div class="shortcut-grid">
+      ${SHORTCUTS.map(([p, i, l]) => `<a class="shortcut" href="#${p}"><span class="shortcut-ic">${icon(i)}</span><span>${l}</span></a>`).join('')}
+    </div></section>
+
+    <section class="card prayer-mini" data-prayer hidden></section>
+
+    <section class="card ayah-day" data-ayah>
+      <p class="eyebrow">Ayat pilihan hari ini</p>
+      <div class="skeleton sk-line"></div><div class="skeleton sk-line"></div>
+    </section>
+  </div>`
+
+  // Lanjutkan membaca + info surah terakhir
+  const renderContinue = async () => {
+    const last = await getLastRead()
+    if (!last) return
+    const pct = last.total ? Math.round((last.ayah / last.total) * 100) : 0
+    $('[data-continue]', root).innerHTML = `
+      <p class="eyebrow">Terakhir dibaca</p>
+      <div class="continue-row">
+        <div><h2>${esc(last.surahName || 'Surah ' + last.surah)}</h2>
+          <p class="muted">Ayat <span class="qn">${qnum(last.ayah)}</span> · Juz <span class="qn">${qnum(last.juz)}</span> · Halaman <span class="qn">${qnum(last.page)}</span></p></div>
+        ${last.surahNameAr ? `<span class="continue-ar" lang="ar" dir="rtl">${esc(last.surahNameAr)}</span>` : ''}
+      </div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <a class="btn btn-primary btn-block" href="#/surah/${last.surah}?resume=1">${icon('book')}LANJUTKAN MEMBACA</a>`
+  }
+
+  const renderGoal = async () => {
+    const p = await todayProgress()
+    const target = goalPages(getSettings().goal)
+    const ratio = Math.min(1, p.pages / target)
+    const C = 2 * Math.PI * 34
+    $('[data-goal]', root).innerHTML = `
+      <div class="ring" role="img" aria-label="Progres ${Math.round(ratio * 100)} persen">
+        <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" class="ring-bg"/><circle cx="40" cy="40" r="34" class="ring-fg" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - ratio)}"/></svg>
+        <b>${Math.round(ratio * 100)}%</b></div>
+      <div class="goal-info"><p class="eyebrow">Progres tilawah hari ini</p>
+        <h2>${p.pages} / ${target} halaman</h2>
+        <p class="muted">${p.ayahs} ayat dibaca · Target: ${esc((GOAL_TYPES[getSettings().goal.type] || GOAL_TYPES.p2).label)}</p>
+        <a class="link" href="#/target">Atur target & lihat statistik ${icon('forward')}</a></div>`
+  }
+
+  const renderPrayer = () => {
+    const loc = getSettings().location
+    const el = $('[data-prayer]', root)
+    if (!loc) return
+    try {
+      const np = nextPrayer(loc, getSettings().prayerMethod)
+      el.hidden = false
+      el.innerHTML = `<a href="#/salat" class="prayer-mini-row">${icon('mosque')}<span><small>Salat berikutnya · ${esc(loc.name || '')}</small><strong>${np.name} ${formatClock(np.time)}</strong></span>${icon('forward')}</a>`
+    } catch {}
+  }
+
+  const renderAyah = async () => {
+    const [sNo, aNo] = ayatHariIni()
+    const el = $('[data-ayah]', root)
+    try {
+      const surah = await getSurah(sNo)
+      const a = surah.ayat[aNo - 1]
+      if (!el.isConnected) return
+      el.innerHTML = `<p class="eyebrow">Ayat pilihan hari ini</p>
+        <p class="ayah-day-ar" lang="ar" dir="rtl">${esc(a.teksArab)}</p>
+        <p class="ayah-day-tr">${esc(a.teksIndonesia)}</p>
+        <a class="link" href="#/surah/${sNo}/${aNo}">QS. ${esc(surah.namaLatin)} ${ayahRef(sNo, aNo)} ${icon('forward')}</a>`
+    } catch {
+      if (el.isConnected) el.innerHTML = `<p class="eyebrow">Ayat pilihan hari ini</p><p class="muted">Ayat belum dapat dimuat (QS. ${ayahRef(sNo, aNo)}). Sambungkan internet sekali agar tersimpan.</p><a class="link" href="#/surah/${sNo}/${aNo}">Buka ayat ${icon('forward')}</a>`
+    }
+  }
+
+  renderContinue()
+  renderGoal()
+  renderPrayer()
+  renderAyah()
+  const off = on('progress:changed', renderGoal)
+  return off
+}
