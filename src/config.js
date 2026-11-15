@@ -19,10 +19,10 @@ export const API = {
 }
 
 // === INFAQ / TRAKTEER ===
-// Isi username Trakteer Anda (bagian setelah trakteer.id/). Contoh: 'namaanda'.
-// Bisa juga lewat env Cloudflare Pages: VITE_TRAKTEER_USERNAME
+// Username Trakteer pengembang (bagian setelah trakteer.id/).
+// Bisa diganti lewat env Cloudflare Pages: VITE_TRAKTEER_USERNAME
 export const TRAKTEER = {
-  username: (env.VITE_TRAKTEER_USERNAME || '').trim(),
+  username: (env.VITE_TRAKTEER_USERNAME || 'anichinapk').trim(),
   get url() {
     return this.username ? `https://trakteer.id/${encodeURIComponent(this.username)}/tip` : ''
   },

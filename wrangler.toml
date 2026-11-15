@@ -1,0 +1,10 @@
+# Konfigurasi Cloudflare Pages (dibaca saat deploy). `name` harus sama dengan nama proyek Pages Anda.
+# Secret TRAKTEER_WEBHOOK_TOKEN TIDAK ditulis di sini — isi lewat dashboard (Settings → Variables and Secrets).
+name = "quran-cgs"
+compatibility_date = "2026-11-01"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "quran"
+database_id = "ff7eac46-cb79-409d-9edd-a743f299b50e"

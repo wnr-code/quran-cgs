@@ -23,14 +23,20 @@ function mapDoa(d, i) {
 
 const valid = (list) => Array.isArray(list) && list.length > 0 && list.every((d) => d.nama && d.ar && /[\u0600-\u06FF]/.test(d.ar))
 
+/** Memetakan & memvalidasi respons API doa; melempar error bila formatnya tidak dikenali. */
+export function parseDoa(json) {
+  const raw = Array.isArray(json) ? json : json && Array.isArray(json.data) ? json.data : null
+  const data = raw ? raw.map(mapDoa).filter((d) => d.nama && d.ar) : null
+  if (!valid(data)) throw new Error('Format data doa tidak dikenali')
+  return data
+}
+
 export async function getDoaHarian() {
   const cached = await kv.get('doaEquran')
   if (cached && valid(cached.data) && Date.now() - cached.at < 30 * 24 * 3600 * 1000) return cached.data
   try {
     const json = await fetchJson(API.equranDoa)
-    const raw = Array.isArray(json) ? json : json && Array.isArray(json.data) ? json.data : null
-    const data = raw ? raw.map(mapDoa).filter((d) => d.nama && d.ar) : null
-    if (!valid(data)) throw new Error('Format data doa tidak dikenali')
+    const data = parseDoa(json)
     await kv.set('doaEquran', { at: Date.now(), data })
     return data
   } catch (e) {
