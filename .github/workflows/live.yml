@@ -7,6 +7,7 @@ on:
       - 'tests/live/**'
       - 'tests/e2e/live.mjs'
       - 'src/api/**'
+      - 'src/services/adzan-voices.js'
       - '.github/workflows/live.yml'
 permissions:
   contents: read
@@ -25,7 +26,7 @@ jobs:
       - name: Qari tambahan (mp3quran.net)
         if: always()
         run: node tests/live/qari.mjs
-      - name: Audio adzan
+      - name: Suara adzan (cdn.aladhan.com)
         if: always()
         run: node tests/live/adzan.mjs
       - name: Build

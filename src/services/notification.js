@@ -2,7 +2,6 @@
 // pengingat ini selama QuranKu terbuka atau masih berjalan di latar belakang. Tidak ada jaminan
 // notifikasi muncul ketika aplikasi ditutup sepenuhnya.
 import { getSettings } from './storage.js'
-import { getPrayerTimes } from '../api/prayer-api.js'
 import { todayProgress, goalPages } from './progress.js'
 import { dateKey, formatClock } from '../utils/format.js'
 
@@ -43,21 +42,14 @@ const fireOnce = (key, title, body) => {
 async function tick() {
   const s = getSettings()
   const r = s.reminders
-  if (notifPermission() !== 'granted' || (!r.tilawah && !r.goal && !r.prayer)) return
+  if (notifPermission() !== 'granted' || (!r.tilawah && !r.goal)) return
   const now = new Date()
   const hm = formatClock(now)
-  const within = (target) => {
-    const diff = now - target
-    return diff >= 0 && diff < 90000
-  }
   if (r.tilawah && hm === r.tilawahTime) fireOnce('tilawah', 'Waktunya tilawah', 'Luangkan waktu sejenak untuk membaca Al-Qur’an hari ini.')
   if (r.goal && hm === '20:30') {
     const p = await todayProgress()
     const target = goalPages(s.goal)
     if (p.pages < target) fireOnce('goal', 'Target tilawah hari ini', `Baru ${p.pages} dari ${target} halaman. Yuk lanjutkan bacaan.`)
-  }
-  if (r.prayer && s.location) {
-    for (const p of getPrayerTimes(s.location, now, s.prayerMethod)) if (!p.minor && within(p.time)) fireOnce('salat-' + p.key, `Waktu ${p.name}`, `Telah masuk waktu ${p.name} (${formatClock(p.time)}) untuk ${s.location.name || 'lokasi Anda'}.`)
   }
 }
 

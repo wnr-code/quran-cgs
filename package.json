@@ -1,7 +1,7 @@
 {
   "name": "quranku",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "QuranKu — Al-Qur'an digital premium (PWA + Android TWA)",
   "type": "module",
   "scripts": {
@@ -11,7 +11,7 @@
     "gen:local": "node scripts/gen-local.mjs",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --test tests/unit.test.mjs tests/d1.test.mjs tests/infaq.test.mjs",
+    "test": "node --test tests/unit.test.mjs tests/d1.test.mjs tests/infaq.test.mjs tests/adzan.test.mjs",
     "gen:meta": "node scripts/gen-meta.mjs",
     "gen:icons": "node scripts/gen-icons.mjs"
   },

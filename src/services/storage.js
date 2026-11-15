@@ -28,6 +28,8 @@ export const DEFAULTS = {
   audio: { qari: '05', autoPlay: true, repeat: 'none', rate: 1, volume: 1 },
   goal: { type: 'p2', pages: 2 },
   reminders: { tilawah: false, tilawahTime: '18:30', goal: false, prayer: false },
+  // Adzan otomatis: suara adzan saat aplikasi terbuka + pemberitahuan push saat tertutup. Imsak & tarhim hanya Ramadan.
+  adzan: { enabled: false, sound: true, voice: 'a9', subuh: true, zuhur: true, asar: true, magrib: true, isya: true, imsak: true, tarhim: true },
   location: null, // { lat, lng, name }
   prayerMethod: 'kemenag'
 }
@@ -38,7 +40,7 @@ function load() {
     saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}
   } catch {}
   const s = { ...DEFAULTS, ...saved }
-  for (const k of ['reader', 'audio', 'goal', 'reminders']) s[k] = { ...DEFAULTS[k], ...(saved[k] || {}) }
+  for (const k of ['reader', 'audio', 'goal', 'reminders', 'adzan']) s[k] = { ...DEFAULTS[k], ...(saved[k] || {}) }
   return s
 }
 

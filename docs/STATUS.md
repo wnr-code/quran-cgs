@@ -64,3 +64,14 @@ Terakhir diperbarui: 15 November 2026.
 - **Ayat pilihan**: 100 ayat (sebelumnya 33), berganti tepat tengah malam waktu perangkat, diperbarui saat aplikasi kembali ke layar, tombol "ayat lain", putar, bagikan.
 - **Doa Wudhu & Wirid Setelah Salat**: `src/data/dzikir.json`, disalin apa adanya dari `fitrahive/dua-dhikr` (MIT) lewat `scripts/gen-dzikir.mjs`; tiap bacaan mencantumkan rujukan hadis.
 - Uji: qari tidak ganda, ayat pilihan, ikon berversi, dzikir (unit); mode Halaman, wirid, ayat pilihan (E2E).
+
+## Pembaruan 1.2.0 — Adzan otomatis
+
+- **Adzan otomatis** (Jadwal Salat → kartu "Adzan otomatis", bisa On/Off, per waktu salat, pilihan muazin, tombol Coba).
+  - Aplikasi terbuka/aktif di latar belakang: suara adzan diputar otomatis tepat waktunya (`src/services/adzan.js`).
+  - Aplikasi ditutup: Worker (cron tiap menit) menghitung jadwal tiap pelanggan dan mengirim **Web Push** (`functions/lib/adzan.js`, `functions/lib/webpush.js`, `functions/api/push.js`, tabel D1 `push_subs`). Kunci VAPID dibuat otomatis dan disimpan di D1 (atau isi secret `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_JWK`).
+  - **Batasan platform web:** saat aplikasi tertutup, yang berbunyi adalah nada notifikasi perangkat, bukan rekaman adzan; adzan diputar setelah pemberitahuan diketuk. Adzan bersuara penuh saat tertutup hanya mungkin dengan aplikasi Android native (AlarmManager), bukan PWA/TWA.
+  - **Imsak** (Subuh − 10 mnt) dan **Tarhim** (Subuh − 15 mnt): pemberitahuan, hanya bulan Ramadan (kalender Umm al-Qura + koreksi hari pengguna). Belum ada rekaman tarhim dari sumber tepercaya, jadi tanpa audio.
+  - Suara adzan: `cdn.aladhan.com` (6 rekaman yang tercantum di aladhan.com/play), diperiksa oleh `tests/live/adzan.mjs`.
+- **Kompas kiblat** baru: piringan SVG berderajat, penanda Ka'bah, pusat derajat, cahaya & getar saat tepat kiblat, kartu statistik.
+- **Versi naik otomatis** tiap merge ke `main` (`.github/workflows/version.yml`, patch +1).

@@ -18,9 +18,9 @@ binding = "ASSETS"
 INFAQ_USERNAME = "lanteraku"
 INFAQ_UNIT_PRICE = "5000"
 
-# Sinkronisasi riwayat infaq dari Public API tiap 15 menit (gratis).
+# Tiap menit: push pengingat adzan yang jatuh tempo; tiap 15 menit: sinkronisasi riwayat infaq (gratis).
 [triggers]
-crons = ["*/15 * * * *"]
+crons = ["* * * * *"]
 
 [[d1_databases]]
 binding = "DB"

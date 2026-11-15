@@ -1,32 +1,30 @@
-// Penjajakan: sumber audio adzan/tarhim mana yang benar-benar tersedia (status, tipe, ukuran, Range, CORS).
-const get = (url, init = {}) => fetch(url, { ...init, redirect: 'follow', signal: AbortSignal.timeout(25000), headers: { 'User-Agent': 'Mozilla/5.0 QuranKu-live-test', ...(init.headers || {}) } })
-const out = []
-async function probe(url) {
-  try {
-    let res = await get(url, { headers: { Range: 'bytes=0-1', Origin: 'https://quran.cgs.my.id' } })
-    const range = res.headers.get('content-range')
-    out.push(`${res.status} ${url.replace('https://', '')} type=${res.headers.get('content-type')} len=${range ? range.split('/')[1] : res.headers.get('content-length')} cors=${res.headers.get('access-control-allow-origin') || '-'} final=${res.url === url ? '=' : res.url}`)
-  } catch (e) {
-    out.push(`ERR ${url} ${e.message}`)
-  }
-}
+// Memeriksa rekaman adzan yang dipakai aplikasi terhadap layanan ASLI (cdn.aladhan.com):
+// berkas terjangkau, bertipe audio, mendukung Range, berukuran wajar, dan memang tercantum di halaman resmi aladhan.com/play.
+import { ADZAN_VOICES, adzanUrl } from '../../src/services/adzan-voices.js'
+
+const get = (url, init = {}) => fetch(url, { ...init, signal: AbortSignal.timeout(25000), headers: { 'User-Agent': 'Mozilla/5.0 QuranKu-live-test', ...(init.headers || {}) } })
+let failed = 0
+const lines = []
+let listed = ''
 try {
-  const t = await (await get('https://aladhan.com/play')).text()
-  for (const m of t.matchAll(/https?:\/\/[^"' ]+\.mp3/g)) out.push('CTX ' + t.slice(Math.max(0, m.index - 260), m.index + m[0].length + 200).replace(/\s+/g, ' '))
+  listed = await (await get('https://aladhan.com/play')).text()
 } catch (e) {
-  out.push('aladhan/play ERR ' + e.message)
+  lines.push('! halaman aladhan.com/play tidak terbaca: ' + e.message)
 }
-for (const id of ['ShalawatTarhim', 't1_20210307', 'sholawat-tarhim']) {
+for (const [id, name] of Object.entries(ADZAN_VOICES)) {
+  const url = adzanUrl(id)
   try {
-    const j = await (await get('https://archive.org/metadata/' + id)).json()
-    out.push(`IA ${id}: uploader=${j.metadata.uploader} date=${j.metadata.publicdate} lic=${j.metadata.licenseurl || '-'} desc=${String(j.metadata.description || '').slice(0, 120)} server=${j.d1} dir=${j.dir} files=` + j.files.filter((f) => /mp3|ogg/i.test(f.name)).map((f) => `${f.name}(${f.length}s,${f.size}b,${f.source})`).join(', '))
+    const res = await get(url, { headers: { Range: 'bytes=0-1' } })
+    const range = res.headers.get('content-range') || ''
+    const len = Number(range.split('/')[1])
+    const ok = res.status === 206 && /audio/.test(res.headers.get('content-type') || '') && len > 500000 && len < 12000000
+    const official = listed ? listed.includes(url) : null
+    if (!ok || official === false) failed++
+    lines.push(`${ok && official !== false ? '✓' : '✗'} ${id} ${name}: ${res.status} ${res.headers.get('content-type')} ${(len / 1048576).toFixed(1)} MB${official === null ? '' : official ? ' · tercantum di aladhan.com/play' : ' · TIDAK tercantum'}`)
   } catch (e) {
-    out.push(`IA ${id} ERR ${e.message}`)
+    failed++
+    lines.push(`✗ ${id} ${name}: ${e.message}`)
   }
 }
-for (const u of ['https://archive.org/download/ShalawatTarhim/ShalawatTarhim.mp3']) {
-  const res = await get(u, { headers: { Range: 'bytes=0-1', Origin: 'https://quran.cgs.my.id' } }).catch((e) => ({ status: 'ERR ' + e.message, headers: new Headers(), url: '' }))
-  out.push(`${res.status} ${u} type=${res.headers.get('content-type')} range=${res.headers.get('content-range')} cors=${res.headers.get('access-control-allow-origin')} final=${res.url}`)
-}
-// Anotasi dibatasi per langkah → gabungkan menjadi beberapa baris panjang.
-for (let i = 0; i < out.length; i += 4) console.log('::notice::' + out.slice(i, i + 4).join('%0A'))
+console.log(`::${failed ? 'error' : 'notice'}::${lines.join('%0A')}`)
+if (failed) process.exit(1)

@@ -199,7 +199,7 @@ await step('Halaman fitur lain terbuka tanpa error', async () => {
   await shot('09-jadwal-salat')
   await go('/kiblat')
   await page.waitForSelector('.compass')
-  const deg = parseFloat(await text('.qibla-card h2'))
+  const deg = parseFloat(await text('.qibla-stats b'))
   assert.ok(deg > 293 && deg < 297, 'kiblat Kuningan ≈ 295°, dapat ' + deg)
   await go('/tasbih')
   await page.click('.tasbih-btn')
@@ -259,14 +259,18 @@ await step('Mode Halaman: lembar per halaman mushaf, digeser ke samping', async 
   // Pindah halaman dengan tombol → info halaman & ayat ikut berubah.
   assert.equal(await text('.rd-top [data-page]'), '٢')
   await page.click('.rd-bottom [data-act="next"]')
-  await page.waitForFunction(() => document.querySelector('.rd-top [data-page]').textContent.trim() === '٣', { timeout: 5000 })
+  await page.waitForFunction(() => document.querySelector('.rd-top [data-page]').textContent.trim() === '٣', { timeout: 5000 }).catch(() => assert.fail('tombol halaman berikutnya tidak memindah halaman'))
   assert.equal(await text('.rd-top [data-cur]'), '٦')
+  await new Promise((r) => setTimeout(r, 600)) // biarkan animasi geser selesai
   // Geser dengan sentuhan (usap ke kanan = halaman berikutnya, seperti mushaf).
   const box = await page.$eval('.mushaf-pages', (e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height } })
   await page.touchscreen.touchStart(box.x + box.w * 0.2, box.y + box.h / 2)
-  for (let i = 1; i <= 8; i++) await page.touchscreen.touchMove(box.x + box.w * (0.2 + 0.08 * i), box.y + box.h / 2)
+  for (let i = 1; i <= 8; i++) {
+    await page.touchscreen.touchMove(box.x + box.w * (0.2 + 0.08 * i), box.y + box.h / 2)
+    await new Promise((r) => setTimeout(r, 16))
+  }
   await page.touchscreen.touchEnd()
-  await page.waitForFunction(() => document.querySelector('.rd-top [data-page]').textContent.trim() === '٤', { timeout: 5000 })
+  await page.waitForFunction(() => document.querySelector('.rd-top [data-page]').textContent.trim() === '٤', { timeout: 5000 }).catch(() => assert.fail('usapan tidak memindah halaman'))
   // Lompat ke ayat di halaman lain lalu sentuh ayat → lembar aksi terbuka.
   await go('/surah/2/255')
   await page.waitForSelector('.mushaf-pages .ayah[data-a="255"]')
@@ -308,6 +312,91 @@ await step('Doa wudhu & wirid setelah salat (tersimpan di aplikasi)', async () =
   assert.equal(await text(c), '3 / 3')
   assert.ok(await page.$eval(c, (b) => b.classList.contains('done')))
   await shot('17-wirid-setelah-salat')
+})
+await step('Kompas kiblat: piringan SVG, penanda Ka’bah, statistik', async () => {
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('quranku:settings') || '{}')
+    s.location = { lat: -6.2088, lng: 106.8456, name: 'Jakarta' }
+    localStorage.setItem('quranku:settings', JSON.stringify(s))
+  })
+  await page.reload({ waitUntil: 'networkidle2' })
+  await go('/kiblat')
+  await page.waitForSelector('.compass-dial svg')
+  assert.equal(await count('.compass-dial .tk'), 72)
+  assert.equal(await count('.qibla-stats .card'), 3)
+  // Kiblat dari Jakarta ≈ 295° dari Utara.
+  assert.match(await page.$eval('.qibla-mark', (g) => g.getAttribute('transform')), /^rotate\(295\.\d+ 100 100\)$/)
+  assert.equal(await text('[data-deg]'), '295°')
+  await shot('18-kompas-kiblat')
+})
+await step('Adzan otomatis: pengaturan, uji suara, On/Off', async () => {
+  await browser.defaultBrowserContext().overridePermissions(new URL(BASE).origin, ['notifications'])
+  await go('/salat')
+  await page.waitForSelector('.adzan-card')
+  assert.equal(await page.$eval('.adzan-body', (e) => e.hidden), true)
+  await page.$eval('[data-adzan="enabled"]', (e) => e.click())
+  await page.waitForFunction(() => document.querySelector('.adzan-body') && !document.querySelector('.adzan-body').hidden, { timeout: 15000 })
+  const st = () => page.evaluate(() => JSON.parse(localStorage.getItem('quranku:settings')).adzan)
+  assert.equal((await st()).enabled, true)
+  assert.equal(await count('.adzan-chips input'), 5)
+  assert.equal(await count('[data-adzan-voice] option'), 6)
+  await page.$eval('[data-adzan="asar"]', (e) => e.click())
+  assert.equal((await st()).asar, false)
+  await page.select('[data-adzan-voice]', 'a1')
+  assert.equal((await st()).voice, 'a1')
+  await shot('19-adzan-otomatis')
+  // Tombol Coba → bilah adzan muncul (permintaan audio lewat Service Worker, jadi tidak terlihat oleh penyadap halaman).
+  await page.$eval('[data-adzan-test]', (b) => b.click())
+  await page.waitForSelector('#adzan-bar.show')
+  assert.match(await text('#adzan-bar strong'), /^Adzan$/)
+  await page.$eval('#adzan-bar [data-adzan-stop]', (b) => b.click())
+  await page.waitForFunction(() => !document.querySelector('#adzan-bar.show'))
+  await page.$eval('[data-adzan="enabled"]', (e) => e.click())
+  await page.waitForFunction(() => document.querySelector('.adzan-body') && document.querySelector('.adzan-body').hidden, { timeout: 15000 })
+  assert.equal((await st()).enabled, false)
+})
+await step('Adzan berbunyi otomatis tepat saat masuk waktu salat', async () => {
+  const { getPrayerTimes } = await import('../../src/api/prayer-api.js')
+  // Waktu Magrib hari ini (WIB) untuk Jakarta; jam halaman digeser ke 20 detik sebelum Magrib.
+  const now = new Date()
+  const wib = new Date(now.getTime() + 7 * 3600000)
+  const magrib = getPrayerTimes({ lat: -6.2088, lng: 106.8456 }, new Date(wib.getUTCFullYear(), wib.getUTCMonth(), wib.getUTCDate(), 12), 'kemenag').find((p) => p.key === 'magrib').time
+  const p3 = await browser.newPage()
+  await p3.emulateTimezone('Asia/Jakarta')
+  await p3.setViewport({ width: 412, height: 915, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
+  p3.on('pageerror', (e) => errors.push(String(e)))
+  await p3.evaluateOnNewDocument((offset) => {
+    const Real = Date
+    class Shifted extends Real {
+      constructor(...a) {
+        if (a.length) super(...a)
+        else super(Real.now() + offset)
+      }
+      static now() {
+        return Real.now() + offset
+      }
+    }
+    window.Date = Shifted
+    const s = JSON.parse(localStorage.getItem('quranku:settings') || '{}')
+    s.location = { lat: -6.2088, lng: 106.8456, name: 'Jakarta' }
+    s.adzan = { ...(s.adzan || {}), enabled: true, sound: true, voice: 'a9', magrib: true }
+    localStorage.setItem('quranku:settings', JSON.stringify(s))
+    for (const k of Object.keys(localStorage)) if (k.startsWith('qk-adzan:')) localStorage.removeItem(k)
+  }, magrib.getTime() - 20000 - Date.now())
+  const reqs = []
+  p3.on('request', (r) => r.url().includes('cdn.aladhan.com') && reqs.push(r.url()))
+  await p3.goto(BASE + '/#/salat', { waitUntil: 'domcontentloaded' })
+  await p3.waitForSelector('.adzan-card')
+  assert.equal(await p3.$('#adzan-bar.show'), null, 'belum waktunya → belum berbunyi')
+  await p3.waitForSelector('#adzan-bar.show', { timeout: 45000 })
+  assert.match(await p3.$eval('#adzan-bar strong', (e) => e.textContent), /Adzan Magrib/)
+  if (reqs.length) assert.deepEqual([...new Set(reqs)], ['https://cdn.aladhan.com/audio/adhans/a9.mp3'])
+  await p3.screenshot({ path: `${SHOTS}/20-adzan-berbunyi.png` })
+  // Tidak berbunyi dua kali untuk waktu yang sama.
+  await p3.$eval('#adzan-bar [data-adzan-stop]', (b) => b.click())
+  await new Promise((r) => setTimeout(r, 17000))
+  assert.equal(await p3.$('#adzan-bar.show'), null)
+  await p3.close()
 })
 await step('Tidak ada error JavaScript', async () => {
   assert.deepEqual(errors, [])

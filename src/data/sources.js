@@ -53,6 +53,14 @@ export const SOURCES = [
     icon: 'hands',
     items: [
       {
+        name: 'AlAdhan.com (Islamic Network)',
+        role: 'Suara adzan',
+        use: 'Rekaman adzan yang diputar pada fitur Adzan otomatis (Mishary Rashid Alafasy, Ahmad al-Nafees, Hafiz Mustafa Özcan, Mansour Al-Zahrani). Diputar langsung dari cdn.aladhan.com.',
+        note: 'Daftar rekaman dan nama muazin mengikuti halaman resmi aladhan.com/play.',
+        url: 'https://aladhan.com/play',
+        host: 'aladhan.com'
+      },
+      {
         name: 'fitrahive/dua-dhikr',
         role: 'Doa wudhu & wirid setelah salat',
         use: 'Bacaan sebelum/sesudah wudhu dan dzikir setelah salat wajib: teks Arab, Latin, terjemahan, keterangan, dan rujukan hadis. Disimpan di aplikasi sehingga dapat dibuka offline.',

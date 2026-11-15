@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       QURANKU_VERSION_CODE: ${{ github.run_number }}0
-      QURANKU_VERSION_NAME: 1.1.${{ github.run_number }}
     defaults:
       run:
         working-directory: android

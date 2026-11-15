@@ -9,6 +9,7 @@ import { renderNavbar, setActiveNav } from './components/navbar.js'
 import { initMiniPlayer } from './components/audio-player.js'
 import { registerServiceWorker, watchConnectivity } from './services/offline.js'
 import { startReminderLoop } from './services/notification.js'
+import { initAdzan, adzanTick } from './services/adzan.js'
 import { getSurahList } from './api/api-adapter.js'
 
 initSettings()
@@ -57,6 +58,11 @@ startRouter(document.getElementById('view'), (path, meta) => {
 
 registerServiceWorker()
 startReminderLoop()
+// Adzan otomatis: diperiksa tiap 15 detik selama aplikasi hidup (juga saat kembali ke layar).
+initAdzan()
+setInterval(adzanTick, 15000)
+document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && adzanTick())
+adzanTick()
 // Saat pertama online: simpan daftar surah & metadata untuk pemakaian offline.
 getSurahList().catch(() => {})
 

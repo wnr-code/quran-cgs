@@ -137,13 +137,47 @@ self.addEventListener('fetch', (event) => {
   }
 })
 
+// Push dari server (adzan, imsak, tarhim). Bila aplikasi sedang terbuka, halaman diberi tahu agar memutar adzan.
+self.addEventListener('push', (event) => {
+  let d = {}
+  try {
+    d = event.data ? event.data.json() : {}
+  } catch {}
+  const key = String(d.key || 'info')
+  const isPrayer = ['subuh', 'zuhur', 'asar', 'magrib', 'isya'].includes(key)
+  event.waitUntil(
+    (async () => {
+      await self.registration.showNotification(d.title || 'QuranKu', {
+        body: d.body || '',
+        tag: 'salat-' + key,
+        renotify: true,
+        requireInteraction: isPrayer,
+        icon: '/icons/icon-192-v2.png',
+        badge: '/icons/badge-96-v2.png',
+        lang: 'id',
+        vibrate: [300, 150, 300, 150, 600],
+        timestamp: d.at || Date.now(),
+        data: { url: '/#/salat', key, play: isPrayer }
+      })
+      if (d.type === 'adzan') for (const c of await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) c.postMessage({ type: 'adzan', key, at: d.at })
+    })()
+  )
+})
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const target = event.notification.tag && event.notification.tag.startsWith('salat') ? '/#/salat' : '/#/'
+  const data = event.notification.data || {}
+  const isSalat = event.notification.tag && event.notification.tag.startsWith('salat')
+  const target = isSalat ? (data.play ? `/?adzan=${data.key}#/salat` : '/#/salat') : '/#/'
   event.waitUntil(
     (async () => {
       const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-      for (const c of all) if ('focus' in c) return c.focus()
+      for (const c of all)
+        if ('focus' in c) {
+          // Ketukan pemberitahuan adalah interaksi pengguna → halaman boleh memutar adzan.
+          if (data.play) c.postMessage({ type: 'adzan', key: data.key, play: true })
+          return c.focus()
+        }
       if (self.clients.openWindow) return self.clients.openWindow(target)
     })()
   )

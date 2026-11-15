@@ -1,0 +1,33 @@
+# Menaikkan versi (patch) secara otomatis setiap ada merge/push ke main.
+# Versi tampil di aplikasi (Tentang & Lainnya) bersama nomor build, jadi setiap rilis punya nomor versi baru.
+# Untuk menaikkan minor/major: ubah "version" di package.json secara manual pada PR — workflow lalu melanjutkan dari sana.
+name: Naikkan versi
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+jobs:
+  bump:
+    # Commit kenaikan versi sendiri tidak memicu kenaikan berikutnya.
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(versi):') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Naikkan versi patch
+        run: |
+          npm version patch --no-git-tag-version
+          V=$(node -p "require('./package.json').version")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore(versi): $V"
+          git push origin HEAD:main
