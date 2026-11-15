@@ -66,20 +66,26 @@ await step('Formulir infaq tampil tanpa nama penyedia pembayaran', async () => {
   await page.screenshot({ path: `${SHOTS}/10-infaq.png` })
 })
 await step('Mode halaman pembayaran: menunggu → otomatis “terima kasih” setelah webhook', async () => {
+  // Menekan "Lanjut bayar" langsung membuka halaman pembayaran di tab baru, dengan jumlah unit yang sama.
+  const urls = []
+  const onTarget = (t) => urls.push(t.url())
+  browser.on('targetchanged', onTarget)
+  browser.on('targetcreated', onTarget)
   await tap('[data-pay]')
-  await page.waitForSelector('[data-open]', T)
-  // Popup pembayaran: bingkai di dalam aplikasi, bukan tab baru
-  await tap('[data-open]')
-  await page.waitForSelector('.sheet-wrap.open iframe[data-frame]', T)
-  assert.equal(await page.$eval('iframe[data-frame]', (f) => f.getAttribute('src')), `https://trakteer.id/lanteraku/tip/embed/modal?embedId=0&ref=${new URL(BASE).origin}/`)
-  assert.match(await page.$eval('.sheet-wrap a[data-ext]', (a) => a.href), /^https:\/\/trakteer\.id\/lanteraku\/tip\?quantity=15$/)
-  assert.equal(page.url().startsWith(BASE), true, 'tetap di halaman aplikasi')
-  assert.equal((await browser.pages()).length, pagesBefore, 'tidak ada tab baru')
-  await new Promise((r) => setTimeout(r, 400)) // tunggu animasi lembar selesai
-  assert.equal(await page.$eval('.sheet-wrap a[data-ext]', (a) => { const r = a.getBoundingClientRect(); return r.top > 0 && r.bottom <= innerHeight }), true, 'tombol cadangan terlihat tanpa menggulir')
-  await page.screenshot({ path: `${SHOTS}/15-infaq-popup.png` })
-  await page.$eval('.sheet-wrap button[data-close]', (b) => b.click())
-  await page.waitForFunction(() => !document.querySelector('.sheet-wrap'), T)
+  await page.waitForSelector('a[data-open]', T)
+  const payUrl = 'https://trakteer.id/lanteraku/tip?quantity=15'
+  assert.equal(await page.$eval('a[data-open]', (a) => a.href), payUrl)
+  assert.equal(await page.$eval('a[data-open]', (a) => a.target), '_blank')
+  assert.match(await page.$eval('[data-flow]', (e) => e.textContent), /sudah dibuka di tab baru dengan jumlah 15 unit/)
+  for (let i = 0; i < 40 && (await browser.pages()).length === pagesBefore; i++) await new Promise((r) => setTimeout(r, 100))
+  assert.equal((await browser.pages()).length, pagesBefore + 1, 'tab pembayaran terbuka otomatis')
+  for (let i = 0; i < 40 && !urls.includes(payUrl); i++) await new Promise((r) => setTimeout(r, 100))
+  assert.ok(urls.includes(payUrl), 'tab diarahkan ke halaman pembayaran: ' + urls.join(' | '))
+  browser.off('targetchanged', onTarget)
+  browser.off('targetcreated', onTarget)
+  assert.equal(page.url().startsWith(BASE), true, 'aplikasi tetap di halamannya')
+  await page.bringToFront()
+  await page.screenshot({ path: `${SHOTS}/15-infaq-menunggu.png` })
   assert.match(await page.$eval('[data-left]', (e) => e.textContent), /^\d\d:\d\d$/)
   // Pindah halaman lalu kembali: niat infaq yang sedang menunggu dipulihkan
   await page.evaluate(() => (location.hash = '#/tentang'))
@@ -92,6 +98,7 @@ await step('Mode halaman pembayaran: menunggu → otomatis “terima kasih” se
   await page.waitForSelector('.infaq-result.ok', T)
   assert.match(await page.$eval('.infaq-result.ok', (e) => e.textContent), /15\.000/)
   await page.screenshot({ path: `${SHOTS}/13-infaq-terima-kasih.png` })
+  // (Setelah muat ulang, tab pembayaran tidak lagi dipegang aplikasi, jadi dibiarkan terbuka.)
   await page.waitForFunction((n) => document.querySelector('[data-latest]').textContent.toLowerCase().includes(n), T, 'penguji ' + uniq)
 })
 await step('Mode QRIS: kode QR digambar, dapat diunduh, lalu terkonfirmasi lewat ID transaksi', async () => {

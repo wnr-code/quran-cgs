@@ -10,11 +10,10 @@ aplikasi sendiri (`#/infaq`); dana diterima lewat akun Trakteer `lanteraku`.
    - **Mode QRIS langsung** (bila secret QRIS langsung terisi dan Trakteer menjawab dengan kode QRIS): Worker meminta
      QRIS ke Trakteer di latar belakang. Aplikasi menggambar kode QR sendiri, bisa diunduh sebagai PNG. Tidak ada tab
      baru dan tidak ada pengalihan.
-   - **Mode popup** (cadangan otomatis bila mode di atas belum diatur atau gagal): tombol *Bayar sekarang* membuka
-     jendela (popup) di dalam aplikasi berisi formulir pembayaran Trakteer versi sematan
-     (`https://trakteer.id/lanteraku/tip/embed/modal`) dalam sebuah bingkai. Tidak ada tab baru dan aplikasi tidak
-     berpindah halaman. Donatur mengisi nama dan jumlah yang sama di dalam popup. Bila bingkai tidak mau tampil,
-     tersedia tautan kecil *Buka di tab baru*. Alamat sematan ini belum diuji terhadap Trakteer sungguhan.
+   - **Mode halaman pembayaran** (bawaan; dipakai bila mode di atas belum diatur atau gagal): begitu *Lanjut bayar*
+     ditekan, halaman pembayaran Trakteer **langsung terbuka di tab baru** dengan jumlah unit yang sama
+     (`https://trakteer.id/lanteraku/tip?quantity=N`). Bila peramban memblokir tab baru, tersedia tombol
+     *Buka halaman pembayaran*. Setelah infaq terkonfirmasi, tab yang dibuka aplikasi ditutup kembali.
 3. Layar **Menunggu pembayaran**: aplikasi memeriksa `GET /api/infaq/status` secara berkala. Niat bertahan walau
    aplikasi ditutup atau dimuat ulang.
 4. Begitu pembayaran tercatat → layar **Terima kasih** dan papan donatur diperbarui. Bila kedaluwarsa → layar gagal.
@@ -89,16 +88,14 @@ penyalahgunaan. Pengguna yang terkena batas diminta menunggu beberapa menit.
 - `tests/e2e/infaq.mjs` — alur di peramban terhadap `wrangler dev`; jawaban QRIS ditiru.
 - Belum diuji: Trakteer sungguhan (webhook, Public API, QRIS langsung) dan D1 produksi.
 
-## Popup pembayaran (pembaruan 1.3.1)
+## Halaman pembayaran langsung (pembaruan 1.3.6)
 
-Popup kini mengikuti **persis** cara kerja skrip tombol resmi penyedia (`trbtn-overlay.min.js`):
-bingkai dibuka di `…/tip/embed/modal?embedId=0&ref=<alamat situs>`, lalu setelah termuat dikirimi pesan
-`{type: "embed.openModal"}`; pesan `embed.modalClosed` dari penyedia menutup popup. Sebelumnya bingkai dibuka
-tanpa `embedId` dan tanpa pesan pembuka.
+Popup sematan (`…/tip/embed/modal`) dihapus karena tetap menampilkan 404 di akun ini. Gantinya, halaman pembayaran
+dibuka langsung dengan parameter `?quantity=N` sehingga jumlah unit di Trakteer sama dengan pilihan di aplikasi.
+Konfirmasi tetap otomatis lewat webhook / Public API; pencocokan memakai nominal (dan nama bila ada beberapa infaq
+bernominal sama yang sedang menunggu). Karena itu donatur tidak boleh mengubah jumlah unit di halaman pembayaran.
 
-Halaman penyedia dilindungi pemeriksaan bot, sehingga alamat ini **tidak dapat diuji otomatis** dari CI — mohon
-dicoba langsung di HP. Bila popup tetap menampilkan 404, kemungkinan fitur *embed/overlay* belum aktif untuk akun
-tersebut; tombol **"Buka halaman pembayaran"** di bawah popup selalu tersedia sebagai jalan keluar.
+Halaman penyedia dilindungi pemeriksaan bot, sehingga **tidak dapat diuji otomatis** dari CI — mohon dicoba di HP.
 
 Nominal minimal: **Rp1.000** (`INFAQ_UNIT_PRICE = "1000"`). Harga 1 unit di akun penyedia **harus** juga Rp1.000,
 kalau tidak jumlah yang dibayar tidak akan cocok dengan yang dipilih di aplikasi.

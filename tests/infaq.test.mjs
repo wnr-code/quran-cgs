@@ -59,7 +59,7 @@ test('tanpa kunci QRIS langsung: mode halaman pembayaran, dikonfirmasi oleh webh
     assert.equal(c.amount, 20000)
     assert.equal(c.name, 'bFatimah/b')
     assert.equal(c.url, 'https://trakteer.id/lanteraku/tip?quantity=4')
-    assert.equal(c.embedUrl, 'https://trakteer.id/lanteraku/tip/embed/modal')
+    assert.equal(c.embedUrl, undefined) // popup sematan dihapus: halaman pembayaran dibuka langsung
     assert.equal((await (await call(env, '/api/infaq/status?id=' + c.id)).json()).status, 'pending')
     assert.equal((await call(env, '/api/infaq/status?id=bukan-id')).status, 404)
     // Donasi lain dengan nominal berbeda tidak mengonfirmasi niat ini

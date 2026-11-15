@@ -116,3 +116,8 @@ Terakhir diperbarui: 15 November 2026.
 - **Lisensi MIT**: berkas `LICENSE`, `package.json` (`license`, `author`, `repository`), bagian Lisensi di README dan di aplikasi (Tentang → Lisensi, dengan tautan kode sumber). MIT hanya untuk kode; konten pihak ketiga mengikuti pemiliknya.
 - **Tentang & Sumber Data diperbarui**: ringkasan fitur, pustaka perangkat lunak (Vite, qrcode-generator, Fontsource, Android Browser Helper), layanan (Cloudflare Workers & D1 + alamat cadangan, Web Push, Trakteer), daftar ayat pilihan; keterangan privasi menyebut data adzan otomatis.
 - README ditulis ulang mengikuti fitur 1.3.x.
+
+## 1.3.6
+
+- **Infaq: alur diganti** karena popup sematan tetap 404. *Lanjut bayar* kini langsung membuka halaman pembayaran di tab baru dengan jumlah unit yang sama (`/tip?quantity=N`); aplikasi menunggu dan mengonfirmasi otomatis (webhook), lalu menutup tab tersebut. Kode popup/iframe, `embedUrl`, dan izin `frame-src` dihapus.
+- Belum diuji terhadap Trakteer sungguhan: apakah jumlah unit benar-benar terisi dan webhook sampai — perlu dicoba di HP.

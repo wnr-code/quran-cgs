@@ -18,7 +18,6 @@ export const providerConfig = (env) => {
     unitPrice,
     hasApi: !!env.TRAKTEER_API_KEY,
     hasDirect: !!(env.TRAKTEER_SESSION && env.TRAKTEER_CSRF_TOKEN && env.TRAKTEER_CREATOR_ID && env.TRAKTEER_UNIT_ID),
-    embedUrl: env.INFAQ_USERNAME ? `${SITE}/${encodeURIComponent(env.INFAQ_USERNAME)}/tip/embed/modal` : '',
     pageUrl: (q) => (env.INFAQ_USERNAME ? `${SITE}/${encodeURIComponent(env.INFAQ_USERNAME)}/tip?quantity=${q}` : '')
   }
 }
