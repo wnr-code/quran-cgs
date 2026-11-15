@@ -3131,3 +3131,11 @@ body.has-player {
   border-color: #c9a961;
   color: #10261d;
 }
+
+.about-list {
+  margin: 6px 0 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: 6px;
+  line-height: 1.5;
+}
