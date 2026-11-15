@@ -32,19 +32,41 @@ async function size(url) {
   return { status: res.status, type: res.headers.get('content-type') || '', len, ranges: res.headers.get('accept-ranges') || (range ? 'bytes' : ''), cors: res.headers.get('access-control-allow-origin') || '' }
 }
 
+// API resmi kini mencantumkan alamat baru (cdn.mp3quran.net/audio/<qari>/<riwayat>), sedangkan data kita memakai
+// alamat lama (serverN.mp3quran.net/<folder>). Untuk memastikan identitas tanpa menebak dari nama, berkas dicocokkan
+// lewat UKURAN: mushaf di API yang berkas 001 DAN 114-nya berukuran sama persis dengan milik kita adalah rekaman yang sama.
+const apiSizes = new Map()
+async function apiSize(m, n) {
+  const k = m.server + n
+  if (!apiSizes.has(k)) apiSizes.set(k, size(`${m.server}/${n}.mp3`).then((s) => (s.status === 200 || s.status === 206 ? s.len : 0)).catch(() => 0))
+  return apiSizes.get(k)
+}
+if (moshafs) {
+  const pool = moshafs.filter((m) => /^https:\/\/[a-z0-9.-]*mp3quran\.net\//.test(m.server))
+  for (let i = 0; i < pool.length; i += 12) await Promise.all(pool.slice(i, i + 12).map((m) => apiSize(m, '001')))
+}
 const summary = []
 const moved = []
 const lines = []
-if (moshafs) note(true, 'Contoh alamat di API: ' + moshafs.slice(0, 3).map((m) => m.server).join(' , '))
+
 for (const q of QARI_EXTRA) {
   const problems = []
   let api = 'tidak diperiksa'
   if (moshafs) {
     // Cocokkan persis; bila host server di API berbeda (pindah server), cocokkan folder qarinya.
     const path = (u) => u.replace(/^https?:\/\/[^/]+/, '').toLowerCase()
-    const m = moshafs.find((x) => x.server === q.base) || moshafs.find((x) => path(x.server) === path(q.base))
-    if (m && m.server !== q.base) moved.push(`${q.id}: ${m.server}`)
-    if (!m) problems.push('alamat tidak terdaftar di API mp3quran')
+    let m = moshafs.find((x) => x.server === q.base) || moshafs.find((x) => path(x.server) === path(q.base))
+    if (!m) {
+      const [mine1, mine114] = await Promise.all([size(`${q.base}/001.mp3`), size(`${q.base}/114.mp3`)]).catch(() => [{}, {}])
+      const cands = []
+      for (const x of moshafs) if (mine1.len > 0 && (await apiSize(x, '001')) === mine1.len) cands.push(x)
+      const same = []
+      for (const x of cands) if ((await apiSize(x, '114')) === mine114.len) same.push(x)
+      if (same.length === 1) m = same[0]
+      else if (same.length > 1) problems.push('cocok dengan lebih dari satu mushaf: ' + same.map((x) => x.server).join(', '))
+    }
+    if (m && m.server !== q.base) moved.push(`${q.id.slice(2)}=${m.server.replace('https://cdn.mp3quran.net/audio/', '')}`)
+    if (!m) problems.push(problems.length ? 'tidak dapat dipastikan' : 'tidak ditemukan di API mp3quran (alamat maupun ukuran berkas)')
     else {
       api = `${m.reciter} — ${m.name} (${m.total})`
       if (!/hafs/i.test(m.name)) problems.push('riwayat bukan Hafs: ' + m.name)

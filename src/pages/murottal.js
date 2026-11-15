@@ -90,7 +90,7 @@ export default async function murottal(root) {
   $('[data-qari]', root).onchange = (e) => {
     audio.setQari(e.target.value)
     $('[data-qari-note]', root).hidden = !QARI_SURAH[e.target.value]
-    renderList()
+    if (listReady) renderList() // daftar surah mungkin masih dimuat
   }
   $('[data-repeat]', root).onchange = (e) => audio.setRepeat(e.target.value)
   $('[data-rate]', root).onchange = (e) => audio.setRate(parseFloat(e.target.value))
@@ -101,6 +101,7 @@ export default async function murottal(root) {
   $('[data-auto]', root).onchange = (e) => audio.setAutoPlay(e.target.checked)
 
   let list
+  let listReady = false
   try {
     list = await getSurahList()
   } catch (e) {
@@ -111,6 +112,7 @@ export default async function murottal(root) {
   const input = $('.search-box input', root)
   const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '')
 
+  listReady = true
   async function renderList() {
     const q = norm(input.value)
     const items = q ? list.filter((s) => norm(s.namaLatin).includes(q) || String(s.nomor) === q) : list
