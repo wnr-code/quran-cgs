@@ -25,6 +25,9 @@ jobs:
       - name: Qari tambahan (mp3quran.net)
         if: always()
         run: node tests/live/qari.mjs
+      - name: Audio adzan
+        if: always()
+        run: node tests/live/adzan.mjs
       - name: Build
         if: always()
         run: npm run build
