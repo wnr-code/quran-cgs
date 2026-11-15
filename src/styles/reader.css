@@ -6,8 +6,8 @@
   --rd-muted: #6c7a71;
   --rd-line: rgba(31, 42, 36, 0.1);
   --rd-bar: rgba(250, 246, 234, 0.94);
-  --rd-font: 30px;
-  --rd-lh: 2.4;
+  --rd-font: 28px;
+  --rd-lh: 2.1;
   --rd-gap: 18px;
   --rd-width: 760px;
   --rd-margin: 20px;
@@ -198,9 +198,9 @@
   font-family: var(--font-ar);
   font-size: var(--rd-font);
   line-height: var(--rd-lh);
-  text-align: justify;
-  text-align-last: center;
-  word-spacing: 0.04em;
+  /* Rata tengah seperti quran.com: jarak antarkata selalu alami (rata kiri-kanan membuat spasi melebar di layar sempit). */
+  text-align: center;
+  word-spacing: normal;
   font-kerning: normal;
   font-feature-settings: 'liga', 'calt', 'kern', 'mark', 'mkmk';
   /* ruang agar harakat baris pertama/terakhir tidak terpotong */
@@ -248,7 +248,7 @@
 .reader .ayah-num {
   color: var(--rd-accent);
   font-size: 0.82em;
-  margin-inline: 0.12em;
+  margin-inline: 0.04em;
   user-select: none;
 }
 .ayah.is-bookmarked .ayah-num {
@@ -591,9 +591,9 @@ body.reading-mode .reader.mode-page .rd-wrap {
   font-family: var(--font-ar);
   font-size: var(--rd-font);
   line-height: var(--rd-lh);
-  text-align: justify;
-  text-align-last: center;
-  word-spacing: 0.04em;
+  /* Rata tengah seperti quran.com: jarak antarkata selalu alami (rata kiri-kanan membuat spasi melebar di layar sempit). */
+  text-align: center;
+  word-spacing: normal;
   font-feature-settings: 'liga', 'calt', 'kern', 'mark', 'mkmk';
   overflow-wrap: break-word;
 }
@@ -660,4 +660,78 @@ body.route-reader #toast {
 }
 .mpage-foot {
   padding-bottom: 8px;
+}
+
+/* --- Teks ayat dapat dipilih (tekan lama), tanda/stabilo, dan menu pilihan --- */
+.reader .ayah-text {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+.reader ::selection {
+  background: color-mix(in srgb, var(--rd-accent) 38%, transparent);
+}
+mark.hl {
+  color: inherit;
+  background: color-mix(in srgb, #e9c046 46%, transparent);
+  border-radius: 0.18em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  cursor: pointer;
+}
+.reader[data-preset='dark'] mark.hl,
+.reader[data-preset='night'] mark.hl {
+  background: color-mix(in srgb, #e9c046 30%, transparent);
+}
+.sel-menu {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 16px;
+  background: #14261e;
+  color: #f4efe2;
+  border: 1px solid rgba(201, 169, 97, 0.45);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  animation: sel-pop 0.16s ease;
+  -webkit-user-select: none;
+  user-select: none;
+  max-width: calc(100vw - 16px);
+}
+.sel-menu[hidden],
+.sel-menu.off {
+  display: none;
+}
+.sel-menu button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 58px;
+  padding: 7px 8px 6px;
+  border: 0;
+  border-radius: 11px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.sel-menu button:active {
+  background: rgba(255, 255, 255, 0.14);
+}
+.sel-menu .icon {
+  width: 19px;
+  height: 19px;
+  color: #e3c98c;
+}
+@keyframes sel-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
 }

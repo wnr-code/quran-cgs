@@ -91,3 +91,10 @@ Terakhir diperbarui: 15 November 2026.
 - **Asmaul Husna** memakai data v2 (`wnr-code/asmaul_husna` commit `6dad7b4`): makna, faedah/amalan, rujukan ayat (dapat disentuh → membuka ayatnya). Hasil pemeriksaan: 99 nama lengkap; 101 rujukan ayat semuanya menunjuk ayat yang ada; 4 nama (Al-Waajid, Al-Maani', Adh-Dhaarr, An-Naafi') berujukan hadits bilangan Asmaul Husna, bukan ayat. Metadata sumber menyebut penyusunan dibantu AI (Gemini) — makna/faedah belum ditinjau ustaz.
 - **Popup infaq** mengikuti protokol skrip resmi penyedia (`?embedId=0&ref=…` + pesan `embed.openModal`). Tidak bisa diuji otomatis (penyedia memblokir bot) → perlu dicoba di HP. Tombol "Buka halaman pembayaran" selalu ada di bawah popup.
 - **Nominal minimal Rp1.000** (`INFAQ_UNIT_PRICE = "1000"`); harga unit di akun penyedia harus disamakan.
+
+## 1.3.2
+
+- **Teks bacaan lebih rapat & rapi**: teks Arab pada mode Mushaf/Halaman tidak lagi rata kiri-kanan (yang merenggangkan spasi antarkata di layar sempit) melainkan rata tengah dengan spasi alami; bawaan ukuran font 28px dan tinggi baris 2,1 (pengguna yang masih memakai bawaan lama ikut dipindahkan; tetap bisa diatur lewat tombol Aa).
+- **Tandai teks**: tekan lama/pilih kata pada ayat → muncul menu kecil (Salin, Tandai/Hapus tanda, Bookmark, Bagikan, Lainnya). Tanda disimpan di perangkat (`quranku:tanda`), dibulatkan ke kata utuh agar sambungan huruf Arab tidak rusak. Ketuk tanda untuk menghapusnya.
+- Audit fitur: semua rute diperiksa pada lebar 360px & 412px (terang/gelap) — tanpa error JavaScript; smoke 25/25, infaq 4/4, fallback 4/4.
+- Belum: tanda belum ikut dalam cadangan/pulihkan data; tekan lama di ponsel sungguhan belum diuji (hanya simulasi seleksi di Chromium).

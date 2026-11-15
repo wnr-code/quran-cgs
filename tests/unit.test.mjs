@@ -275,3 +275,18 @@ test('Asmaul Husna v2: 99 nama lengkap dengan makna, faedah, dan rujukan ayat ya
   })
   assert.equal(linked, 101)
 })
+
+test('Tanda (stabilo): dibulatkan ke kata utuh, digabung, dihapus sebagian, HTML aman', async () => {
+  const { snapToWords, addRange, subtractRange, isCovered } = await import('../src/services/highlight.js')
+  const t = 'satu dua tiga empat'
+  assert.deepEqual(snapToWords(t, 6, 7), [5, 8]) // tengah kata "dua"
+  assert.deepEqual(snapToWords(t, 4, 9), [5, 8]) // spasi di tepi dibuang
+  assert.deepEqual(snapToWords(t, 6, 11), [5, 13]) // dua kata
+  assert.equal(snapToWords(t, 4, 5), null) // hanya spasi
+  assert.deepEqual(addRange([[0, 4]], [5, 8]), [[0, 8]]) // bersebelahan (dipisah satu spasi) → satu
+  assert.deepEqual(addRange([[0, 4]], [9, 13]), [[0, 4], [9, 13]])
+  assert.deepEqual(addRange([[9, 13], [0, 4]], [3, 10]), [[0, 13]])
+  assert.deepEqual(subtractRange([[0, 13]], [5, 8]), [[0, 5], [8, 13]])
+  assert.equal(isCovered([[0, 8]], [5, 8]), true)
+  assert.equal(isCovered([[0, 4]], [5, 8]), false)
+})
