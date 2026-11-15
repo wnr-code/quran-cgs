@@ -11,6 +11,8 @@ import { toHijri } from '../src/utils/hijri.js'
 import { mapLocalDetail } from '../src/api/local-data.js'
 import { SOURCES } from '../src/data/sources.js'
 import { existsSync, readFileSync } from 'node:fs'
+import { fakeD1 } from './helpers.mjs'
+import { ensureSchema } from '../functions/lib/db.js'
 import { periodStarts } from '../functions/api/donors.js'
 import { parseDonation, onRequestPost } from '../functions/api/trakteer-webhook.js'
 import { createRequire } from 'node:module'
@@ -136,17 +138,19 @@ test('infaq: periode WIB & webhook Trakteer', async () => {
   const d = parseDonation({ transaction_id: 'abc', supporter_name: ' <b>Budi</b> ', unit: 'Kopi', quantity: 2, price: 10000, created_at: 'x' }, 1000)
   assert.deepEqual({ name: d.name, amount: d.amount, quantity: d.quantity, created_at: d.created_at }, { name: 'bBudi/b', amount: 10000, quantity: 2, created_at: 1000 })
   assert.equal(parseDonation({}), null)
-  const calls = []
-  const env = { TRAKTEER_WEBHOOK_TOKEN: 'rahasia', DB: { prepare: (sql) => ({ bind: (...a) => ({ run: async () => calls.push([sql, a]) }) }) } }
+  const env = { TRAKTEER_WEBHOOK_TOKEN: 'rahasia', DB: fakeD1() }
+  await ensureSchema(env.DB)
+  const rows = () => env.DB._db.prepare('SELECT * FROM donations').all()
   const req = (token, body) => new Request('https://x/api/trakteer-webhook', { method: 'POST', headers: { 'X-Webhook-Token': token }, body })
   assert.equal((await onRequestPost({ request: req('salah', '{}'), env })).status, 401)
   assert.equal((await onRequestPost({ request: req('rahasia', 'bukan json'), env })).status, 400)
   assert.equal((await onRequestPost({ request: req('rahasia', '{}'), env })).status, 400)
-  assert.equal(calls.length, 0)
+  assert.equal(rows().length, 0)
   const ok = await onRequestPost({ request: req('rahasia', JSON.stringify({ transaction_id: 't1', supporter_name: 'Aisyah', price: 25000, quantity: 5, unit: 'Kopi' })), env })
   assert.equal(ok.status, 200)
-  assert.equal(calls[0][1][1], 'Aisyah')
-  assert.equal(calls[0][1][4], 25000)
+  assert.equal(rows()[0].name, 'Aisyah')
+  assert.equal(rows()[0].amount, 25000)
+  assert.equal(rows()[0].source, 'webhook')
   assert.equal((await onRequestPost({ request: req('rahasia', '{}'), env: {} })).status, 503)
 })
 

@@ -33,7 +33,7 @@ Terakhir diperbarui: 15 November 2026.
 | Hal | Catatan |
 |---|---|
 | Deploy Cloudflare (Workers), domain, proxy `/api/quran` | Konfigurasi lolos `wrangler deploy --dry-run`; deploy sungguhan dijalankan oleh Cloudflare saat push ke `main` dan belum saya lihat hasilnya. |
-| Papan donatur di D1 sungguhan + webhook Trakteer sungguhan | Logika teruji di SQLite lokal. Tabel belum dibuat di database `quran`; lihat [INFAQ.md](INFAQ.md). |
+| Infaq terhadap Trakteer & D1 sungguhan | Alur aplikasi, webhook, sinkronisasi Public API, dan klaim ID transaksi teruji secara lokal (SQLite + `wrangler dev`). Belum pernah dijalankan terhadap Trakteer atau D1 produksi. Mode QRIS langsung tidak resmi dan belum terverifikasi; lihat [INFAQ.md](INFAQ.md). |
 | Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
 | Notifikasi dan kompas kiblat | Memerlukan perangkat fisik. |
 | Android APK/AAB | Build di GitHub Actions berhasil (tanpa signing). **Belum dipasang/diuji di perangkat**, belum ditandatangani, belum diajukan ke Play. Lihat [ANDROID.md](ANDROID.md). |
@@ -53,4 +53,4 @@ Terakhir diperbarui: 15 November 2026.
 
 ## Yang harus Anda isi
 1. Sidik jari SHA-256 di `public/.well-known/assetlinks.json`.
-2. Tabel `donations` di D1 `quran` dan secret `TRAKTEER_WEBHOOK_TOKEN` (bila ingin papan donatur).
+2. Secret infaq (`TRAKTEER_WEBHOOK_TOKEN`, `TRAKTEER_API_KEY`) dan pendaftaran webhook; lihat [INFAQ.md](INFAQ.md).

@@ -27,7 +27,7 @@ Konfigurasi opsional (salin `.env.example` → `.env`, atau isi di Cloudflare �
 
 | Variabel | Isi |
 |---|---|
-| `VITE_TRAKTEER_USERNAME` | username Trakteer (bawaan: `anichinapk`). Isi hanya bila ingin mengganti. |
+| `INFAQ_USERNAME`, `INFAQ_UNIT_PRICE` | di `wrangler.toml`; secret infaq di dashboard Cloudflare → [docs/INFAQ.md](docs/INFAQ.md). |
 
 ## Fitur
 
@@ -40,7 +40,7 @@ Konfigurasi opsional (salin `.env.example` → `.env`, atau isi di Cloudflare �
 - **Target tilawah** dan statistik harian/mingguan/bulanan, pengingat.
 - **Jadwal salat** (hisab lokal), **kalender Hijriah**, **Asmaul Husna**, **doa harian**, **tasbih digital**, **arah kiblat**.
 - **Offline**: app shell, font Arab, daftar surah; surah tersimpan saat dibuka; halaman Kelola Offline.
-- **Infaq pengembang** lewat Trakteer, dengan papan donatur Harian / Mingguan / Bulanan / Sepanjang waktu → [docs/INFAQ.md](docs/INFAQ.md).
+- **Infaq pengembang** dengan alur di dalam aplikasi (nominal → QRIS/halaman pembayaran → menunggu → terima kasih), papan donatur Harian / Mingguan / Bulanan / Sepanjang waktu → [docs/INFAQ.md](docs/INFAQ.md).
 
 ## Struktur
 
@@ -58,7 +58,7 @@ src/components/       navbar, modal, kartu ayat, toolbar baca, pemutar audio
 src/utils/            angka Arab-Indic, metadata juz/halaman, Hijriah, validasi
 src/data/             metadata Quran (hasil scripts/gen-meta.mjs), Asmaul Husna, kota
 src/styles/           tema, komponen, reader, responsif
-functions/            handler API: proxy EQuran, webhook Trakteer, papan donatur
+functions/            handler API: proxy EQuran, infaq (buat/status/klaim), webhook, papan donatur
 worker/               entry Cloudflare Worker (merutekan /api/* + aset statis)
 migrations/           skema D1 untuk papan donatur
 android/              proyek Android TWA (Gradle) + twa-manifest.json (Bubblewrap)
@@ -87,6 +87,6 @@ Tidak ada ayat, tafsir, doa, atau nomor halaman yang dibuat oleh aplikasi. Satu 
 
 - [docs/DEPLOY-CLOUDFLARE.md](docs/DEPLOY-CLOUDFLARE.md) — deploy ke Cloudflare + domain
 - [docs/ANDROID.md](docs/ANDROID.md) — build APK/AAB, signing, asset links, Play Console
-- [docs/INFAQ.md](docs/INFAQ.md) — Trakteer + papan donatur (D1)
+- [docs/INFAQ.md](docs/INFAQ.md) — alur infaq, webhook + Public API, papan donatur (D1)
 - [docs/STATUS.md](docs/STATUS.md) — **apa yang sudah diuji, apa yang belum, dan batasan**
 - [store/](store/) — materi listing Google Play

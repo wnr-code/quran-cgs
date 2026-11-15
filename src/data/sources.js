@@ -114,8 +114,7 @@ export const SOURCES = [
     group: 'Layanan',
     icon: 'grid',
     items: [
-      { name: 'Cloudflare Workers', use: 'Hosting aplikasi, proxy cadangan API, dan penyimpanan papan donatur (D1).', url: 'https://workers.cloudflare.com', host: 'workers.cloudflare.com' },
-      { name: 'Trakteer', use: 'Halaman infaq pengembang dan pemberitahuan donasi untuk papan donatur.', url: 'https://trakteer.id', host: 'trakteer.id' }
+      { name: 'Cloudflare Workers', use: 'Hosting aplikasi, proxy cadangan API, dan penyimpanan papan donatur (D1).', url: 'https://workers.cloudflare.com', host: 'workers.cloudflare.com' }
     ]
   }
 ]

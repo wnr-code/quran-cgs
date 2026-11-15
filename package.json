@@ -11,12 +11,13 @@
     "gen:local": "node scripts/gen-local.mjs",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --test tests/unit.test.mjs tests/d1.test.mjs",
+    "test": "node --test tests/unit.test.mjs tests/d1.test.mjs tests/infaq.test.mjs",
     "gen:meta": "node scripts/gen-meta.mjs",
     "gen:icons": "node scripts/gen-icons.mjs"
   },
   "devDependencies": {
     "opentype.js": "^2.0.0",
+    "qrcode-generator": "^2.0.4",
     "quran-json": "^3.1.2",
     "quran-meta": "^7.0.0",
     "sharp": "^0.35.5",

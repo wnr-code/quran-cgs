@@ -8,11 +8,27 @@ const RUNTIME = 'quranku-runtime-v1'
 const AUDIO = 'quranku-audio-v1'
 const KEEP = new Set([SHELL, RUNTIME, AUDIO])
 
+/**
+ * Hosting (Cloudflare) mengalihkan /index.html → / dan /x.html → /x. Respons hasil pengalihan TIDAK boleh
+ * dipakai untuk menjawab navigasi (peramban menolaknya → halaman kosong), jadi disalin menjadi respons bersih.
+ */
+async function unredirect(res) {
+  if (!res.redirected) return res
+  return new Response(await res.blob(), { status: res.status, statusText: res.statusText, headers: res.headers })
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(SHELL).then(async (cache) => {
       // Satu berkas gagal tidak boleh menggagalkan seluruh instalasi.
-      await Promise.all(PRECACHE.map((url) => cache.add(new Request(url, { cache: 'reload' })).catch(() => {})))
+      await Promise.all(
+        PRECACHE.map(async (url) => {
+          try {
+            const res = await fetch(new Request(url, { cache: 'reload' }))
+            if (res.ok) await cache.put(url, await unredirect(res))
+          } catch {}
+        })
+      )
     })
   )
 })
@@ -32,7 +48,7 @@ self.addEventListener('message', (event) => {
 
 async function shellFirst(request) {
   const cached = (await caches.match('/index.html', { cacheName: SHELL })) || (await caches.match('/', { cacheName: SHELL }))
-  if (cached) return cached
+  if (cached) return unredirect(cached)
   try {
     return await fetch(request)
   } catch {
@@ -42,12 +58,12 @@ async function shellFirst(request) {
 
 async function cacheFirst(request) {
   const cached = await caches.match(request, { ignoreSearch: false })
-  if (cached) return cached
+  if (cached) return unredirect(cached)
   try {
     const res = await fetch(request)
     if (res.ok && res.type === 'basic') {
       const cache = await caches.open(RUNTIME)
-      cache.put(request, res.clone())
+      cache.put(request, await unredirect(res.clone()))
     }
     return res
   } catch (e) {

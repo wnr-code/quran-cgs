@@ -1,5 +1,7 @@
 // Papan donatur publik: donatur terbaru + top donatur harian / mingguan / bulanan / sepanjang waktu.
 // Hanya nama tampilan, jumlah, dan waktu yang dibuka — pesan & data lain tidak disimpan/ditampilkan.
+import { ensureSchema } from '../lib/db.js'
+
 const WIB = 7 * 3600 * 1000
 
 /** Awal hari, awal minggu (Senin), dan awal bulan menurut WIB, dalam epoch ms (UTC). */
@@ -23,6 +25,7 @@ const json = (obj, status = 200, cache = 'no-store') => new Response(JSON.string
 export async function onRequestGet({ env }) {
   if (!env.DB) return json({ ok: false, error: 'not_configured' }, 503)
   try {
+    await ensureSchema(env.DB)
     const starts = periodStarts()
     const top = env.DB.prepare(TOP_SQL)
     const [daily, weekly, monthly, all, latest, totals] = await env.DB.batch([
