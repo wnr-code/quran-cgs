@@ -2064,3 +2064,9 @@ body.has-player {
   text-decoration: underline;
   font-weight: 600;
 }
+.app-version {
+  margin: 22px 0 6px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--muted);
+}

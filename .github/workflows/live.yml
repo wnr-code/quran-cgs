@@ -22,6 +22,9 @@ jobs:
       - run: npm ci
       - name: Kontrak API sungguhan
         run: node tests/live/api.mjs
+      - name: Qari tambahan (mp3quran.net)
+        if: always()
+        run: node tests/live/qari.mjs
       - name: Build
         if: always()
         run: npm run build

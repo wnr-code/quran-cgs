@@ -1,9 +1,18 @@
 // Konfigurasi aplikasi QuranKu. Nilai dapat ditimpa lewat variabel lingkungan Vite (VITE_*).
 const env = import.meta.env || {}
 
+// Diisi saat build oleh vite.config.js (berubah pada setiap build). Di luar build (uji unit) memakai nilai bawaan.
+/* global __APP_BUILD__ */
+const build = typeof __APP_BUILD__ !== 'undefined' ? __APP_BUILD__ : { version: '1.0.0', number: 'dev', commit: '', time: '' }
+
 export const APP = {
   name: 'QuranKu',
-  version: '1.0.0',
+  version: build.version,
+  build: build.number,
+  commit: build.commit,
+  builtAt: build.time,
+  /** Contoh: "1.0.0 (build 261115.1112 · a1b2c3d)" */
+  versionLabel: `${build.version} (build ${build.number}${build.commit ? ' · ' + build.commit : ''})`,
   packageId: 'id.cgs.quranku',
   origin: 'https://quran.cgs.my.id'
 }

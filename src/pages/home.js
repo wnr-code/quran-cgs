@@ -18,7 +18,7 @@ const SHORTCUTS = [
   ['/doa', 'hands', 'Doa Harian'],
   ['/asmaul-husna', 'star', 'Asmaul Husna'],
   ['/kiblat', 'compass', 'Arah Kiblat'],
-  ['/infaq', 'heart', 'Infaq']
+  ['/kalender', 'calendar', 'Kalender']
 ]
 
 export default async function home(root) {
