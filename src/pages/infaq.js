@@ -1,10 +1,12 @@
-// Infaq pengembang: pilih nominal → halaman pembayaran terbuka otomatis dengan jumlah unit yang sama (atau kode QRIS)
-// → menunggu → terima kasih.
+// Infaq pengembang: tombol INFAQ → popup "INFAQ QURANKU" di atas halaman (tanpa tab baru, tanpa pindah halaman):
+// pilih nominal → formulir pembayaran Trakteer di dalam popup (bingkai) dengan jumlah unit yang sama, atau kode QRIS
+// → menunggu → terima kasih. Menutup popup TIDAK dianggap membayar.
 // Seluruh status dikonfirmasi server dari data transaksi sukses; halaman ini tidak pernah menganggap lunas sendiri.
 import { pageHeader, skeleton } from '../components/navbar.js'
 import { icon } from '../components/icons.js'
 import { getDonors } from '../api/donors-api.js'
 import { getInfaqConfig, createInfaq, getInfaqStatus, claimInfaq } from '../api/infaq-api.js'
+import { openDialog } from '../components/modal.js'
 import { $, esc, toast } from '../utils/helpers.js'
 import { formatRupiah, formatDateTime } from '../utils/format.js'
 
@@ -12,6 +14,14 @@ const PERIODS = { daily: 'Harian', weekly: 'Mingguan', monthly: 'Bulanan', all: 
 const PRESETS = [1, 2, 5, 10, 20, 50]
 const STORE = 'quranku:infaq'
 const POLL_MS = 4000
+// Identitas tombol sesuai kode sematan Trakteer milik pengelola (teks, warna, alamat, gambar, ukuran).
+export const TRBTN = {
+  text: 'INFAQ',
+  color: '#1A6275',
+  url: 'https://trakteer.id/lanteraku/tip',
+  img: 'https://mirror-uploads.trakteer.id/images/units/uic-WAJ1GG3F86NzLSXQAwcEDJTa83KnmEMF1794742909.png',
+  size: 30
+}
 let period = 'daily'
 
 const loadIntent = () => {
@@ -59,7 +69,10 @@ export default function infaq(root) {
       <h2>Dukung pengembangan QuranKu</h2>
       <p class="np-sub">QuranKu gratis, tanpa iklan, dan tanpa pelacakan. Infaq Anda membantu biaya pengembangan dan pemeliharaan. Jazakumullahu khairan.</p>
     </section>
-    <section class="card infaq-flow" data-flow aria-live="polite">${skeleton(3)}</section>
+    <section class="card infaq-cta">
+      <button type="button" class="trbtn-infaq" data-infaq-open style="--trbtn:${TRBTN.color};--trbtn-scale:${TRBTN.size / 40}"><img src="${TRBTN.img}" alt="" width="22" height="22" decoding="async" data-trbtn-img /><span>${TRBTN.text}</span></button>
+      <p class="hint center" data-cta-note>Formulir infaq terbuka dalam jendela di halaman ini.</p>
+    </section>
     <section class="card"><p class="eyebrow">${icon('trophy')} Top donatur</p>
       <div class="tabs small" data-tabs>${Object.entries(PERIODS).map(([k, v]) => `<button data-p="${k}">${v}</button>`).join('')}</div>
       <div data-top>${skeleton(3)}</div></section>
@@ -67,7 +80,35 @@ export default function infaq(root) {
     <p class="hint pad">Nama yang tampil adalah nama yang diisi saat berinfaq (boleh “Hamba Allah”). Papan diperbarui otomatis setelah infaq terkonfirmasi. Periode dihitung menurut Waktu Indonesia Barat (WIB).</p>
   </div>`
   const page = root.firstElementChild
-  const flow = $('[data-flow]', root)
+  // Isi alur infaq hidup di elemen terpisah; dipasang ke dalam popup saat dibuka.
+  const flow = document.createElement('section')
+  flow.className = 'infaq-flow'
+  flow.setAttribute('data-flow', '')
+  flow.setAttribute('aria-live', 'polite')
+  flow.innerHTML = skeleton(3)
+  const ctaNote = $('[data-cta-note]', root)
+  const trImg = $('[data-trbtn-img]', root)
+  trImg.addEventListener('error', () => (trImg.hidden = true)) // offline / gambar tidak termuat: tombol tetap tampil
+  let dialog = null
+  const openModal = () => {
+    if (dialog) return
+    dialog = openDialog({
+      title: 'INFAQ QURANKU',
+      node: flow,
+      className: 'infaq-dlg',
+      onClose() {
+        dialog = null
+        // Bingkai pembayaran dilepas saat popup ditutup; niat infaq tetap menunggu dan dipulihkan saat dibuka lagi.
+        if (intent && alive) showPayment()
+        updateNote()
+      }
+    })
+    if (intent) showPayment()
+  }
+  const updateNote = () => {
+    if (!ctaNote) return
+    ctaNote.textContent = intent ? `Infaq ${formatRupiah(intent.amount)} sedang menunggu pembayaran — ketuk INFAQ untuk melanjutkan.` : 'Formulir infaq terbuka dalam jendela di halaman ini.'
+  }
   const topEl = $('[data-top]', root)
   const latestEl = $('[data-latest]', root)
   let cfg = null
@@ -76,7 +117,6 @@ export default function infaq(root) {
   let quantity = 2 // diganti setelah konfigurasi dimuat: pilihan yang paling dekat dengan Rp10.000
   let timer = null
   let tick = null
-  let payWin = null // tab pembayaran yang dibuka saat tombol ditekan
   let pollSeq = 0
   let alive = true
   let data = null
@@ -93,6 +133,7 @@ export default function infaq(root) {
     stopTimers()
     intent = null
     saveIntent(null)
+    updateNote()
     if (!cfg || !cfg.enabled) {
       flow.innerHTML = `<div class="state small">${icon('cloudOff', 'state-icon')}<p>${navigator.onLine ? 'Infaq belum dapat diterima saat ini. Silakan coba lagi nanti.' : 'Infaq memerlukan koneksi internet.'}</p><button class="btn sm" data-retry-config>${icon('refresh')}Muat ulang</button></div>`
       return
@@ -124,68 +165,28 @@ export default function infaq(root) {
     if (!fromCustom) $('[data-custom]', flow).value = ''
   }
 
-  // ---------- Langkah 2: menyiapkan → halaman pembayaran terbuka sendiri ----------
-  // Tab pembayaran harus dibuka LANGSUNG di dalam ketukan pengguna (kalau tidak, peramban memblokirnya),
-  // jadi tab kosong dibuka dulu lalu diarahkan setelah alamat pembayaran diterima dari server.
-  const preOpen = () => {
-    if (cfg && cfg.direct) return null // mode QRIS: kode ditampilkan di halaman ini, tidak perlu tab
-    try {
-      const w = window.open('', '_blank')
-      if (w) {
-        try {
-          w.document.title = 'Menyiapkan pembayaran…'
-          w.document.body.innerHTML = '<p style="font:16px system-ui;padding:24px;text-align:center">Menyiapkan halaman pembayaran…</p>'
-        } catch {}
-      }
-      return w
-    } catch {
-      return null
-    }
-  }
-  const sendTo = (w, url) => {
-    if (!w || w.closed) return false
-    try {
-      w.opener = null
-      w.location.replace(url)
-      return true
-    } catch {
-      return false
-    }
-  }
-  const closeWin = (w) => {
-    try {
-      w && !w.closed && w.close()
-    } catch {}
-  }
-
+  // ---------- Langkah 2: menyiapkan ----------
   async function pay() {
     const name = $('[data-name]', flow).value.trim()
     const message = $('[data-msg]', flow).value.trim()
     try {
       localStorage.setItem(STORE + ':name', name)
     } catch {}
-    const win = preOpen()
     flow.innerHTML = `<div class="infaq-wait"><span class="spinner" aria-hidden="true"></span><h3>Menyiapkan pembayaran…</h3><p class="muted">Mohon tunggu sebentar.</p></div>`
     try {
       const it = await createInfaq({ quantity, name, message })
-      if (!alive) return closeWin(win)
+      if (!alive) return
       if (it.mode === 'redirect' && !it.url) throw Object.assign(new Error('x'), { code: 'not_configured' })
       intent = { ...it, createdAt: Date.now() }
       saveIntent(intent)
-      let opened = false
-      if (it.mode === 'redirect') {
-        opened = sendTo(win, it.url)
-        if (opened) payWin = win
-      } else closeWin(win)
-      showPayment(opened)
+      showPayment()
     } catch (e) {
-      closeWin(win)
       if (alive) showForm(errText(e))
     }
   }
 
   // ---------- Langkah 3: bayar & menunggu ----------
-  function showPayment(opened = false) {
+  function showPayment() {
     stopTimers()
     const it = intent
     const head = `<div class="infaq-total big"><span>Infaq atas nama ${esc(it.name || 'Hamba Allah')}</span><b>${formatRupiah(it.amount)}</b></div>`
@@ -204,11 +205,24 @@ export default function infaq(root) {
         if (alive) $('.qr-box', flow).innerHTML = '<p class="muted">Kode QR tidak dapat ditampilkan di perangkat ini.</p>'
       })
     } else {
-      flow.innerHTML = `<p class="eyebrow">${icon('gift')} Selesaikan pembayaran</p>${head}
-        <p class="hint center">${opened ? 'Halaman pembayaran sudah dibuka di tab baru' : 'Ketuk tombol di bawah untuk membuka halaman pembayaran'} dengan jumlah <b>${it.quantity} unit</b> (${formatRupiah(it.amount)}) sudah terisi. Selesaikan pembayaran di sana, lalu kembali ke sini — status diperbarui otomatis.</p>
-        <a class="btn ${opened ? '' : 'btn-gold '}btn-block" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer" data-open>${icon('gift')}${opened ? 'Buka lagi halaman pembayaran' : 'Buka halaman pembayaran'}</a>
-        <p class="hint center">Agar dikenali otomatis, jangan ubah jumlah unit di halaman pembayaran${it.name && it.name !== 'Hamba Allah' ? ` dan isi nama <b>${esc(it.name)}</b>` : ''}.</p>
-${waiting}${tail}`
+      // Formulir pembayaran Trakteer ditampilkan di dalam popup (bingkai). Bingkai hanya dipasang selama popup terbuka.
+      const frame = dialog
+        ? `<div class="trk-frame"><div class="trk-loading" data-loading><span class="spinner" aria-hidden="true"></span><p class="muted">Memuat formulir pembayaran…</p></div>
+            <iframe data-frame title="Formulir infaq Trakteer" src="${esc(it.url)}" allow="payment *; clipboard-write *" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`
+        : ''
+      flow.innerHTML = `${head}
+        <p class="hint center">Jumlah <b>${it.quantity} unit</b> (${formatRupiah(it.amount)}) sudah terisi${it.name && it.name !== 'Hamba Allah' ? `; isi nama <b>${esc(it.name)}</b>` : ''}. Jangan ubah jumlah unit agar infaq dikenali otomatis.</p>
+        ${frame}${waiting}
+        <details class="infaq-claim trk-help"><summary>Formulir tidak tampil atau kosong?</summary>
+          <p class="hint">Sebagian peramban atau kebijakan keamanan penyedia pembayaran tidak mengizinkan formulir ditampilkan di dalam aplikasi lain. Bila itu terjadi, buka formulirnya lewat tombol ini — status di sini tetap diperbarui otomatis.</p>
+          <a class="btn btn-block" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer" data-open>${icon('share')}Buka formulir pembayaran</a></details>
+${tail}`
+      const fr = $('[data-frame]', flow)
+      if (fr) {
+        const done = () => $('[data-loading]', flow)?.remove()
+        fr.addEventListener('load', done)
+        setTimeout(done, 9000)
+      }
     }
     const left = $('[data-left]', flow)
     const countdown = () => {
@@ -262,8 +276,6 @@ ${waiting}${tail}`
     stopTimers()
     const it = intent
     if (kind === 'paid') {
-      closeWin(payWin) // tab pembayaran yang kita buka ditutup setelah terkonfirmasi
-      payWin = null
       saveIntent(null)
       intent = null
       const d = (s && s.donation) || { name: it.name, amount: it.amount, at: Date.now() }
@@ -271,6 +283,8 @@ ${waiting}${tail}`
         <p>Infaq sebesar <b>${formatRupiah(d.amount)}</b> atas nama <b>${esc(d.name)}</b> telah kami terima.</p>
         <p class="muted">Semoga menjadi amal jariyah dan diberkahi Allah.</p>
         <button class="btn btn-primary" data-again>Selesai</button></div>`
+      if (!dialog) toast('Infaq diterima. Jazakumullahu khairan.')
+      updateNote()
       load(true)
     } else {
       flow.innerHTML = `<div class="infaq-result">${icon('clock', 'result-ic')}<h3>Pembayaran belum terdeteksi</h3>
@@ -316,12 +330,14 @@ ${waiting}${tail}`
     const saved = cfg && cfg.enabled ? loadIntent() : null
     if (saved) {
       intent = saved
-      showPayment()
+      showPayment() // popup tidak dibuka sendiri; status tetap dipantau
+      updateNote()
     } else showForm()
   }
 
-  page.addEventListener('click', (e) => {
+  const onClick = (e) => {
     const t = e.target
+    if (t.closest('[data-infaq-open]')) return openModal()
     const p = t.closest('[data-p]')
     if (p) {
       period = p.dataset.p
@@ -339,7 +355,13 @@ ${waiting}${tail}`
     if (q) return setQuantity(+q.dataset.q)
     if (t.closest('[data-pay]')) return pay()
     if (t.closest('[data-claim]')) return claim()
-    if (t.closest('[data-cancel]') || t.closest('[data-again]')) return showForm()
+    if (t.closest('[data-cancel]')) return showForm()
+    if (t.closest('[data-again]')) {
+      const wasOk = !!t.closest('.infaq-result.ok')
+      showForm()
+      if (wasOk && dialog) dialog.close()
+      return
+    }
     if (t.closest('[data-dl]')) {
       const canvas = $('[data-qr]', flow)
       if (!canvas) return
@@ -349,8 +371,10 @@ ${waiting}${tail}`
       a.click()
       toast('Kode QR diunduh')
     }
-  })
-  page.addEventListener('input', (e) => {
+  }
+  page.addEventListener('click', onClick)
+  flow.addEventListener('click', onClick)
+  flow.addEventListener('input', (e) => {
     if (!e.target.matches('[data-custom]') || !cfg) return
     const v = parseInt(e.target.value, 10)
     if (Number.isFinite(v) && v >= cfg.unitPrice) setQuantity(Math.round(v / cfg.unitPrice), true)
@@ -369,6 +393,7 @@ ${waiting}${tail}`
   return () => {
     alive = false
     stopTimers()
+    dialog && dialog.close()
     document.removeEventListener('visibilitychange', onVisible)
   }
 }

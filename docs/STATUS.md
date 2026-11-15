@@ -127,3 +127,12 @@ Terakhir diperbarui: 15 November 2026.
 - **Cuplikan tautan media sosial**: tag Open Graph + Twitter Card + JSON-LD di `index.html`, gambar `public/og-image.jpg` (1200×630, dibuat `npm run gen:og`). Berlaku untuk WhatsApp, Facebook, Telegram, X, LinkedIn, dll.
 - Batas: aplikasi memakai alamat `#/…`, yang tidak dibaca perayap media sosial — semua tautan (termasuk tautan ayat) menampilkan cuplikan yang sama. Cuplikan per surah/ayat memerlukan alamat tanpa `#` yang dirender Worker (belum dibuat).
 - Belum diuji dengan perayap sungguhan (Facebook Sharing Debugger / WhatsApp) — hanya uji unit atas tag dan ukuran gambar.
+
+## 1.3.8 — Infaq dalam popup (tanpa tab baru)
+
+- Halaman Infaq kini menampilkan tombol **INFAQ** (teks, warna `#1A6275`, gambar unit, dan alamat `https://trakteer.id/lanteraku/tip` sama dengan kode sematan Trakteer). Ketuk → popup **INFAQ QURANKU** di atas halaman: pilih nominal → formulir Trakteer dimuat dalam bingkai (`iframe`) dengan `?quantity=N`.
+- Tidak ada `window.open()`; halaman & posisi baca tidak berubah. Tombol kembali Android / Esc / X / ketuk latar menutup popup lebih dulu.
+- Menutup popup **bukan** bukti bayar: status hanya berubah lewat webhook/sinkronisasi di server. Niat infaq tetap menunggu (30 menit) dan bisa dilanjutkan.
+- Skrip `trbtn.min.js` tidak dimuat: ia memakai `document.writeln` (tidak aman dipanggil setelah halaman selesai dimuat pada SPA) dan hanya menghasilkan tautan biasa, tanpa mode popup. Tombol digambar sendiri dengan identitas yang sama.
+- CSP: `frame-src` mengizinkan `trakteer.id` (+ subdomain, Midtrans, Xendit); `img-src` mengizinkan `mirror-uploads.trakteer.id`.
+- **Belum teruji terhadap Trakteer asli** (sandbox tidak dapat menjangkau trakteer.id). Bila Trakteer mengirim `X-Frame-Options: SAMEORIGIN` / `frame-ancestors`, bingkai akan kosong; pengguna memakai bagian "Formulir tidak tampil atau kosong?" (tautan cadangan), atau aktifkan mode QRIS langsung (lihat di bawah) yang sepenuhnya di dalam aplikasi.
