@@ -3,7 +3,7 @@
 Terakhir diperbarui: 14 November 2026.
 
 ## Cara pengujian
-- `npm test` — 10 unit test, semuanya lulus.
+- `npm test` — 12 unit test, semuanya lulus.
 - `npm run build` — berhasil tanpa error.
 - `tests/e2e/smoke.mjs` — 14 langkah di Chromium headless terhadap hasil build produksi, semuanya lulus.
 
@@ -20,6 +20,8 @@ Terakhir diperbarui: 14 November 2026.
 - Tafsir; pencarian `2:255`, `juz 30`, kata terjemahan.
 - Halaman Asmaul Husna (99), jadwal salat, kiblat, tasbih, kalender, doa, target, offline, infaq, pengaturan terbuka tanpa error JavaScript.
 - Service worker: shell, daftar surah, surah tersimpan, dan bookmark tersedia offline; surah yang belum tersimpan menampilkan pesan error yang jelas.
+- Cadangan terakhir: dengan semua API pihak ketiga dimatikan, daftar 114 surah dan surah Ya-Sin terbuka dari data lokal dan ditandai sebagai sumber cadangan (`tests/e2e/fallback.mjs`).
+- Halaman Tentang menampilkan seluruh sumber data.
 - Webhook Trakteer (token salah → 401, payload rusak → 400, tanpa D1 → 503, valid → tersimpan) dan perhitungan periode WIB.
 
 ## Belum teruji — mohon diuji setelah deploy
@@ -36,7 +38,7 @@ Terakhir diperbarui: 14 November 2026.
 | iOS Safari | Belum diuji. |
 
 ## Belum dikerjakan / berbeda dari spesifikasi
-- **Data lokal sebagai cadangan terakhir tidak dibundel.** Urutannya: memori → IndexedDB → EQuran → proxy → Al Quran Cloud. Bila semua sumber gagal dan surah belum pernah dibuka/diunduh, tampil pesan error. Gunakan *Kelola Offline → Unduh semua teks* untuk menyimpan 114 surah.
+- **Data lokal cadangan terakhir** (`/data/`, dari paket `quran-json`) hanya berisi teks, terjemahan, dan transliterasi ejaan Inggris — tanpa audio dan tanpa tafsir. Berkas ini disajikan dari domain aplikasi, jadi tetap memerlukan koneksi ke situs; untuk pemakaian tanpa internet gunakan *Kelola Offline → Unduh semua teks*.
 - **Pengingat hanya berjalan selama aplikasi terbuka atau masih hidup di latar.** Tidak ada server push (akan memerlukan layanan tambahan). Android dapat menghentikan aplikasi di latar, sehingga pengingat tidak dijamin tepat waktu.
 - **Hari besar Islam pada kalender** dihitung dari kalender Umm al-Qura dan dapat berbeda 1–2 hari dari ketetapan pemerintah RI; tersedia koreksi ±2 hari di pengaturan.
 - **Jadwal salat** adalah hisab lokal (Subuh 20°, Isya 18°, ihtiyat 2 menit) dan dapat berbeda 1–2 menit dari jadwal resmi Kemenag. Waktu ditampilkan dalam zona waktu perangkat.

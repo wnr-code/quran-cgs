@@ -72,10 +72,13 @@ docs/                 panduan deploy, Android, infaq, status fitur
 |---|---|
 | Teks Arab, terjemahan, transliterasi, tafsir, audio | [EQuran.id API v2](https://equran.id/apidev/v2) (utama) |
 | Cadangan teks & audio | [Al Quran Cloud API](https://alquran.cloud/api) (`quran-uthmani`, `id.indonesian`, `en.transliteration`) |
+| Cadangan terakhir (teks saja) | paket [`quran-json`](https://github.com/risan/quran-json) (CC BY 4.0), disalin ke `public/data/` saat build |
 | Juz, halaman mushaf (Madinah 604 hlm.), sajdah | paket `quran-meta` (riwayat Hafs) |
 | Asmaul Husna | [wnr-code/asmaul_husna](https://github.com/wnr-code/asmaul_husna) (MIT) |
 | Jadwal salat | hisab lokal dengan pustaka `adhan` |
 | Font Arab | Amiri Quran, Scheherazade New (SIL OFL), disajikan sendiri |
+
+Daftar lengkap sumber juga tampil di aplikasi: **Lainnya → Tentang → Sumber Data** (`src/data/sources.js`).
 
 Tidak ada ayat, tafsir, doa, atau nomor halaman yang dibuat oleh aplikasi. Satu surah tidak pernah menggabungkan dua edisi yang berbeda.
 

@@ -1791,3 +1791,79 @@ body.has-player {
   background: rgba(0, 0, 0, 0.28);
   color: inherit;
 }
+
+/* Tentang — sumber data */
+.sources {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sources .section-title {
+  margin: 8px 4px 0;
+  font-size: 1.15rem;
+}
+.sources > .hint {
+  margin: 0 4px;
+}
+.source-group .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.source-group .eyebrow .icon {
+  width: 16px;
+  height: 16px;
+}
+.source-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.source-item {
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+.source-item:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+.source-item:last-child {
+  padding-bottom: 0;
+}
+.source-item p {
+  margin: 4px 0 0;
+  line-height: 1.55;
+}
+.source-item .muted {
+  font-size: 0.86rem;
+}
+.source-item .link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+.source-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+.source-head b {
+  font-size: 0.98rem;
+}
+.source-head .chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-ink);
+  white-space: nowrap;
+}
+.source-head .chip-soft {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}

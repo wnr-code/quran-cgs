@@ -18,3 +18,6 @@ android/keystore.properties
 *.keystore
 *.p12
 *.pem
+
+# Data lokal cadangan — dibuat ulang oleh scripts/gen-local.mjs saat build
+public/data/

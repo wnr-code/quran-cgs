@@ -8,6 +8,9 @@ import { stripBasmalah } from '../src/api/alqurancloud.js'
 import { mapDetail, mapSummary } from '../src/api/equran.js'
 import { esc, stripHtml } from '../src/utils/helpers.js'
 import { toHijri } from '../src/utils/hijri.js'
+import { mapLocalDetail } from '../src/api/local-data.js'
+import { SOURCES } from '../src/data/sources.js'
+import { existsSync, readFileSync } from 'node:fs'
 import { periodStarts } from '../functions/api/donors.js'
 import { parseDonation, onRequestPost } from '../functions/api/trakteer-webhook.js'
 import { createRequire } from 'node:module'
@@ -145,4 +148,28 @@ test('infaq: periode WIB & webhook Trakteer', async () => {
   assert.equal(calls[0][1][1], 'Aisyah')
   assert.equal(calls[0][1][4], 25000)
   assert.equal((await onRequestPost({ request: req('rahasia', '{}'), env: {} })).status, 503)
+})
+
+test('data lokal (cadangan terakhir): 114 surah lolos validasi yang sama dengan API', { skip: !existsSync('public/data/surah/1.json') && 'jalankan npm run gen:local' }, () => {
+  let total = 0
+  for (let n = 1; n <= 114; n++) {
+    const d = mapLocalDetail(JSON.parse(readFileSync(`public/data/surah/${n}.json`, 'utf8')))
+    assert.ok(validateSurahDetail(d, n), 'surah ' + n)
+    assert.equal(d.source, 'lokal')
+    total += d.ayat.length
+  }
+  assert.equal(total, 6236)
+  // Basmalah tidak menempel di ayat 1 (ditampilkan terpisah oleh reader)
+  const baqarah = mapLocalDetail(JSON.parse(readFileSync('public/data/surah/2.json', 'utf8')))
+  assert.ok(baqarah.ayat[0].teksArab.length < 12)
+})
+
+test('daftar sumber data lengkap & tautan aman', () => {
+  const items = SOURCES.flatMap((g) => g.items)
+  assert.ok(items.length >= 12)
+  for (const s of items) {
+    assert.ok(s.name && s.use)
+    if (s.url) assert.match(s.url, /^https:\/\//)
+  }
+  for (const name of ['EQuran.id API v2', 'Al Quran Cloud API', 'quran-meta', 'Amiri Quran']) assert.ok(items.some((s) => s.name === name), name)
 })

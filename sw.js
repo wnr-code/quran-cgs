@@ -87,7 +87,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url)
 
   if (url.origin === self.location.origin) {
-    if (url.pathname.startsWith('/api/') || url.pathname === '/sw.js') return // selalu jaringan
+    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/data/') || url.pathname === '/sw.js') return // selalu jaringan (data disimpan aplikasi di IndexedDB)
     if (request.mode === 'navigate' && (url.pathname === '/' || url.pathname === '/index.html')) {
       event.respondWith(shellFirst(request))
       return

@@ -1,8 +1,9 @@
-// Adapter data Al-Qur'an: memori → IndexedDB → EQuran.id → proxy → Al Quran Cloud → data lokal lama.
+// Adapter data Al-Qur'an: memori → IndexedDB → EQuran.id → proxy → Al Quran Cloud → data lokal (/data).
 // Data ayat TIDAK PERNAH dibuat/diubah di sini; hanya dipetakan, divalidasi, dan disimpan.
 import { API } from '../config.js'
 import { createEquran } from './equran.js'
 import { alquranCloud } from './alqurancloud.js'
+import { localData } from './local-data.js'
 import { ApiError } from './http.js'
 import { kv, surahRepo, tafsirRepo } from '../database/repositories.js'
 import { validateSurahList, validateSurahDetail, validateTafsir, isSurahNo } from '../utils/validation.js'
@@ -13,6 +14,7 @@ const providers = () => {
   // Proxy same-origin hanya masuk akal di produksi (Cloudflare Pages Functions).
   if (import.meta.env && import.meta.env.PROD) list.push(createEquran(API.equranProxy))
   list.push(alquranCloud)
+  list.push(localData) // cadangan terakhir: berkas di domain sendiri
   return list
 }
 
@@ -47,7 +49,7 @@ export function getSurahList({ force = false } = {}) {
     if (mem.list && !force) return mem.list
     const cached = await kv.get('surahList')
     const cachedOk = cached && validateSurahList(cached.data)
-    if (cachedOk && !force && Date.now() - cached.at < LIST_TTL && cached.data[0].source !== 'alqurancloud') return (mem.list = cached.data)
+    if (cachedOk && !force && Date.now() - cached.at < LIST_TTL && cached.data[0].source === 'equran') return (mem.list = cached.data)
     try {
       const data = await firstValid('list', undefined, validateSurahList)
       mem.list = data
@@ -77,13 +79,14 @@ export function getSurah(n, { force = false } = {}) {
     if (!force && mem.surah.has(n)) return mem.surah.get(n)
     const local = await surahRepo.get(n)
     const localOk = local && validateSurahDetail(local, n)
-    if (localOk && !force) {
+    // Salinan dari data lokal (tanpa audio) dicoba diganti sumber utama saat dibuka lagi.
+    if (localOk && !force && local.source !== 'lokal') {
       mem.surah.set(n, local)
       return local
     }
     try {
       const data = await firstValid('surah', n, (d) => validateSurahDetail(d, n))
-      mem.surah.set(n, data)
+      if (data.source !== 'lokal') mem.surah.set(n, data)
       await surahRepo.put(data)
       emit('offline:changed')
       return data
