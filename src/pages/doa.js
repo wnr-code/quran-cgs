@@ -27,7 +27,7 @@ const CAT_CARDS = [
   { tab: 'quran', name: "Doa dari Al-Qur'an", icon: 'quran', desc: 'Ayat-ayat doa, langsung dari mushaf', n: DOA_QURAN.length }
 ]
 const SOURCE_NOTE = {
-  nu: 'Teks Arab, Latin, dan arti disalin dari Quran NU Online. Kategori dan judul doa mengikuti sumber; perbaikan salah ketik kecil pada Latin/arti oleh QuranKu.',
+  nu: 'Teks Arab, Latin, dan arti disalin apa adanya dari Quran NU Online; kategori dan judul doa mengikuti sumber.',
   dzikir: 'Teks Arab, Latin, dan arti disalin dari Quran NU Online. Judul kartu, pemisahan Wirid/Doa, dan perbaikan salah ketik kecil pada Latin/arti oleh QuranKu.'
 }
 const srcFoot = (html) => `<footer class="src-foot">${fi('book-open')}<p>${html}</p></footer>`

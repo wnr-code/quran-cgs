@@ -68,7 +68,7 @@ export const SOURCES = [
         name: 'Quran NU Online (quran.nu.or.id)',
         role: 'Seluruh doa harian, doa wudhu, wirid & doa usai salat',
         use: 'Teks Arab, Latin, dan arti untuk doa harian (kategori Keseharian, Rezeki, Tolak Bala, Kesehatan, Perjalanan, Ilmu), doa wudhu, serta wirid dan doa usai salat fardu. Disimpan di aplikasi sehingga dapat dibuka offline.',
-        note: 'Disalin dari halaman kategori di quran.nu.or.id/doa; kategori dan judul doa mengikuti sumber. Judul kartu wudhu/wirid, pemisahan Wirid/Doa, dan perbaikan salah ketik kecil pada Latin/arti oleh QuranKu (dicatat di docs/STATUS.md). Kategori lain menyusul.',
+        note: 'Disalin dari halaman kategori di quran.nu.or.id/doa; kategori, judul, dan teks doa harian mengikuti sumber apa adanya. Pada doa wudhu dan usai salat: judul kartu, pemisahan Wirid/Doa, dan perbaikan salah ketik kecil pada Latin/arti oleh QuranKu (dicatat di docs/STATUS.md). Kategori lain menyusul.',
         url: 'https://quran.nu.or.id/doa',
         host: 'quran.nu.or.id'
       },
