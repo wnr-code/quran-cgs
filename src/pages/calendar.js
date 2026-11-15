@@ -6,6 +6,8 @@ import { getSettings } from '../services/storage.js'
 import { dayKey, notesOf, noteDays, saveNote, deleteNote } from '../services/calendar-notes.js'
 import { requestNotifPermission, notifPermission, notifSupported } from '../services/notification.js'
 import { toHijri, HIJRI_MONTHS, islamicDayOf, dayNotes, formatHijri } from '../utils/hijri.js'
+import { weton, pasaranOf } from '../utils/javanese.js'
+import { holidayOf, hasOfficial } from '../data/libur-nasional.js'
 import { formatGregorian } from '../utils/format.js'
 import { $, esc, toast } from '../utils/helpers.js'
 
@@ -57,30 +59,36 @@ export default function calendar(root) {
       const h = toHijri(date, adj)
       const ev = islamicDayOf(h)
       const mark = marks[key]
-      if (ev) events.push({ d, h, name: ev.name, key })
+      const hol = holidayOf(date, adj)
+      const red = date.getDay() === 0 || (hol && hol.type === 'libur')
+      if (hol) events.push({ d, key, name: hol.name, sub: hol.type === 'cuti' ? 'Cuti bersama' : hol.official ? 'Libur nasional' : 'Libur nasional (perkiraan)', cls: hol.type === 'cuti' ? 'cuti' : 'red' })
+      if (ev) events.push({ d, key, name: ev.name, sub: `${h.day} ${HIJRI_MONTHS[h.month - 1]} ${h.year} H`, cls: '' })
       if (mark) notesOf(key).forEach((n) => monthNotes.push({ d, key, n }))
       const isToday = date.toDateString() === today.toDateString()
-      const label = `${formatGregorian(date)}${ev ? ', ' + ev.name : ''}${mark ? `, ${mark.count} catatan` : ''}`
+      const label = `${formatGregorian(date)} ${pasaranOf(date)}${hol ? ', ' + hol.name : ''}${ev ? ', ' + ev.name : ''}${mark ? `, ${mark.count} catatan` : ''}`
       cells.push(
-        `<button type="button" class="cal-cell ${isToday ? 'today' : ''} ${ev ? 'event' : ''} ${date.getDay() === 5 ? 'friday' : ''}" data-day="${key}" aria-label="${esc(label)}"><b>${d}</b><small>${h.day}${h.day === 1 ? ' ' + HIJRI_MONTHS[h.month - 1].slice(0, 3) : ''}</small>${ev || mark ? `<i class="cal-dots">${ev ? '<i class="dot ev"></i>' : ''}${mark ? `<i class="dot ${mark.remind ? 'rem' : 'nt'}"></i>` : ''}</i>` : ''}</button>`
+        `<button type="button" class="cal-cell ${isToday ? 'today' : ''} ${ev ? 'event' : ''} ${date.getDay() === 5 ? 'friday' : ''} ${red ? 'red' : ''} ${hol && hol.type === 'cuti' ? 'cuti' : ''}" data-day="${key}" aria-label="${esc(label)}"><b>${d}</b><small>${h.day}${h.day === 1 ? ' ' + HIJRI_MONTHS[h.month - 1].slice(0, 3) : ''}</small>${ev || mark || hol ? `<i class="cal-dots">${hol ? `<i class="dot ${hol.type === 'cuti' ? 'ct' : 'hl'}"></i>` : ''}${ev ? '<i class="dot ev"></i>' : ''}${mark ? `<i class="dot ${mark.remind ? 'rem' : 'nt'}"></i>` : ''}</i>` : ''}</button>`
       )
     }
     const title = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(first)
     const hTitle = hFirst.month === hLast.month ? `${HIJRI_MONTHS[hFirst.month - 1]} ${hFirst.year} H` : `${HIJRI_MONTHS[hFirst.month - 1]} – ${HIJRI_MONTHS[hLast.month - 1]} ${hLast.year} H`
     const mon = new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(first)
     const todayEv = islamicDayOf(toHijri(today, adj))
+    const todayHol = holidayOf(today, adj)
     const next = upcoming(today, adj)
     body.innerHTML = `
-      <section class="card ornament prayer-card cal-hero"><p class="eyebrow">Hari ini</p><h2>${esc(formatHijri(today, adj))}</h2><p class="np-sub">${esc(formatGregorian(today))}</p>
+      <section class="card ornament prayer-card cal-hero"><p class="eyebrow">Hari ini</p><h2>${esc(formatHijri(today, adj))}</h2><p class="np-sub">${esc(formatGregorian(today))} · ${esc(pasaranOf(today))}</p>
+        ${todayHol ? `<span class="cal-chip red">${esc(todayHol.name)}</span>` : ''}
         ${todayEv ? `<span class="cal-chip">${icon('star')}${esc(todayEv.name)}</span>` : ''}
         <button type="button" class="cal-hero-btn" data-day="${dayKey(today)}">${icon('plus')}Catatan hari ini</button></section>
       <section class="card cal-card"><div class="cal-head"><button class="icon-btn" data-m="-1" aria-label="Bulan sebelumnya">${icon('back')}</button><div><strong>${esc(title)}</strong><small>${esc(hTitle)}</small></div><button class="icon-btn" data-m="1" aria-label="Bulan berikutnya">${icon('forward')}</button></div>
         <div class="cal-grid cal-week">${['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Ahd'].map((d) => `<span>${d}</span>`).join('')}</div>
         <div class="cal-grid" data-grid>${cells.join('')}</div>
-        <div class="cal-legend"><span><i class="dot ev"></i>Hari besar</span><span><i class="dot nt"></i>Catatan</span><span><i class="dot rem"></i>Pengingat</span><button class="btn sm" data-today>Bulan ini</button></div>
+        <div class="cal-legend"><span><i class="dot hl"></i>Tanggal merah</span><span><i class="dot ev"></i>Hari besar Islam</span><span><i class="dot nt"></i>Catatan</span><span><i class="dot rem"></i>Pengingat</span><button class="btn sm" data-today>Bulan ini</button></div>
         <p class="hint center">Ketuk tanggal untuk melihat keterangan dan menambah catatan.</p></section>
-      <section class="card"><p class="eyebrow">${icon('star')} Hari besar bulan ini</p>
-        ${events.length ? `<ul class="cal-list">${events.map((e) => `<li><button type="button" data-day="${e.key}"><span class="cal-date"><b>${e.d}</b><small>${esc(mon)}</small></span><span class="cal-item"><strong>${esc(e.name)}</strong><small>${e.h.day} ${HIJRI_MONTHS[e.h.month - 1]} ${e.h.year} H</small></span><span class="cal-go" aria-hidden="true">›</span></button></li>`).join('')}</ul>` : '<p class="muted">Tidak ada hari besar pada bulan ini.</p>'}</section>
+      <section class="card"><p class="eyebrow">${icon('star')} Tanggal merah & hari besar bulan ini</p>
+        ${events.length ? `<ul class="cal-list">${events.map((e) => `<li><button type="button" data-day="${e.key}"><span class="cal-date ${e.cls}"><b>${e.d}</b><small>${esc(mon)}</small></span><span class="cal-item"><strong>${esc(e.name)}</strong><small>${esc(e.sub)}</small></span><span class="cal-go" aria-hidden="true">›</span></button></li>`).join('')}</ul>` : '<p class="muted">Tidak ada tanggal merah atau hari besar pada bulan ini.</p>'}
+        <p class="hint">${hasOfficial(y) ? `Libur nasional ${y} mengikuti SKB 3 Menteri${y === 2026 ? ' (cuti bersama belum dimuat)' : ''}; pemerintah dapat mengubahnya.` : `Daftar resmi libur nasional ${y} belum tersedia di aplikasi: tanggal merah tahun ini adalah perkiraan, tanpa Imlek, Nyepi, dan Waisak.`}</p></section>
       ${monthNotes.length ? `<section class="card"><p class="eyebrow">${icon('note')} Catatan bulan ini</p><ul class="cal-list">${monthNotes.map(({ d, key, n }) => `<li><button type="button" data-day="${key}"><span class="cal-date note"><b>${d}</b><small>${esc(mon)}</small></span><span class="cal-item"><strong>${esc(n.text)}</strong>${n.remind ? `<small>${icon('clock')}Pengingat ${esc(n.time)}</small>` : ''}</span><span class="cal-go" aria-hidden="true">›</span></button></li>`).join('')}</ul></section>` : ''}
       <section class="card"><p class="eyebrow">${icon('calendar')} Hari besar terdekat</p>
         <ul class="cal-list">${next.map((e) => `<li><button type="button" data-day="${dayKey(e.date)}"><span class="cal-date soon"><b>${e.in}</b><small>hari</small></span><span class="cal-item"><strong>${esc(e.ev.name)}</strong><small>${esc(shortDate(e.date))}${e.in === 0 ? ' · hari ini' : ''}</small></span><span class="cal-go" aria-hidden="true">›</span></button></li>`).join('')}</ul>
@@ -93,6 +101,7 @@ export default function calendar(root) {
     const date = new Date(yy, mm - 1, dd)
     const h = toHijri(date, adj)
     const ev = islamicDayOf(h)
+    const hol = holidayOf(date, adj)
     const extras = dayNotes(date, h)
     const diff = Math.round((new Date(yy, mm - 1, dd) - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / DAY)
     const when = diff === 0 ? 'Hari ini' : diff === 1 ? 'Besok' : diff === -1 ? 'Kemarin' : diff > 0 ? `${diff} hari lagi` : `${-diff} hari lalu`
@@ -107,9 +116,11 @@ export default function calendar(root) {
     const content = `<div class="day-sheet">
       <div class="day-top"><span class="day-num"><b>${dd}</b><small>${esc(new Intl.DateTimeFormat('id-ID', { month: 'short' }).format(date))}</small></span>
         <div><strong>${esc(new Intl.DateTimeFormat('id-ID', { weekday: 'long' }).format(date))}, ${esc(shortDate(date))}</strong><small>${h.day} ${HIJRI_MONTHS[h.month - 1]} ${h.year} H · ${when}</small></div></div>
+      <div class="day-chips"><span class="day-chip weton" data-weton>${esc(weton(date))}</span>${hol ? `<span class="day-chip ${hol.type === 'cuti' ? 'cuti' : 'red'}">${hol.type === 'cuti' ? 'Cuti bersama' : 'Tanggal merah'}</span>` : date.getDay() === 0 ? '<span class="day-chip red">Hari Minggu</span>' : ''}</div>
+      ${hol ? `<div class="day-event red"><span class="day-flag" aria-hidden="true"></span><div><strong>${esc(hol.name)}</strong><p>${hol.type === 'cuti' ? 'Cuti bersama' : 'Hari libur nasional'}${hol.official ? ' menurut SKB 3 Menteri.' : ' — perkiraan; daftar resmi tahun ini belum tersedia di aplikasi.'}</p></div></div>` : ''}
       ${ev ? `<div class="day-event">${icon('star')}<div><strong>${esc(ev.name)}</strong><p>${esc(ev.desc || '')}</p></div></div>` : ''}
       ${extras.length ? `<ul class="day-tags">${extras.map((x) => `<li><b>${esc(x.label)}</b><span>${esc(x.desc)}</span></li>`).join('')}</ul>` : ''}
-      ${!ev && !extras.length ? '<p class="muted day-plain">Tidak ada hari besar pada tanggal ini.</p>' : ''}
+      ${!ev && !hol && !extras.length ? '<p class="muted day-plain">Tidak ada hari besar pada tanggal ini.</p>' : ''}
       <p class="eyebrow day-eyebrow">${icon('note')} Catatan & pengingat</p>
       <div data-notes>${notesHtml()}</div>
       <form class="day-form" data-form novalidate>

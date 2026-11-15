@@ -49,3 +49,47 @@ test('catatan: simpan, ubah, hapus, batas, dan pengingat sekali saja', () => {
   for (let i = 0; i < 20; i++) assert.ok(saveNote(key, { text: 'n' + i }))
   assert.equal(saveNote(key, { text: 'ke-21' }), null)
 })
+
+test('pasaran Jawa: cocok dengan tanggal-tanggal acuan', async () => {
+  const { weton, pasaranOf, PASARAN } = await import('../src/utils/javanese.js')
+  assert.equal(weton(new Date(1945, 7, 17)), 'Jumat Legi') // Proklamasi
+  assert.equal(weton(new Date(1901, 5, 6)), 'Kamis Pon')
+  assert.equal(weton(new Date(1970, 0, 1)), 'Kamis Wage')
+  assert.equal(weton(new Date(2024, 1, 14)), 'Rabu Legi')
+  // berurutan tanpa putus, juga melewati pergantian tahun & tahun kabisat
+  let d = new Date(2027, 11, 28)
+  let i = PASARAN.indexOf(pasaranOf(d))
+  for (let n = 0; n < 80; n++) {
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)
+    i = (i + 1) % 5
+    assert.equal(pasaranOf(d), PASARAN[i])
+  }
+})
+
+test('libur nasional: 2026 & 2027 sesuai SKB; tahun lain perkiraan', async () => {
+  const { holidayOf, easter, hasOfficial } = await import('../src/data/libur-nasional.js')
+  const h = (y, m, d) => holidayOf(new Date(y, m - 1, d))
+  assert.ok(hasOfficial(2026) && hasOfficial(2027) && !hasOfficial(2031))
+  assert.deepEqual(h(2026, 3, 21), { name: 'Idulfitri 1447 H', type: 'libur', official: true })
+  assert.equal(h(2026, 12, 25).name, 'Kelahiran Yesus Kristus (Natal)')
+  assert.equal(h(2026, 11, 16), null)
+  assert.equal(h(2027, 3, 8).name, 'Hari Suci Nyepi (Tahun Baru Saka 1949)')
+  assert.equal(h(2027, 5, 20).name, 'Hari Raya Waisak 2571 BE')
+  assert.equal(h(2027, 3, 9).type, 'cuti')
+  assert.equal(h(2027, 12, 26).type, 'libur')
+  let n26 = 0
+  let n27 = 0
+  let c27 = 0
+  for (let d = new Date(2026, 0, 1); d.getFullYear() < 2028; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
+    const x = holidayOf(d)
+    if (!x) continue
+    if (d.getFullYear() === 2026) n26++
+    else if (x.type === 'cuti') c27++
+    else n27++
+  }
+  assert.deepEqual([n26, n27, c27], [17, 18, 8])
+  // Paskah hasil hitungan sama dengan SKB (2026: 5 April, 2027: 28 Maret)
+  assert.deepEqual([easter(2026).getMonth(), easter(2026).getDate(), easter(2027).getMonth(), easter(2027).getDate()], [3, 5, 2, 28])
+  const est = h(2031, 8, 17)
+  assert.deepEqual(est, { name: 'Proklamasi Kemerdekaan RI', type: 'libur', official: false })
+})
