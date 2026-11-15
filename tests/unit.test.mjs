@@ -241,11 +241,23 @@ test('doa wudhu & wirid setelah salat: lengkap, berhuruf Arab, bersumber', () =>
   for (const d of nu) assert.match(d.source, /NU Online/)
   assert.equal(dz.wudhu[6].title, 'Doa Sesudah Berwudhu')
   assert.ok(SOURCES.some((g) => g.items.some((i) => i.host === 'islam.nu.or.id')))
-  assert.ok(dz.salat.length >= 10)
-  for (const d of [...dz.wudhu, ...dz.salat]) {
+  for (const d of dz.wudhu) {
     assert.ok(d.title && d.translation, d.title)
     assert.match(d.arabic, /[\u0600-\u06FF]/)
   }
+  // Wirid setelah salat: susunan 13 langkah dari NU Online.
+  assert.match(dz.sourceWirid.url, /^https:\/\/islam\.nu\.or\.id\/shalat\/susunan-bacaan-wirid/)
+  assert.deepEqual([...new Set(dz.salat.map((d) => d.step))], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+  for (const d of dz.salat) {
+    assert.ok(d.title, 'judul')
+    assert.match(d.source, /NU Online/)
+    if (d.arabic) assert.match(d.arabic, /[\u0600-\u06FF]/)
+    else assert.ok(d.fawaid, d.title)
+    // Zikir (bukan ayat) wajib punya Latin & arti; ayat cukup tautan mushaf.
+    if (d.arabic && !d.links.length) assert.ok(d.latin && d.translation, d.title)
+    for (const l of d.links) assert.ok(l.s >= 1 && l.s <= 114 && l.a >= 1 && l.label)
+  }
+  assert.equal(dz.salat.filter((d) => /33x/.test(d.notes)).length, 3)
   assert.ok(SOURCES.some((g) => g.items.some((i) => i.name === 'fitrahive/dua-dhikr')))
 })
 

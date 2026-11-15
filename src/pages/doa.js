@@ -48,9 +48,9 @@ export default function doa(root, { params = {} } = {}) {
       const ay = surah.ayat.slice(d.from - 1, d.to)
       slot.dataset.done = '1'
       slot.innerHTML = `<p class="ayah-ar" lang="ar" dir="rtl">${ay.map((a) => `${esc(a.teksArab)} <span class="ayah-num">${ayahMarker(a.nomorAyat)}</span>`).join(' ')}</p>
-        <p class="ayah-latin">${ay.map((a) => esc(a.teksLatin)).join(' ')}</p>
-        <p class="ayah-id">${ay.map((a) => esc(a.teksIndonesia)).join(' ')}</p>
-        <p class="doa-ref">Referensi: QS. ${esc(surah.namaLatin)} ${d.s}:${d.from}${d.to !== d.from ? '–' + d.to : ''} · <a class="link" href="#/surah/${d.s}/${d.from}">Buka di mushaf</a></p>`
+        ${ay.some((a) => a.teksLatin) ? `<p class="ayah-latin">${ay.map((a) => esc(a.teksLatin || '')).join(' ')}</p>` : ''}
+        ${ay.some((a) => a.teksIndonesia) ? `<p class="ayah-id">${ay.map((a) => esc(a.teksIndonesia || '')).join(' ')}</p>` : ''}
+        <div class="doa-foot"><p class="doa-ref">Referensi: QS. ${esc(surah.namaLatin)} ${d.s}:${d.from}${d.to !== d.from ? '–' + d.to : ''}</p><a class="btn sm" href="#/surah/${d.s}/${d.from}">${icon('book')}Buka di mushaf</a></div>`
     } catch (e) {
       slot.innerHTML = `<p class="muted">${esc(friendlyError(e))}</p>`
     }
@@ -74,41 +74,51 @@ export default function doa(root, { params = {} } = {}) {
     const items = harian.filter((d) => !q || norm(d.nama).includes(q) || norm(d.grup).includes(q) || norm(d.idn).includes(q))
     body.innerHTML = `<div class="list">${items.map((d) => `<details class="doa"><summary><span><strong>${esc(d.nama)}</strong>${d.grup ? `<small>${esc(d.grup)}</small>` : ''}</span>${icon('down')}</summary><div class="doa-body">
         <p class="ayah-ar" lang="ar" dir="rtl">${esc(d.ar)}</p>${d.tr ? `<p class="ayah-latin">${esc(d.tr)}</p>` : ''}${d.idn ? `<p class="ayah-id">${esc(d.idn)}</p>` : ''}
-        ${d.tentang ? `<p class="doa-ref">Referensi: ${esc(d.tentang)}</p>` : '<p class="doa-ref">Referensi tidak disertakan oleh sumber data.</p>'}
-        <button class="btn sm" data-copy="${esc(d.id)}">${icon('copy')}Salin</button></div></details>`).join('') || '<p class="muted pad">Tidak ditemukan.</p>'}</div>
+        <div class="doa-foot">${d.tentang ? `<p class="doa-ref">Referensi: ${esc(d.tentang)}</p>` : '<p class="doa-ref">Referensi tidak disertakan oleh sumber data.</p>'}
+        <button class="btn sm" data-copy="${esc(d.id)}">${icon('copy')}Salin</button></div></div></details>`).join('') || '<p class="muted pad">Tidak ditemukan.</p>'}</div>
       <p class="hint pad">Sumber: EQuran.id (${harian.length} doa), ditampilkan apa adanya.</p>`
   }
 
-  /** Doa wudhu & wirid setelah salat: data tersimpan di aplikasi (offline), disalin apa adanya dari sumbernya. */
+  /** Doa wudhu & wirid setelah salat: data tersimpan di aplikasi (offline). */
   function renderDzikir(kind) {
     const q = norm(input.value)
     const all = DZIKIR[kind]
     const items = all.map((d, i) => ({ ...d, i })).filter((d) => !q || norm(d.title).includes(q) || norm(d.translation).includes(q) || norm(d.latin).includes(q))
+    const W = DZIKIR.sourceWirid
     const intro =
       kind === 'salat'
-        ? 'Dzikir yang dibaca setelah salam dari salat wajib, berurutan dari atas ke bawah. Ketuk penghitung untuk bacaan yang diulang.'
+        ? 'Susunan wirid setelah salam dari salat fardu, dibaca berurutan sesuai nomornya. Ketuk penghitung untuk bacaan yang diulang.'
         : 'Bacaan sebelum berwudhu (dibaca berurutan, sebelum mencuci tangan) dan doa sesudah berwudhu.'
-    body.innerHTML = `<p class="hint pad">${intro}</p>
+    body.innerHTML = `<p class="dzikir-intro">${intro}</p>
       <div class="dzikir-list">${items.map((d) => {
         const n = repeatOf(d.notes)
         return `<article class="card dzikir">
-          <header><span class="dzikir-no">${d.i + 1}</span><h3>${esc(d.title)}</h3>${d.notes ? `<span class="chip">${esc(d.notes)}</span>` : ''}</header>
-          <p class="ayah-ar" lang="ar" dir="rtl">${esc(d.arabic)}</p>
+          <header><span class="dzikir-no">${d.step || d.i + 1}</span><div class="dzikir-head"><h3>${esc(d.title)}</h3>${d.notes ? `<span class="dzikir-meta">${icon('beads')}${esc(d.notes.replace(/(\d+)\s*x/gi, '$1×'))}</span>` : ''}</div></header>
+          ${d.arabic ? `<div class="dzikir-ar"><p class="ayah-ar" lang="ar" dir="rtl">${esc(d.arabic)}</p></div>` : ''}
           ${d.latin ? `<p class="ayah-latin">${esc(d.latin)}</p>` : ''}
-          <p class="ayah-id">${esc(d.translation)}</p>
-          ${d.fawaid ? `<details class="dzikir-more"><summary>${icon('info')}Keterangan</summary><p>${esc(d.fawaid)}</p></details>` : ''}
-          <p class="doa-ref">${d.source ? `Referensi: ${esc(d.source)}` : 'Referensi tidak disertakan oleh sumber data.'}</p>
-          <div class="dzikir-acts">
-            ${n ? `<button class="btn sm dzikir-count" data-count="${n}" data-n="0" aria-label="Penghitung bacaan">${icon('beads')}<span>0 / ${n}</span></button>` : ''}
-            <button class="btn sm" data-copyz="${kind}:${d.i}">${icon('copy')}Salin</button>
-          </div></article>`
+          ${d.translation ? `<p class="ayah-id">${esc(d.translation)}</p>` : ''}
+          ${d.fawaid ? `<p class="dzikir-note">${icon('info')}<span>${esc(d.fawaid)}</span></p>` : ''}
+          ${d.links && d.links.length ? `<div class="dzikir-links">${d.links.map((l) => `<a class="chip chip-link" href="#/surah/${l.s}/${l.a}">${icon('book')}${esc(l.label)}</a>`).join('')}</div>` : ''}
+          <footer class="dzikir-foot">
+            <p class="doa-ref">${d.source ? `Sumber: ${esc(d.source)}` : 'Referensi tidak disertakan oleh sumber data.'}</p>
+            ${d.arabic ? `<div class="dzikir-acts">
+              ${n ? `<button class="btn sm dzikir-count" data-count="${n}" data-n="0" aria-label="Penghitung bacaan">${icon('beads')}<span>0 / ${n}</span></button>` : ''}
+              <button class="btn sm" data-copyz="${kind}:${d.i}">${icon('copy')}Salin</button>
+            </div>` : ''}
+          </footer></article>`
       }).join('') || '<p class="muted pad">Tidak ditemukan.</p>'}</div>
-      ${kind === 'wudhu' ? `<p class="hint pad">Sumber doa sebelum berwudhu (no. 1–${DZIKIR.wudhu.filter((d) => d.from === 'nu').length}): <a class="link" href="${DZIKIR.sourceNU.url}" target="_blank" rel="noopener">${esc(DZIKIR.sourceNU.name)}</a>, artikel “Doa Sebelum Berwudhu” oleh ${esc(DZIKIR.sourceNU.author)}, yang mengutip Kitab Hasyiyatus Syarqawi karya Syekh Abdullah As-Syarqawi (Beirut, Darul Fikr: 2006) halaman 52. Teks Arab, Latin, dan arti disalin apa adanya.</p>` : ''}
-      <p class="hint pad">Sumber${kind === 'wudhu' ? ' doa sesudah berwudhu' : ''}: <a class="link" href="${DZIKIR.source.url}" target="_blank" rel="noopener">${esc(DZIKIR.source.name)}</a> (lisensi ${esc(DZIKIR.source.license)}) — kumpulan doa & dzikir berdasarkan hadis dengan rujukan riwayat di tiap bacaan. Teks ditampilkan apa adanya; QuranKu tidak menulis sendiri lafaz doa.</p>`
+      ${kind === 'wudhu'
+        ? `<p class="hint pad">Sumber doa sebelum berwudhu (no. 1–${DZIKIR.wudhu.filter((d) => d.from === 'nu').length}): <a class="link" href="${DZIKIR.sourceNU.url}" target="_blank" rel="noopener">${esc(DZIKIR.sourceNU.name)}</a>, artikel “Doa Sebelum Berwudhu” oleh ${esc(DZIKIR.sourceNU.author)}, yang mengutip Kitab Hasyiyatus Syarqawi karya Syekh Abdullah As-Syarqawi (Beirut, Darul Fikr: 2006) halaman 52. Teks Arab, Latin, dan arti disalin apa adanya.</p>
+      <p class="hint pad">Sumber doa sesudah berwudhu: <a class="link" href="${DZIKIR.source.url}" target="_blank" rel="noopener">${esc(DZIKIR.source.name)}</a> (lisensi ${esc(DZIKIR.source.license)}), dengan rujukan riwayat pada bacaannya.</p>`
+        : `<p class="hint pad">Sumber susunan dan teks Arab: <a class="link" href="${W.url}" target="_blank" rel="noopener">${esc(W.name)}</a>, artikel “${esc(W.title)}” oleh ${esc(W.author)} — rangkaian zikir susunan KH Muhammad bin Abdullah Faqih (Pondok Pesantren Langitan, Tuban) dari Majmû‘ah Maqrûât Yaumiyah wa Usbû‘iyyah. Teks Arab disalin apa adanya.</p>
+      <p class="hint pad">Artikel tersebut hanya memuat teks Arab. Tulisan Latin dan arti pada zikir disusun oleh QuranKu sebagai alat bantu dan belum ditinjau ustaz; untuk ayat Al-Qur'an, arti dapat dibaca lewat tautan mushaf.</p>`}`
   }
 
   const render = () => {
     root.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab))
+    const act = root.querySelector('[data-tab].active')
+    const bar = root.querySelector('.tabs')
+    if (act && bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = act.offsetLeft - (bar.clientWidth - act.offsetWidth) / 2
     if (tab === 'quran') renderQuran()
     else if (tab === 'harian') renderHarian()
     else renderDzikir(tab)

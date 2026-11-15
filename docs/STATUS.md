@@ -188,3 +188,10 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Enam bacaan sebelum berwudhu (ta‘awudz, basmalah, dua tahmid, ta‘awudz dari was-was setan, dua kalimat syahadat) disalin apa adanya dari <https://islam.nu.or.id/doa/doa-sebelum-berwudhu-M7e7B> (Alhafiz Kurniawan, 14-12-2020; mengutip Hasyiyatus Syarqawi hlm. 52). Menggantikan entri "Bismillāh" dari fitrahive/dua-dhikr.
 - Doa sesudah berwudhu dan wirid setelah salat tetap dari fitrahive/dua-dhikr.
 - Data di `src/data/dzikir.json` (`from: "nu"`, `sourceNU`); atribusi di halaman Doa Wudhu dan Tentang → Sumber data.
+
+## 1.3.17 — Doa Harian: tata letak & wirid dari NU Online
+
+- Tata letak kartu doa/zikir dirapikan: judul tidak lagi terjepit label "Dibaca Nx" (dulu melebar keluar layar di tab Wirid Salat), teks Arab dalam panel sendiri, catatan dan sumber terpisah di kaki kartu, empat tab muat tanpa terpotong pada lebar ≥ 360 px.
+- Wirid setelah salat diganti dengan susunan 13 langkah dari <https://islam.nu.or.id/shalat/susunan-bacaan-wirid-sesudah-shalat-lima-waktu-aLgk4> (Mahbib Khoiron, 2-7-2017; susunan KH Muhammad bin Abdullah Faqih, Langitan). Teks Arab disalin apa adanya.
+- Artikel NU hanya memuat teks Arab. **Latin dan arti zikir disusun QuranKu, belum ditinjau ustaz**; ayat Al-Qur'an (Ayat Kursi, Al-Baqarah 285–286, Ali Imran) diberi tautan ke mushaf, tanpa Latin/arti di kartu.
+- Doa sesudah wudhu masih dari fitrahive/dua-dhikr; doa sehari-hari masih dari EQuran.id.
