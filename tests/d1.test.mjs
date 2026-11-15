@@ -51,3 +51,21 @@ test('webhook → D1 → papan donatur harian/mingguan/bulanan', async () => {
   assert.equal(j.totals.amount, 1044000)
   assert.equal(j.latest[0].name, 'Aisyah')
 })
+
+test('worker: rute /api/* ke handler, selain itu ke aset statis', async () => {
+  const worker = (await import('../worker/index.js')).default
+  const env = { DB: fakeD1(), TRAKTEER_WEBHOOK_TOKEN: 't', ASSETS: { fetch: async (r) => new Response('ASET ' + new URL(r.url).pathname) } }
+  const ctx = { waitUntil() {} }
+  const call = (path, init) => worker.fetch(new Request('https://quran.cgs.my.id' + path, init), env, ctx)
+  assert.equal(await (await call('/')).text(), 'ASET /')
+  assert.equal(await (await call('/assets/x.js')).text(), 'ASET /assets/x.js')
+  const donors = await call('/api/donors')
+  assert.equal(donors.status, 200)
+  assert.ok((await donors.json()).ok)
+  assert.equal((await call('/api/donors', { method: 'POST' })).status, 405)
+  assert.equal((await call('/api/trakteer-webhook', { method: 'POST', headers: { 'X-Webhook-Token': 'salah' }, body: '{}' })).status, 401)
+  const ok = await call('/api/trakteer-webhook', { method: 'POST', headers: { 'X-Webhook-Token': 't' }, body: JSON.stringify({ transaction_id: 'w1', supporter_name: 'Umar', price: 5000, quantity: 1 }) })
+  assert.equal(ok.status, 200)
+  assert.equal((await (await call('/api/donors')).json()).latest[0].name, 'Umar')
+  assert.equal((await call('/api/tidak-ada')).status, 404)
+})

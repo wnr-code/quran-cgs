@@ -5,10 +5,10 @@ import { fetchJson, ApiError } from './http.js'
 
 export const LOCAL_EDITION = {
   source: 'lokal',
-  label: 'Data lokal QuranKu (cadangan terakhir)',
+  label: 'Data lokal QuranKu (cadangan terakhir, hanya teks Arab)',
   text: 'Teks rasm Utsmani dari Ensiklopedia Al-Qur\'an (QuranEnc) via paket quran-json',
-  translation: 'Terjemahan Kementerian Agama RI dari QuranEnc via paket quran-json',
-  transliteration: 'Transliterasi Tanzil.net (ejaan Inggris)',
+  translation: 'Tidak tersedia pada data lokal (hanya teks Arab)',
+  transliteration: 'Tidak tersedia pada data lokal',
   url: 'https://github.com/risan/quran-json'
 }
 

@@ -1,45 +1,44 @@
-# Deploy ke Cloudflare Pages (gratis)
+# Deploy ke Cloudflare (gratis)
 
-## 1. Repository GitHub
-Kode berada di `wnr-code/quran-cgs`. Gabungkan branch kerja ke `main` (lewat pull request).
+Proyek ini di-deploy sebagai **Cloudflare Worker dengan aset statis**. Semua pengaturan ada di `wrangler.toml`:
+perintah `npx wrangler deploy` otomatis menjalankan `npm run build`, mengunggah folder `dist/`, dan memasang
+`worker/index.js` yang melayani `/api/*` (proxy cadangan EQuran, webhook Trakteer, papan donatur).
 
-## 2. Hubungkan ke Cloudflare Pages
-1. Dashboard Cloudflare → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-2. Pilih repository `wnr-code/quran-cgs`, branch produksi `main`.
-3. Build settings:
-   - Framework preset: **None** (atau Vite)
-   - Build command: `npm run build`
-   - Build output directory: `dist`
-4. Environment variables (Production dan Preview):
-   - `NODE_VERSION` = `22`
-5. Nama proyek: `quran-cgs` (harus sama dengan `name` di `wrangler.toml`).
-6. **Save and Deploy**. Folder `functions/` otomatis menjadi Pages Functions.
+## 1. Hubungkan repository
+1. Dashboard Cloudflare → **Workers & Pages** → Worker **`quran-cgs`** → **Settings → Builds** → hubungkan ke GitHub `wnr-code/quran-cgs`, branch `main`.
+2. Pengaturan build:
+   - Build command: **kosongkan** (build dijalankan oleh `wrangler.toml`)
+   - Deploy command: `npx wrangler deploy`
+   - Root directory: `/`
+3. Setiap push ke `main` akan men-deploy otomatis. Untuk memicu ulang secara manual: tab **Deployments → Retry / Deploy**.
 
-## 3. Domain khusus
-1. Proyek Pages → **Custom domains** → **Set up a custom domain** → `quran.cgs.my.id`.
-2. Bila `cgs.my.id` dikelola di Cloudflare, catatan CNAME dibuat otomatis. Bila tidak, tambahkan CNAME `quran` → `<nama-proyek>.pages.dev` di penyedia DNS.
-3. HTTPS aktif otomatis setelah sertifikat terbit (biasanya beberapa menit).
+Nama Worker di dashboard harus sama dengan `name` di `wrangler.toml` (`quran-cgs`).
 
-## 4. Papan donatur (opsional)
-Ikuti [INFAQ.md](INFAQ.md). Tanpa langkah itu aplikasi tetap berjalan; halaman Infaq menampilkan keterangan "belum aktif".
+## 2. Domain khusus
+Worker → **Settings → Domains & Routes → Add → Custom domain** → `quran.cgs.my.id`. HTTPS aktif otomatis.
 
-## 5. Uji setelah deploy
+## 3. Papan donatur
+Ikuti [INFAQ.md](INFAQ.md): buat tabel di D1 `quran` dan isi secret `TRAKTEER_WEBHOOK_TOKEN`. Binding D1 `DB` sudah ada di `wrangler.toml`.
+
+## 4. Uji setelah deploy
 | Uji | Cara |
 |---|---|
-| PWA dapat dipasang | Chrome Android → menu → "Instal aplikasi"; atau DevTools → Application → Manifest (tanpa error) |
-| Service worker | DevTools → Application → Service Workers: `sw.js` berstatus *activated* |
-| Offline | Buka beberapa surah, aktifkan mode pesawat, muat ulang: beranda, daftar surah, dan surah yang pernah dibuka harus tampil |
+| Aplikasi tampil | Buka https://quran.cgs.my.id — harus tampil beranda QuranKu, bukan "Hello world" |
+| PWA dapat dipasang | Chrome Android → menu → "Instal aplikasi" |
+| Service worker | DevTools → Application → Service Workers: `sw.js` *activated* |
+| Offline | Buka beberapa surah, aktifkan mode pesawat, muat ulang |
 | Header keamanan | `curl -I https://quran.cgs.my.id/` menampilkan `content-security-policy` |
-| Asset links | `curl https://quran.cgs.my.id/.well-known/assetlinks.json` mengembalikan JSON dengan `content-type: application/json` |
-| Proxy API | `curl https://quran.cgs.my.id/api/quran/surat` mengembalikan daftar 114 surah |
+| Asset links | `curl https://quran.cgs.my.id/.well-known/assetlinks.json` |
+| Proxy API | `curl https://quran.cgs.my.id/api/quran/surat` mengembalikan 114 surah |
+| Papan donatur | `curl https://quran.cgs.my.id/api/donors` mengembalikan JSON |
 | Kebijakan privasi | https://quran.cgs.my.id/privacy.html |
 
-## 6. Hubungkan dengan Android
-Setelah memiliki sidik jari SHA-256 kunci signing (lihat [ANDROID.md](ANDROID.md)), isi `public/.well-known/assetlinks.json`, commit, dan tunggu deploy selesai **sebelum** menguji APK. Tanpa itu aplikasi Android tetap terbuka tetapi menampilkan bilah alamat peramban.
+## 5. Hubungkan dengan Android
+Setelah memiliki sidik jari SHA-256 kunci signing (lihat [ANDROID.md](ANDROID.md)), isi `public/.well-known/assetlinks.json`, push ke `main`, dan tunggu deploy selesai sebelum menguji APK.
 
-## Batas free tier yang relevan
-- Pages: 500 build/bulan, permintaan aset statis tidak dibatasi.
-- Pages Functions: 100.000 permintaan/hari (dipakai hanya oleh proxy cadangan dan papan donatur; papan donatur di-cache 60 detik).
+## Batas free tier
+- Permintaan aset statis: gratis dan tidak dibatasi.
+- Worker (`/api/*` saja): 100.000 permintaan/hari.
 - D1: 5 GB, 5 juta baris dibaca/hari.
 
 Tidak ada layanan berbayar yang diaktifkan oleh proyek ini.

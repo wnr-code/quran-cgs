@@ -23,8 +23,8 @@ export const SOURCES = [
       {
         name: 'quran-json (Risan Bagja Pradana)',
         role: 'Cadangan terakhir',
-        use: 'Salinan teks di server QuranKu sendiri, dipakai bila kedua API gagal. Teks Utsmani dan terjemahan Kemenag RI dari Ensiklopedia Al-Qur\'an (QuranEnc); transliterasi dari Tanzil.net.',
-        note: 'Tanpa audio dan tanpa tafsir.',
+        use: 'Salinan teks Arab rasm Utsmani (dari Ensiklopedia Al-Qur\'an, QuranEnc) di server QuranKu sendiri, dipakai bila kedua API gagal.',
+        note: 'Hanya teks Arab: tanpa terjemahan, transliterasi, audio, dan tafsir.',
         license: 'CC BY 4.0',
         url: 'https://github.com/risan/quran-json',
         host: 'github.com/risan/quran-json'
@@ -114,7 +114,7 @@ export const SOURCES = [
     group: 'Layanan',
     icon: 'grid',
     items: [
-      { name: 'Cloudflare Pages', use: 'Hosting aplikasi, proxy cadangan API, dan penyimpanan papan donatur (D1).', url: 'https://pages.cloudflare.com', host: 'pages.cloudflare.com' },
+      { name: 'Cloudflare Workers', use: 'Hosting aplikasi, proxy cadangan API, dan penyimpanan papan donatur (D1).', url: 'https://workers.cloudflare.com', host: 'workers.cloudflare.com' },
       { name: 'Trakteer', use: 'Halaman infaq pengembang dan pemberitahuan donasi untuk papan donatur.', url: 'https://trakteer.id', host: 'trakteer.id' }
     ]
   }

@@ -11,7 +11,7 @@ import { emit } from '../utils/helpers.js'
 
 const providers = () => {
   const list = [createEquran(API.equran)]
-  // Proxy same-origin hanya masuk akal di produksi (Cloudflare Pages Functions).
+  // Proxy same-origin hanya masuk akal di produksi (Cloudflare Worker).
   if (import.meta.env && import.meta.env.PROD) list.push(createEquran(API.equranProxy))
   list.push(alquranCloud)
   list.push(localData) // cadangan terakhir: berkas di domain sendiri
