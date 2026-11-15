@@ -3602,3 +3602,60 @@ body.has-player {
   font-size: 0.84rem;
   color: var(--muted);
 }
+
+/* ===== Infaq 1.3.11: akad dalam popup, bantuan pembayaran ===== */
+.akad-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.9;
+  cursor: pointer;
+}
+.akad-link .icon {
+  width: 15px;
+  height: 15px;
+}
+.sheet-body .akad {
+  padding-bottom: 8px;
+}
+.akad-actions {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  gap: 8px;
+  margin: 0 -4px;
+  padding: 12px 4px 4px;
+  background: linear-gradient(180deg, transparent, var(--surface) 22%);
+}
+.trk-help {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(8px + var(--safe-b, 0px));
+  margin: 0 auto;
+  width: max-content;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 8px;
+  max-width: calc(100% - 16px);
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(10, 30, 36, 0.82);
+  color: #fff;
+  font-size: 0.74rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.trk-help a {
+  color: #ffe9a8;
+  font-weight: 700;
+  text-decoration: underline;
+}

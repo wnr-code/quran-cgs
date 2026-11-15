@@ -51,6 +51,11 @@ const tap = async (sel) => {
   await page.$eval(sel, (e) => e.scrollIntoView({ block: 'center' }))
   await page.click(sel)
 }
+const openForm = async () => {
+  await tap('[data-infaq-open]')
+  await page.waitForSelector('.sheet-wrap.open [data-akad-ok]', T)
+  await page.$eval('[data-akad-ok]', (b) => b.click())
+}
 const frameOpened = () =>
   page.evaluate(
     () =>
@@ -70,17 +75,25 @@ await step('Tombol INFAQ sesuai identitas sematan; nama penyedia tidak tampil', 
   assert.ok(!/trakteer/i.test(await page.$eval('#view', (e) => e.textContent)), 'nama penyedia masih tampil')
   assert.equal(await page.$('[data-q], [data-custom], [data-pay]'), null, 'tidak ada lagi isian nominal di aplikasi')
   // Akad dijelaskan sebelum tombol: sukarela, bukan jual beli, bukan zakat, dipakai juga untuk pengelola
+  assert.equal(await page.$('[data-akad]'), null, 'akad tidak lagi memenuhi halaman')
+  await tap('[data-infaq-open]')
+  await page.waitForSelector('.sheet-wrap.open [data-akad]', T)
+  assert.equal(await page.$('.trk-overlay'), null, 'formulir belum dibuka sebelum akad disetujui')
   const akad = await page.$eval('[data-akad]', (e) => e.textContent)
+  await page.screenshot({ path: `${SHOTS}/13-infaq-akad.png` })
+  await page.click('.sheet-head [data-close]')
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap'), T)
   for (const w of [/sukarela/, /bukan jual beli/, /Bukan pinjaman, investasi/, /Bukan zakat/, /kebutuhan hidup pengelolanya/, /Pernyataan akad/]) assert.match(akad, w)
 })
 
 await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol kembali menutup', async () => {
   const opened = frameOpened()
-  await tap('[data-infaq-open]')
+  await openForm()
   await page.waitForSelector('.trk-overlay.open iframe', T)
   const src = await page.$eval('.trk-overlay iframe', (f) => f.src)
   assert.equal(src, `${EMBED}?embedId=0&ref=${BASE}/`)
   assert.equal(await opened, true, 'bingkai tidak menerima embed.openModal')
+  assert.equal(await page.$eval('[data-trk-direct]', (a) => a.href), 'https://trakteer.id/lanteraku/tip') // jalan cadangan bila pembayaran diblokir
   await new Promise((r) => setTimeout(r, 500))
   await page.screenshot({ path: `${SHOTS}/15-infaq-popup.png` })
   assert.equal((await browser.pages()).length, pagesBefore, 'tidak ada tab baru')
@@ -92,13 +105,13 @@ await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol 
   assert.ok(await page.$('[data-infaq-open]'))
   // Penyedia mengirim embed.modalClosed (tombol tutup di formulirnya) → popup hilang
   const again = frameOpened()
-  await tap('[data-infaq-open]')
+  await openForm()
   assert.equal(await again, true)
   const frame = await (await page.$('.trk-overlay iframe')).contentFrame()
   await frame.click('#c')
   await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
   // Tombol X milik aplikasi
-  await tap('[data-infaq-open]')
+  await openForm()
   await page.waitForSelector('.trk-overlay.open', T)
   await page.click('[data-trk-close]')
   await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
@@ -112,7 +125,7 @@ await step('Papan donatur: menutup popup tidak menambah donatur; webhook menampi
   assert.ok(!(await page.$eval('#view', (e) => e.textContent)).includes(name), 'popup ditutup ≠ sudah bayar')
   const r = await webhook({ transaction_id: 'e2e-m-' + uniq, supporter_name: name, supporter_message: 'Semoga berkah <script>x</script> ' + uniq, price: 25000, quantity: 25, unit: 'Kopi' })
   assert.equal(r.status, 200)
-  await tap('[data-infaq-open]')
+  await openForm()
   await page.waitForSelector('.trk-overlay.open', T)
   await page.click('[data-trk-close]') // papan dimuat ulang setelah popup ditutup
   await page.waitForFunction((n) => [...document.querySelectorAll('.wish strong')].some((e) => e.textContent === n), T, name)
