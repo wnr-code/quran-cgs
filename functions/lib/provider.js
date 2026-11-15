@@ -18,6 +18,7 @@ export const providerConfig = (env) => {
     unitPrice,
     hasApi: !!env.TRAKTEER_API_KEY,
     hasDirect: !!(env.TRAKTEER_SESSION && env.TRAKTEER_CSRF_TOKEN && env.TRAKTEER_CREATOR_ID && env.TRAKTEER_UNIT_ID),
+    embedUrl: env.INFAQ_USERNAME ? `${SITE}/${encodeURIComponent(env.INFAQ_USERNAME)}/tip/embed/modal` : '',
     pageUrl: (q) => (env.INFAQ_USERNAME ? `${SITE}/${encodeURIComponent(env.INFAQ_USERNAME)}/tip?quantity=${q}` : '')
   }
 }
@@ -119,58 +120,102 @@ export function extractPayment(value) {
  * Jalur tidak resmi: meminta QRIS langsung ke halaman pembayaran.
  * Selalu mengembalikan objek { ok, ... } dan tidak pernah melempar; diagnosis ringkas (tanpa rahasia) disimpan di meta.
  */
+/** Mencari string QRIS di dalam teks bebas (mis. HTML halaman checkout). */
+export function findQrInText(text) {
+  const m = /000201[A-Za-z0-9 .,\-\/+*$%:@_]{40,900}?6304[0-9A-Fa-f]{4}/.exec(String(text || '').replace(/\\\//g, '/'))
+  return m ? m[0] : ''
+}
+
+/** Mencari alamat halaman checkout penyedia di dalam respons. Hanya alamat di situs penyedia yang diterima. */
+function findCheckoutUrl(value) {
+  let out = ''
+  const walk = (v, depth = 0) => {
+    if (out || depth > 6 || v == null) return
+    if (typeof v === 'string') {
+      if (/^https:\/\/trakteer\.id\/checkout\/[\w\-\/]{6,200}$/.test(v.trim())) out = v.trim()
+    } else if (typeof v === 'object') for (const x of Object.values(v)) walk(x, depth + 1)
+  }
+  walk(value)
+  return out
+}
+
+// Halaman checkout akun ini beralamat /checkout/midtrans/qris/<id>, jadi jalur midtrans dicoba lebih dulu.
+const PAY_PATHS = ['/pay/midtrans/qris', '/pay/xendit/qris']
+
 export async function createDirectQris(env, { quantity, name, message }, fetchImpl = fetch) {
   const cfg = providerConfig(env)
   if (!cfg.hasDirect) return { ok: false, reason: 'not_configured' }
-  const diag = { at: Date.now(), step: 'checkout' }
+  const custom = /^\/[\w\-\/]{2,80}$/.test(env.TRAKTEER_PAY_PATH || '') ? env.TRAKTEER_PAY_PATH : ''
+  const paths = custom ? [custom] : PAY_PATHS
+  const diag = { at: Date.now(), step: 'checkout', tried: [] }
+  const headers = {
+    Accept: 'application/json',
+    Cookie: `trakteer-sess=${env.TRAKTEER_SESSION}`,
+    Origin: SITE,
+    Referer: `${SITE}/${encodeURIComponent(cfg.username)}`,
+    'User-Agent': UA,
+    'X-Requested-With': 'XMLHttpRequest',
+    'X-CSRF-TOKEN': env.TRAKTEER_CSRF_TOKEN
+  }
+  const save = async () => {
+    try {
+      await metaSet(env.DB, 'direct_diag', JSON.stringify(diag))
+    } catch {}
+  }
   try {
-    const res = await fetchImpl(`${SITE}/pay/xendit/qris`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Cookie: `trakteer-sess=${env.TRAKTEER_SESSION}`,
-        Origin: SITE,
-        Referer: `${SITE}/${encodeURIComponent(cfg.username)}`,
-        'User-Agent': UA,
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-TOKEN': env.TRAKTEER_CSRF_TOKEN
-      },
-      body: JSON.stringify({
-        form: 'create-tip',
-        creator_id: env.TRAKTEER_CREATOR_ID,
-        unit_id: env.TRAKTEER_UNIT_ID,
-        quantity,
-        payment_method: 'qris',
-        display_name: name,
-        support_message: message || '',
-        ...(env.TRAKTEER_SUPPORTER_ID ? { supporter_id: env.TRAKTEER_SUPPORTER_ID } : {}),
-        times: 'once'
-      }),
-      redirect: 'manual',
-      signal: AbortSignal.timeout(12000)
-    })
-    diag.status = res.status
-    diag.type = res.headers.get('content-type') || ''
+    let res, body, found
+    for (const path of paths) {
+      res = await fetchImpl(SITE + path, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          form: 'create-tip',
+          creator_id: env.TRAKTEER_CREATOR_ID,
+          unit_id: env.TRAKTEER_UNIT_ID,
+          quantity,
+          payment_method: 'qris',
+          display_name: name,
+          support_message: message || '',
+          ...(env.TRAKTEER_SUPPORTER_ID ? { supporter_id: env.TRAKTEER_SUPPORTER_ID } : {}),
+          times: 'once'
+        }),
+        redirect: 'manual',
+        signal: AbortSignal.timeout(10000)
+      })
+      diag.tried.push({ path, status: res.status })
+      diag.status = res.status
+      diag.type = res.headers.get('content-type') || ''
+      // Hanya "alamat tidak ada" yang boleh dilanjutkan ke jalur berikutnya, agar tidak membuat dua pesanan.
+      if (res.status !== 404 && res.status !== 405) break
+    }
     const raw = await res.text()
     diag.length = raw.length
-    let body = null
+    body = null
     try {
       body = JSON.parse(raw)
     } catch {
       diag.note = 'bukan JSON'
     }
     if (body && typeof body === 'object') diag.keys = Object.keys(body).slice(0, 20)
-    const found = body ? extractPayment(body) : { qr: '' }
+    found = body ? extractPayment(body) : { qr: '', ref: '', expiresAt: 0 }
+    if (!found.qr) found.qr = findQrInText(raw)
+    // Jawaban hanya berisi alamat halaman checkout → ambil halamannya dan cari kode QRIS di dalamnya.
+    const checkout = !found.qr && res.ok && body ? findCheckoutUrl(body) : ''
+    if (checkout) {
+      diag.step = 'halaman-checkout'
+      const page = await fetchImpl(checkout, { headers: { ...headers, Accept: 'text/html,application/json' }, redirect: 'manual', signal: AbortSignal.timeout(10000) })
+      const html = await page.text()
+      diag.checkout = { status: page.status, type: page.headers.get('content-type') || '', length: html.length }
+      found.qr = findQrInText(html)
+      if (!found.ref) found.ref = (/\/([\w-]{8,100})$/.exec(checkout) || [])[1] || ''
+    }
     diag.qr = !!found.qr
-    await metaSet(env.DB, 'direct_diag', JSON.stringify(diag))
+    await save()
     if (!res.ok || !found.qr) return { ok: false, reason: res.ok ? 'no_qr' : 'http_' + res.status }
     return { ok: true, qr: found.qr, ref: found.ref, expiresAt: found.expiresAt }
   } catch (e) {
     diag.note = 'gagal: ' + String(e && e.name ? e.name : e).slice(0, 40)
-    try {
-      await metaSet(env.DB, 'direct_diag', JSON.stringify(diag))
-    } catch {}
+    await save()
     return { ok: false, reason: 'network_error' }
   }
 }

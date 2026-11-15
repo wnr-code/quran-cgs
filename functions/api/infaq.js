@@ -57,7 +57,7 @@ export async function onCreate({ request, env }) {
     .bind(id, name, quantity, amount, mode, direct.ok ? direct.ref || null : null, ip, now)
     .run()
   const expiresAt = Math.min(now + INTENT_TTL, direct.ok && direct.expiresAt > now ? direct.expiresAt : Infinity)
-  return json({ ok: true, id, mode, amount, quantity, name, expiresAt, ...(direct.ok ? { qr: direct.qr } : { url: cfg.pageUrl(quantity) }) })
+  return json({ ok: true, id, mode, amount, quantity, name, expiresAt, ...(direct.ok ? { qr: direct.qr } : { url: cfg.pageUrl(quantity), embedUrl: cfg.embedUrl }) })
 }
 
 /** Mencari donasi sukses yang cocok dengan niat infaq dan belum dipakai niat lain. */

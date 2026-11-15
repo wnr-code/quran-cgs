@@ -4,6 +4,7 @@ import { pageHeader, skeleton } from '../components/navbar.js'
 import { icon } from '../components/icons.js'
 import { getDonors } from '../api/donors-api.js'
 import { getInfaqConfig, createInfaq, getInfaqStatus, claimInfaq } from '../api/infaq-api.js'
+import { openSheet } from '../components/modal.js'
 import { $, esc, toast } from '../utils/helpers.js'
 import { formatRupiah, formatDateTime } from '../utils/format.js'
 
@@ -74,10 +75,13 @@ export default function infaq(root) {
   let quantity = 2
   let timer = null
   let tick = null
+  let popup = null
+  let pollSeq = 0
   let alive = true
   let data = null
 
   const stopTimers = () => {
+    pollSeq++
     clearTimeout(timer)
     clearInterval(tick)
     timer = tick = null
@@ -156,9 +160,9 @@ export default function infaq(root) {
       })
     } else {
       flow.innerHTML = `<p class="eyebrow">${icon('gift')} Selesaikan pembayaran</p>${head}
-        <p class="hint center">Kode pembayaran dibuat di halaman pembayaran aman. Setelah selesai, kembali ke sini — halaman ini akan memperbarui statusnya sendiri.</p>
-        <a class="btn btn-gold btn-block" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer" data-open>${icon('gift')}Buka halaman pembayaran</a>
-        <p class="hint center">Isi nama <b>${esc(it.name || 'Hamba Allah')}</b> dan jumlah yang sama agar infaq Anda dikenali otomatis.</p>${waiting}${tail}`
+        <p class="hint center">Pembayaran dibuka dalam jendela di halaman ini. Setelah selesai, tutup jendelanya — status di bawah akan diperbarui sendiri.</p>
+        <button class="btn btn-gold btn-block" data-open>${icon('gift')}Bayar sekarang</button>
+${waiting}${tail}`
     }
     const left = $('[data-left]', flow)
     const countdown = () => {
@@ -171,13 +175,54 @@ export default function infaq(root) {
     poll()
   }
 
+  // Jendela pembayaran (popup) di dalam aplikasi: memuat formulir pembayaran penyedia dalam bingkai.
+  function openPayPopup() {
+    const it = intent
+    if (!it) return
+    if (!it.embedUrl) return void window.open(it.url, '_blank', 'noopener,noreferrer') // niat lama tanpa alamat bingkai
+    closePopup()
+    const origin = new URL(it.embedUrl).origin
+    const onMsg = (e) => {
+      if (e.origin !== origin) return
+      const type = typeof e.data === 'string' ? e.data : e.data && (e.data.type || e.data.event)
+      if (/clos/i.test(String(type || ''))) closePopup()
+    }
+    const sheet = openSheet({
+      title: 'Pembayaran infaq',
+      wide: true,
+      content: `<div class="pay-frame"><div class="pay-loading" data-loading><span class="spinner" aria-hidden="true"></span><p class="muted">Memuat pembayaran…</p></div>
+          <iframe data-frame title="Pembayaran infaq" src="${esc(it.embedUrl)}" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-write"></iframe></div>
+        <p class="hint center pay-note">Isi nama <b>${esc(it.name || 'Hamba Allah')}</b> dan jumlah <b>${it.quantity}</b> (${formatRupiah(it.amount)}) agar infaq dikenali otomatis.
+          Jendela kosong? <a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer" data-ext>Buka di tab baru</a>.</p>`,
+      onOpen(body) {
+        body.classList.add('pay-body')
+        const frame = body.querySelector('[data-frame]')
+        const done = () => body.querySelector('[data-loading]')?.remove()
+        frame.addEventListener('load', done)
+        setTimeout(done, 8000)
+        addEventListener('message', onMsg)
+      },
+      onClose() {
+        removeEventListener('message', onMsg)
+        popup = null
+        if (alive && intent) {
+          clearTimeout(timer)
+          poll() // periksa status segera setelah jendela ditutup
+        }
+      }
+    })
+    popup = sheet
+  }
+  const closePopup = () => popup && popup.close()
+
   async function poll() {
     if (!alive || !intent) return
+    const seq = ++pollSeq
     let delay = POLL_MS
     try {
       if (document.visibilityState === 'visible' && navigator.onLine) {
         const s = await getInfaqStatus(intent.id)
-        if (!alive || !intent) return
+        if (!alive || !intent || seq !== pollSeq) return
         if (s.status === 'paid') return showResult('paid', s)
         if (s.status === 'expired') return showResult('expired')
       }
@@ -185,7 +230,7 @@ export default function infaq(root) {
       if (e && e.status === 404) return showForm('Sesi infaq tidak ditemukan. Silakan mulai lagi.')
       delay = POLL_MS * 2
     }
-    timer = setTimeout(poll, delay)
+    if (seq === pollSeq) timer = setTimeout(poll, delay)
   }
 
   async function claim() {
@@ -209,6 +254,7 @@ export default function infaq(root) {
   // ---------- Langkah 4: hasil ----------
   function showResult(kind, s) {
     stopTimers()
+    closePopup()
     const it = intent
     if (kind === 'paid') {
       saveIntent(null)
@@ -286,6 +332,7 @@ export default function infaq(root) {
     if (q) return setQuantity(+q.dataset.q)
     if (t.closest('[data-pay]')) return pay()
     if (t.closest('[data-claim]')) return claim()
+    if (t.closest('[data-open]')) return openPayPopup()
     if (t.closest('[data-cancel]') || t.closest('[data-again]')) return showForm()
     if (t.closest('[data-dl]')) {
       const canvas = $('[data-qr]', flow)
