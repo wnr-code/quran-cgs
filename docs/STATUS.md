@@ -121,3 +121,9 @@ Terakhir diperbarui: 15 November 2026.
 
 - **Infaq: alur diganti** karena popup sematan tetap 404. *Lanjut bayar* kini langsung membuka halaman pembayaran di tab baru dengan jumlah unit yang sama (`/tip?quantity=N`); aplikasi menunggu dan mengonfirmasi otomatis (webhook), lalu menutup tab tersebut. Kode popup/iframe, `embedUrl`, dan izin `frame-src` dihapus.
 - Belum diuji terhadap Trakteer sungguhan: apakah jumlah unit benar-benar terisi dan webhook sampai — perlu dicoba di HP.
+
+## 1.3.7
+
+- **Cuplikan tautan media sosial**: tag Open Graph + Twitter Card + JSON-LD di `index.html`, gambar `public/og-image.jpg` (1200×630, dibuat `npm run gen:og`). Berlaku untuk WhatsApp, Facebook, Telegram, X, LinkedIn, dll.
+- Batas: aplikasi memakai alamat `#/…`, yang tidak dibaca perayap media sosial — semua tautan (termasuk tautan ayat) menampilkan cuplikan yang sama. Cuplikan per surah/ayat memerlukan alamat tanpa `#` yang dirender Worker (belum dibuat).
+- Belum diuji dengan perayap sungguhan (Facebook Sharing Debugger / WhatsApp) — hanya uji unit atas tag dan ukuran gambar.

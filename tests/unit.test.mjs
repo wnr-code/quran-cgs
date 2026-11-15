@@ -365,3 +365,18 @@ test('worker: CORS hanya untuk alamat resmi + preflight', async () => {
   const bad = await worker.fetch(new Request('https://quran-cgs.appwnr.workers.dev/api/tidak-ada', { headers: { Origin: 'https://evil.example' } }), env, { waitUntil() {} })
   assert.equal(bad.headers.get('Access-Control-Allow-Origin'), null)
 })
+
+test('cuplikan tautan: tag Open Graph/Twitter lengkap & gambar 1200×630', async () => {
+  const { readFileSync } = await import('node:fs')
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
+  const meta = (k) => (new RegExp(`<meta (?:property|name)="${k}" content="([^"]*)"`).exec(html) || [])[1]
+  for (const k of ['og:type', 'og:site_name', 'og:url', 'og:title', 'og:description', 'og:image', 'og:image:width', 'og:image:height', 'twitter:card', 'twitter:title', 'twitter:description', 'twitter:image']) assert.ok(meta(k), 'ada ' + k)
+  assert.equal(meta('og:image'), 'https://quran.cgs.my.id/og-image.jpg') // harus alamat lengkap (https), bukan relatif
+  assert.equal(meta('twitter:card'), 'summary_large_image')
+  assert.ok(meta('og:description').length <= 200)
+  JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html)[1])
+  const { default: sharp } = await import('sharp')
+  const m = await sharp(new URL('../public/og-image.jpg', import.meta.url).pathname).metadata()
+  assert.deepEqual([m.width, m.height, m.format], [1200, 630, 'jpeg'])
+  assert.ok(readFileSync(new URL('../public/og-image.jpg', import.meta.url)).length < 300 * 1024, 'di bawah 300 KB (batas WhatsApp)')
+})
