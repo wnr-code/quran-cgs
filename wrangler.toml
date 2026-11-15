@@ -13,10 +13,11 @@ command = "npm run build"
 directory = "./dist"
 binding = "ASSETS"
 
-# Infaq: username halaman pembayaran & harga 1 unit (rupiah). Sesuaikan INFAQ_UNIT_PRICE dengan harga unit di akun Anda.
+# Infaq: username halaman pembayaran & harga 1 unit (rupiah) = nominal minimal infaq.
+# INFAQ_UNIT_PRICE HARUS sama dengan harga unit di akun pembayaran Anda (di sana juga harus Rp1.000).
 [vars]
 INFAQ_USERNAME = "lanteraku"
-INFAQ_UNIT_PRICE = "5000"
+INFAQ_UNIT_PRICE = "1000"
 
 # Tiap menit: push pengingat adzan yang jatuh tempo; tiap 15 menit: sinkronisasi riwayat infaq (gratis).
 [triggers]

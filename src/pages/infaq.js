@@ -72,7 +72,8 @@ export default function infaq(root) {
   const latestEl = $('[data-latest]', root)
   let cfg = null
   let intent = null
-  let quantity = 2
+  let quantityTouched = false
+  let quantity = 2 // diganti setelah konfigurasi dimuat: pilihan yang paling dekat dengan Rp10.000
   let timer = null
   let tick = null
   let popup = null
@@ -97,11 +98,14 @@ export default function infaq(root) {
       return
     }
     const max = cfg.maxQuantity
+    if (!quantityTouched) {
+      quantity = PRESETS.filter((q) => q <= max).reduce((best, q) => (Math.abs(q * cfg.unitPrice - 10000) < Math.abs(best * cfg.unitPrice - 10000) ? q : best), 1)
+    }
     flow.innerHTML = `<p class="eyebrow">${icon('gift')} Pilih nominal infaq</p>
       ${message ? `<p class="infaq-alert">${esc(message)}</p>` : ''}
       <div class="amount-grid">${PRESETS.filter((q) => q <= max).map((q) => `<button type="button" class="amount${q === quantity ? ' on' : ''}" data-q="${q}">${formatRupiah(q * cfg.unitPrice)}</button>`).join('')}</div>
-      <label class="field"><span>Nominal lain (kelipatan ${formatRupiah(cfg.unitPrice)})</span>
-        <input type="number" inputmode="numeric" data-custom min="${cfg.unitPrice}" max="${cfg.unitPrice * max}" step="${cfg.unitPrice}" placeholder="${cfg.unitPrice * 3}" /></label>
+      <label class="field"><span>Nominal lain (minimal ${formatRupiah(cfg.unitPrice)}, kelipatan ${formatRupiah(cfg.unitPrice)})</span>
+        <input type="number" inputmode="numeric" data-custom min="${cfg.unitPrice}" max="${cfg.unitPrice * max}" step="${cfg.unitPrice}" placeholder="${Math.max(cfg.unitPrice, 15000)}" /></label>
       <label class="field"><span>Nama (tampil di papan donatur)</span><input type="text" data-name maxlength="40" placeholder="Hamba Allah" autocomplete="name" /></label>
       <label class="field"><span>Doa / pesan (opsional)</span><input type="text" data-msg maxlength="150" autocomplete="off" /></label>
       <div class="infaq-total"><span>Total infaq</span><b data-total>${formatRupiah(quantity * cfg.unitPrice)}</b></div>
@@ -114,6 +118,7 @@ export default function infaq(root) {
 
   const setQuantity = (q, fromCustom = false) => {
     quantity = Math.max(1, Math.min(cfg.maxQuantity, q))
+    quantityTouched = true
     flow.querySelectorAll('[data-q]').forEach((b) => b.classList.toggle('on', !fromCustom && +b.dataset.q === quantity))
     $('[data-total]', flow).textContent = formatRupiah(quantity * cfg.unitPrice)
     if (!fromCustom) $('[data-custom]', flow).value = ''
@@ -183,6 +188,15 @@ ${waiting}${tail}`
     if (!embedUrl) return void window.open(it.url, '_blank', 'noopener,noreferrer')
     closePopup()
     const origin = new URL(embedUrl).origin
+    // Sama persis dengan skrip tombol resmi penyedia (trbtn-overlay): alamat diberi ?embedId=…&ref=…,
+    // lalu setelah bingkai termuat dikirimi pesan "embed.openModal"; penyedia membalas "embed.modalClosed" saat ditutup.
+    const frameUrl = `${embedUrl}${embedUrl.includes('?') ? '&' : '?'}embedId=0&ref=${location.origin}/`
+    let frameEl = null
+    const openModal = () => {
+      try {
+        frameEl && frameEl.contentWindow && frameEl.contentWindow.postMessage({ type: 'embed.openModal' }, origin)
+      } catch {}
+    }
     const onMsg = (e) => {
       if (e.origin !== origin) return
       const type = typeof e.data === 'string' ? e.data : e.data && (e.data.type || e.data.event)
@@ -192,14 +206,20 @@ ${waiting}${tail}`
       title: 'Pembayaran infaq',
       wide: true,
       content: `<div class="pay-frame"><div class="pay-loading" data-loading><span class="spinner" aria-hidden="true"></span><p class="muted">Memuat pembayaran…</p></div>
-          <iframe data-frame title="Pembayaran infaq" src="${esc(embedUrl)}" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-write"></iframe></div>
+          <iframe data-frame title="Pembayaran infaq" src="${esc(frameUrl)}" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-write"></iframe></div>
         <p class="hint center pay-note">Isi nama <b>${esc(it.name || 'Hamba Allah')}</b> dan jumlah <b>${it.quantity}</b> (${formatRupiah(it.amount)}) agar infaq dikenali otomatis.
-          Jendela kosong? <a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer" data-ext>Buka di tab baru</a>.</p>`,
+          Bila jendela di atas kosong atau menampilkan pesan galat, pakai tombol di bawah.</p>
+        <a class="btn btn-block pay-ext" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer" data-ext>${icon('share')}Buka halaman pembayaran</a>`,
       onOpen(body) {
         body.classList.add('pay-body')
         const frame = body.querySelector('[data-frame]')
         const done = () => body.querySelector('[data-loading]')?.remove()
-        frame.addEventListener('load', done)
+        frameEl = frame
+        frame.addEventListener('load', () => {
+          done()
+          // Pendengar pesan di dalam bingkai bisa terpasang sedikit setelah "load" — kirim beberapa kali.
+          for (const ms of [0, 600, 1800]) setTimeout(openModal, ms)
+        })
         setTimeout(done, 8000)
         addEventListener('message', onMsg)
       },

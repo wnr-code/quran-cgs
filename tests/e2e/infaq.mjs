@@ -55,7 +55,11 @@ await step('Formulir infaq tampil tanpa nama penyedia pembayaran', async () => {
   assert.ok(!/trakteer/i.test(text), 'nama penyedia masih tampil')
   assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp10.000')
   await tap('[data-q="5"]')
-  assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp25.000')
+  assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp5.000')
+  // Nominal minimal Rp1.000
+  await tap('[data-q="1"]')
+  assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp1.000')
+  assert.equal(await page.$eval('[data-custom]', (e) => e.min), '1000')
   await page.type('[data-custom]', '15000')
   assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp15.000')
   await page.type('[data-name]', 'Penguji ' + uniq)
@@ -67,9 +71,12 @@ await step('Mode halaman pembayaran: menunggu → otomatis “terima kasih” se
   // Popup pembayaran: bingkai di dalam aplikasi, bukan tab baru
   await tap('[data-open]')
   await page.waitForSelector('.sheet-wrap.open iframe[data-frame]', T)
-  assert.equal(await page.$eval('iframe[data-frame]', (f) => f.getAttribute('src')), 'https://trakteer.id/lanteraku/tip/embed/modal')
+  assert.equal(await page.$eval('iframe[data-frame]', (f) => f.getAttribute('src')), `https://trakteer.id/lanteraku/tip/embed/modal?embedId=0&ref=${new URL(BASE).origin}/`)
+  assert.match(await page.$eval('.sheet-wrap a[data-ext]', (a) => a.href), /^https:\/\/trakteer\.id\/lanteraku\/tip\?quantity=15$/)
   assert.equal(page.url().startsWith(BASE), true, 'tetap di halaman aplikasi')
   assert.equal((await browser.pages()).length, pagesBefore, 'tidak ada tab baru')
+  await new Promise((r) => setTimeout(r, 400)) // tunggu animasi lembar selesai
+  assert.equal(await page.$eval('.sheet-wrap a[data-ext]', (a) => { const r = a.getBoundingClientRect(); return r.top > 0 && r.bottom <= innerHeight }), true, 'tombol cadangan terlihat tanpa menggulir')
   await page.screenshot({ path: `${SHOTS}/15-infaq-popup.png` })
   await page.$eval('.sheet-wrap button[data-close]', (b) => b.click())
   await page.waitForFunction(() => !document.querySelector('.sheet-wrap'), T)
@@ -81,7 +88,7 @@ await step('Mode halaman pembayaran: menunggu → otomatis “terima kasih” se
   await page.waitForSelector('[data-open]', T)
   await page.reload({ waitUntil: 'load' }) // juga bertahan setelah muat ulang penuh
   await page.waitForSelector('[data-open]', T)
-  await webhook({ transaction_id: 'e2e-a-' + uniq, supporter_name: 'penguji ' + uniq, price: 15000, quantity: 3, unit: 'Kopi' })
+  await webhook({ transaction_id: 'e2e-a-' + uniq, supporter_name: 'penguji ' + uniq, price: 15000, quantity: 15, unit: 'Kopi' })
   await page.waitForSelector('.infaq-result.ok', T)
   assert.match(await page.$eval('.infaq-result.ok', (e) => e.textContent), /15\.000/)
   await page.screenshot({ path: `${SHOTS}/13-infaq-terima-kasih.png` })

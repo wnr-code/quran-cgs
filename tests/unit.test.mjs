@@ -253,3 +253,25 @@ test('ikon: manifest menunjuk berkas berversi yang benar-benar ada', () => {
   const html = readFileSync('index.html', 'utf8')
   for (const [, href] of html.matchAll(/href="(\/icons\/[^"]+)"/g)) assert.ok(existsSync('public' + href), href)
 })
+
+test('Asmaul Husna v2: 99 nama lengkap dengan makna, faedah, dan rujukan ayat yang sah', async () => {
+  const { readFileSync } = await import('node:fs')
+  const data = JSON.parse(readFileSync(new URL('../src/data/asmaul-husna.json', import.meta.url), 'utf8'))
+  const { SURAH_AYAH_COUNT } = await import('../src/utils/quran-meta.js').then((m) => ({ SURAH_AYAH_COUNT: m.ayahCounts }))
+  assert.match(data.source, /v2/)
+  assert.equal(data.items.length, 99)
+  let linked = 0
+  data.items.forEach((x, i) => {
+    assert.equal(x.id, i + 1)
+    for (const k of ['arab', 'latin', 'arti', 'makna', 'amalan']) assert.ok(typeof x[k] === 'string' && x[k].trim().length > 2, `#${x.id} ${k}`)
+    assert.ok(x.ref.length >= 1, `#${x.id} rujukan`)
+    for (const r of x.ref) {
+      assert.ok(r.t.length > 3)
+      if (r.s === undefined) continue
+      linked++
+      assert.ok(r.s >= 1 && r.s <= 114 && r.a >= 1, `#${x.id} ${r.t}`)
+      if (SURAH_AYAH_COUNT) assert.ok(r.a <= SURAH_AYAH_COUNT[r.s - 1], `#${x.id} ${r.t} melebihi jumlah ayat`)
+    }
+  })
+  assert.equal(linked, 101)
+})

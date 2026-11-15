@@ -53,7 +53,7 @@ Cloudflare → Worker `quran-cgs` → Settings → Variables and Secrets (jenis 
 Lalu:
 
 - Di Trakteer, daftarkan URL webhook `https://quran.cgs.my.id/api/trakteer-webhook` dan kirim webhook uji.
-- Samakan `INFAQ_UNIT_PRICE` di `wrangler.toml` (sekarang `5000`) dengan harga 1 unit di akun Trakteer Anda. Bila
+- Samakan `INFAQ_UNIT_PRICE` di `wrangler.toml` (sekarang `1000` = nominal minimal infaq) dengan harga 1 unit di akun Trakteer Anda. Bila
   berbeda, nominal yang ditampilkan aplikasi tidak sama dengan yang ditagih.
 - Tabel D1 dibuat otomatis saat pertama dipakai; tidak perlu migrasi manual.
 
@@ -88,3 +88,17 @@ penyalahgunaan. Pengguna yang terkena batas diminta menunggu beberapa menit.
 - `npm test` — logika webhook, sinkronisasi Public API, pencocokan, klaim ID transaksi (SQLite lokal).
 - `tests/e2e/infaq.mjs` — alur di peramban terhadap `wrangler dev`; jawaban QRIS ditiru.
 - Belum diuji: Trakteer sungguhan (webhook, Public API, QRIS langsung) dan D1 produksi.
+
+## Popup pembayaran (pembaruan 1.3.1)
+
+Popup kini mengikuti **persis** cara kerja skrip tombol resmi penyedia (`trbtn-overlay.min.js`):
+bingkai dibuka di `…/tip/embed/modal?embedId=0&ref=<alamat situs>`, lalu setelah termuat dikirimi pesan
+`{type: "embed.openModal"}`; pesan `embed.modalClosed` dari penyedia menutup popup. Sebelumnya bingkai dibuka
+tanpa `embedId` dan tanpa pesan pembuka.
+
+Halaman penyedia dilindungi pemeriksaan bot, sehingga alamat ini **tidak dapat diuji otomatis** dari CI — mohon
+dicoba langsung di HP. Bila popup tetap menampilkan 404, kemungkinan fitur *embed/overlay* belum aktif untuk akun
+tersebut; tombol **"Buka halaman pembayaran"** di bawah popup selalu tersedia sebagai jalan keluar.
+
+Nominal minimal: **Rp1.000** (`INFAQ_UNIT_PRICE = "1000"`). Harga 1 unit di akun penyedia **harus** juga Rp1.000,
+kalau tidak jumlah yang dibayar tidak akan cocok dengan yang dipilih di aplikasi.

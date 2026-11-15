@@ -85,3 +85,9 @@ Terakhir diperbarui: 15 November 2026.
 - **Baca tanpa gangguan**: pada mode Mushaf & Halaman, menyentuh teks ayat tidak membuka apa pun; terjemahan & aksi dibuka dengan menyentuh **nomor ayat**.
 - **Murottal**: pemutar baru (piringan berputar, riak, ekualiser saat memutar), baris surah aktif ditandai, pengaturan pemutar dilipat.
 - **Asmaul Husna**: kartu baru, ayat QS. Al-A'raf 7:180 (diambil dari sumber teks aplikasi), tampilan detail dengan Sebelumnya/Berikutnya/Salin.
+
+## Pembaruan 1.3.1 — Asmaul Husna v2, popup infaq, minimal Rp1.000
+
+- **Asmaul Husna** memakai data v2 (`wnr-code/asmaul_husna` commit `6dad7b4`): makna, faedah/amalan, rujukan ayat (dapat disentuh → membuka ayatnya). Hasil pemeriksaan: 99 nama lengkap; 101 rujukan ayat semuanya menunjuk ayat yang ada; 4 nama (Al-Waajid, Al-Maani', Adh-Dhaarr, An-Naafi') berujukan hadits bilangan Asmaul Husna, bukan ayat. Metadata sumber menyebut penyusunan dibantu AI (Gemini) — makna/faedah belum ditinjau ustaz.
+- **Popup infaq** mengikuti protokol skrip resmi penyedia (`?embedId=0&ref=…` + pesan `embed.openModal`). Tidak bisa diuji otomatis (penyedia memblokir bot) → perlu dicoba di HP. Tombol "Buka halaman pembayaran" selalu ada di bawah popup.
+- **Nominal minimal Rp1.000** (`INFAQ_UNIT_PRICE = "1000"`); harga unit di akun penyedia harus disamakan.

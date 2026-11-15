@@ -4,7 +4,7 @@ import { ensureSchema, insertDonation, metaGet, cleanText, json } from '../lib/d
 import { providerConfig, createDirectQris, syncSupports } from '../lib/provider.js'
 
 const INTENT_TTL = 30 * 60 * 1000
-const MAX_QTY = 2000
+const MAX_QTY = 10000 // dengan harga unit Rp1.000 → maksimal Rp10.000.000 per infaq
 const PER_IP = 6 // niat infaq per IP per 10 menit
 const GLOBAL = 120 // per jam, seluruh pengguna
 
