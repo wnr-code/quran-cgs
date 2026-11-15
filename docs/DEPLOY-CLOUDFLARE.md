@@ -12,8 +12,8 @@ Kode berada di `wnr-code/quran-cgs`. Gabungkan branch kerja ke `main` (lewat pul
    - Build output directory: `dist`
 4. Environment variables (Production dan Preview):
    - `NODE_VERSION` = `22`
-   - `VITE_TRAKTEER_USERNAME` = username Trakteer Anda
-5. **Save and Deploy**. Folder `functions/` otomatis menjadi Pages Functions.
+5. Nama proyek: `quran-cgs` (harus sama dengan `name` di `wrangler.toml`).
+6. **Save and Deploy**. Folder `functions/` otomatis menjadi Pages Functions.
 
 ## 3. Domain khusus
 1. Proyek Pages → **Custom domains** → **Set up a custom domain** → `quran.cgs.my.id`.

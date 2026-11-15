@@ -3,39 +3,41 @@
 Terakhir diperbarui: 15 November 2026.
 
 ## Cara pengujian
-- `npm test` — 12 unit test, semuanya lulus.
+- `npm test` — 13 unit/integrasi test, semuanya lulus (termasuk webhook → SQL sungguhan → papan donatur).
 - `npm run build` — berhasil tanpa error.
-- `tests/e2e/smoke.mjs` — 14 langkah di Chromium headless terhadap hasil build produksi, semuanya lulus.
+- `tests/e2e/smoke.mjs` — 14 langkah di Chromium headless terhadap build produksi dengan API tiruan, semuanya lulus.
+- `tests/e2e/fallback.mjs` — semua API pihak ketiga dimatikan; surah terbuka dari data lokal.
+- **Workflow GitHub Actions "Live API test"** — menguji **API sungguhan** (EQuran.id, Al Quran Cloud) dari runner GitHub: `tests/live/api.mjs` (kontrak data) dan `tests/e2e/live.mjs` (alur di Chrome tanpa mock). Jalankan ulang kapan saja dari tab Actions.
+- **Workflow "Android build"** — membangun APK/AAB.
 
-**Penting:** lingkungan pengujian tidak memiliki akses internet ke `equran.id` maupun `api.alquran.cloud`. Smoke test memakai **tiruan (mock) API** dengan bentuk respons EQuran v2, berisi teks dari paket `quran-json`. Jadi alur aplikasi teruji, tetapi **sambungan ke API sungguhan belum pernah dijalankan.**
+## Teruji terhadap API sungguhan (15 Nov 2026)
+- EQuran.id: daftar 114 surah; **seluruh 114 surah diunduh dan lolos validasi, total 6236 ayat**; basmalah tidak menempel pada ayat 1; tafsir; header CORS `*`.
+- Audio EQuran: tersedia untuk 6 qari, per ayat dan per surah, mendukung Range.
+- Doa harian EQuran: 227 doa, 226 dipakai. Satu entri (id 42) dilewati karena kolom teks Arabnya tidak berisi huruf Arab pada sumber; aplikasi tidak memperbaikinya.
+- Al Quran Cloud (cadangan): daftar, surah, tafsir, audio, CORS.
+- Di Chrome tanpa mock: daftar surah, Al-Baqarah 286 ayat dari sumber utama, tafsir, doa sehari-hari, **audio surah berputar, audio per ayat berputar, unduh audio manual, dan audio unduhan berputar saat offline**.
 
-## Teruji otomatis (dengan API tiruan)
+## Teruji dengan API tiruan
 - Beranda, navigasi bawah, tema.
-- 114 surah, 30 juz, total 6236 ayat; jumlah ayat tiap surah divalidasi terhadap metadata.
 - Angka Arab-Indic bawaan, penanda ayat ﴿١﴾, opsi Latin; referensi internal tetap Latin.
 - Mushaf Continuous dan Ayah Focus; preset; ukuran font; RTL; font Amiri Quran termuat.
 - Basmalah: sekali di awal surah, tidak ada pada At-Taubah, tidak digandakan pada Al-Fatihah.
 - Mode membaca imersif menyembunyikan navigasi.
 - Posisi bacaan tersimpan dan dipulihkan setelah muat ulang; bookmark.
-- Tafsir; pencarian `2:255`, `juz 30`, kata terjemahan.
-- Halaman Asmaul Husna (99), jadwal salat, kiblat, tasbih, kalender, doa, target, offline, infaq, pengaturan terbuka tanpa error JavaScript.
+- Pencarian `2:255`, `juz 30`, kata terjemahan.
+- Halaman Asmaul Husna (99), jadwal salat, kiblat, tasbih, kalender, target, offline, infaq, pengaturan, tentang terbuka tanpa error JavaScript.
 - Service worker: shell, daftar surah, surah tersimpan, dan bookmark tersedia offline; surah yang belum tersimpan menampilkan pesan error yang jelas.
-- Cadangan terakhir: dengan semua API pihak ketiga dimatikan, daftar 114 surah dan surah Ya-Sin terbuka dari data lokal dan ditandai sebagai sumber cadangan (`tests/e2e/fallback.mjs`).
-- Halaman Tentang menampilkan seluruh sumber data.
-- Webhook Trakteer (token salah → 401, payload rusak → 400, tanpa D1 → 503, valid → tersimpan) dan perhitungan periode WIB.
+- Papan donatur: token salah → 401, payload rusak → 400, tanpa D1 → 503; kiriman ganda tidak menggandakan baris; nama digabung tanpa beda huruf besar/kecil; transaksi tes disembunyikan; periode WIB.
 
 ## Belum teruji — mohon diuji setelah deploy
 | Hal | Catatan |
 |---|---|
-| EQuran.id API sungguhan (surah, tafsir) | Pemetaan ditulis menurut dokumentasi v2; belum dijalankan terhadap server asli. |
-| Cadangan Al Quran Cloud dan proxy `/api/quran` | Belum dijalankan terhadap server asli. |
-| Doa harian (`equran.id/api/doa`) | Bentuk respons belum terverifikasi. Bila tidak cocok, halaman menampilkan "tidak tersedia" (tidak ada doa buatan). |
-| Pemutaran audio, mini player, unduh audio offline | Kode ada; tidak dapat diuji tanpa berkas audio asli. |
+| Deploy Cloudflare Pages, domain, proxy `/api/quran` | Belum dilakukan; Cloudflare tidak dapat dijangkau dari lingkungan pembuatan. |
+| Papan donatur di D1 sungguhan + webhook Trakteer sungguhan | Logika teruji di SQLite lokal. Tabel belum dibuat di database `quran`; lihat [INFAQ.md](INFAQ.md). |
 | Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
 | Notifikasi dan kompas kiblat | Memerlukan perangkat fisik. |
 | Android APK/AAB | Build di GitHub Actions berhasil (tanpa signing). **Belum dipasang/diuji di perangkat**, belum ditandatangani, belum diajukan ke Play. Lihat [ANDROID.md](ANDROID.md). |
-| Instalasi PWA di perangkat nyata, Lighthouse | Manifest dan service worker valid di Chromium headless; belum diuji di ponsel. |
-| iOS Safari | Belum diuji. |
+| Instalasi PWA di ponsel, Lighthouse, iOS Safari | Belum diuji. |
 
 ## Belum dikerjakan / berbeda dari spesifikasi
 - **Data lokal cadangan terakhir** (`/data/`, dari paket `quran-json`) hanya berisi teks, terjemahan, dan transliterasi ejaan Inggris — tanpa audio dan tanpa tafsir. Berkas ini disajikan dari domain aplikasi, jadi tetap memerlukan koneksi ke situs; untuk pemakaian tanpa internet gunakan *Kelola Offline → Unduh semua teks*.
@@ -45,10 +47,10 @@ Terakhir diperbarui: 15 November 2026.
 - **Nomor halaman** mengikuti mushaf Madinah 604 halaman dari metadata `quran-meta`, bukan dari API. Navigasi per halaman melompat ke ayat pertama halaman; tata letak baris demi baris seperti mushaf cetak tidak tersedia.
 - **Pencarian kata** hanya mencakup surah yang sudah tersimpan di perangkat.
 - **Layar penuh sistem** hanya bila peramban mengizinkan Fullscreen API; di TWA bilah status tetap tampil.
+- **Audio unduhan** disimpan sebagai respons *opaque* karena server audio EQuran tidak mengirim header CORS. Pemutaran offline berfungsi, tetapi ukuran berkas tidak dapat dibaca aplikasi dan peramban menghitung kuota penyimpanan lebih besar daripada ukuran asli.
 - Beranda memiliki dua pintasan tambahan di luar enam yang diminta: Arah Kiblat dan Infaq.
 - **Screenshot di `store/screenshots/`** dibuat dari API tiruan (edisi teks `quran-json`). Ambil ulang dari situs produksi sebelum diunggah ke Play Store.
 
 ## Yang harus Anda isi
-1. `VITE_TRAKTEER_USERNAME` di Cloudflare Pages.
-2. Sidik jari SHA-256 di `public/.well-known/assetlinks.json`.
-3. Binding D1 `DB` dan secret `TRAKTEER_WEBHOOK_TOKEN` (bila ingin papan donatur).
+1. Sidik jari SHA-256 di `public/.well-known/assetlinks.json`.
+2. Tabel `donations` di D1 `quran` dan secret `TRAKTEER_WEBHOOK_TOKEN` (bila ingin papan donatur).

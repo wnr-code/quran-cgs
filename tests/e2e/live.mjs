@@ -55,12 +55,12 @@ await step('Doa sehari-hari tampil dari API EQuran', async () => {
   await page.waitForSelector('[data-tab="harian"]', T)
   await page.click('[data-tab="harian"]')
   await new Promise((r) => setTimeout(r, 800))
-  await page.waitForSelector('[data-i], [data-retry]', T)
+  await page.waitForSelector('[data-copy], [data-retry]', T)
   await page.screenshot({ path: `${SHOTS}/doa.png` })
   assert.equal(await page.$('[data-retry]'), null, 'halaman doa menampilkan keadaan "tidak tersedia"')
-  const n = (await page.$$('[data-i]')).length
-  assert.ok(n > 0)
-  return `${n} doa; pertama: ${await page.$eval('[data-i] strong', (e) => e.textContent.slice(0, 50))}`
+  const n = (await page.$$('[data-copy]')).length
+  assert.ok(n > 100, 'jumlah doa: ' + n)
+  return `${n} doa; pertama: ${await page.$eval('details.doa strong', (e) => e.textContent.slice(0, 50))}`
 })
 await step('Murottal: audio surah benar-benar berputar', async () => {
   await go('/murottal')

@@ -3,13 +3,16 @@
 Alur: pengguna menekan tombol Infaq → halaman Trakteer Anda terbuka → setelah pembayaran, Trakteer memanggil webhook → Pages Function menyimpan ke D1 → halaman Infaq menampilkan nama donatur dan Top Donatur Harian / Mingguan / Bulanan.
 
 ## 1. Tombol infaq
-Isi variabel lingkungan `VITE_TRAKTEER_USERNAME` (mis. `namaanda` untuk `trakteer.id/namaanda`) lalu deploy ulang.
+Sudah diatur ke `https://trakteer.id/anichinapk/tip` (`src/config.js`). Untuk mengganti, isi variabel lingkungan `VITE_TRAKTEER_USERNAME` lalu deploy ulang.
 
 ## 2. Database D1
-1. Cloudflare → **Storage & Databases → D1** → **Create** → nama `quranku`.
-2. Buka tab **Console**, tempel isi `migrations/0001_donations.sql`, jalankan.
-   (Atau: `npx wrangler d1 execute quranku --remote --file migrations/0001_donations.sql`.)
-3. Proyek Pages → **Settings → Bindings → Add → D1 database**: variable name **`DB`**, database `quranku`.
+Database `quran` (`ff7eac46-cb79-409d-9edd-a743f299b50e`) sudah didaftarkan sebagai binding **`DB`** di `wrangler.toml`, jadi tidak perlu menambah binding di dashboard. Yang masih harus dilakukan sekali: membuat tabelnya.
+
+1. Cloudflare → **Storage & Databases → D1** → `quran` → tab **Console**.
+2. Tempel isi `migrations/0001_donations.sql`, jalankan.
+   (Atau: `npx wrangler d1 execute quran --remote --file migrations/0001_donations.sql`.)
+
+Catatan: `name` di `wrangler.toml` (`quran-cgs`) harus sama dengan nama proyek Pages Anda; ubah bila berbeda. Karena `wrangler.toml` ada, binding proyek dikelola dari berkas itu, bukan dari dashboard.
 
 ## 3. Token webhook
 1. Trakteer → **Integrations → Webhook**: aktifkan, URL

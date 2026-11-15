@@ -27,7 +27,7 @@ Konfigurasi opsional (salin `.env.example` → `.env`, atau isi di Cloudflare Pa
 
 | Variabel | Isi |
 |---|---|
-| `VITE_TRAKTEER_USERNAME` | username Trakteer Anda (bagian setelah `trakteer.id/`). **Wajib diisi agar tombol Infaq aktif.** |
+| `VITE_TRAKTEER_USERNAME` | username Trakteer (bawaan: `anichinapk`). Isi hanya bila ingin mengganti. |
 
 ## Fitur
 
