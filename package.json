@@ -1,8 +1,12 @@
 {
   "name": "quranku",
   "private": true,
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "QuranKu — Al-Qur'an digital premium (PWA + Android TWA)",
+  "license": "MIT",
+  "author": "WNR Code (https://github.com/wnr-code)",
+  "homepage": "https://quran.cgs.my.id",
+  "repository": { "type": "git", "url": "git+https://github.com/wnr-code/quran-cgs.git" },
   "type": "module",
   "scripts": {
     "predev": "node scripts/gen-local.mjs",

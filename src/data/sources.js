@@ -24,7 +24,7 @@ export const SOURCES = [
         name: 'Al Quran Cloud API',
         role: 'Cadangan',
         use: 'Dipakai bila sumber utama gagal: teks quran-uthmani (Tanzil), terjemahan id.indonesian, transliterasi en.transliteration, tafsir id.jalalayn, audio Mishary Alafasy.',
-        note: 'Ditandai di halaman baca sebagai edisi berbeda; tidak dicampur dengan sumber utama.',
+        note: 'Ditandai di halaman baca sebagai edisi berbeda; tidak dicampur dengan sumber utama. Audio cadangan diputar dari cdn.islamic.network.',
         url: 'https://alquran.cloud/api',
         host: 'alquran.cloud'
       },
@@ -36,6 +36,10 @@ export const SOURCES = [
         license: 'CC BY 4.0',
         url: 'https://github.com/risan/quran-json',
         host: 'github.com/risan/quran-json'
+      },
+      {
+        name: 'Ayat pilihan & doa dari Al-Qur\'an',
+        use: 'Daftar rujukan ayat (nomor surah:ayat) untuk “Ayat hari ini” dan tab doa Qur\'ani, disusun untuk aplikasi ini. Teks ayatnya tetap diambil dari sumber Al-Qur\'an di atas.'
       },
       {
         name: 'quran-meta',
@@ -135,10 +139,38 @@ export const SOURCES = [
     ]
   },
   {
+    group: 'Pustaka perangkat lunak',
+    icon: 'grid',
+    items: [
+      { name: 'Vite', use: 'Alat build aplikasi web.', license: 'MIT', url: 'https://vite.dev', host: 'vite.dev' },
+      { name: 'qrcode-generator (Kazuhiko Arase)', use: 'Menggambar kode QR pembayaran di halaman infaq, langsung di perangkat.', license: 'MIT', url: 'https://github.com/kazuhikoarase/qrcode-generator', host: 'github.com/kazuhikoarase/qrcode-generator' },
+      { name: 'Fontsource', use: 'Paket berkas font Amiri Quran dan Scheherazade New yang disalin ke aplikasi saat build.', url: 'https://fontsource.org', host: 'fontsource.org' },
+      { name: 'Android Browser Helper (Google)', use: 'Pembungkus Trusted Web Activity untuk aplikasi Android.', license: 'Apache 2.0', url: 'https://github.com/GoogleChrome/android-browser-helper', host: 'github.com/GoogleChrome/android-browser-helper' }
+    ]
+  },
+  {
     group: 'Layanan',
     icon: 'grid',
     items: [
-      { name: 'Cloudflare Workers', use: 'Hosting aplikasi, proxy cadangan API, dan penyimpanan papan donatur (D1).', url: 'https://workers.cloudflare.com', host: 'workers.cloudflare.com' }
+      {
+        name: 'Cloudflare Workers & D1',
+        use: 'Hosting aplikasi, proxy cadangan API, penjadwal pemberitahuan adzan, serta penyimpanan papan donatur dan langganan pemberitahuan.',
+        note: 'Alamat utama quran.cgs.my.id; alamat cadangan quran-cgs.appwnr.workers.dev dipakai otomatis bila alamat utama tidak dapat dijangkau.',
+        url: 'https://workers.cloudflare.com',
+        host: 'workers.cloudflare.com'
+      },
+      {
+        name: 'Web Push (layanan pemberitahuan peramban)',
+        use: 'Pemberitahuan adzan, imsak, dan tarhim saat aplikasi tertutup dikirim lewat layanan push milik peramban Anda (mis. Google FCM, Mozilla, Apple).',
+        note: 'Hanya dipakai bila Anda menyalakan Adzan otomatis. Yang disimpan di server: alamat langganan push, koordinat lokasi salat (dibulatkan ±1 km), dan pilihan waktu.'
+      },
+      {
+        name: 'Trakteer',
+        use: 'Pemrosesan pembayaran infaq (QRIS/e-wallet). Hanya dipakai di halaman Infaq.',
+        note: 'Pembayaran berlangsung di halaman Trakteer; QuranKu tidak menerima atau menyimpan data kartu/rekening.',
+        url: 'https://trakteer.id',
+        host: 'trakteer.id'
+      }
     ]
   }
 ]

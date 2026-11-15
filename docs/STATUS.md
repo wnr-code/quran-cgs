@@ -110,3 +110,9 @@ Terakhir diperbarui: 15 November 2026.
 - Android (TWA): alamat cadangan dijadikan origin tepercaya + tautan aplikasi, jadi tetap layar penuh bila dibuka di sana.
 - **Batas**: perangkat yang BELUM PERNAH membuka aplikasi tidak bisa dialihkan otomatis saat domain utama mati (tidak ada kode yang sempat berjalan) — harus membuka alamat cadangan langsung; data lokal (bookmark, pengaturan) terpisah per alamat. APK tetap membuka alamat utama; saat mati ia memakai tampilan tersimpan + data dari cadangan.
 - Belum diuji terhadap domain yang benar-benar mati (hanya uji unit); `workers_dev = true` ditetapkan di `wrangler.toml`.
+
+## 1.3.5
+
+- **Lisensi MIT**: berkas `LICENSE`, `package.json` (`license`, `author`, `repository`), bagian Lisensi di README dan di aplikasi (Tentang → Lisensi, dengan tautan kode sumber). MIT hanya untuk kode; konten pihak ketiga mengikuti pemiliknya.
+- **Tentang & Sumber Data diperbarui**: ringkasan fitur, pustaka perangkat lunak (Vite, qrcode-generator, Fontsource, Android Browser Helper), layanan (Cloudflare Workers & D1 + alamat cadangan, Web Push, Trakteer), daftar ayat pilihan; keterangan privasi menyebut data adzan otomatis.
+- README ditulis ulang mengikuti fitur 1.3.x.
