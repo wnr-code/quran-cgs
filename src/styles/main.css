@@ -4442,3 +4442,124 @@ button.cal-cell:focus-visible {
 .dzikir .ayah-id {
   white-space: pre-line;
 }
+
+/* ===== Doa 1.3.20: bagian Wirid/Doa, tanda selesai, progres ===== */
+.fi-rotate::before { content: '\f2f9'; }
+.dzikir-progress {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 14px;
+  margin: 0 0 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.dzikir-bar {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.dzikir-bar span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--primary);
+  transition: width 0.25s;
+}
+.dzikir-progress strong {
+  font-size: 0.86rem;
+}
+.dzikir-progress.complete strong {
+  color: var(--primary);
+}
+.dzikir-progress .btn {
+  gap: 6px;
+  min-height: 32px;
+}
+.dzikir-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 2px 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.dzikir-section::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  order: 2;
+}
+.dzikir-section small {
+  order: 3;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+}
+.dzikir-section.sec-doa {
+  color: var(--gold, #b8893a);
+}
+.dzikir-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+.dzikir-kind {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+}
+.dzikir.k-doa .dzikir-kind,
+.dzikir.k-niat .dzikir-kind {
+  color: var(--gold, #b8893a);
+  background: color-mix(in srgb, var(--gold, #b8893a) 16%, var(--surface));
+}
+.dzikir.k-doa .dzikir-no,
+.dzikir.k-niat .dzikir-no {
+  background: var(--gold, #b8893a);
+}
+.dzikir.k-doa,
+.dzikir.k-niat {
+  border-left: 3px solid var(--gold, #b8893a);
+}
+.dzikir.k-wirid {
+  border-left: 3px solid var(--primary);
+}
+.dzikir-check {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  color: transparent;
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+}
+.dzikir-check[aria-pressed='true'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.dzikir.is-done .dzikir-ar,
+.dzikir.is-done .ayah-latin,
+.dzikir.is-done .ayah-id {
+  opacity: 0.55;
+}

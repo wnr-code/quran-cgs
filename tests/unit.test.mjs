@@ -230,41 +230,33 @@ test('qari: tidak ada yang ganda (id, nama, alamat audio)', async () => {
   if (QARI) assert.equal(Object.keys(QARI).length, Object.keys(QARI_AYAH).length + Object.keys(QARI_SURAH).length)
 })
 
-test('doa wudhu & wirid setelah salat: lengkap, berhuruf Arab, bersumber', () => {
+test('doa wudhu & wirid/doa usai salat: dari Quran NU Online, lengkap, wirid dan doa tidak tercampur', () => {
   const dz = JSON.parse(readFileSync('src/data/dzikir.json', 'utf8'))
-  assert.equal(dz.source.name, 'fitrahive/dua-dhikr')
-  assert.match(dz.source.commit, /^[0-9a-f]{40}$/)
-  assert.equal(dz.wudhu.length, 7)
-  const nu = dz.wudhu.filter((d) => d.from === 'nu')
-  assert.equal(nu.length, 6)
-  assert.match(dz.sourceNU.url, /^https:\/\/islam\.nu\.or\.id\/doa\/doa-sebelum-berwudhu/)
-  for (const d of nu) assert.match(d.source, /NU Online/)
-  assert.equal(dz.wudhu[6].title, 'Doa Sesudah Berwudhu')
-  assert.ok(SOURCES.some((g) => g.items.some((i) => i.host === 'islam.nu.or.id')))
-  for (const d of dz.wudhu) {
-    assert.ok(d.title && d.translation, d.title)
+  assert.equal(dz.source.url, 'https://quran.nu.or.id/doa')
+  for (const k of ['wudhu', 'salat']) assert.match(dz.source.pages[k].url, /^https:\/\/quran\.nu\.or\.id\/doa\/doa-/)
+  for (const d of [...dz.wudhu, ...dz.salat]) {
+    assert.ok(d.title && d.latin && d.translation && d.section, d.title)
     assert.match(d.arabic, /[\u0600-\u06FF]/)
-  }
-  // Wirid setelah salat: susunan 13 langkah dari NU Online.
-  assert.match(dz.sourceWirid.url, /^https:\/\/islam\.nu\.or\.id\/shalat\/susunan-bacaan-wirid/)
-  assert.deepEqual([...new Set(dz.salat.map((d) => d.step))], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
-  for (const d of dz.salat) {
-    assert.ok(d.title, 'judul')
-    assert.match(d.source, /NU Online/)
-    if (d.arabic) assert.match(d.arabic, /[\u0600-\u06FF]/)
-    else assert.ok(d.fawaid, d.title)
-    // Zikir (bukan ayat) wajib punya Latin & arti; ayat cukup tautan mushaf.
-    if (d.arabic && !d.links.length) assert.ok(d.latin && d.translation, d.title)
+    assert.match(d.source, /Quran NU Online/)
+    assert.ok(['wirid', 'doa', 'niat'].includes(d.kind), d.title)
     for (const l of d.links) assert.ok(l.s >= 1 && l.s <= 114 && l.a >= 1 && l.label)
   }
+  // Wudhu: 11 bacaan NU (17 kartu), berurutan.
+  assert.deepEqual([...new Set(dz.wudhu.map((d) => d.step))], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+  assert.deepEqual([...new Set(dz.wudhu.map((d) => d.section))], ['Sebelum wudhu', 'Saat berwudhu', 'Setelah wudhu'])
+  assert.equal(dz.wudhu[0].kind, 'niat')
+  // Usai salat: seluruh wirid dulu (langkah 1–13), baru doa (langkah 14) — tidak berselang-seling.
+  const kinds = dz.salat.map((d) => d.kind)
+  const firstDoa = kinds.indexOf('doa')
+  assert.ok(firstDoa > 0)
+  assert.ok(kinds.slice(0, firstDoa).every((k) => k === 'wirid'))
+  assert.ok(kinds.slice(firstDoa).every((k) => k === 'doa'))
+  for (const d of dz.salat) assert.equal(d.section, d.kind === 'wirid' ? 'Wirid' : 'Doa')
+  assert.deepEqual([...new Set(dz.salat.filter((d) => d.kind === 'wirid').map((d) => d.step))], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
   assert.equal(dz.salat.filter((d) => /33x/.test(d.notes)).length, 3)
-  // Doa penutup (langkah 13) dari Quran NU Online, lengkap Arab/Latin/arti.
-  const doa = dz.salat.filter((d) => d.step === 13)
-  assert.equal(doa.length, 2)
-  for (const d of doa) assert.ok(d.from === 'nu-doa' && d.arabic && d.latin && d.translation)
-  assert.match(doa[1].arabic, /رَبَّنَا اٰتِنَا فِي الدُّنْيَا حَسَنَةً/)
-  assert.match(dz.sourceDoaSalat.url, /^https:\/\/quran\.nu\.or\.id\/doa\/doa-shalat$/)
-  assert.ok(SOURCES.some((g) => g.items.some((i) => i.name === 'fitrahive/dua-dhikr')))
+  assert.equal(dz.salat.filter((d) => d.kind === 'doa').length, 2)
+  assert.match(dz.salat.at(-1).arabic, /رَبَّنَا اٰتِنَا فِي الدُّنْيَا حَسَنَةً/)
+  assert.ok(SOURCES.some((g) => g.items.some((i) => i.host === 'quran.nu.or.id')))
 })
 
 test('ikon: manifest menunjuk berkas berversi yang benar-benar ada', () => {

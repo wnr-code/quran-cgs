@@ -302,18 +302,29 @@ await step('Mode Terjemahan: ikon aksi per ayat', async () => {
 await step('Doa wudhu & wirid setelah salat (tersimpan di aplikasi)', async () => {
   await go('/doa/wudhu')
   await page.waitForSelector('.dzikir')
-  assert.equal(await count('.dzikir'), 7)
-  assert.match(await text('.dzikir:first-child .doa-ref'), /NU Online/)
+  assert.equal(await count('.dzikir'), 17)
+  assert.match(await text('.dzikir[data-card="0"] .doa-ref'), /NU Online/)
   await go('/doa/salat')
   await page.waitForSelector('.dzikir')
-  assert.equal(await count('.dzikir'), 21)
-  assert.match(await text('.dzikir:first-child .doa-ref'), /NU Online/)
+  assert.equal(await count('.dzikir'), 17)
+  assert.match(await text('.dzikir[data-card="0"] .doa-ref'), /NU Online/)
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
-  const c = '.dzikir:first-child [data-count]'
+  const c = '.dzikir[data-card="0"] [data-count]'
   for (let i = 0; i < 3; i++) await page.$eval(c, (b) => b.click())
   assert.equal(await text(c), '3 / 3')
   assert.ok(await page.$eval(c, (b) => b.classList.contains('done')))
+  // Wirid dan doa terpisah: dua judul bagian, doa hanya di bagian akhir.
+  assert.deepEqual(await page.$$eval('.dzikir-section span', (e) => e.map((x) => x.textContent)), ['Wirid', 'Doa'])
+  assert.equal(await count('.dzikir.k-wirid'), 15)
+  assert.equal(await count('.dzikir.k-doa'), 2)
+  // Penghitung selesai → kartu ditandai & progres bertambah; tombol centang juga menandai.
+  assert.match(await text('[data-progress-text]'), /^1 dari 17/)
+  await page.$eval('.dzikir[data-card="1"] [data-done]', (b) => b.click())
+  assert.match(await text('[data-progress-text]'), /^2 dari 17/)
+  assert.equal(await count('.dzikir.is-done'), 2)
   await shot('17-wirid-setelah-salat')
+  await page.$eval('[data-reset]', (b) => b.click())
+  assert.match(await text('[data-progress-text]'), /^0 dari 17/)
 })
 await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', async () => {
   await go('/doa/salat')
@@ -342,7 +353,7 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
   assert.equal(await shown('.dzikir .ayah-id'), true)
   // Ikon font termuat.
   assert.equal(await page.evaluate(async () => { await document.fonts.load("900 16px 'QK Icons'", '\uf06e'); return document.fonts.check("900 16px 'QK Icons'", '\uf06e') }), true)
-  await page.$eval('.dzikir:first-child [data-share]', (b) => b.click())
+  await page.$eval('.dzikir[data-card="0"] [data-share]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open .share-grid')
   const hrefs = await page.$$eval('.share-opt[data-net]', (a) => a.map((x) => x.href))
   assert.equal(hrefs.length, 4)
