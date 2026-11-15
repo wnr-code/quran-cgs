@@ -203,3 +203,18 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Tab Al-Qur'an kini juga punya tombol Salin.
 - Ikon font: subset Font Awesome Free 6.7.2 (13 glif, ±2,5 KB) di `public/fonts/qk-icons-*.woff2`, lisensi di `public/fonts/LICENSE-fontawesome-free.txt`. Dipakai di halaman Doa; bagian lain aplikasi masih memakai ikon SVG.
 - Tautan media sosial tidak dapat diuji sampai terkirim dari sandbox; hanya bentuk URL yang diuji.
+
+## 1.3.19 — Doa penutup wirid salat dari Quran NU Online
+
+- Langkah 13 wirid setelah salat kini berisi doa usai salat fardu (dua kartu: pujian & shalawat; permohonan) dari <https://quran.nu.or.id/doa/doa-shalat> bagian "Doa Usai Shalat Fardhu" — Arab, Latin, dan arti dari NU.
+- Teks Arab disalin apa adanya dari halaman NU (bukan dari transkripsi tangkapan layar). Perbaikan salah ketik yang dilakukan: Latin "wa âlihi sayyidinâ" → "wa âli sayyidinâ", "Allâḫumma" → "Allâhumma", "sayyidinâ Muḫammadun" → "sayyidunâ Muḫammadun", "raḫmatikâ" → "raḫmatika", "ḫasanatanwa" → "ḫasanatan wa", "‘adzaban-nâri" → "‘adzâban-nâri"; kalimat Latin "Wa na‘ûdzu bika min syarri …" yang tidak ada di halaman NU ditambahkan mengikuti teks Arabnya; arti "jimat ampunanmu" → "ketetapan ampunan-Mu".
+- Halaman yang sama memuat wirid lengkap versi NU dengan Latin dan arti (susunannya berbeda dari artikel Langitan yang dipakai di langkah 1–12) — kandidat pengganti Latin/arti buatan QuranKu.
+
+## 1.3.20 — Doa wudhu & wirid/doa usai salat seluruhnya dari Quran NU Online
+
+- **Tahap 1 dari migrasi ke <https://quran.nu.or.id/doa>** (16 kategori, 180 bacaan). Yang sudah dimuat: "Doa Wudhu" (11 bacaan → 17 kartu) dan "Doa Shalat" bacaan 1/20 "Doa Usai Shalat Fardhu" (wirid 13 langkah + doa). Arab, Latin, dan arti dari NU; Latin/arti buatan QuranKu dan data fitrahive/dua-dhikr serta artikel islam.nu.or.id (Langitan, Hasyiyatus Syarqawi) tidak dipakai lagi.
+- **Belum dimigrasikan:** 19 bacaan lain di "Doa Shalat" dan 14 kategori lain (Keseharian, Rezeki, Tolak Bala, Kesehatan, Perjalanan, Ilmu, Waktu Tertentu, Kualitas Diri, Pernikahan, Hamil & Persalinan, Doa para Nabi, Baca Al-Qur'an, Haji & Umrah, Kematian). Tab "Sehari-hari" masih dari EQuran.id; tab "Al-Qur'an" masih dari data mushaf aplikasi.
+- Halaman NU tidak memberi judul untuk tiap potongan bacaan; judul kartu (mis. "Saat berkumur", "Tahlil") dan pembagian bagian (Sebelum/Saat/Setelah wudhu; Wirid/Doa) disusun QuranKu berdasarkan isi dan urutan halaman.
+- Perbaikan salah ketik terhadap halaman NU: Latin istighfar ("ash ḫâbil-huquq" → "ashḫâbil-ḫuqûqi", "walijami`il" → "wa lijamî‘il", ditambah "minhum"), arti istighfar ("sahabat-sahabat yang aku masih memiliki hak atasku" → "orang-orang yang memiliki hak atasku"), Latin Al-Fatihah ("mustqîm" → "mustaqîm"), Latin Ayat Kursi (ditambah "Allâhu" di awal), Latin "lâ ilâha illâhu wahdahu" → "illallâhu", arti "milikinya" → "milik-Nya"; penanda "×٣ / 3x / 33x" dipindah ke label "Dibaca N×"; tasbih/tahmid/takbir dipecah jadi tiga kartu agar penghitung berfungsi. Teks Arab tidak diubah.
+- UI: judul bagian **Wirid** / **Doa** (warna berbeda, garis tepi kartu, label jenis di tiap kartu), tombol centang "sudah dibaca", bilah progres + "Ulangi"; penghitung yang penuh otomatis menandai kartu. Tanda hanya bertahan selama aplikasi terbuka. Tab "Wirid Salat" → "Usai Salat".
+- Jadwal salat dari Lembaga Falakiyah NU: **belum dikerjakan** (belum ditemukan sumber data/API resminya).

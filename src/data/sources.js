@@ -65,28 +65,12 @@ export const SOURCES = [
         host: 'aladhan.com'
       },
       {
-        name: 'NU Online (islam.nu.or.id)',
-        role: 'Doa sebelum berwudhu',
-        use: 'Enam bacaan sebelum berwudhu (ta‘awudz, basmalah, dua tahmid, ta‘awudz dari was-was setan, dua kalimat syahadat): teks Arab, Latin, dan arti. Disimpan di aplikasi sehingga dapat dibuka offline.',
-        note: 'Disalin apa adanya dari artikel “Doa Sebelum Berwudhu” (Alhafiz Kurniawan, 14 Desember 2020), yang mengutip Kitab Hasyiyatus Syarqawi karya Syekh Abdullah As-Syarqawi halaman 52.',
-        url: 'https://islam.nu.or.id/doa/doa-sebelum-berwudhu-M7e7B',
-        host: 'islam.nu.or.id'
-      },
-      {
-        name: 'NU Online (islam.nu.or.id)',
-        role: 'Wirid setelah salat',
-        use: 'Susunan dan teks Arab wirid sesudah salat lima waktu (13 langkah), berikut keterangan jumlah bacaan. Disimpan di aplikasi sehingga dapat dibuka offline.',
-        note: 'Disalin dari artikel “Susunan Bacaan Wirid Sesudah Shalat Lima Waktu” (Mahbib Khoiron, 2 Juli 2017) — susunan KH Muhammad bin Abdullah Faqih, Langitan. Artikel hanya memuat teks Arab; tulisan Latin dan arti zikir disusun QuranKu dan belum ditinjau ustaz.',
-        url: 'https://islam.nu.or.id/shalat/susunan-bacaan-wirid-sesudah-shalat-lima-waktu-aLgk4',
-        host: 'islam.nu.or.id/shalat'
-      },
-      {
-        name: 'fitrahive/dua-dhikr',
-        role: 'Doa sesudah wudhu',
-        use: 'Bacaan sesudah wudhu: teks Arab, Latin, terjemahan, keterangan, dan rujukan hadis. Disimpan di aplikasi sehingga dapat dibuka offline.',
-        note: 'Disalin apa adanya (lisensi MIT), dengan rujukan riwayatnya.',
-        url: 'https://github.com/fitrahive/dua-dhikr',
-        host: 'github.com/fitrahive/dua-dhikr'
+        name: 'Quran NU Online (quran.nu.or.id)',
+        role: 'Doa wudhu, wirid & doa usai salat',
+        use: 'Niat dan doa wudhu (11 bacaan) serta wirid dan doa usai salat fardu: teks Arab, Latin, dan arti. Disimpan di aplikasi sehingga dapat dibuka offline.',
+        note: 'Disalin dari halaman “Doa Wudhu” dan “Doa Shalat — Doa Usai Shalat Fardhu”. Judul kartu, pengelompokan Wirid/Doa, dan beberapa perbaikan salah ketik pada Latin/arti oleh QuranKu (dicatat di docs/STATUS.md).',
+        url: 'https://quran.nu.or.id/doa',
+        host: 'quran.nu.or.id'
       },
       {
         name: 'EQuran.id API Doa',

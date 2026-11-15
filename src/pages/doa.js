@@ -18,8 +18,13 @@ const TABS = [
   ['quran', "Al-Qur'an"],
   ['harian', 'Sehari-hari'],
   ['wudhu', 'Wudhu'],
-  ['salat', 'Wirid Salat']
+  ['salat', 'Usai Salat']
 ]
+/** Bacaan yang sudah ditandai (selama aplikasi terbuka). */
+const done = { wudhu: new Set(), salat: new Set() }
+const KIND_LABEL = { wirid: 'Wirid', doa: 'Doa', niat: 'Niat' }
+const SECTION_CLASS = { wirid: 'wirid', doa: 'doa', niat: 'doa' }
+
 /** Ikon font (subset Font Awesome Free, lihat public/fonts). */
 const fi = (name, brand) => `<i class="fi fi-${name}${brand ? ' fib' : ''}" aria-hidden="true"></i>`
 
@@ -185,40 +190,68 @@ export default function doa(root, { params = {} } = {}) {
       <p class="hint pad">Sumber: EQuran.id (${harian.length} doa), ditampilkan apa adanya.</p>`
   }
 
-  /** Doa wudhu & wirid setelah salat: data tersimpan di aplikasi (offline). */
+  /** Doa wudhu & wirid/doa usai salat: data tersimpan di aplikasi (offline), dari Quran NU Online. */
   function renderDzikir(kind) {
     const q = norm(input.value)
     const all = DZIKIR[kind]
     const items = all.map((d, i) => ({ ...d, i })).filter((d) => !q || norm(d.title).includes(q) || norm(d.translation).includes(q) || norm(d.latin).includes(q))
-    const W = DZIKIR.sourceWirid
+    const page = DZIKIR.source.pages[kind]
+    const seen = done[kind]
     const intro =
       kind === 'salat'
-        ? 'Susunan wirid setelah salam dari salat fardu, dibaca berurutan sesuai nomornya. Ketuk penghitung untuk bacaan yang diulang.'
-        : 'Bacaan sebelum berwudhu (dibaca berurutan, sebelum mencuci tangan) dan doa sesudah berwudhu.'
+        ? 'Dibaca berurutan setelah salam dari salat fardu: wirid lebih dulu, lalu doa. Tandai tiap bacaan agar tidak ada yang terlewat.'
+        : 'Niat dan doa sebelum, saat, dan setelah berwudhu, berurutan sesuai gerakan wudhu.'
+    let section = null
     body.innerHTML = `<p class="dzikir-intro">${intro}</p>
+      <div class="dzikir-progress" data-progress>
+        <div class="dzikir-bar"><span></span></div>
+        <strong data-progress-text></strong>
+        <button class="btn sm" data-reset>${fi('rotate')}Ulangi</button>
+      </div>
       <div class="dzikir-list">${items.map((d) => {
         const n = repeatOf(d.notes)
-        return `<article class="card dzikir">
-          <header><span class="dzikir-no">${d.step || d.i + 1}</span><div class="dzikir-head"><h3>${esc(d.title)}</h3>${d.notes ? `<span class="dzikir-meta">${icon('beads')}${esc(d.notes.replace(/(\d+)\s*x/gi, '$1×'))}</span>` : ''}</div></header>
+        const head = d.section !== section ? `<h2 class="dzikir-section sec-${SECTION_CLASS[d.kind] || 'doa'}"><span>${esc(d.section)}</span><small>${all.filter((x) => x.section === d.section).length} bacaan</small></h2>` : ''
+        section = d.section
+        return `${head}<article class="card dzikir k-${d.kind}${seen.has(d.i) ? ' is-done' : ''}" data-card="${d.i}">
+          <header><span class="dzikir-no">${d.step}</span><div class="dzikir-head"><h3>${esc(d.title)}</h3>
+            <div class="dzikir-tags"><span class="dzikir-kind">${KIND_LABEL[d.kind] || 'Doa'}</span>${d.notes ? `<span class="dzikir-meta">${icon('beads')}${esc(d.notes.replace(/(\d+)\s*x/gi, '$1×'))}</span>` : ''}</div></div>
+            <button class="dzikir-check" data-done="${d.i}" aria-pressed="${seen.has(d.i)}" aria-label="Tandai sudah dibaca">${fi('check')}</button></header>
           ${d.arabic ? `<div class="dzikir-ar"><p class="ayah-ar" lang="ar" dir="rtl">${esc(d.arabic)}</p></div>` : ''}
           ${d.latin ? `<p class="ayah-latin">${esc(d.latin)}</p>` : ''}
           ${d.translation ? `<p class="ayah-id">${esc(d.translation)}</p>` : ''}
           ${d.fawaid ? `<p class="dzikir-note">${icon('info')}<span>${esc(d.fawaid)}</span></p>` : ''}
-          ${d.links && d.links.length ? `<div class="dzikir-links">${d.links.map((l) => `<a class="chip chip-link" href="#/surah/${l.s}/${l.a}">${icon('book')}${esc(l.label)}</a>`).join('')}</div>` : ''}
+          ${d.links && d.links.length ? `<div class="dzikir-links">${d.links.map((l) => `<a class="chip chip-link" href="#/surah/${l.s}/${l.a}">${fi('book-open')}${esc(l.label)}</a>`).join('')}</div>` : ''}
           <footer class="dzikir-foot">
-            <p class="doa-ref">${d.source ? `Sumber: ${esc(d.source)}` : 'Referensi tidak disertakan oleh sumber data.'}</p>
-            ${d.arabic ? `<div class="dzikir-acts">
-              ${n ? `<button class="btn sm dzikir-count" data-count="${n}" data-n="0" aria-label="Penghitung bacaan">${icon('beads')}<span>0 / ${n}</span></button>` : ''}
+            <p class="doa-ref">Sumber: ${esc(d.source)}</p>
+            <div class="dzikir-acts">
+              ${n ? `<button class="btn sm dzikir-count" data-count="${n}" data-n="0" data-for="${d.i}" aria-label="Penghitung bacaan">${icon('beads')}<span>0 / ${n}</span></button>` : ''}
               <button class="btn sm" data-copyz="${kind}:${d.i}">${fi('copy')}Salin</button>
               <button class="btn sm" data-share="${kind}:${d.i}">${fi('share')}Bagikan</button>
-            </div>` : ''}
+            </div>
           </footer></article>`
       }).join('') || '<p class="muted pad">Tidak ditemukan.</p>'}</div>
-      ${kind === 'wudhu'
-        ? `<p class="hint pad">Sumber doa sebelum berwudhu (no. 1–${DZIKIR.wudhu.filter((d) => d.from === 'nu').length}): <a class="link" href="${DZIKIR.sourceNU.url}" target="_blank" rel="noopener">${esc(DZIKIR.sourceNU.name)}</a>, artikel “Doa Sebelum Berwudhu” oleh ${esc(DZIKIR.sourceNU.author)}, yang mengutip Kitab Hasyiyatus Syarqawi karya Syekh Abdullah As-Syarqawi (Beirut, Darul Fikr: 2006) halaman 52. Teks Arab, Latin, dan arti disalin apa adanya.</p>
-      <p class="hint pad">Sumber doa sesudah berwudhu: <a class="link" href="${DZIKIR.source.url}" target="_blank" rel="noopener">${esc(DZIKIR.source.name)}</a> (lisensi ${esc(DZIKIR.source.license)}), dengan rujukan riwayat pada bacaannya.</p>`
-        : `<p class="hint pad">Sumber susunan dan teks Arab: <a class="link" href="${W.url}" target="_blank" rel="noopener">${esc(W.name)}</a>, artikel “${esc(W.title)}” oleh ${esc(W.author)} — rangkaian zikir susunan KH Muhammad bin Abdullah Faqih (Pondok Pesantren Langitan, Tuban) dari Majmû‘ah Maqrûât Yaumiyah wa Usbû‘iyyah. Teks Arab disalin apa adanya.</p>
-      <p class="hint pad">Artikel tersebut hanya memuat teks Arab. Tulisan Latin dan arti pada zikir disusun oleh QuranKu sebagai alat bantu dan belum ditinjau ustaz; untuk ayat Al-Qur'an, arti dapat dibaca lewat tautan mushaf.</p>`}`
+      <p class="hint pad">Sumber: <a class="link" href="${page.url}" target="_blank" rel="noopener">${esc(DZIKIR.source.name)}</a>, halaman “${esc(page.title)}”. Teks Arab, Latin, dan arti berasal dari sumber tersebut; judul kartu, pengelompokan, dan beberapa perbaikan salah ketik pada Latin/arti oleh QuranKu.</p>`
+    paintProgress(kind)
+  }
+
+  function paintProgress(kind) {
+    const box = $('[data-progress]', body)
+    if (!box) return
+    const total = DZIKIR[kind].length
+    const n = done[kind].size
+    $('.dzikir-bar span', box).style.width = `${Math.round((n / total) * 100)}%`
+    $('[data-progress-text]', box).textContent = n >= total ? 'Selesai — alhamdulillah' : `${n} dari ${total} dibaca`
+    box.classList.toggle('complete', n >= total)
+    $('[data-reset]', box).hidden = n === 0
+  }
+  function setDone(kind, i, val) {
+    done[kind][val ? 'add' : 'delete'](i)
+    const card = $(`[data-card="${i}"]`, body)
+    if (card) {
+      card.classList.toggle('is-done', val)
+      $('[data-done]', card).setAttribute('aria-pressed', String(val))
+    }
+    paintProgress(kind)
   }
 
   const render = () => {
@@ -253,7 +286,14 @@ export default function doa(root, { params = {} } = {}) {
       cnt.querySelector('span').textContent = `${n} / ${max}`
       cnt.classList.toggle('done', n >= max)
       if (n >= max && navigator.vibrate) navigator.vibrate(60)
+      if (cnt.dataset.for != null) setDone(tab, +cnt.dataset.for, n >= max)
       return
+    }
+    const dn = e.target.closest('[data-done]')
+    if (dn) return setDone(tab, +dn.dataset.done, dn.getAttribute('aria-pressed') !== 'true')
+    if (e.target.closest('[data-reset]')) {
+      done[tab].clear()
+      return render()
     }
     const sh = e.target.closest('[data-share]')
     if (sh) {
