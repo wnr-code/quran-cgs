@@ -52,9 +52,35 @@ jobs:
         run: |
           run_gradle() { gradle "$@" --no-daemon --console=plain > "$RUNNER_TEMP/gradle.log" 2>&1 || { tail -n 60 "$RUNNER_TEMP/gradle.log"; echo "::error::$(grep -E -A12 'What went wrong|error:|ERROR' "$RUNNER_TEMP/gradle.log" | head -n 40 | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')"; exit 1; }; tail -n 5 "$RUNNER_TEMP/gradle.log"; }
           run_gradle :app:bundleRelease :app:assembleRelease
+      - name: Kumpulkan & periksa APK yang bisa dipasang
+        run: |
+          VER=$(node -p "require('../package.json').version")
+          BT="$ANDROID_HOME/build-tools/36.0.0"
+          mkdir -p "$RUNNER_TEMP/pasang" "$RUNNER_TEMP/toko"
+          REL=app/build/outputs/apk/release/app-release.apk
+          if [ -f "$REL" ]; then
+            cp "$REL" "$RUNNER_TEMP/pasang/QuranKu-$VER.apk"; JENIS="rilis (kunci tetap)"
+          else
+            # Tanpa kunci rilis, APK release tidak bertanda tangan dan DITOLAK Android — jangan dibagikan.
+            cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/pasang/QuranKu-$VER-uji.apk"; JENIS="uji (kunci sementara)"
+          fi
+          cp app/build/outputs/bundle/release/*.aab "$RUNNER_TEMP/toko/" 2>/dev/null || true
+          APK=$(ls "$RUNNER_TEMP"/pasang/*.apk)
+          "$BT/apksigner" verify --print-certs "$APK" > "$RUNNER_TEMP/sig.txt"
+          {
+            echo "### APK siap dipasang: $(basename "$APK") — $JENIS"
+            echo '```'
+            "$BT/aapt2" dump badging "$APK" | grep -E "^package:|^sdkVersion|^targetSdkVersion|^application-label:"
+            grep -i "SHA-256" "$RUNNER_TEMP/sig.txt"
+            ls -l "$APK" | awk '{print "ukuran: " $5 " byte"}'
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
-          name: quranku-android
-          path: |
-            android/app/build/outputs/apk/**/*.apk
-            android/app/build/outputs/bundle/**/*.aab
+          name: QuranKu-APK-untuk-dipasang
+          path: ${{ runner.temp }}/pasang/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quranku-play-store-aab
+          path: ${{ runner.temp }}/toko/*.aab
+          if-no-files-found: ignore
