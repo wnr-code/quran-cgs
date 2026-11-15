@@ -5,6 +5,7 @@
 import { pageHeader, skeleton } from '../components/navbar.js'
 import { icon } from '../components/icons.js'
 import { getDonors } from '../api/donors-api.js'
+import { openSheet } from '../components/modal.js'
 import { $, esc, toast } from '../utils/helpers.js'
 import { formatRupiah, formatDateTime } from '../utils/format.js'
 
@@ -33,14 +34,8 @@ const TRAKTEER_ORIGIN = new URL(TRBTN.url).origin
 
 const initial = (name) => (String(name || '').trim().match(/[\p{L}\p{N}]/u) || ['H'])[0].toUpperCase()
 
-export default function infaq(root) {
-  root.innerHTML = `<div class="page infaq-page">${pageHeader('Infaq Pengembang')}
-    <section class="card infaq-hero ornament">${icon('heart', 'infaq-ic')}
-      <h2>Dukung Pengembangan QuranKu</h2>
-      <p class="np-sub">QuranKu hadir sebagai aplikasi Al-Qur'an yang gratis, tanpa iklan, dan tanpa pelacakan — dan akan tetap gratis bagi siapa pun, memberi ataupun tidak.</p>
-    </section>
-    <section class="card akad" data-akad>
-      <p class="eyebrow">${icon('info')} Akad & tujuan infaq</p>
+// Isi popup akad: ditampilkan sebelum formulir pembayaran dibuka.
+const akadHtml = () => `<div class="akad" data-akad>
       <p>Kami membuka kesempatan bagi siapa pun yang ingin memberikan <b>infaq atau sedekah secara sukarela</b> sebagai dukungan terhadap pengembangan, pemeliharaan, operasional, dan keberlangsungan QuranKu.</p>
       <ul class="akad-list">
         <li>${icon('check')}<span><b>Pemberian sukarela (hibah/sedekah), bukan jual beli.</b> Tidak ada barang, ayat, fitur, atau layanan yang dijual. Al-Qur'an dan seluruh isi aplikasi tidak diperjualbelikan dan tetap gratis.</span></li>
@@ -52,8 +47,17 @@ export default function infaq(root) {
         <li>${icon('check')}<span><b>Papan donatur hanya ucapan terima kasih.</b> Bukan imbalan dan bukan perlombaan. Bila ingin menjaga keikhlasan, isi nama “Hamba Allah”.</span></li>
       </ul>
       <p class="akad-ijab"><b>Pernyataan akad.</b> Dengan menekan tombol INFAQ dan menyelesaikan pembayaran, Anda menyatakan memberi dana tersebut secara sukarela sebagai infaq/sedekah kepada pengelola QuranKu untuk keperluan di atas, tanpa mengharap imbalan dari pengelola; dan pengelola menerimanya.</p>
-      <button type="button" class="trbtn-infaq" data-infaq-open style="--trbtn:${TRBTN.color}"><img src="${TRBTN.img}" alt="" width="22" height="22" decoding="async" data-trbtn-img /><span>${TRBTN.text}</span></button>
       <p class="akad-doa">Semoga setiap kebaikan menjadi amal jariyah dan Allah Subhanahu wa Ta'ala membalasnya dengan sebaik-baik balasan.<br /><b>Jazakumullahu khairan katsiran.</b></p>
+    </div>
+    <div class="akad-actions"><button type="button" class="btn btn-primary btn-block" data-akad-ok>${icon('check')}Bismillah, saya setuju & lanjut</button><button type="button" class="btn btn-block" data-close>Nanti saja</button></div>`
+
+export default function infaq(root) {
+  root.innerHTML = `<div class="page infaq-page">${pageHeader('Infaq Pengembang')}
+    <section class="card infaq-hero ornament">${icon('heart', 'infaq-ic')}
+      <h2>Dukung Pengembangan QuranKu</h2>
+      <p class="np-sub">QuranKu hadir sebagai aplikasi Al-Qur'an yang gratis, tanpa iklan, dan tanpa pelacakan — dan akan tetap gratis bagi siapa pun, memberi ataupun tidak.</p>
+      <button type="button" class="trbtn-infaq" data-infaq-open style="--trbtn:${TRBTN.color}"><img src="${TRBTN.img}" alt="" width="22" height="22" decoding="async" data-trbtn-img /><span>${TRBTN.text}</span></button>
+      <button type="button" class="akad-link" data-akad-open>${icon('info')}Baca akad & tujuan infaq</button>
     </section>
     <div class="infaq-stats" data-stats hidden></div>
     <section class="card"><p class="eyebrow">${icon('trophy')} Papan donatur</p>
@@ -88,6 +92,7 @@ export default function infaq(root) {
     el.setAttribute('aria-label', 'Infaq QuranKu')
     el.innerHTML = `<div class="trk-wait" data-wait><span class="spinner" aria-hidden="true"></span><h3>INFAQ QURANKU</h3><p class="muted">Membuka formulir infaq…</p></div>
       <iframe title="Formulir infaq" allow="payment *; clipboard-write *" allowtransparency="true" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <div class="trk-help"><span>Pembayaran tidak muncul atau diblokir?</span><a href="${TRBTN.url}" target="_blank" rel="noopener noreferrer" data-trk-direct>Buka halaman pembayaran</a></div>
       <button type="button" class="trk-x" data-trk-close aria-label="Tutup">${icon('close')}</button>`
     const frame = el.querySelector('iframe')
     const say = () => {
@@ -148,6 +153,25 @@ export default function infaq(root) {
     overlay = { close }
   }
 
+  // ---------- Popup akad ----------
+  let sheet = null
+  function openAkad() {
+    if (sheet || overlay) return
+    sheet = openSheet({
+      title: 'Akad & Tujuan Infaq',
+      content: akadHtml(),
+      onOpen(body, close) {
+        body.querySelector('[data-akad-ok]').onclick = () => {
+          close()
+          openOverlay()
+        }
+      },
+      onClose() {
+        sheet = null
+      }
+    })
+  }
+
   // ---------- Papan donatur ----------
   const renderTop = () => {
     root.querySelectorAll('[data-p]').forEach((b) => b.classList.toggle('active', b.dataset.p === period))
@@ -190,7 +214,7 @@ export default function infaq(root) {
 
   page.addEventListener('click', (e) => {
     const t = e.target
-    if (t.closest('[data-infaq-open]')) return openOverlay()
+    if (t.closest('[data-infaq-open]') || t.closest('[data-akad-open]')) return openAkad()
     const p = t.closest('[data-p]')
     if (p) {
       period = p.dataset.p
@@ -211,6 +235,7 @@ export default function infaq(root) {
     alive = false
     refreshTimers.forEach(clearTimeout)
     overlay && overlay.close()
+    sheet && sheet.close()
     document.removeEventListener('visibilitychange', onVisible)
   }
 }
