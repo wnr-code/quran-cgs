@@ -1,6 +1,6 @@
 # Status fitur — teruji, belum teruji, dan batasan
 
-Terakhir diperbarui: 14 November 2026.
+Terakhir diperbarui: 15 November 2026.
 
 ## Cara pengujian
 - `npm test` — 12 unit test, semuanya lulus.
@@ -33,7 +33,7 @@ Terakhir diperbarui: 14 November 2026.
 | Pemutaran audio, mini player, unduh audio offline | Kode ada; tidak dapat diuji tanpa berkas audio asli. |
 | Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
 | Notifikasi dan kompas kiblat | Memerlukan perangkat fisik. |
-| Android APK/AAB | **Belum pernah di-build.** Lihat [ANDROID.md](ANDROID.md). |
+| Android APK/AAB | Build di GitHub Actions berhasil (tanpa signing). **Belum dipasang/diuji di perangkat**, belum ditandatangani, belum diajukan ke Play. Lihat [ANDROID.md](ANDROID.md). |
 | Instalasi PWA di perangkat nyata, Lighthouse | Manifest dan service worker valid di Chromium headless; belum diuji di ponsel. |
 | iOS Safari | Belum diuji. |
 

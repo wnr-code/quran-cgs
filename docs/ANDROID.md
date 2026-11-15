@@ -2,7 +2,7 @@
 
 Folder `android/` adalah proyek Gradle TWA yang memakai pustaka resmi `androidbrowserhelper` (sama dengan keluaran Bubblewrap). `android/twa-manifest.json` disertakan bila Anda lebih suka membuat ulang proyek dengan Bubblewrap.
 
-> **Status:** proyek ini **belum pernah di-build** — lingkungan pembuatan tidak memiliki Java/Android SDK. Belum ada APK/AAB yang dihasilkan atau diuji, dan belum ada yang diajukan ke Google Play. Build pertama mungkin memerlukan penyesuaian kecil versi (Android Gradle Plugin / Gradle).
+> **Status (15 Nov 2026):** proyek berhasil di-build di GitHub Actions (workflow *Android build*, run 43659285280): APK debug, APK release, dan AAB release dihasilkan sebagai artefak `quranku-android`. Build itu **tanpa kunci signing** (secrets belum diisi), sehingga APK/AAB release belum bertanda tangan dan belum bisa diunggah ke Play. Belum ada APK yang dipasang atau diuji di perangkat, dan belum ada yang diajukan ke Google Play.
 
 - Package: `id.cgs.quranku` · minSdk 23 · **targetSdk 36** · compileSdk 36 · versi 1.0.0 (versionCode 1)
 - Izin: `INTERNET`, `POST_NOTIFICATIONS`. Lokasi tidak diminta di tingkat aplikasi; izin lokasi ditangani Chrome per situs saat pengguna menekan "Gunakan lokasi saya".
@@ -17,7 +17,7 @@ Cadangkan berkas `.jks` dan sandinya di tempat aman. `.gitignore` sudah menolak 
 ### Cara A — GitHub Actions (tanpa memasang apa pun)
 1. Repository → Settings → Secrets and variables → Actions, tambahkan:
    `ANDROID_KEYSTORE_BASE64` (`base64 -w0 quranku-upload.jks`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`quranku`), `ANDROID_KEY_PASSWORD`.
-2. Tab **Actions → Android build → Run workflow**.
+2. Tab **Actions → Android build → Run workflow** (workflow juga berjalan otomatis setiap ada perubahan di `android/`).
 3. Unduh artefak `quranku-android`: `app-debug.apk` (uji), `app-release.apk`, `app-release.aab` (Play).
 
 ### Cara B — Android Studio / Gradle lokal
