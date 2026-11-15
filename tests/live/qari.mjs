@@ -33,11 +33,17 @@ async function size(url) {
 }
 
 const summary = []
+const moved = []
+const lines = []
+if (moshafs) note(true, 'Contoh alamat di API: ' + moshafs.slice(0, 3).map((m) => m.server).join(' , '))
 for (const q of QARI_EXTRA) {
   const problems = []
   let api = 'tidak diperiksa'
   if (moshafs) {
-    const m = moshafs.find((x) => x.server === q.base)
+    // Cocokkan persis; bila host server di API berbeda (pindah server), cocokkan folder qarinya.
+    const path = (u) => u.replace(/^https?:\/\/[^/]+/, '').toLowerCase()
+    const m = moshafs.find((x) => x.server === q.base) || moshafs.find((x) => path(x.server) === path(q.base))
+    if (m && m.server !== q.base) moved.push(`${q.id}: ${m.server}`)
     if (!m) problems.push('alamat tidak terdaftar di API mp3quran')
     else {
       api = `${m.reciter} — ${m.name} (${m.total})`
@@ -60,8 +66,12 @@ for (const q of QARI_EXTRA) {
     problems.push('audio tidak terjangkau: ' + e.message)
   }
   summary.push({ id: q.id, ok: !problems.length })
-  if (problems.length) fail(`${q.name} [${q.id}]: ${problems.join('; ')} | API: ${api} | ${sizes}`)
-  else note(true, `${q.name}: ${api} | ${sizes}`)
+  lines.push(`${problems.length ? '✗' : '✓'} ${q.id.slice(2)} = ${api}${problems.length ? ' !! ' + problems.join('; ') : ''}`)
+  if (problems.length) failed++
+  console.log(`${problems.length ? '✗' : '✓'} ${q.name}: ${problems.join('; ')} | API: ${api} | ${sizes}`)
 }
+// GitHub membatasi jumlah anotasi per langkah, jadi rincian diringkas dalam beberapa baris saja.
+for (let i = 0; i < lines.length; i += 7) note(true, 'Rincian: ' + lines.slice(i, i + 7).join(' || '))
+if (moved.length) note(true, 'Host berbeda di API: ' + moved.join(' || '))
 note(!failed, `Qari tambahan lolos: ${summary.filter((s) => s.ok).length}/${summary.length}`)
 process.exit(failed ? 1 : 0)

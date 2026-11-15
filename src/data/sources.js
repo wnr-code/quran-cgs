@@ -13,6 +13,14 @@ export const SOURCES = [
         host: 'equran.id'
       },
       {
+        name: 'mp3quran.net',
+        role: 'Murottal tambahan',
+        use: 'Audio surah penuh untuk qari tambahan di halaman Murottal (riwayat Hafs). Diputar langsung dari server mp3quran.net.',
+        note: 'Daftar qari disusun dari qori-alquran-json (wnr-code), yang bersumber dari surahquran.com. Hanya qari dengan 114 surah lengkap dan alamat yang lolos pemeriksaan yang dipakai.',
+        url: 'https://github.com/wnr-code/qori-alquran-json',
+        host: 'github.com/wnr-code/qori-alquran-json'
+      },
+      {
         name: 'Al Quran Cloud API',
         role: 'Cadangan',
         use: 'Dipakai bila sumber utama gagal: teks quran-uthmani (Tanzil), terjemahan id.indonesian, transliterasi en.transliteration, tafsir id.jalalayn, audio Mishary Alafasy.',
