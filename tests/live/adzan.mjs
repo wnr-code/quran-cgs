@@ -10,28 +10,23 @@ async function probe(url) {
     out.push(`ERR ${url} ${e.message}`)
   }
 }
-const urls = []
-for (let i = 1; i <= 14; i++) urls.push(`https://cdn.aladhan.com/audio/adhans/a${i}.mp3`)
-for (const n of ['a1', 'a2', 'a4', 'a7', 'a9', 'a11-mishary-rashid-alafasy']) urls.push(`https://cdn.islamic.network/adhans/${n}.mp3`)
-for (let i = 1; i <= 6; i++) urls.push(`https://www.islamcan.com/audio/adhan/azan${i}.mp3`)
-urls.push('https://download.quranicaudio.com/quran/adhan/adhan_makkah.mp3', 'https://server8.mp3quran.net/afs/Rewayat-Hafs-A-n-Assem/adhan.mp3')
-await Promise.all(urls.map(probe))
-for (const q of ['tarhim', 'tarhim hussary', 'الترحيم الحصري', 'adzan subuh']) {
-  try {
-    const r = await get(`https://archive.org/advancedsearch.php?q=${encodeURIComponent(q)}+AND+mediatype%3Aaudio&fl%5B%5D=identifier&fl%5B%5D=title&fl%5B%5D=licenseurl&fl%5B%5D=downloads&sort%5B%5D=downloads+desc&rows=8&output=json`)
-    const j = await r.json()
-    out.push(`IA "${q}": ` + j.response.docs.map((d) => `${d.identifier} [${String(d.title).slice(0, 40)}] dl=${d.downloads} lic=${d.licenseurl || '-'}`).join(' ; '))
-  } catch (e) {
-    out.push(`IA "${q}" ERR ${e.message}`)
-  }
-}
 try {
-  const r = await get('https://aladhan.com/play')
-  const t = await r.text()
-  out.push('aladhan/play: ' + [...new Set([...t.matchAll(/https?:\/\/[^"' ]+\.mp3/g)].map((m) => m[0]))].slice(0, 30).join(' '))
-  out.push('aladhan/play names: ' + [...t.matchAll(/<option[^>]*value="([^"]*)"[^>]*>([^<]{3,60})</g)].slice(0, 30).map((m) => m[1] + '=' + m[2].trim()).join(' | '))
+  const t = await (await get('https://aladhan.com/play')).text()
+  for (const m of t.matchAll(/https?:\/\/[^"' ]+\.mp3/g)) out.push('CTX ' + t.slice(Math.max(0, m.index - 260), m.index + m[0].length + 200).replace(/\s+/g, ' '))
 } catch (e) {
   out.push('aladhan/play ERR ' + e.message)
 }
+for (const id of ['ShalawatTarhim', 't1_20210307', 'sholawat-tarhim']) {
+  try {
+    const j = await (await get('https://archive.org/metadata/' + id)).json()
+    out.push(`IA ${id}: uploader=${j.metadata.uploader} date=${j.metadata.publicdate} lic=${j.metadata.licenseurl || '-'} desc=${String(j.metadata.description || '').slice(0, 120)} server=${j.d1} dir=${j.dir} files=` + j.files.filter((f) => /mp3|ogg/i.test(f.name)).map((f) => `${f.name}(${f.length}s,${f.size}b,${f.source})`).join(', '))
+  } catch (e) {
+    out.push(`IA ${id} ERR ${e.message}`)
+  }
+}
+for (const u of ['https://archive.org/download/ShalawatTarhim/ShalawatTarhim.mp3']) {
+  const res = await get(u, { headers: { Range: 'bytes=0-1', Origin: 'https://quran.cgs.my.id' } }).catch((e) => ({ status: 'ERR ' + e.message, headers: new Headers(), url: '' }))
+  out.push(`${res.status} ${u} type=${res.headers.get('content-type')} range=${res.headers.get('content-range')} cors=${res.headers.get('access-control-allow-origin')} final=${res.url}`)
+}
 // Anotasi dibatasi per langkah → gabungkan menjadi beberapa baris panjang.
-for (let i = 0; i < out.length; i += 9) console.log('::notice::' + out.slice(i, i + 9).join('%0A'))
+for (let i = 0; i < out.length; i += 4) console.log('::notice::' + out.slice(i, i + 4).join('%0A'))
