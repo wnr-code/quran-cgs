@@ -22,7 +22,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Halaman pembayaran infaq
-        run: node tests/live/infaq.mjs
+        run: npm i --no-save puppeteer && node tests/live/infaq.mjs
       - name: Kontrak API sungguhan
         if: always()
         run: node tests/live/api.mjs
