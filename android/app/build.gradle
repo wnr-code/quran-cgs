@@ -6,6 +6,7 @@ plugins {
 def twa = [
     applicationId  : 'id.cgs.quranku',
     hostName       : 'quran.cgs.my.id',
+    backupHost     : 'quran-cgs.appwnr.workers.dev', // alamat cadangan: tetap layar penuh bila dibuka di sini
     launchUrl      : '/',
     name           : 'QuranKu',
     themeColor     : '#0B3D2E',
@@ -36,15 +37,17 @@ android {
 
         manifestPlaceholders = [
             hostName       : twa.hostName,
+            backupHost     : twa.backupHost,
             defaultUrl     : "https://${twa.hostName}${twa.launchUrl}",
             launcherName   : twa.name
         ]
         resValue 'string', 'app_name', twa.name
+        resValue 'string', 'backup_origin', "https://${twa.backupHost}"
         resValue 'color', 'colorPrimary', twa.themeColor
         resValue 'color', 'navigationColor', twa.navigationColor
         resValue 'color', 'backgroundColor', twa.backgroundColor
         resValue 'string', 'asset_statements',
-            """[{ \\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], \\"target\\": { \\"namespace\\": \\"web\\", \\"site\\": \\"https://${twa.hostName}\\" } }]"""
+            """[{ \\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], \\"target\\": { \\"namespace\\": \\"web\\", \\"site\\": \\"https://${twa.hostName}\\" } }, { \\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], \\"target\\": { \\"namespace\\": \\"web\\", \\"site\\": \\"https://${twa.backupHost}\\" } }]"""
     }
 
     signingConfigs {

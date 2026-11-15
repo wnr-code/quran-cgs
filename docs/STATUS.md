@@ -103,3 +103,10 @@ Terakhir diperbarui: 15 November 2026.
 
 - **Pasang aplikasi (PWA) di semua peramban**: sebelumnya kartu "Pasang QuranKu" hanya muncul bila peramban mengirim `beforeinstallprompt` (Chrome/Edge), sehingga di Firefox, Opera, Samsung Internet, Mi Browser, dan peramban dalam aplikasi tidak ada jalan memasang. Sekarang ajakan tampil di Beranda (bisa ditutup, ditawarkan lagi setelah 14 hari) dan kartu di Lainnya selalu ada selama belum terpasang. Bila dialog bawaan tidak tersedia, muncul panduan langkah sesuai peramban + tombol "Buka di Chrome" (`src/services/install.js`).
 - Belum diuji di ponsel sungguhan: nama menu tiap peramban dapat berbeda antarversi; tautan `intent://` ke Chrome hanya berlaku di Android.
+
+## 1.3.4
+
+- **Alamat cadangan otomatis**: utama `https://quran.cgs.my.id`, cadangan `https://quran-cgs.appwnr.workers.dev` (Worker yang sama). Bila alamat yang sedang dipakai mati (gagal jaringan/DNS/SSL atau galat Cloudflare 52x/530), permintaan `/api`, `/data`, `/version.json` diulang ke alamat lain (`src/services/failover.js`), dan Service Worker mengambil berkas yang belum tersimpan dari alamat lain (`sw.js`). Setelah beralih, cadangan dipakai 3 menit lalu utama dicoba lagi. Worker memberi CORS hanya untuk dua alamat resmi; berkas statis publik `Access-Control-Allow-Origin: *`.
+- Android (TWA): alamat cadangan dijadikan origin tepercaya + tautan aplikasi, jadi tetap layar penuh bila dibuka di sana.
+- **Batas**: perangkat yang BELUM PERNAH membuka aplikasi tidak bisa dialihkan otomatis saat domain utama mati (tidak ada kode yang sempat berjalan) — harus membuka alamat cadangan langsung; data lokal (bookmark, pengaturan) terpisah per alamat. APK tetap membuka alamat utama; saat mati ia memakai tampilan tersimpan + data dari cadangan.
+- Belum diuji terhadap domain yang benar-benar mati (hanya uji unit); `workers_dev = true` ditetapkan di `wrangler.toml`.

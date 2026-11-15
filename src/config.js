@@ -16,7 +16,9 @@ export const APP = {
   /** Contoh: "1.0.0 (build 261115.1112 · a1b2c3d)" */
   versionLabel: `${build.version} (build ${build.number}${build.commit ? ' · ' + build.commit : ''})`,
   packageId: 'id.cgs.quranku',
-  origin: 'https://quran.cgs.my.id'
+  origin: 'https://quran.cgs.my.id',
+  /** Alamat yang menyajikan aplikasi yang sama: [utama, cadangan]. Bila yang sedang dipakai mati, data diambil dari yang lain. */
+  mirrors: ['https://quran.cgs.my.id', 'https://quran-cgs.appwnr.workers.dev']
 }
 
 export const API = {

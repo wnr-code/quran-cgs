@@ -8,6 +8,35 @@ const SHELL = `quranku-shell-${VERSION}`
 const RUNTIME = 'quranku-runtime-v2'
 const AUDIO = 'quranku-audio-v1'
 const KEEP = new Set([SHELL, RUNTIME, AUDIO])
+// Alamat yang menyajikan aplikasi yang sama (utama & cadangan). Bila alamat ini mati, berkas diambil dari yang lain.
+const MIRRORS = ['https://quran.cgs.my.id', 'https://quran-cgs.appwnr.workers.dev']
+const OTHERS = MIRRORS.includes(self.location.origin) ? MIRRORS.filter((m) => m !== self.location.origin) : []
+const DEAD = new Set([520, 521, 522, 523, 524, 525, 526, 530])
+
+/** Ambil dari jaringan; bila alamat ini mati, coba alamat lain (respons disalin agar bisa dipakai di origin ini). */
+async function fetchWithMirror(request) {
+  let res, err
+  try {
+    res = await fetch(request)
+    if (!DEAD.has(res.status)) return res
+  } catch (e) {
+    err = e
+  }
+  if (navigator.onLine !== false && request.method === 'GET') {
+    const u = new URL(request.url)
+    for (const m of OTHERS) {
+      try {
+        const alt = await fetch(m + u.pathname + u.search, { mode: 'cors', credentials: 'omit', cache: 'no-cache' })
+        if (alt.ok) {
+          const headers = new Headers(alt.headers)
+          return new Response(await alt.blob(), { status: alt.status, statusText: alt.statusText, headers })
+        }
+      } catch {}
+    }
+  }
+  if (res) return res
+  throw err
+}
 
 /**
  * Hosting (Cloudflare) mengalihkan /index.html → / dan /x.html → /x. Respons hasil pengalihan TIDAK boleh
@@ -53,7 +82,7 @@ async function shellFirst(request) {
   const cached = (await caches.match('/index.html', { cacheName: SHELL })) || (await caches.match('/', { cacheName: SHELL }))
   if (cached) return unredirect(cached)
   try {
-    return await fetch(request)
+    return await fetchWithMirror(request)
   } catch {
     return (await caches.match('/offline.html')) || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } })
   }
@@ -75,8 +104,8 @@ async function cacheFirst(request) {
   const cached = await caches.match(request, { ignoreSearch: false })
   if (cached) return unredirect(cached)
   try {
-    const res = await fetch(request)
-    if (res.ok && res.type === 'basic') {
+    const res = await fetchWithMirror(request)
+    if (res.ok && (res.type === 'basic' || res.type === 'default')) {
       const cache = await caches.open(RUNTIME)
       cache.put(request, await unredirect(res.clone()))
     }
