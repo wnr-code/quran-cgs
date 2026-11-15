@@ -135,3 +135,7 @@ Tombol X milik aplikasi hanya tampil selama formulir memuat (formulir penyedia p
 ## 1.3.13 — Teks berjalan di atas formulir
 
 Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk membuka halaman pembayaran) berada di atas bingkai formulir — bingkai dimulai di bawah pita sehingga tidak ada yang tertutup.
+
+### Webhook 401 (1.3.13)
+
+`401 unauthorized` saat "Send Webhook Test" berarti nilai secret `TRAKTEER_WEBHOOK_TOKEN` di Worker tidak sama dengan Webhook Token di dasbor Trakteer (bila secret belum ada, jawabannya 503 `not_configured`). Perbandingan kini mengabaikan spasi/baris baru/tanda kutip di tepi, dan jawaban 401 memuat `hint`. Perbaikan: Cloudflare → Workers → quran-cgs → Settings → Variables and Secrets → `TRAKTEER_WEBHOOK_TOKEN` = token dari Trakteer → Deploy. Setelah 3 kegagalan Trakteer mematikan webhook otomatis: aktifkan lagi.

@@ -10,6 +10,12 @@ function safeEqual(a, b) {
   return diff === 0
 }
 
+const normToken = (v) =>
+  String(v ?? '')
+    .trim()
+    .replace(/^["']+|["']+$/g, '')
+    .trim()
+
 const text = (v, max) =>
   String(v ?? '')
     .replace(/[\u0000-\u001F\u007F<>]/g, '')
@@ -39,8 +45,14 @@ export function parseDonation(body, now = Date.now()) {
 
 export async function onRequestPost({ request, env }) {
   if (!env.TRAKTEER_WEBHOOK_TOKEN || !env.DB) return json({ ok: false, error: 'not_configured' }, 503)
-  const token = request.headers.get('X-Webhook-Token') || ''
-  if (!safeEqual(token, env.TRAKTEER_WEBHOOK_TOKEN)) return json({ ok: false, error: 'unauthorized' }, 401)
+  // Token dikirim Trakteer di header X-Webhook-Token (lihat Panduan Webhook). Spasi/baris baru/tanda kutip yang
+  // ikut tersalin saat menyimpan secret diabaikan agar tidak menyebabkan 401.
+  const token = normToken(request.headers.get('X-Webhook-Token'))
+  const expected = normToken(env.TRAKTEER_WEBHOOK_TOKEN)
+  if (!expected) return json({ ok: false, error: 'not_configured' }, 503)
+  if (!token) return json({ ok: false, error: 'unauthorized', hint: 'Header X-Webhook-Token tidak ada.' }, 401)
+  if (!safeEqual(token, expected))
+    return json({ ok: false, error: 'unauthorized', hint: 'Token tidak sama dengan secret TRAKTEER_WEBHOOK_TOKEN di Worker. Salin ulang Webhook Token dari dasbor Trakteer ke secret tersebut.' }, 401)
   let body
   try {
     const raw = await request.text()

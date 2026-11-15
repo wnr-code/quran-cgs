@@ -57,5 +57,12 @@ test('worker: rute /api/* ke handler, selain itu ke aset statis', async () => {
   const latest0 = (await (await call('/api/donors')).json()).latest[0]
   assert.equal(latest0.name, 'Umar')
   assert.equal(latest0.message, 'Semoga bermanfaat bya/b') // pesan donatur disimpan, tanpa tanda < >
+  // Secret yang tersimpan dengan tanda kutip / baris baru tetap cocok; payload uji dari dasbor (id "test-…") diterima 200
+  const env2 = { ...env, TRAKTEER_WEBHOOK_TOKEN: '"trhook-abc123"\n' }
+  const hook = (h, b) => worker.fetch(new Request('https://quran.cgs.my.id/api/trakteer-webhook', { method: 'POST', headers: h, body: JSON.stringify(b) }), env2, ctx)
+  const sample = { created_at: '2023-07-14T14:50:10+07:00', transaction_id: 'test-xxxxxxxx', type: 'tip', supporter_name: 'Egis', supporter_message: 'Selalu Berkarya', unit: 'Kopi', quantity: 1, price: 5000, net_amount: 4750 }
+  assert.equal((await hook({ 'X-Webhook-Token': 'trhook-abc123', 'content-type': 'application/json' }, sample)).status, 200)
+  assert.equal((await hook({}, sample)).status, 401)
+  assert.equal((await hook({ 'X-Webhook-Token': 'trhook-abc124' }, sample)).status, 401)
   assert.equal((await call('/api/tidak-ada')).status, 404)
 })
