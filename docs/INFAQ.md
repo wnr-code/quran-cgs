@@ -10,8 +10,11 @@ aplikasi sendiri (`#/infaq`); dana diterima lewat akun Trakteer `lanteraku`.
    - **Mode QRIS langsung** (bila secret QRIS langsung terisi dan Trakteer menjawab dengan kode QRIS): Worker meminta
      QRIS ke Trakteer di latar belakang. Aplikasi menggambar kode QR sendiri, bisa diunduh sebagai PNG. Tidak ada tab
      baru dan tidak ada pengalihan.
-   - **Mode halaman pembayaran** (cadangan otomatis bila mode di atas belum diatur atau gagal): aplikasi menampilkan
-     tombol *Buka halaman pembayaran* yang membuka halaman pembayaran Trakteer dengan nominal, nama, dan pesan sudah terisi.
+   - **Mode popup** (cadangan otomatis bila mode di atas belum diatur atau gagal): tombol *Bayar sekarang* membuka
+     jendela (popup) di dalam aplikasi berisi formulir pembayaran Trakteer versi sematan
+     (`https://trakteer.id/lanteraku/tip/embed/modal`) dalam sebuah bingkai. Tidak ada tab baru dan aplikasi tidak
+     berpindah halaman. Donatur mengisi nama dan jumlah yang sama di dalam popup. Bila bingkai tidak mau tampil,
+     tersedia tautan kecil *Buka di tab baru*. Alamat sematan ini belum diuji terhadap Trakteer sungguhan.
 3. Layar **Menunggu pembayaran**: aplikasi memeriksa `GET /api/infaq/status` secara berkala. Niat bertahan walau
    aplikasi ditutup atau dimuat ulang.
 4. Begitu pembayaran tercatat → layar **Terima kasih** dan papan donatur diperbarui. Bila kedaluwarsa → layar gagal.
@@ -45,6 +48,7 @@ Cloudflare → Worker `quran-cgs` → Settings → Variables and Secrets (jenis 
 | `TRAKTEER_CREATOR_ID` | hanya QRIS langsung | ID kreator `lanteraku` |
 | `TRAKTEER_UNIT_ID` | hanya QRIS langsung | ID unit dukungan |
 | `TRAKTEER_SUPPORTER_ID` | opsional | ID akun pendukung pemilik sesi |
+| `TRAKTEER_PAY_PATH` | opsional | Alamat permintaan QRIS bila berbeda, mis. `/pay/midtrans/qris` |
 
 Lalu:
 
@@ -56,11 +60,13 @@ Lalu:
 ## Mode QRIS langsung: tidak resmi dan belum terverifikasi
 
 Trakteer tidak menyediakan API resmi untuk membuat pembayaran. Mode ini meniru permintaan yang dikirim situs Trakteer
-(`POST https://trakteer.id/pay/xendit/qris`) memakai sesi sebuah akun pendukung. Bentuk permintaan itu disusun dari
+(`POST https://trakteer.id/pay/midtrans/qris`, lalu `/pay/xendit/qris` bila alamat pertama tidak ada) memakai sesi
+sebuah akun pendukung. Bila jawabannya hanya berisi alamat halaman checkout, Worker mengambil halaman itu dan
+mencari kode QRIS di dalamnya. Bentuk permintaan itu disusun dari
 pengamatan, **belum pernah diuji terhadap Trakteer sungguhan**, dan bisa salah atau berubah kapan saja.
 
 - Gunakan akun Trakteer **kedua** (akun pendukung), bukan akun kreator, untuk mengambil cookie dan CSRF token.
-- Sesi kedaluwarsa; saat itu aplikasi otomatis kembali ke mode halaman pembayaran sampai secret diperbarui.
+- Sesi kedaluwarsa; saat itu aplikasi otomatis kembali ke mode popup sampai secret diperbarui.
 - Cara ini kemungkinan tidak sesuai ketentuan layanan Trakteer; akun bisa dibatasi.
 - Hasil percobaan terakhir (status HTTP, nama kolom jawaban, tanpa rahasia) dapat dilihat:
   `curl -H "X-Webhook-Token: <token>" https://quran.cgs.my.id/api/infaq/diag`

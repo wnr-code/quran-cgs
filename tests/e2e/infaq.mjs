@@ -27,6 +27,7 @@ page.on('request', async (req) => {
   req.continue()
 })
 const webhook = (tx) => fetch(BASE + '/api/trakteer-webhook', { method: 'POST', headers: { 'X-Webhook-Token': TOKEN, 'content-type': 'application/json' }, body: JSON.stringify(tx) })
+const pagesBefore = (await browser.pages()).length
 const uniq = Date.now().toString(36)
 const T = { timeout: 30000 }
 let failed = 0
@@ -57,7 +58,15 @@ await step('Formulir infaq tampil tanpa nama penyedia pembayaran', async () => {
 await step('Mode halaman pembayaran: menunggu → otomatis “terima kasih” setelah webhook', async () => {
   await page.click('[data-pay]')
   await page.waitForSelector('[data-open]', T)
-  assert.match(await page.$eval('[data-open]', (a) => a.href), /^https:\/\/trakteer\.id\/lanteraku\/tip\?quantity=3$/)
+  // Popup pembayaran: bingkai di dalam aplikasi, bukan tab baru
+  await page.click('[data-open]')
+  await page.waitForSelector('.sheet-wrap.open iframe[data-frame]', T)
+  assert.equal(await page.$eval('iframe[data-frame]', (f) => f.getAttribute('src')), 'https://trakteer.id/lanteraku/tip/embed/modal')
+  assert.equal(page.url().startsWith(BASE), true, 'tetap di halaman aplikasi')
+  assert.equal((await browser.pages()).length, pagesBefore, 'tidak ada tab baru')
+  await page.screenshot({ path: `${SHOTS}/15-infaq-popup.png` })
+  await page.$eval('.sheet-wrap button[data-close]', (b) => b.click())
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap'), T)
   assert.match(await page.$eval('[data-left]', (e) => e.textContent), /^\d\d:\d\d$/)
   // Pindah halaman lalu kembali: niat infaq yang sedang menunggu dipulihkan
   await page.evaluate(() => (location.hash = '#/tentang'))

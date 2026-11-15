@@ -30,14 +30,16 @@ const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0)
 function cleanIntent(j) {
   if (typeof j.id !== 'string' || !/^[0-9a-f]{32}$/.test(j.id)) throw Object.assign(new Error('invalid'), { code: 'invalid' })
   const mode = j.mode === 'qris' && typeof j.qr === 'string' && /^000201[\x20-\x7E]{40,900}$/.test(j.qr) ? 'qris' : 'redirect'
-  let url = ''
-  if (mode === 'redirect' && typeof j.url === 'string') {
+  const https = (v) => {
+    if (mode !== 'redirect' || typeof v !== 'string') return ''
     try {
-      const u = new URL(j.url)
-      if (u.protocol === 'https:') url = u.href
-    } catch {}
+      const u = new URL(v)
+      return u.protocol === 'https:' ? u.href : ''
+    } catch {
+      return ''
+    }
   }
-  return { id: j.id, mode, qr: mode === 'qris' ? j.qr : '', url, amount: num(j.amount), quantity: num(j.quantity), name: String(j.name || '').slice(0, 40), expiresAt: num(j.expiresAt) }
+  return { id: j.id, mode, qr: mode === 'qris' ? j.qr : '', url: https(j.url), embedUrl: https(j.embedUrl), amount: num(j.amount), quantity: num(j.quantity), name: String(j.name || '').slice(0, 40), expiresAt: num(j.expiresAt) }
 }
 
 export async function getInfaqConfig() {

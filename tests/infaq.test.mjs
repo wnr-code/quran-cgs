@@ -59,6 +59,7 @@ test('tanpa kunci QRIS langsung: mode halaman pembayaran, dikonfirmasi oleh webh
     assert.equal(c.amount, 20000)
     assert.equal(c.name, 'bFatimah/b')
     assert.equal(c.url, 'https://trakteer.id/lanteraku/tip?quantity=4')
+    assert.equal(c.embedUrl, 'https://trakteer.id/lanteraku/tip/embed/modal')
     assert.equal((await (await call(env, '/api/infaq/status?id=' + c.id)).json()).status, 'pending')
     assert.equal((await call(env, '/api/infaq/status?id=bukan-id')).status, 404)
     // Donasi lain dengan nominal berbeda tidak mengonfirmasi niat ini
@@ -108,7 +109,7 @@ test('QRIS langsung: berhasil → mode qris; gagal → otomatis ke halaman pemba
       assert.equal(c.qr, QR)
       assert.equal(c.url, undefined)
       assert.ok(!JSON.stringify(c).includes('sess-rahasia'), 'rahasia tidak pernah dikirim ke peramban')
-      assert.equal(sent.url, 'https://trakteer.id/pay/xendit/qris')
+      assert.equal(sent.url, 'https://trakteer.id/pay/midtrans/qris')
       const body = JSON.parse(sent.init.body)
       assert.deepEqual({ q: body.quantity, n: body.display_name, m: body.payment_method, c: body.creator_id }, { q: 2, n: 'Zaid', m: 'qris', c: 'cr' })
       assert.equal(sent.init.headers.Cookie, 'trakteer-sess=sess-rahasia')
@@ -179,4 +180,34 @@ test('pembatasan permintaan & skema lama', async () => {
   await ensureSchema(old)
   assert.ok(old._db.prepare('PRAGMA table_info(donations)').all().some((c) => c.name === 'source'))
   assert.equal((await call({ ...baseEnv(), INFAQ_UNIT_PRICE: '' }, '/api/infaq/create', { method: 'POST', body: '{"quantity":1}' })).status, 503)
+})
+
+test('QRIS langsung: jalur 404 → coba jalur berikutnya; jawaban berisi alamat checkout → QR diambil dari halamannya', async () => {
+  const env = { ...baseEnv(), TRAKTEER_SESSION: 's', TRAKTEER_CSRF_TOKEN: 'c', TRAKTEER_CREATOR_ID: 'cr', TRAKTEER_UNIT_ID: 'un' }
+  const calls = []
+  await withFetch(
+    async (url, init) => {
+      calls.push([String(url), (init && init.method) || 'GET'])
+      if (String(url).endsWith('/pay/midtrans/qris')) return new Response('nf', { status: 404 })
+      if (String(url).endsWith('/pay/xendit/qris')) return new Response(JSON.stringify({ checkout_url: 'https://trakteer.id/checkout/midtrans/qris/7926ead1-8828-5fe4-bd11-e420f226e978' }), { status: 200, headers: { 'content-type': 'application/json' } })
+      return new Response(`<html><div data-qr="${QR}"></div></html>`, { status: 200, headers: { 'content-type': 'text/html' } })
+    },
+    async () => {
+      const c = await (await post(env, '/api/infaq/create', { quantity: 1, name: 'Hasan' })).json()
+      assert.equal(c.mode, 'qris')
+      assert.equal(c.qr, QR)
+      assert.deepEqual(calls.map((x) => x[1]), ['POST', 'POST', 'GET'])
+      assert.equal(calls[2][0], 'https://trakteer.id/checkout/midtrans/qris/7926ead1-8828-5fe4-bd11-e420f226e978')
+    }
+  )
+  // Alamat checkout di luar situs penyedia tidak pernah diambil
+  let n = 0
+  await withFetch(
+    async () => (n++, new Response(JSON.stringify({ checkout_url: 'https://jahat.example/checkout/x-123456' }), { status: 200, headers: { 'content-type': 'application/json' } })),
+    async () => {
+      const c = await (await post(env, '/api/infaq/create', { quantity: 1, name: 'Hasan' })).json()
+      assert.equal(c.mode, 'redirect')
+      assert.equal(n, 1)
+    }
+  )
 })
