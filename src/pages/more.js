@@ -26,6 +26,7 @@ const GROUPS = [
     ['/tentang', 'info', 'Tentang & Privasi', 'Sumber data, kebijakan']
   ]]
 ]
+import { installApp, shouldOfferInstall } from '../services/install.js'
 
 export default function more(root) {
   root.innerHTML = `<div class="page">${pageHeader('Lainnya', { back: false })}
@@ -48,12 +49,9 @@ export default function more(root) {
       e.currentTarget.disabled = false
     }
   }
-  root.querySelector('[data-install]').onclick = async () => {
-    const p = window.__installPrompt
-    if (!p) return toast('Gunakan menu browser → “Tambahkan ke layar utama / Instal aplikasi”.')
-    p.prompt()
-    await p.userChoice
-    window.__installPrompt = null
-    document.documentElement.classList.remove('can-install')
+  const card = root.querySelector('[data-install]')
+  card.hidden = !shouldOfferInstall()
+  card.onclick = async () => {
+    if ((await installApp()) === 'accepted') card.hidden = true
   }
 }

@@ -408,6 +408,37 @@ await step('Teks ayat rapi (rata tengah) & pilih teks → menu kecil: Tandai, Sa
   await page.waitForFunction(() => window.__copied)
   assert.match(await page.evaluate(() => window.__copied), /\(QS\. .+ 36:2–3\)$/)
 })
+await step('Pasang aplikasi: ajakan tampil di semua peramban, panduan sesuai peramban', async () => {
+  const ua = await browser.userAgent()
+  await go('/')
+  await page.waitForSelector('[data-install-banner]')
+  // Peramban tanpa dialog pasang bawaan (Firefox Android) → panduan langkah + tautan buka di Chrome.
+  await page.setUserAgent('Mozilla/5.0 (Android 13; Mobile; rv:127.0) Gecko/127.0 Firefox/127.0')
+  await page.reload({ waitUntil: 'networkidle2' })
+  await page.waitForSelector('[data-install-now]')
+  await page.click('[data-install-now]')
+  await page.waitForSelector('.sheet-wrap .install-steps li')
+  const t = await page.$eval('.sheet-wrap .sheet-body', (e) => e.textContent)
+  assert.match(t, /Firefox/)
+  assert.match(await page.$eval('.sheet-wrap a[data-chrome]', (a) => a.getAttribute('href')), /^intent:\/\/.+package=com\.android\.chrome/)
+  await shot('25-pasang-aplikasi')
+  await page.$eval('.sheet-wrap button[data-close]', (b) => b.click())
+  // Kartu pasang di halaman Lainnya selalu terlihat selama belum terpasang.
+  await go('/lainnya')
+  assert.ok(await page.$eval('[data-install]', (e) => e.getBoundingClientRect().height > 0))
+  // Dialog bawaan dipakai bila peramban menyediakannya.
+  await page.evaluate(() => (window.__installPrompt = { prompt: () => (window.__prompted = true), userChoice: Promise.resolve({ outcome: 'accepted' }) }))
+  await page.click('[data-install]')
+  await page.waitForFunction(() => window.__prompted && document.querySelector('[data-install]').hidden)
+  // Ajakan di beranda bisa ditutup dan tidak muncul lagi.
+  await go('/')
+  await page.waitForSelector('[data-install-close]')
+  await page.click('[data-install-close]')
+  await page.reload({ waitUntil: 'networkidle2' })
+  await page.waitForSelector('.home-hero')
+  assert.equal(await page.$('[data-install-banner]'), null)
+  await page.setUserAgent(ua)
+})
 await step('Navigasi mengambang dengan tombol tengah (FAB)', async () => {
   await go('/')
   await page.waitForSelector('.navbar .nav-fab .fab-disc')

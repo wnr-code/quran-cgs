@@ -792,7 +792,7 @@ html {
   font-size: 0.75rem;
 }
 .install-card {
-  display: none;
+  display: flex;
   width: 100%;
   border-color: var(--accent);
   color: var(--text);
@@ -800,8 +800,43 @@ html {
 .install-card > .icon {
   color: var(--accent);
 }
-.can-install .install-card {
+.install-card[hidden] {
+  display: none;
+}
+.install-banner {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+  padding: 10px 6px 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.install-banner-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.install-banner-text strong {
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+.install-banner-text small {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+.install-steps {
+  margin: 10px 0 14px;
+  padding-left: 1.3em;
+  display: grid;
+  gap: 10px;
+  line-height: 1.5;
+}
+.sheet-body .btn-block + .btn-block,
+.install-steps ~ .btn-block {
+  margin-top: 8px;
 }
 .menu-list a {
   display: flex;
