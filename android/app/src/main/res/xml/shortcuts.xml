@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="lanjut" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_lanjut">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="id.cgs.quranku" android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity" android:data="https://quran.cgs.my.id/#/lanjut" />
+    </shortcut>
+    <shortcut android:shortcutId="murottal" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_murottal">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="id.cgs.quranku" android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity" android:data="https://quran.cgs.my.id/#/murottal" />
+    </shortcut>
+</shortcuts>

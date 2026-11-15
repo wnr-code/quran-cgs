@@ -1,0 +1,39 @@
+# Menguji aplikasi terhadap API SUNGGUHAN (EQuran.id, Al Quran Cloud): kontrak data, audio, dan alur di peramban.
+name: Live API test
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'tests/live/**'
+      - 'tests/e2e/live.mjs'
+      - 'src/api/**'
+      - '.github/workflows/live.yml'
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Kontrak API sungguhan
+        run: node tests/live/api.mjs
+      - name: Build
+        if: always()
+        run: npm run build
+      - name: E2E dengan API sungguhan
+        if: always()
+        run: |
+          npm i --no-save puppeteer
+          npx vite preview --port 4173 &
+          sleep 3
+          node tests/e2e/live.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-shots
+          path: live-shots

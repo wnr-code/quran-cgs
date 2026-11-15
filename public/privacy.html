@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kebijakan Privasi — QuranKu</title>
+    <meta name="theme-color" content="#0b3d2e" />
+    <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+    <style>
+      :root { color-scheme: light dark; }
+      body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; background: #f7f3e8; color: #1b2a23; }
+      header { background: #0b3d2e; color: #fbf7ec; padding: 28px 20px; }
+      header a { color: #c9a961; text-decoration: none; font-weight: 600; }
+      main { max-width: 760px; margin: 0 auto; padding: 24px 20px 64px; }
+      h1 { margin: 8px 0 0; font-size: 1.6rem; }
+      h2 { font-size: 1.15rem; margin-top: 2em; color: #0f6b4f; }
+      table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+      td, th { border: 1px solid #e5ddc8; padding: 8px 10px; text-align: left; vertical-align: top; }
+      @media (prefers-color-scheme: dark) { body { background: #0a0f0d; color: #f1ece0; } h2 { color: #37a882; } td, th { border-color: #213329; } }
+    </style>
+  </head>
+  <body>
+    <header><div style="max-width:760px;margin:0 auto"><a href="/">← QuranKu</a><h1>Kebijakan Privasi QuranKu</h1><p style="opacity:.8;margin:4px 0 0">Berlaku sejak 14 November 2026 · Aplikasi: QuranKu (id.cgs.quranku) · Situs: quran.cgs.my.id</p></div></header>
+    <main>
+      <p>QuranKu adalah aplikasi Al-Qur'an digital gratis. Kami merancangnya agar <strong>tidak memerlukan akun, tidak menampilkan iklan, dan tidak memakai pelacak analitik</strong>. Dokumen ini menjelaskan data apa yang diproses dan bagaimana caranya.</p>
+
+      <h2>1. Data yang disimpan di perangkat Anda</h2>
+      <p>Data berikut disimpan <strong>hanya di perangkat Anda</strong> (IndexedDB, localStorage, Cache Storage) dan tidak dikirim ke server kami:</p>
+      <ul>
+        <li>Pengaturan aplikasi (tema, ukuran font, qari, format angka, metode jadwal salat).</li>
+        <li>Posisi bacaan terakhir, riwayat surah, bookmark, kategori bookmark, dan catatan pribadi.</li>
+        <li>Progres dan target tilawah, hitungan tasbih.</li>
+        <li>Lokasi yang Anda pilih (koordinat/nama kota) untuk jadwal salat dan arah kiblat.</li>
+        <li>Teks surah, tafsir, dan audio yang Anda unduh untuk pemakaian offline.</li>
+      </ul>
+
+      <h2>2. Lokasi</h2>
+      <p>Lokasi bersifat opsional. Izin lokasi perangkat hanya diminta ketika Anda menekan tombol “Gunakan lokasi saya”. Koordinat dipakai untuk menghitung jadwal salat dan arah kiblat <strong>langsung di perangkat</strong>, disimpan lokal, dan tidak dikirim ke server mana pun. Anda dapat memilih kota atau mengisi koordinat secara manual tanpa memberi izin lokasi.</p>
+
+      <h2>3. Notifikasi</h2>
+      <p>Izin notifikasi hanya diminta ketika Anda mengaktifkan pengingat tilawah, target, atau salat. Pengingat dibuat secara lokal oleh aplikasi; kami tidak mengoperasikan server push dan tidak menyimpan token notifikasi.</p>
+
+      <h2>4. Layanan pihak ketiga</h2>
+      <p>Untuk menampilkan konten, aplikasi mengambil data dari layanan berikut. Seperti permintaan internet pada umumnya, layanan tersebut dapat menerima alamat IP dan informasi teknis peramban Anda sesuai kebijakan masing-masing. Kami tidak mengirim data pribadi, catatan, bookmark, atau lokasi Anda kepada mereka.</p>
+      <table>
+        <tr><th>Layanan</th><th>Kegunaan</th></tr>
+        <tr><td>EQuran.id (equran.id)</td><td>Teks Al-Qur'an, terjemahan, transliterasi, tafsir, doa, dan berkas audio murottal.</td></tr>
+        <tr><td>Al Quran Cloud (alquran.cloud, cdn.islamic.network)</td><td>Sumber cadangan teks dan audio bila sumber utama tidak tersedia.</td></tr>
+        <tr><td>Cloudflare Pages</td><td>Hosting situs/aplikasi serta fungsi papan donatur.</td></tr>
+        <tr><td>Trakteer (trakteer.id)</td><td>Hanya bila Anda memilih berinfaq. Pembayaran diproses sepenuhnya oleh Trakteer berdasarkan kebijakan privasi Trakteer.</td></tr>
+      </table>
+
+      <h2>5. Audio</h2>
+      <p>Murottal diputar secara streaming dari server sumber. Berkas audio hanya disimpan di perangkat bila Anda menekan tombol unduh, dan dapat dihapus kapan saja dari menu Kelola Offline. Aplikasi tidak merekam suara dan tidak mengakses mikrofon.</p>
+
+      <h2>6. Infaq dan papan donatur</h2>
+      <p>Bila Anda berinfaq melalui Trakteer, Trakteer mengirimkan pemberitahuan transaksi ke server kami. Kami menyimpan: ID transaksi, <strong>nama tampilan yang Anda isi di Trakteer</strong>, jenis dan jumlah unit, nominal, serta waktu transaksi. Nama tampilan, nominal, dan waktu ditampilkan pada halaman papan donatur. Kami tidak menyimpan alamat email, pesan dukungan, maupun data pembayaran Anda. Agar tidak ditampilkan dengan nama asli, gunakan nama samaran/anonim di Trakteer. Untuk meminta penghapusan nama dari papan donatur, hubungi kami.</p>
+
+      <h2>7. Menghapus data Anda</h2>
+      <ul>
+        <li>Di aplikasi: <em>Lainnya → Pengaturan → Hapus semua data saya</em> menghapus seluruh data lokal.</li>
+        <li>Di Android: <em>Setelan → Aplikasi → QuranKu → Penyimpanan → Hapus data</em>, atau hapus instalasi aplikasi. Di peramban: hapus data situs quran.cgs.my.id.</li>
+        <li>Data papan donatur: ajukan permintaan penghapusan melalui kontak di bawah.</li>
+      </ul>
+
+      <h2>8. Cadangan</h2>
+      <p>Fitur ekspor membuat berkas cadangan JSON yang tersimpan di perangkat Anda. Berkas itu berisi bookmark dan catatan pribadi; simpanlah dengan aman. Kami tidak menerima salinannya.</p>
+
+      <h2>9. Anak-anak</h2>
+      <p>QuranKu dapat digunakan semua umur dan tidak dengan sengaja mengumpulkan data pribadi dari anak-anak.</p>
+
+      <h2>10. Perubahan dan kontak</h2>
+      <p>Perubahan kebijakan akan dipublikasikan di halaman ini beserta tanggal berlakunya. Pertanyaan atau permintaan terkait privasi dapat disampaikan melalui halaman pengembang: <a href="https://github.com/wnr-code/quran-cgs/issues">github.com/wnr-code/quran-cgs</a>.</p>
+    </main>
+  </body>
+</html>

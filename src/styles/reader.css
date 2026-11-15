@@ -1,0 +1,396 @@
+/* ===== QURANKU READING MODE ===== */
+.reader {
+  --rd-bg: #faf6ea;
+  --rd-text: #1f2a24;
+  --rd-accent: #9a7a2c;
+  --rd-muted: #6c7a71;
+  --rd-line: rgba(31, 42, 36, 0.1);
+  --rd-bar: rgba(250, 246, 234, 0.94);
+  --rd-font: 30px;
+  --rd-lh: 2.4;
+  --rd-gap: 18px;
+  --rd-width: 760px;
+  --rd-margin: 20px;
+  --rd-tr: 16px;
+  --bar-h: 54px;
+  background: var(--rd-bg);
+  color: var(--rd-text);
+  min-height: 100dvh;
+  transition: background 0.25s, color 0.25s;
+}
+.reader[data-preset='classic'] {
+  --rd-bg: #f1e4bf;
+  --rd-text: #241c0c;
+  --rd-accent: #8a5a12;
+  --rd-muted: #6b5c3a;
+  --rd-line: rgba(90, 60, 10, 0.18);
+  --rd-bar: rgba(241, 228, 191, 0.95);
+}
+.reader[data-preset='dark'] {
+  --rd-bg: #0c1a14;
+  --rd-text: #ece6d3;
+  --rd-accent: #c2a565;
+  --rd-muted: #93a199;
+  --rd-line: rgba(236, 230, 211, 0.12);
+  --rd-bar: rgba(12, 26, 20, 0.94);
+}
+.reader[data-preset='night'] {
+  --rd-bg: #111111;
+  --rd-text: #a9a495;
+  --rd-accent: #8c7a4d;
+  --rd-muted: #6f6c63;
+  --rd-line: rgba(169, 164, 149, 0.12);
+  --rd-bar: rgba(17, 17, 17, 0.95);
+}
+
+.rd-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  background: var(--rd-bar);
+  backdrop-filter: blur(12px);
+  color: var(--rd-text);
+  transition: transform 0.25s ease, opacity 0.25s;
+}
+.rd-bar .icon-btn {
+  color: var(--rd-text);
+}
+.rd-top {
+  top: 0;
+  min-height: calc(var(--bar-h) + var(--safe-t));
+  padding: var(--safe-t) 6px 0;
+  border-bottom: 1px solid var(--rd-line);
+  gap: 0;
+}
+.rd-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: start;
+  line-height: 1.25;
+  padding: 4px 6px;
+  border-radius: 10px;
+  color: inherit;
+}
+.rd-title strong {
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.rd-title small {
+  font-size: 0.74rem;
+  color: var(--rd-muted);
+  white-space: nowrap;
+}
+.rd-bottom {
+  bottom: calc(var(--nav-h) + var(--safe-b));
+  height: var(--bar-h);
+  justify-content: space-around;
+  border-top: 1px solid var(--rd-line);
+  max-width: 520px;
+  margin: 0 auto;
+  border-radius: 18px 18px 0 0;
+  border-inline: 1px solid var(--rd-line);
+}
+.rd-play {
+  background: var(--rd-accent);
+  color: var(--rd-bg) !important;
+  width: 46px;
+  height: 46px;
+}
+.rd-play .icon {
+  fill: currentColor;
+}
+.rd-bottom .on {
+  color: var(--rd-accent);
+}
+.reader.bars-hidden .rd-top {
+  transform: translateY(-105%);
+}
+.reader.bars-hidden .rd-bottom {
+  transform: translateY(120%);
+}
+
+.rd-wrap {
+  max-width: calc(var(--rd-width) + 2 * var(--rd-margin));
+  margin: 0 auto;
+  padding: calc(var(--bar-h) + var(--safe-t) + 16px) var(--rd-margin) calc(var(--bar-h) + var(--nav-h) + var(--safe-b) + 48px);
+}
+
+/* Kepala surah bergaya mushaf */
+.surah-frame {
+  text-align: center;
+  padding: 18px 16px 16px;
+  border: 1.5px solid var(--rd-accent);
+  border-radius: 14px;
+  outline: 1px solid var(--rd-accent);
+  outline-offset: 4px;
+  margin: 6px 5px 0;
+  background: var(--ornament), color-mix(in srgb, var(--rd-accent) 7%, transparent);
+}
+.surah-frame-ar {
+  font-size: 2.1rem;
+  line-height: 2;
+  color: var(--rd-text);
+}
+.surah-frame h1 {
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+}
+.surah-frame-sub {
+  font-size: 0.8rem;
+  color: var(--rd-muted);
+  margin-top: 2px;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+.reader .btn {
+  background: transparent;
+  border-color: var(--rd-line);
+  color: var(--rd-text);
+}
+.reader .btn-primary {
+  background: var(--rd-accent);
+  border-color: var(--rd-accent);
+  color: var(--rd-bg);
+}
+.source-note {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.8rem;
+  color: var(--rd-muted);
+  margin-top: 12px;
+  border: 1px dashed var(--rd-line);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+.source-note .icon {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+.basmalah {
+  text-align: center;
+  font-size: calc(var(--rd-font) * 1.02);
+  line-height: 2.6;
+  margin: 18px 0 4px;
+  color: var(--rd-text);
+}
+
+/* --- Mushaf Continuous Mode --- */
+.mushaf {
+  margin-top: 10px;
+}
+.mushaf-flow {
+  font-family: var(--font-ar);
+  font-size: var(--rd-font);
+  line-height: var(--rd-lh);
+  text-align: justify;
+  text-align-last: center;
+  word-spacing: 0.04em;
+  font-kerning: normal;
+  font-feature-settings: 'liga', 'calt', 'kern', 'mark', 'mkmk';
+  /* ruang agar harakat baris pertama/terakhir tidak terpotong */
+  padding-block: 0.35em;
+  overflow-wrap: break-word;
+}
+.reader[data-preset='classic'] .mushaf-flow {
+  border: 1.5px solid var(--rd-accent);
+  outline: 1px solid var(--rd-accent);
+  outline-offset: 4px;
+  border-radius: 6px;
+  padding: 0.5em 0.7em;
+  margin-inline: 5px;
+}
+.mushaf-flow .ayah {
+  cursor: pointer;
+  border-radius: 8px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background 0.2s;
+  outline-offset: 0;
+}
+@media (hover: hover) {
+  .mushaf-flow .ayah:hover {
+    background: color-mix(in srgb, var(--rd-accent) 9%, transparent);
+  }
+}
+.ayah.playing {
+  background: color-mix(in srgb, var(--rd-accent) 20%, transparent) !important;
+}
+.ayah.flash {
+  animation: flash 1.8s ease;
+}
+@keyframes flash {
+  0%, 60% {
+    background: color-mix(in srgb, var(--rd-accent) 28%, transparent);
+  }
+}
+.reader .ayah-num {
+  color: var(--rd-accent);
+  font-size: 0.82em;
+  margin-inline: 0.12em;
+  user-select: none;
+}
+.ayah.is-bookmarked .ayah-num {
+  background: color-mix(in srgb, var(--rd-accent) 24%, transparent);
+  border-radius: 0.4em;
+  box-shadow: 0 0 0 0.12em color-mix(in srgb, var(--rd-accent) 24%, transparent);
+}
+.ayah.has-note .ayah-num {
+  text-decoration: underline dotted;
+  text-underline-offset: 0.35em;
+}
+/* Angka Latin (opsional): tetap memakai ornamen lingkaran */
+:root[data-numerals='latin'] .ayah-num {
+  font-family: var(--font-ui);
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.9em;
+  height: 1.9em;
+  padding: 0 0.3em;
+  border: 1.5px solid currentColor;
+  border-radius: 99px;
+  font-size: 0.42em;
+  font-weight: 700;
+  vertical-align: middle;
+  line-height: 1;
+  direction: ltr;
+}
+:root[data-numerals='latin'] .tafsir-item .ayah-num,
+:root[data-numerals='latin'] .ayah-block .ayah-num,
+:root[data-numerals='latin'] .doa-body .ayah-num {
+  font-size: 0.8rem;
+}
+.sajda {
+  color: var(--rd-accent, var(--accent));
+  font-size: 0.8em;
+  margin-inline-start: 0.2em;
+}
+.page-sep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: var(--rd-gap) 0;
+  font-family: var(--font-ar);
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--rd-muted);
+  user-select: none;
+  text-align-last: auto;
+}
+.page-sep::before,
+.page-sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--rd-line);
+}
+
+/* --- Ayah Focus Mode --- */
+.ayah-block {
+  padding: var(--rd-gap) 4px;
+  border-bottom: 1px solid var(--rd-line);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+.ayah-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ayah-ref {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.5rem;
+  line-height: 1.6;
+}
+.ayah-btns {
+  display: flex;
+}
+.ayah-btns .icon-btn {
+  color: var(--rd-muted);
+}
+.ayah-block .bm-btn[aria-pressed='true'] {
+  color: var(--rd-accent);
+}
+.ayah-block .ayah-ar {
+  font-size: var(--rd-font);
+  line-height: var(--rd-lh);
+  margin: 4px 0 8px;
+  font-feature-settings: 'liga', 'calt', 'kern', 'mark', 'mkmk';
+}
+.ayah-block .ayah-latin {
+  font-size: calc(var(--rd-tr) * 0.94);
+  color: var(--rd-accent);
+  line-height: 1.6;
+}
+.ayah-block .ayah-id {
+  font-size: var(--rd-tr);
+  line-height: 1.7;
+  margin-bottom: 0;
+}
+.hide-translation .ayah-block .ayah-id,
+.hide-latin .ayah-block .ayah-latin {
+  display: none;
+}
+.surah-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.edition-note {
+  margin-top: 20px;
+  font-size: 0.72rem;
+  color: var(--rd-muted, var(--muted));
+  text-align: center;
+  line-height: 1.6;
+}
+.reader .state {
+  color: var(--rd-muted);
+}
+.reader .state h3 {
+  color: var(--rd-text);
+}
+
+/* --- Mode imersif (layar penuh) --- */
+body.route-reader {
+  background: var(--bg);
+}
+body.route-reader .mini-player {
+  display: none;
+}
+body.reading-mode .navbar,
+body.reading-mode .offline-banner {
+  display: none;
+}
+body.reading-mode .hero-actions,
+body.reading-mode .source-note {
+  display: none;
+}
+body.reading-mode .rd-bottom {
+  bottom: 0;
+  height: calc(var(--bar-h) + var(--safe-b));
+  padding-bottom: var(--safe-b);
+}
+body.reading-mode .rd-wrap {
+  padding-bottom: calc(var(--bar-h) + var(--safe-b) + 56px);
+}
+body.reading-mode #toast {
+  bottom: calc(var(--bar-h) + var(--safe-b) + 20px);
+}

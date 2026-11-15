@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>QuranKu — Al-Qur'an Digital</title>
+    <meta name="description" content="QuranKu: Al-Qur'an digital dengan mode baca mushaf layar penuh, terjemahan Indonesia, tafsir, murottal, dan dukungan offline." />
+    <meta name="theme-color" content="#0b3d2e" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="QuranKu" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="preload" href="/fonts/amiri-quran.woff2" as="font" type="font/woff2" crossorigin />
+    <script src="/theme-init.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="offline-banner" role="status">Mode offline — menampilkan data yang tersimpan di perangkat</div>
+      <main id="view" tabindex="-1"></main>
+      <div id="mini-player" class="mini-player" hidden></div>
+      <nav id="navbar" class="navbar" aria-label="Navigasi utama"></nav>
+    </div>
+    <noscript>QuranKu membutuhkan JavaScript untuk berjalan.</noscript>
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>

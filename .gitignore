@@ -1,0 +1,23 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Android — jangan pernah commit kunci signing
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/keystore.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+
+# Data lokal cadangan — dibuat ulang oleh scripts/gen-local.mjs saat build
+public/data/
