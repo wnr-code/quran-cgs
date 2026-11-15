@@ -87,7 +87,7 @@ export default function doa(root, { params = {} } = {}) {
     const intro =
       kind === 'salat'
         ? 'Dzikir yang dibaca setelah salam dari salat wajib, berurutan dari atas ke bawah. Ketuk penghitung untuk bacaan yang diulang.'
-        : 'Bacaan sebelum dan sesudah berwudhu.'
+        : 'Bacaan sebelum berwudhu (dibaca berurutan, sebelum mencuci tangan) dan doa sesudah berwudhu.'
     body.innerHTML = `<p class="hint pad">${intro}</p>
       <div class="dzikir-list">${items.map((d) => {
         const n = repeatOf(d.notes)
@@ -103,7 +103,8 @@ export default function doa(root, { params = {} } = {}) {
             <button class="btn sm" data-copyz="${kind}:${d.i}">${icon('copy')}Salin</button>
           </div></article>`
       }).join('') || '<p class="muted pad">Tidak ditemukan.</p>'}</div>
-      <p class="hint pad">Sumber: <a class="link" href="${DZIKIR.source.url}" target="_blank" rel="noopener">${esc(DZIKIR.source.name)}</a> (lisensi ${esc(DZIKIR.source.license)}) — kumpulan doa & dzikir berdasarkan hadis dengan rujukan riwayat di tiap bacaan. Teks ditampilkan apa adanya; QuranKu tidak menulis sendiri lafaz doa.</p>`
+      ${kind === 'wudhu' ? `<p class="hint pad">Sumber doa sebelum berwudhu (no. 1–${DZIKIR.wudhu.filter((d) => d.from === 'nu').length}): <a class="link" href="${DZIKIR.sourceNU.url}" target="_blank" rel="noopener">${esc(DZIKIR.sourceNU.name)}</a>, artikel “Doa Sebelum Berwudhu” oleh ${esc(DZIKIR.sourceNU.author)}, yang mengutip Kitab Hasyiyatus Syarqawi karya Syekh Abdullah As-Syarqawi (Beirut, Darul Fikr: 2006) halaman 52. Teks Arab, Latin, dan arti disalin apa adanya.</p>` : ''}
+      <p class="hint pad">Sumber${kind === 'wudhu' ? ' doa sesudah berwudhu' : ''}: <a class="link" href="${DZIKIR.source.url}" target="_blank" rel="noopener">${esc(DZIKIR.source.name)}</a> (lisensi ${esc(DZIKIR.source.license)}) — kumpulan doa & dzikir berdasarkan hadis dengan rujukan riwayat di tiap bacaan. Teks ditampilkan apa adanya; QuranKu tidak menulis sendiri lafaz doa.</p>`
   }
 
   const render = () => {
