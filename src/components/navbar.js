@@ -1,15 +1,20 @@
 import { icon } from './icons.js'
 
+// Navigasi bawah mengambang: empat menu + tombol tengah (FAB) untuk membaca Al-Qur'an.
 const ITEMS = [
   { path: '/', label: 'Beranda', icon: 'home' },
-  { path: '/quran', label: 'Quran', icon: 'book' },
   { path: '/murottal', label: 'Murottal', icon: 'headphones' },
+  { path: '/quran', label: 'Quran', icon: 'book', fab: true },
   { path: '/bookmark', label: 'Bookmark', icon: 'bookmark' },
   { path: '/lainnya', label: 'Lainnya', icon: 'grid' }
 ]
 
 export function renderNavbar(el) {
-  el.innerHTML = ITEMS.map((i) => `<a href="#${i.path}" data-path="${i.path}" class="nav-item">${icon(i.icon)}<span>${i.label}</span></a>`).join('')
+  el.innerHTML = ITEMS.map((i) =>
+    i.fab
+      ? `<a href="#${i.path}" data-path="${i.path}" class="nav-item nav-fab" aria-label="Baca Al-Qur'an"><span class="fab-disc">${icon(i.icon)}</span><span>${i.label}</span></a>`
+      : `<a href="#${i.path}" data-path="${i.path}" class="nav-item">${icon(i.icon)}<span>${i.label}</span></a>`
+  ).join('')
 }
 
 export function setActiveNav(el, path) {

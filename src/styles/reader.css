@@ -216,17 +216,23 @@
   margin-inline: 5px;
 }
 .mushaf-flow .ayah {
-  cursor: pointer;
   border-radius: 8px;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   transition: background 0.2s;
   outline-offset: 0;
 }
-@media (hover: hover) {
-  .mushaf-flow .ayah:hover {
-    background: color-mix(in srgb, var(--rd-accent) 9%, transparent);
-  }
+/* Hanya nomor ayat yang bisa disentuh (membuka terjemahan & aksi); teks ayat bebas dari gangguan. */
+.mushaf-flow .ayah-num,
+.mushaf-pages .ayah-num {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 0.4em;
+  transition: background 0.15s;
+}
+.mushaf-flow .ayah-num:active,
+.mushaf-pages .ayah-num:active {
+  background: color-mix(in srgb, var(--rd-accent) 26%, transparent);
 }
 .ayah.playing {
   background: color-mix(in srgb, var(--rd-accent) 20%, transparent) !important;
@@ -374,6 +380,15 @@ body.route-reader {
 }
 body.route-reader .mini-player {
   display: none;
+}
+/* Di layar ponsel, halaman baca tampil bersih tanpa navigasi bawah (kembali lewat tombol ← di atas). */
+@media (max-width: 959.98px) {
+  body.route-reader {
+    --nav-h: 0px;
+  }
+  body.route-reader .navbar {
+    display: none;
+  }
 }
 body.reading-mode .navbar,
 body.reading-mode .offline-banner {
@@ -583,7 +598,6 @@ body.reading-mode .reader.mode-page .rd-wrap {
   overflow-wrap: break-word;
 }
 .mpage-text .ayah {
-  cursor: pointer;
   border-radius: 8px;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;

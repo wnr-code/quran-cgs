@@ -404,11 +404,11 @@ export default async function reader(root, { params, query, initial }) {
       return
     }
     if (e.target.closest('a, button, input, .rd-bar')) return
-    const ay = e.target.closest('.mushaf-flow .ayah, .mushaf-pages .ayah')
-    if (ay) {
-      // Mode mushaf: sentuh ayat untuk membuka terjemahan & aksi.
-      if (window.getSelection && String(window.getSelection())) return
-      openAyahSheet(surah, +ay.dataset.a, sheetOpts)
+    // Mode mushaf/halaman: menyentuh teks TIDAK membuka apa pun agar bacaan tidak terganggu.
+    // Terjemahan & aksi ayat hanya dibuka lewat nomor ayat (seperti quran.com).
+    const num = e.target.closest('.mushaf-flow .ayah-num, .mushaf-pages .ayah-num')
+    if (num) {
+      openAyahSheet(surah, +num.closest('.ayah').dataset.a, sheetOpts)
       return
     }
     // Sentuh area kosong: tampilkan/sembunyikan kontrol (hanya pada mode membaca).

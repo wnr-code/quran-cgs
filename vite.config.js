@@ -35,6 +35,8 @@ function serviceWorkerPlugin() {
       const version = hash.digest('hex').slice(0, 12)
       const list = ['/', ...files.filter((f) => f !== 'index.html').map((f) => '/' + f), '/index.html']
       writeFileSync(join(outDir, 'sw.js'), tpl.replace('__SW_VERSION__', () => version).replace('__PRECACHE_LIST__', () => JSON.stringify(list)))
+      // Dibaca aplikasi yang sudah terpasang untuk mengetahui ada versi baru (tidak pernah di-cache).
+      writeFileSync(join(outDir, 'version.json'), JSON.stringify({ ...BUILD, sw: version }))
       console.log(`\n[sw] dist/sw.js v${version} — ${list.length} berkas precache`)
     }
   }
@@ -58,8 +60,10 @@ function buildInfo() {
   return { version: pkg.version, number, commit: /^[0-9a-f]{7,40}$/.test(commit) ? commit.slice(0, 7) : '', time: new Date().toISOString() }
 }
 
+const BUILD = buildInfo()
+
 export default defineConfig({
-  define: { __APP_BUILD__: JSON.stringify(buildInfo()) },
+  define: { __APP_BUILD__: JSON.stringify(BUILD) },
   plugins: [serviceWorkerPlugin()],
   server: { host: '0.0.0.0', port: 5173, allowedHosts: true },
   preview: { host: '0.0.0.0', port: 4173, allowedHosts: true },

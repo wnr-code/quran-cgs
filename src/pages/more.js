@@ -2,6 +2,7 @@ import { pageHeader } from '../components/navbar.js'
 import { icon } from '../components/icons.js'
 import { toast } from '../utils/helpers.js'
 import { APP } from '../config.js'
+import { checkForUpdate } from '../services/offline.js'
 
 const GROUPS = [
   ['Ibadah', [
@@ -30,8 +31,23 @@ export default function more(root) {
   root.innerHTML = `<div class="page">${pageHeader('Lainnya', { back: false })}
     <button class="card install-card" data-install>${icon('download')}<span><strong>Pasang QuranKu</strong><small>Tambahkan ke layar utama agar terbuka layar penuh & bisa offline</small></span></button>
     ${GROUPS.map(([g, items]) => `<h3 class="section-title">${g}</h3><div class="menu-grid">${items.map(([p, i, t, s]) => `<a class="menu-item" href="#${p}"><span class="shortcut-ic">${icon(i)}</span><span><strong>${t}</strong><small>${s}</small></span></a>`).join('')}</div>`).join('')}
-    <p class="app-version" data-version>QuranKu versi ${APP.versionLabel}</p>
+    <section class="card version-card">
+      <span class="shortcut-ic">${icon('refresh')}</span>
+      <span class="version-text"><strong>QuranKu ${APP.version}</strong><small data-version>${APP.versionLabel}</small><small data-update-note>Versi yang berjalan di perangkat ini</small></span>
+      <button class="btn btn-sm" data-update>Periksa</button>
+    </section>
   </div>`
+  const note = root.querySelector('[data-update-note]')
+  root.querySelector('[data-update]').onclick = async (e) => {
+    e.currentTarget.disabled = true
+    note.textContent = 'Memeriksa versi terbaru…'
+    const r = await checkForUpdate({ force: true })
+    if (r === 'updating') note.textContent = 'Versi baru ditemukan — sedang dipasang, aplikasi akan dimuat ulang…'
+    else {
+      note.textContent = r === 'offline' ? 'Tidak dapat memeriksa (offline).' : 'Sudah versi terbaru.'
+      e.currentTarget.disabled = false
+    }
+  }
   root.querySelector('[data-install]').onclick = async () => {
     const p = window.__installPrompt
     if (!p) return toast('Gunakan menu browser → “Tambahkan ke layar utama / Instal aplikasi”.')

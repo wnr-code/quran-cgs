@@ -8,6 +8,7 @@ import { qnum } from '../utils/arabic-numbers.js'
 export function initMiniPlayer(el) {
   el.innerHTML = `
     <div class="mp-progress"><i></i></div>
+    <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
     <a class="mp-info" href="#/murottal" aria-label="Buka pemutar murottal"><strong></strong><small></small></a>
     <button class="icon-btn" data-act="prev" aria-label="Ayat sebelumnya">${icon('prev')}</button>
     <button class="icon-btn mp-main" data-act="toggle" aria-label="Putar atau jeda">${icon('play')}</button>
@@ -30,6 +31,7 @@ export function initMiniPlayer(el) {
     title.innerHTML = s.mode === 'ayah' ? `${esc(s.surah.namaLatin)} · Ayat <span class="qn">${qnum(s.ayah)}</span>` : `Surah ${esc(s.surah.namaLatin)}`
     sub.textContent = (QARI[s.qari] || 'Murottal') + (s.local ? ' · offline' : '') + (s.loading ? ' · memuat…' : '')
     main.innerHTML = icon(s.playing ? 'pause' : 'play')
+    el.classList.toggle('is-playing', !!s.playing)
     el.querySelector('[data-act="prev"]').hidden = s.mode !== 'ayah'
     el.querySelector('[data-act="next"]').hidden = s.mode !== 'ayah'
   }
