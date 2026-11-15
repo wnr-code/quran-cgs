@@ -1,5 +1,6 @@
 // Uji halaman infaq di peramban terhadap Worker lokal (`npx wrangler dev --local`, dengan .dev.vars berisi
-// TRAKTEER_WEBHOOK_TOKEN=token-uji-lokal). Respons QRIS langsung ditiru karena penyedia tidak terjangkau dari lingkungan uji.
+// TRAKTEER_WEBHOOK_TOKEN=token-uji-lokal). Halaman sematan Trakteer ditiru karena penyedia tidak terjangkau dari lingkungan uji:
+// tiruan itu mengikuti protokol skrip resmi (menerima `embed.openModal`, mengirim `embed.modalClosed`).
 import assert from 'node:assert/strict'
 import { mkdirSync } from 'node:fs'
 const puppeteer = (await import(process.env.PUPPETEER_PATH || 'puppeteer-core')).default
@@ -7,23 +8,26 @@ const BASE = process.env.BASE_URL || 'http://localhost:8787'
 const TOKEN = process.env.WEBHOOK_TOKEN || 'token-uji-lokal'
 const SHOTS = process.env.SHOTS_DIR || 'store/screenshots'
 mkdirSync(SHOTS, { recursive: true })
-const QR = '00020101021226670016COM.NOBUBANK.WWW01189360050300000879140214844519767362640303UME51440014ID.CO.QRIS.WWW0215ID20222128523070303UME5204839853033605405100005802ID5909LANTERAKU6007JAKARTA61051234062070703A016304ABCD'
+const EMBED = 'https://trakteer.id/v1/lanteraku/tip/embed/modal'
+const FAKE = `<!doctype html><meta charset="utf-8"><body style="margin:0;background:transparent;font-family:sans-serif">
+<div id="m" style="display:none;position:fixed;inset:10% 6%;background:#fff;border-radius:16px;padding:20px;box-shadow:0 10px 40px #0006">
+<b>Formulir tiruan penyedia</b><p>Kopi · Rp 1.000 / unit</p><button id="c">Tutup</button></div>
+<script>addEventListener('message',e=>{if(e.data&&e.data.type==='embed.openModal'){document.getElementById('m').style.display='block';parent.postMessage({type:'tes.terbuka'},'*')}});
+document.getElementById('c').onclick=()=>parent.postMessage({type:'embed.modalClosed'},'*')</script>`
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME_PATH, headless: 'shell', args: ['--no-sandbox', '--disable-gpu', '--hide-scrollbars'] })
 const page = await browser.newPage()
 await page.setViewport({ width: 412, height: 915, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
 const errors = []
 page.on('pageerror', (e) => errors.push(String(e)))
-let fakeQris = false
+const embedRequests = []
 await page.setRequestInterception(true)
-page.on('request', async (req) => {
+page.on('request', (req) => {
   const u = new URL(req.url())
-  if (u.origin !== new URL(BASE).origin) return req.abort()
-  if (fakeQris && u.pathname === '/api/infaq/create') {
-    // Buat niat sungguhan di server, lalu tambahkan QR tiruan ke jawabannya (meniru mode QRIS langsung).
-    const real = await (await fetch(BASE + u.pathname, { method: 'POST', headers: { 'content-type': 'application/json' }, body: req.postData() })).json()
-    delete real.url
-    return req.respond({ status: 200, contentType: 'application/json', body: JSON.stringify({ ...real, mode: 'qris', qr: QR }) })
+  if (u.origin + u.pathname === EMBED) {
+    embedRequests.push(req.url())
+    return req.respond({ status: 200, contentType: 'text/html', body: FAKE })
   }
+  if (u.origin !== new URL(BASE).origin) return req.abort()
   req.continue()
 })
 const webhook = (tx) => fetch(BASE + '/api/trakteer-webhook', { method: 'POST', headers: { 'X-Webhook-Token': TOKEN, 'content-type': 'application/json' }, body: JSON.stringify(tx) })
@@ -41,116 +45,96 @@ const step = async (name, fn) => {
     await page.screenshot({ path: `/tmp/infaq-gagal-${failed}.png` }).catch(() => {})
   }
 }
-
 // Navigasi bawah mengambang menutupi tepi bawah layar: gulir elemen ke tengah dulu sebelum disentuh.
 const tap = async (sel) => {
+  await page.waitForSelector(sel, T)
   await page.$eval(sel, (e) => e.scrollIntoView({ block: 'center' }))
   await page.click(sel)
 }
+const frameOpened = () =>
+  page.evaluate(
+    () =>
+      new Promise((res) => {
+        addEventListener('message', (e) => e.data && e.data.type === 'tes.terbuka' && res(true))
+        setTimeout(() => res(false), 8000)
+      })
+  )
 
-await step('Formulir infaq tampil tanpa nama penyedia pembayaran', async () => {
+await step('Tombol INFAQ sesuai identitas sematan; nama penyedia tidak tampil', async () => {
   await page.goto(`${BASE}/#/infaq`, { waitUntil: 'domcontentloaded' })
-  // Tombol INFAQ: identitas sesuai kode sematan (teks, warna, gambar unit)
   await page.waitForSelector('[data-infaq-open]', T)
   const btn = await page.$eval('[data-infaq-open]', (b) => ({ text: b.textContent.trim(), bg: getComputedStyle(b).backgroundColor, img: b.querySelector('img')?.getAttribute('src') || '' }))
   assert.equal(btn.text, 'INFAQ')
   assert.equal(btn.bg, 'rgb(26, 98, 117)') // #1A6275
-  assert.match(btn.img, /^https:\/\/mirror-uploads\.trakteer\.id\/images\/units\/uic-WAJ1GG3F86NzLSXQAwcEDJTa83KnmEMF1794742909\.png$/)
-  assert.equal(await page.$('.dlg-wrap'), null, 'popup belum terbuka')
-  // Ketuk INFAQ → popup "INFAQ QURANKU" di atas halaman, alamat & halaman tidak berubah
-  await tap('[data-infaq-open]')
-  await page.waitForSelector('.dlg-wrap.open [data-pay]', T)
-  assert.equal(await page.$eval('.dlg-head h2', (e) => e.textContent), 'INFAQ QURANKU')
-  assert.equal(await page.$eval('.dlg-head', (e) => getComputedStyle(e).backgroundColor), 'rgb(26, 98, 117)')
-  assert.ok(await page.$('.dlg-x[aria-label="Tutup"]'))
-  assert.equal(new URL(page.url()).hash, '#/infaq')
-  // Tombol kembali (Android) menutup popup lebih dulu, halaman tetap
-  await page.goBack()
-  await page.waitForFunction(() => !document.querySelector('.dlg-wrap'), T)
-  assert.equal(new URL(page.url()).hash, '#/infaq')
-  assert.ok(await page.$('[data-infaq-open]'))
-  await tap('[data-infaq-open]')
-  await page.waitForSelector('.dlg-wrap.open [data-pay]', T)
-  const text = await page.$eval('#view', (e) => e.textContent)
-  assert.ok(!/trakteer/i.test(text), 'nama penyedia masih tampil')
-  assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp10.000')
-  await tap('[data-q="5"]')
-  assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp5.000')
-  // Nominal minimal Rp1.000
-  await tap('[data-q="1"]')
-  assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp1.000')
-  assert.equal(await page.$eval('[data-custom]', (e) => e.min), '1000')
-  await page.type('[data-custom]', '15000')
-  assert.equal(await page.$eval('[data-total]', (e) => e.textContent.replace(/\s/g, '')), 'Rp15.000')
-  await page.type('[data-name]', 'Penguji ' + uniq)
-  await page.screenshot({ path: `${SHOTS}/10-infaq.png` })
+  assert.equal(btn.img, 'https://mirror-uploads.trakteer.id/images/units/uic-WAJ1GG3F86NzLSXQAwcEDJTa83KnmEMF1794742909.png')
+  assert.ok(!/trakteer/i.test(await page.$eval('#view', (e) => e.textContent)), 'nama penyedia masih tampil')
+  assert.equal(await page.$('[data-q], [data-custom], [data-pay]'), null, 'tidak ada lagi isian nominal di aplikasi')
 })
-await step('Mode halaman pembayaran: menunggu → otomatis “terima kasih” setelah webhook', async () => {
-  // "Lanjut bayar" menampilkan formulir pembayaran di dalam popup (bingkai) dengan jumlah unit yang sama — tanpa tab baru.
-  await tap('[data-pay]')
-  await page.waitForSelector('.dlg-wrap.open iframe[data-frame]', T)
-  const payUrl = 'https://trakteer.id/lanteraku/tip?quantity=15'
-  assert.equal(await page.$eval('iframe[data-frame]', (f) => f.getAttribute('src')), payUrl)
-  assert.equal(await page.$eval('a[data-open]', (a) => a.href), payUrl) // jalan cadangan bila bingkai ditolak
-  await new Promise((r) => setTimeout(r, 600))
+
+await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol kembali menutup', async () => {
+  const opened = frameOpened()
+  await tap('[data-infaq-open]')
+  await page.waitForSelector('.trk-overlay.open iframe', T)
+  const src = await page.$eval('.trk-overlay iframe', (f) => f.src)
+  assert.equal(src, `${EMBED}?embedId=0&ref=${BASE}/`)
+  assert.equal(await opened, true, 'bingkai tidak menerima embed.openModal')
+  await new Promise((r) => setTimeout(r, 500))
+  await page.screenshot({ path: `${SHOTS}/15-infaq-popup.png` })
   assert.equal((await browser.pages()).length, pagesBefore, 'tidak ada tab baru')
   assert.equal(new URL(page.url()).hash, '#/infaq', 'halaman aplikasi tidak berpindah')
-  await page.screenshot({ path: `${SHOTS}/15-infaq-popup.png` })
-  // Menutup popup BUKAN bukti bayar: niat tetap menunggu, bingkai dilepas, dan bisa dilanjutkan
-  await page.click('.dlg-x')
-  await page.waitForFunction(() => !document.querySelector('.dlg-wrap'), T)
-  assert.equal(await page.$('iframe[data-frame]'), null)
-  assert.match(await page.$eval('[data-cta-note]', (e) => e.textContent), /sedang menunggu pembayaran/)
+  // Tombol kembali (Android) menutup popup lebih dulu
+  await page.goBack()
+  await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
+  assert.equal(new URL(page.url()).hash, '#/infaq')
+  assert.ok(await page.$('[data-infaq-open]'))
+  // Penyedia mengirim embed.modalClosed (tombol tutup di formulirnya) → popup hilang
+  const again = frameOpened()
   await tap('[data-infaq-open]')
-  await page.waitForSelector('.dlg-wrap.open iframe[data-frame]', T)
-  assert.match(await page.$eval('[data-left]', (e) => e.textContent), /^\d\d:\d\d$/)
-  // Pindah halaman lalu kembali: niat infaq yang sedang menunggu dipulihkan
-  await page.evaluate(() => (location.hash = '#/tentang'))
-  await page.waitForSelector('.source-group', T)
-  await page.evaluate(() => (location.hash = '#/infaq'))
-  await page.waitForFunction(() => /sedang menunggu pembayaran/.test(document.querySelector('[data-cta-note]')?.textContent || ''), T)
-  await page.reload({ waitUntil: 'load' }) // juga bertahan setelah muat ulang penuh
-  await page.waitForFunction(() => /sedang menunggu pembayaran/.test(document.querySelector('[data-cta-note]')?.textContent || ''), T)
+  assert.equal(await again, true)
+  const frame = await (await page.$('.trk-overlay iframe')).contentFrame()
+  await frame.click('#c')
+  await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
+  // Tombol X milik aplikasi
   await tap('[data-infaq-open]')
-  await page.waitForSelector('.dlg-wrap.open iframe[data-frame]', T)
-  await webhook({ transaction_id: 'e2e-a-' + uniq, supporter_name: 'penguji ' + uniq, price: 15000, quantity: 15, unit: 'Kopi' })
-  await page.waitForSelector('.infaq-result.ok', T)
-  assert.match(await page.$eval('.infaq-result.ok', (e) => e.textContent), /15\.000/)
-  await page.screenshot({ path: `${SHOTS}/13-infaq-terima-kasih.png` })
-  await page.waitForFunction((n) => document.querySelector('[data-latest]').textContent.toLowerCase().includes(n), T, 'penguji ' + uniq)
+  await page.waitForSelector('.trk-overlay.open', T)
+  await page.click('[data-trk-close]')
+  await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
+  assert.equal(new URL(page.url()).hash, '#/infaq')
+  assert.equal((await browser.pages()).length, pagesBefore)
+  assert.ok(embedRequests.length >= 3)
 })
-await step('Mode QRIS: kode QR digambar, dapat diunduh, lalu terkonfirmasi lewat ID transaksi', async () => {
-  fakeQris = true
-  await page.setBypassServiceWorker(true) // permintaan lewat Service Worker tidak bisa dicegat penguji
-  await page.click('.dlg-wrap [data-again]') // "Selesai" menutup popup
-  await page.waitForFunction(() => !document.querySelector('.dlg-wrap'), T)
+
+await step('Papan donatur: menutup popup tidak menambah donatur; webhook menampilkan nama, nominal & ucapan', async () => {
+  const name = 'Penguji ' + uniq
+  assert.ok(!(await page.$eval('#view', (e) => e.textContent)).includes(name), 'popup ditutup ≠ sudah bayar')
+  const r = await webhook({ transaction_id: 'e2e-m-' + uniq, supporter_name: name, supporter_message: 'Semoga berkah <script>x</script> ' + uniq, price: 25000, quantity: 25, unit: 'Kopi' })
+  assert.equal(r.status, 200)
   await tap('[data-infaq-open]')
-  await page.waitForSelector('.dlg-wrap.open [data-pay]', T)
-  await tap('[data-q="2"]')
-  await tap('[data-pay]')
-  await page.waitForSelector('[data-qr]', T)
-  await page.waitForFunction(() => document.querySelector('[data-qr]').width > 200, T)
-  const dark = await page.$eval('[data-qr]', (c) => {
-    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data
-    let n = 0
-    for (let i = 0; i < d.length; i += 4) if (d[i] < 128) n++
-    return n / (d.length / 4)
-  })
-  assert.ok(dark > 0.2 && dark < 0.6, 'kanvas QR tidak tergambar: ' + dark)
-  assert.equal(await page.$('[data-open]'), null, 'tidak ada tautan keluar pada mode QRIS')
-  assert.equal(await page.$('iframe[data-frame]'), null)
-  await page.screenshot({ path: `${SHOTS}/14-infaq-qris.png` })
-  // Donatur memakai nama lain saat membayar → tidak otomatis; konfirmasi dengan ID transaksi
-  await webhook({ transaction_id: 'e2e-b-' + uniq, supporter_name: 'Orang Lain ' + uniq, price: 10000, quantity: 2, unit: 'Kopi' })
-  await tap('.infaq-claim summary')
-  await page.type('[data-ref]', 'id-salah-123')
-  await tap('[data-claim]')
-  await page.waitForFunction(() => /belum ditemukan/.test(document.querySelector('[data-claim-msg]').textContent), T)
-  await page.$eval('[data-ref]', (i) => (i.value = ''))
-  await page.type('[data-ref]', 'e2e-b-' + uniq)
-  await tap('[data-claim]')
-  await page.waitForSelector('.infaq-result.ok', T)
+  await page.waitForSelector('.trk-overlay.open', T)
+  await page.click('[data-trk-close]') // papan dimuat ulang setelah popup ditutup
+  await page.waitForFunction((n) => [...document.querySelectorAll('.wish strong')].some((e) => e.textContent === n), T, name)
+  const wish = await page.evaluate((n) => {
+    const li = [...document.querySelectorAll('.wish')].find((e) => e.querySelector('strong').textContent === n)
+    return { amount: li.querySelector('.wish-head b').textContent, msg: li.querySelector('.wish-msg')?.textContent || '', html: li.innerHTML }
+  }, name)
+  assert.match(wish.amount, /25\.000/)
+  assert.ok(wish.msg.startsWith('Semoga berkah') && wish.msg.includes(uniq), wish.msg)
+  assert.ok(!/<script/i.test(wish.html))
+  assert.ok(await page.$('.podium .podium-col.p1'))
+  assert.equal(await page.$eval('[data-stats]', (e) => e.hidden), false)
+  await page.$eval('.infaq-stats', (e) => e.scrollIntoView({ block: 'start' }))
+  await page.screenshot({ path: `${SHOTS}/14-infaq-papan.png` })
 })
+
+await step('Halaman Lainnya: kartu infaq & menu tampil', async () => {
+  await page.evaluate(() => (location.hash = '#/lainnya'))
+  await page.waitForSelector('.more-page .more-infaq', T)
+  assert.ok((await page.$$('.more-page .menu-item')).length >= 12)
+  await page.screenshot({ path: `${SHOTS}/16-lainnya.png` })
+  await tap('.more-infaq')
+  await page.waitForSelector('[data-infaq-open]', T)
+})
+
 await step('Tidak ada error JavaScript', async () => assert.deepEqual(errors, []))
 await browser.close()
 process.exit(failed ? 1 : 0)

@@ -2,7 +2,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=()
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://mirror-uploads.trakteer.id; font-src 'self'; media-src 'self' blob: https:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; frame-src https://trakteer.id https://*.trakteer.id https://*.midtrans.com https://*.xendit.co; object-src 'none'; base-uri 'self'; form-action 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://mirror-uploads.trakteer.id; font-src 'self'; media-src 'self' blob: https:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; frame-src https:; object-src 'none'; base-uri 'self'; form-action 'self'
 
 # Berkas publik boleh diambil dari alamat cadangan/utama (lihat src/services/failover.js & sw.js).
 /assets/*

@@ -21,7 +21,6 @@ const GROUPS = [
     ['/offline', 'download', 'Kelola Offline', 'Unduhan & penyimpanan']
   ]],
   ['Aplikasi', [
-    ['/infaq', 'heart', 'Infaq Pengembang', 'Dukung & papan donatur'],
     ['/pengaturan', 'settings', 'Pengaturan', 'Tema, angka, cadangan'],
     ['/tentang', 'info', 'Tentang & Privasi', 'Sumber data, kebijakan']
   ]]
@@ -29,9 +28,12 @@ const GROUPS = [
 import { installApp, shouldOfferInstall } from '../services/install.js'
 
 export default function more(root) {
-  root.innerHTML = `<div class="page">${pageHeader('Lainnya', { back: false })}
+  root.innerHTML = `<div class="page more-page">${pageHeader('Lainnya', { back: false })}
+    <section class="more-hero"><img src="/icons/icon-192-v2.png" alt="" width="56" height="56" />
+      <div><h2>QuranKu</h2><p>Teman ibadah harian — gratis, tanpa iklan.</p><span class="more-chip">Versi ${APP.version}</span></div></section>
     <button class="card install-card" data-install>${icon('download')}<span><strong>Pasang QuranKu</strong><small>Tambahkan ke layar utama agar terbuka layar penuh & bisa offline</small></span></button>
-    ${GROUPS.map(([g, items]) => `<h3 class="section-title">${g}</h3><div class="menu-grid">${items.map(([p, i, t, s]) => `<a class="menu-item" href="#${p}"><span class="shortcut-ic">${icon(i)}</span><span><strong>${t}</strong><small>${s}</small></span></a>`).join('')}</div>`).join('')}
+    <a class="more-infaq" href="#/infaq"><span class="more-infaq-ic">${icon('heart')}</span><span><strong>Infaq Pengembang</strong><small>Dukung QuranKu & lihat papan donatur</small></span><span class="more-go" aria-hidden="true">›</span></a>
+    ${GROUPS.map(([g, items]) => `<h3 class="section-title">${g}</h3><div class="menu-grid tone-${g.toLowerCase()}">${items.map(([p, i, t, s]) => `<a class="menu-item" href="#${p}"><span class="shortcut-ic">${icon(i)}</span><span><strong>${t}</strong><small>${s}</small></span></a>`).join('')}</div>`).join('')}
     <section class="card version-card">
       <span class="shortcut-ic">${icon('refresh')}</span>
       <span class="version-text"><strong>QuranKu ${APP.version}</strong><small data-version>${APP.versionLabel}</small><small data-update-note>Versi yang berjalan di perangkat ini</small></span>

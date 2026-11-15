@@ -52,8 +52,10 @@ test('worker: rute /api/* ke handler, selain itu ke aset statis', async () => {
   assert.ok((await donors.json()).ok)
   assert.equal((await call('/api/donors', { method: 'POST' })).status, 405)
   assert.equal((await call('/api/trakteer-webhook', { method: 'POST', headers: { 'X-Webhook-Token': 'salah' }, body: '{}' })).status, 401)
-  const ok = await call('/api/trakteer-webhook', { method: 'POST', headers: { 'X-Webhook-Token': 't' }, body: JSON.stringify({ transaction_id: 'w1', supporter_name: 'Umar', price: 5000, quantity: 1 }) })
+  const ok = await call('/api/trakteer-webhook', { method: 'POST', headers: { 'X-Webhook-Token': 't' }, body: JSON.stringify({ transaction_id: 'w1', supporter_name: 'Umar', supporter_message: '  Semoga   bermanfaat <b>ya</b>\n', price: 5000, quantity: 1 }) })
   assert.equal(ok.status, 200)
-  assert.equal((await (await call('/api/donors')).json()).latest[0].name, 'Umar')
+  const latest0 = (await (await call('/api/donors')).json()).latest[0]
+  assert.equal(latest0.name, 'Umar')
+  assert.equal(latest0.message, 'Semoga bermanfaat bya/b') // pesan donatur disimpan, tanpa tanda < >
   assert.equal((await call('/api/tidak-ada')).status, 404)
 })

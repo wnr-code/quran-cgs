@@ -26,6 +26,7 @@ export function parseDonation(body, now = Date.now()) {
   return {
     id,
     name: text(body.supporter_name, 60) || 'Hamba Allah',
+    message: text(String(body.supporter_message ?? '').replace(/\s+/g, ' '), 280),
     unit: text(body.unit, 30),
     quantity,
     // Diasumsikan `price` = total nominal dukungan. Verifikasi dengan transaksi uji (lihat docs/INFAQ.md);
