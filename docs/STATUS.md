@@ -238,3 +238,10 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Doa wudhu tidak dicocokkan ulang pada putaran ini (sejak awal disalin tanpa koreksi).
 - README (tabel Sumber data, daftar fitur), halaman Tentang, kebijakan privasi, dan teks listing: doa EQuran.id & fitrahive/dua-dhikr dihapus, Quran NU Online dan Font Awesome ditambahkan.
 - Versi di "Info aplikasi" Android untuk PWA (WebAPK) ditentukan Chrome, bukan aplikasi; versi sebenarnya ada di Lainnya → kartu versi. Produksi saat pemeriksaan: 1.3.20 (PR #26 belum di-merge).
+
+## 1.3.24 — Layar pembuka (splash) dan tema kustom
+
+- **Layar pembuka** ditulis langsung di `index.html` (HTML + CSS sebaris, `public/splash.js` untuk ucapan sesuai waktu): logo dengan cincin berdenyut, salam bertulisan Arab + Latin, titik pemuat, lalu memudar ketika halaman pertama siap (`hideSplash` di `src/app.js`). Di aplikasi terpasang ditahan ±1,4 detik agar salam terbaca; di peramban ±0,5 detik. Bila aplikasi gagal dimuat, CSS menutupnya sendiri setelah 8 detik. Menghormati "kurangi gerakan".
+- Layar pembuka **bawaan sistem** (ikon + warna latar sebelum halaman dimuat, dari `manifest.webmanifest`) tidak dapat dianimasikan atau diberi tulisan; layar kustom tampil tepat setelahnya dengan warna latar yang sama.
+- **Tema kustom** (Pengaturan → Tema → Kustom): 8 palet siap pakai + tiga warna pilihan (utama, aksen, latar). Variabel lain diturunkan di `src/utils/theme.js`; terang/gelap dikenali dari warna latar, warna utama digeser bila kontrasnya < 3. Disimpan di `settings.customTheme`, ikut ekspor/impor cadangan; variabel jadi disimpan di `quranku:theme-vars` supaya `public/theme-init.js` memasangnya sebelum render pertama.
+- Batasan tema kustom: halaman baca Al-Qur'an memakai preset sendiri ("Aa"); beberapa hiasan berwarna tetap (garis emas ornamen, halaman kiblat/infaq) tidak ikut berubah. Diuji di Chromium desktop (390 px), belum di HP.

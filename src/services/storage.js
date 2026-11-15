@@ -1,8 +1,11 @@
 // Pengaturan pengguna (localStorage — sinkron agar tema diterapkan sebelum render pertama).
 import { emit } from '../utils/helpers.js'
 import { setNumeralMode } from '../utils/arabic-numbers.js'
+import { deriveTheme, normalizeCustom, CUSTOM_DEFAULT } from '../utils/theme.js'
 
 const KEY = 'quranku:settings'
+/** Variabel tema kustom yang sudah dihitung, dibaca public/theme-init.js sebelum render pertama. */
+const THEME_VARS_KEY = 'quranku:theme-vars'
 
 export const READER_DEFAULTS = {
   mode: 'continuous', // 'continuous' (mushaf mengalir) | 'focus' (per ayat + terjemahan) | 'page' (per halaman, geser ke samping)
@@ -20,7 +23,8 @@ export const READER_DEFAULTS = {
 }
 
 export const DEFAULTS = {
-  theme: 'auto', // 'auto' | 'light' | 'dark'
+  theme: 'auto', // 'auto' | 'light' | 'dark' | 'custom'
+  customTheme: { ...CUSTOM_DEFAULT }, // { primary, accent, bg } — dipakai bila theme === 'custom'
   numerals: 'arabic', // 'arabic' | 'latin'
   arabicFont: 'amiri', // 'amiri' | 'scheherazade'
   hijriAdjust: 0,
@@ -41,6 +45,8 @@ function load() {
   } catch {}
   const s = { ...DEFAULTS, ...saved }
   for (const k of ['reader', 'audio', 'goal', 'reminders', 'adzan']) s[k] = { ...DEFAULTS[k], ...(saved[k] || {}) }
+  s.customTheme = normalizeCustom(saved.customTheme)
+  if (!['auto', 'light', 'dark', 'custom'].includes(s.theme)) s.theme = 'auto'
   // 1.3.2: bawaan lama (30px / 2,4) terasa renggang — pindahkan ke bawaan baru bila belum pernah diubah pengguna.
   if (s.reader.fontSize === 30 && s.reader.lineHeight === 2.4) Object.assign(s.reader, { fontSize: 28, lineHeight: 2.1 })
   return s
@@ -75,9 +81,12 @@ export function replaceSettings(next) {
 }
 
 export function resolvedTheme() {
+  if (settings.theme === 'custom') return deriveTheme(settings.customTheme).base
   if (settings.theme === 'auto') return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   return settings.theme
 }
+
+const CUSTOM_VARS = Object.keys(deriveTheme(CUSTOM_DEFAULT).vars)
 
 export function applyGlobalSettings() {
   const root = document.documentElement
@@ -86,8 +95,15 @@ export function applyGlobalSettings() {
   root.dataset.arabicFont = settings.arabicFont
   root.dataset.numerals = settings.numerals === 'latin' ? 'latin' : 'arabic'
   setNumeralMode(settings.numerals)
+  // Tema kustom: variabel warna dipasang langsung di <html>; tema lain: dilepas agar kembali ke theme.css.
+  const custom = settings.theme === 'custom' ? deriveTheme(settings.customTheme) : null
+  for (const k of CUSTOM_VARS) custom ? root.style.setProperty(k, custom.vars[k]) : root.style.removeProperty(k)
+  try {
+    if (custom) localStorage.setItem(THEME_VARS_KEY, JSON.stringify({ base: custom.base, vars: custom.vars }))
+    else localStorage.removeItem(THEME_VARS_KEY)
+  } catch {}
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', theme === 'dark' ? '#0a0f0d' : '#0b3d2e')
+  if (meta) meta.setAttribute('content', custom ? custom.themeColor : theme === 'dark' ? '#0a0f0d' : '#0b3d2e')
 }
 
 export function initSettings() {
