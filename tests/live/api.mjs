@@ -106,7 +106,10 @@ await step('EQuran: API doa harian', async () => {
   }
   const d = data[0]
   assert(d.nama && d.ar, 'isi kosong')
-  return `${data.length} doa; kunci: ${keys}; ACAO=${r.headers.get('access-control-allow-origin')}; terisi: tr=${!!d.tr} idn=${!!d.idn} tentang=${!!d.tentang} grup=${!!d.grup}`
+  const rawList = Array.isArray(json) ? json : json.data
+  const dropped = rawList.filter((x) => !data.some((y) => y.id === x.id))
+  const sample = dropped[0] ? ` contoh dilewati: id=${dropped[0].id} nama="${String(dropped[0].nama).slice(0, 40)}" ar="${String(dropped[0].ar).slice(0, 40)}"` : ''
+  return `${data.length} doa dipakai dari ${rawList.length} (${dropped.length} dilewati);${sample} kunci: ${keys}; ACAO=${r.headers.get('access-control-allow-origin')}; terisi: tr=${!!d.tr} idn=${!!d.idn} tentang=${!!d.tentang} grup=${!!d.grup}`
 })
 await step('Al Quran Cloud: daftar & surah 2, 9, 114 lolos validasi', async () => {
   assert(validateSurahList(await alquranCloud.list()), 'daftar tidak valid')

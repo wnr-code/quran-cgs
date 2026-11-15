@@ -50,13 +50,17 @@ await step('Tafsir sungguhan tampil', async () => {
   const len = await page.$eval('#view', (e) => e.textContent.length)
   assert.ok(len > 1500, 'isi tafsir terlalu pendek: ' + len)
 })
-await step('Doa harian tampil dari API', async () => {
+await step('Doa sehari-hari tampil dari API EQuran', async () => {
   await go('/doa')
+  await page.waitForSelector('[data-tab="harian"]', T)
+  await page.click('[data-tab="harian"]')
+  await new Promise((r) => setTimeout(r, 800))
   await page.waitForSelector('[data-i], [data-retry]', T)
-  const n = (await page.$$('[data-i]')).length
   await page.screenshot({ path: `${SHOTS}/doa.png` })
-  assert.ok(n > 0, 'halaman doa menampilkan keadaan "tidak tersedia"')
-  return n + ' doa'
+  assert.equal(await page.$('[data-retry]'), null, 'halaman doa menampilkan keadaan "tidak tersedia"')
+  const n = (await page.$$('[data-i]')).length
+  assert.ok(n > 0)
+  return `${n} doa; pertama: ${await page.$eval('[data-i] strong', (e) => e.textContent.slice(0, 50))}`
 })
 await step('Murottal: audio surah benar-benar berputar', async () => {
   await go('/murottal')
@@ -72,6 +76,20 @@ await step('Unduh audio manual tersimpan di Cache Storage', async () => {
   await page.$$eval('[data-dl]', (b) => b[b.length - 1].click())
   await page.waitForFunction(async () => (await (await caches.open('quranku-audio-v1')).keys()).length > 0, T)
   return await page.evaluate(async () => (await (await caches.open('quranku-audio-v1')).keys())[0].url)
+})
+await step('Audio yang diunduh berputar saat OFFLINE (lewat Service Worker)', async () => {
+  await page.evaluate(() => navigator.serviceWorker.ready.then(() => true))
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('[data-play]', T)
+  assert.ok(await page.evaluate(() => !!navigator.serviceWorker.controller), 'halaman belum dikendalikan service worker')
+  await page.setOfflineMode(true)
+  try {
+    await page.$$eval('[data-play]', (b) => b[b.length - 1].click())
+    await page.waitForFunction(() => [...document.querySelectorAll('[data-cur]')].some((e) => /[1-9]/.test(e.textContent)), T)
+  } finally {
+    await page.setOfflineMode(false)
+  }
+  return 'posisi ' + (await page.$eval('[data-cur]', (e) => e.textContent))
 })
 await step('Audio per ayat berputar dari halaman baca', async () => {
   await go('/surah/112')

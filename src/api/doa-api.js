@@ -21,12 +21,16 @@ function mapDoa(d, i) {
   }
 }
 
-const valid = (list) => Array.isArray(list) && list.length > 0 && list.every((d) => d.nama && d.ar && /[\u0600-\u06FF]/.test(d.ar))
+// Huruf Arab termasuk bentuk presentasi (U+FB50–FDFF, U+FE70–FEFF).
+const hasArabic = (s) => /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(s)
+const usable = (d) => !!(d && d.nama && d.ar && hasArabic(d.ar))
+const valid = (list) => Array.isArray(list) && list.length > 0 && list.every(usable)
 
 /** Memetakan & memvalidasi respons API doa; melempar error bila formatnya tidak dikenali. */
 export function parseDoa(json) {
   const raw = Array.isArray(json) ? json : json && Array.isArray(json.data) ? json.data : null
-  const data = raw ? raw.map(mapDoa).filter((d) => d.nama && d.ar) : null
+  // Entri yang tidak lengkap dilewati (tidak pernah diisi/diperbaiki oleh aplikasi).
+  const data = raw ? raw.map(mapDoa).filter(usable) : null
   if (!valid(data)) throw new Error('Format data doa tidak dikenali')
   return data
 }
