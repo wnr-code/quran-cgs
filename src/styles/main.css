@@ -3659,3 +3659,59 @@ body.has-player {
   font-weight: 700;
   text-decoration: underline;
 }
+
+/* ===== Infaq 1.3.13: teks berjalan di atas formulir (tidak menutupi formulir) ===== */
+.trk-overlay {
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--safe-t, 0px);
+}
+.trk-overlay iframe {
+  position: static;
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+.trk-ticker {
+  flex: none;
+  display: block;
+  overflow: hidden;
+  padding: 7px 0;
+  background: #1a6275;
+  color: #fff;
+  font-size: 0.76rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.trk-ticker-run {
+  display: inline-flex;
+  animation: trk-ticker 26s linear infinite;
+}
+.trk-ticker-run span {
+  padding-inline-end: 3rem;
+}
+@keyframes trk-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.trk-x {
+  top: calc(40px + var(--safe-t, 0px));
+}
+@media (prefers-reduced-motion: reduce) {
+  .trk-ticker {
+    white-space: normal;
+    padding: 7px 12px;
+  }
+  .trk-ticker-run {
+    display: block;
+    animation: none;
+  }
+  .trk-ticker-run span + span {
+    display: none;
+  }
+}
