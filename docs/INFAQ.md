@@ -127,3 +127,7 @@ Halaman Infaq kini memuat kartu "Akad & tujuan infaq" sebelum tombol: pemberian 
 
 - Akad tidak lagi memenuhi halaman: INFAQ → popup "Akad & Tujuan Infaq" → "Bismillah, saya setuju & lanjut" → formulir pembayaran.
 - Laporan pengguna: setelah memilih metode, langkah pembayaran "diblokir/blank" di dalam bingkai. Langkah itu sepenuhnya dikendalikan penyedia (halaman pembayarannya menolak dibingkai atau membuka jendela baru yang diblokir peramban) — tidak dapat diperbaiki dari aplikasi. Yang dilakukan: `Permissions-Policy: payment` kini mengizinkan penyedia, dan di lapisan formulir ada tautan "Buka halaman pembayaran" (halaman tip biasa, tab baru) sebagai jalan yang pasti berfungsi. **Belum diuji terhadap penyedia asli.**
+
+## 1.3.12 — Popup formulir tanpa elemen penghalang
+
+Tombol X milik aplikasi hanya tampil selama formulir memuat (formulir penyedia punya tombol tutup sendiri) dan pita "Pembayaran tidak muncul…" dihapus karena menutupi tombol penyedia. Laporan pengguna: yang terblokir di dalam bingkai hanya dompet digital (GoPay, ShopeePay); QRIS/VA berjalan. Catatan + tautan halaman pembayaran dipindah ke halaman Infaq.

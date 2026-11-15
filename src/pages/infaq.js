@@ -59,6 +59,7 @@ export default function infaq(root) {
       <button type="button" class="trbtn-infaq" data-infaq-open style="--trbtn:${TRBTN.color}"><img src="${TRBTN.img}" alt="" width="22" height="22" decoding="async" data-trbtn-img /><span>${TRBTN.text}</span></button>
       <button type="button" class="akad-link" data-akad-open>${icon('info')}Baca akad & tujuan infaq</button>
     </section>
+    <p class="hint pad infaq-note">Di dalam aplikasi, gunakan <b>QRIS</b> atau <b>transfer bank/virtual account</b>. Dompet digital seperti GoPay dan ShopeePay perlu membuka aplikasinya sehingga tidak dapat berjalan di jendela ini — untuk itu <a href="${TRBTN.url}" target="_blank" rel="noopener noreferrer" data-trk-direct>buka halaman pembayaran</a>.</p>
     <div class="infaq-stats" data-stats hidden></div>
     <section class="card"><p class="eyebrow">${icon('trophy')} Papan donatur</p>
       <div class="tabs small" data-tabs>${Object.entries(PERIODS).map(([k, v]) => `<button data-p="${k}">${v}</button>`).join('')}</div>
@@ -92,7 +93,6 @@ export default function infaq(root) {
     el.setAttribute('aria-label', 'Infaq QuranKu')
     el.innerHTML = `<div class="trk-wait" data-wait><span class="spinner" aria-hidden="true"></span><h3>INFAQ QURANKU</h3><p class="muted">Membuka formulir infaq…</p></div>
       <iframe title="Formulir infaq" allow="payment *; clipboard-write *" allowtransparency="true" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-      <div class="trk-help"><span>Pembayaran tidak muncul atau diblokir?</span><a href="${TRBTN.url}" target="_blank" rel="noopener noreferrer" data-trk-direct>Buka halaman pembayaran</a></div>
       <button type="button" class="trk-x" data-trk-close aria-label="Tutup">${icon('close')}</button>`
     const frame = el.querySelector('iframe')
     const say = () => {
@@ -102,6 +102,8 @@ export default function infaq(root) {
     }
     frame.addEventListener('load', () => {
       el.querySelector('[data-wait]')?.remove()
+      // Formulir penyedia punya tombol tutupnya sendiri: tombol X milik aplikasi hanya tampil selama memuat.
+      el.querySelector('[data-trk-close]')?.remove()
       say()
       setTimeout(say, 400) // halaman sematan baru memasang pendengar pesan setelah skripnya berjalan
       setTimeout(say, 1200)

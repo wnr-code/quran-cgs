@@ -93,7 +93,9 @@ await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol 
   const src = await page.$eval('.trk-overlay iframe', (f) => f.src)
   assert.equal(src, `${EMBED}?embedId=0&ref=${BASE}/`)
   assert.equal(await opened, true, 'bingkai tidak menerima embed.openModal')
-  assert.equal(await page.$eval('[data-trk-direct]', (a) => a.href), 'https://trakteer.id/lanteraku/tip') // jalan cadangan bila pembayaran diblokir
+  assert.equal(await page.$eval('#view [data-trk-direct]', (a) => a.href), 'https://trakteer.id/lanteraku/tip') // jalan untuk dompet digital
+  // Tidak ada tombol/teks milik aplikasi yang menutupi formulir penyedia setelah termuat
+  assert.equal(await page.$('.trk-overlay [data-trk-close], .trk-overlay .trk-help'), null)
   await new Promise((r) => setTimeout(r, 500))
   await page.screenshot({ path: `${SHOTS}/15-infaq-popup.png` })
   assert.equal((await browser.pages()).length, pagesBefore, 'tidak ada tab baru')
@@ -110,10 +112,10 @@ await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol 
   const frame = await (await page.$('.trk-overlay iframe')).contentFrame()
   await frame.click('#c')
   await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
-  // Tombol X milik aplikasi
+  // Tombol kembali sekali lagi
   await openForm()
   await page.waitForSelector('.trk-overlay.open', T)
-  await page.click('[data-trk-close]')
+  await page.goBack()
   await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
   assert.equal(new URL(page.url()).hash, '#/infaq')
   assert.equal((await browser.pages()).length, pagesBefore)
@@ -127,7 +129,8 @@ await step('Papan donatur: menutup popup tidak menambah donatur; webhook menampi
   assert.equal(r.status, 200)
   await openForm()
   await page.waitForSelector('.trk-overlay.open', T)
-  await page.click('[data-trk-close]') // papan dimuat ulang setelah popup ditutup
+  await new Promise((r) => setTimeout(r, 300))
+  await page.goBack() // papan dimuat ulang setelah popup ditutup
   await page.waitForFunction((n) => [...document.querySelectorAll('.wish strong')].some((e) => e.textContent === n), T, name)
   const wish = await page.evaluate((n) => {
     const li = [...document.querySelectorAll('.wish')].find((e) => e.querySelector('strong').textContent === n)
