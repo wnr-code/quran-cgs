@@ -15,17 +15,17 @@ export default function asmaul(root) {
       <h2>${TOTAL} Nama Allah</h2>
       <div data-verse></div>
     </section>
-    <div class="search-box">${icon('search')}<input type="search" placeholder="Cari nama atau arti…" aria-label="Cari" autocomplete="off" /></div>
+    <div class="search-box">${icon('search')}<input type="search" placeholder="Cari nama, arti, atau makna…" aria-label="Cari" autocomplete="off" /></div>
     <p class="asma-count" data-count></p>
     <div class="asma-grid" data-list></div>
-    <p class="hint pad">Sumber data: ${esc(data.source)}. Audio belum tersedia dari sumber data.</p></div>`
+    <p class="hint pad">Sentuh sebuah nama untuk melihat makna, faedah, dan rujukan ayatnya. Sumber data: ${esc(data.source)} — makna &amp; faedah adalah ringkasan dari sumber tersebut; rujukan ayat dapat dibuka untuk dibaca langsung.</p></div>`
   const list = $('[data-list]', root)
   const input = $('input', root)
   const count = $('[data-count]', root)
   const norm = (s) => String(s).toLowerCase().replace(/[^a-z]/g, '')
   const render = () => {
     const q = norm(input.value)
-    const items = q ? data.items.filter((x) => norm(x.latin).includes(q) || norm(x.arti).includes(q)) : data.items
+    const items = q ? data.items.filter((x) => norm(x.latin).includes(q) || norm(x.arti).includes(q) || (q.length > 3 && norm(x.makna).includes(q))) : data.items
     count.textContent = q ? `${items.length} dari ${TOTAL} nama` : ''
     count.hidden = !q
     list.innerHTML =
@@ -51,6 +51,9 @@ export default function asmaul(root) {
       <h3>${esc(x.latin)}</h3>
       <p class="asma-detail-arti">${esc(x.arti)}</p>
     </div>
+    ${x.makna ? `<section class="asma-sec"><h4>${icon('book')}Makna</h4><p>${esc(x.makna)}</p></section>` : ''}
+    ${x.amalan ? `<section class="asma-sec"><h4>${icon('hands')}Faedah &amp; amalan</h4><p>${esc(x.amalan)}</p></section>` : ''}
+    ${x.ref && x.ref.length ? `<section class="asma-sec"><h4>${icon('bookmark')}Rujukan</h4><div class="asma-refs">${x.ref.map((r) => (r.s ? `<a class="chip chip-link" href="#/surah/${r.s}/${r.a}">${esc(r.t)}</a>` : `<span class="asma-ref-note">${esc(r.t)}</span>`)).join('')}</div></section>` : ''}
     <div class="asma-detail-nav">
       <button class="btn" data-go="-1" ${x.id <= 1 ? 'disabled' : ''}>${icon('back')}Sebelumnya</button>
       <button class="btn" data-copy>${icon('copy')}Salin</button>
@@ -74,7 +77,7 @@ export default function asmaul(root) {
               box.innerHTML = detail(cur)
             }
           } else if (ev.target.closest('[data-copy]')) {
-            toast((await copyText(`${cur.arab}\n${cur.latin} — ${cur.arti}`)) ? 'Disalin' : 'Gagal menyalin')
+            toast((await copyText(`${cur.arab}\n${cur.latin} — ${cur.arti}${cur.makna ? '\n\n' + cur.makna : ''}`)) ? 'Disalin' : 'Gagal menyalin')
           }
         })
       }

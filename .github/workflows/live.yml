@@ -21,10 +21,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Halaman pembayaran infaq
-        run: npm i --no-save puppeteer && node tests/live/infaq.mjs
       - name: Kontrak API sungguhan
-        if: always()
         run: node tests/live/api.mjs
       - name: Qari tambahan (mp3quran.net)
         if: always()

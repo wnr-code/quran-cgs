@@ -76,7 +76,7 @@ export const SOURCES = [
       },
       {
         name: 'wnr-code/asmaul_husna',
-        use: '99 Asmaul Husna: tulisan Arab, Latin, dan arti.',
+        use: '99 Asmaul Husna (data versi 2): tulisan Arab, Latin, arti, makna, faedah/amalan, dan rujukan ayat.',
         license: 'MIT',
         url: 'https://github.com/wnr-code/asmaul_husna',
         host: 'github.com/wnr-code/asmaul_husna'
