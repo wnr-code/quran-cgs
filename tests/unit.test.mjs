@@ -290,3 +290,19 @@ test('Tanda (stabilo): dibulatkan ke kata utuh, digabung, dihapus sebagian, HTML
   assert.equal(isCovered([[0, 8]], [5, 8]), true)
   assert.equal(isCovered([[0, 4]], [5, 8]), false)
 })
+
+test('install: peramban dikenali & panduan sesuai', async () => {
+  globalThis.location ??= { host: 'quran.cgs.my.id', origin: 'https://quran.cgs.my.id' }
+  const { detectBrowser, installGuideHtml } = await import('../src/services/install.js')
+  const A = 'Mozilla/5.0 (Linux; Android 13; SM-A546E) AppleWebKit/537.36 (KHTML, like Gecko) '
+  assert.equal(detectBrowser(A + 'Chrome/126.0 Mobile Safari/537.36').id, 'chrome')
+  assert.equal(detectBrowser(A + 'SamsungBrowser/25.0 Chrome/121.0 Mobile Safari/537.36').id, 'samsung')
+  assert.equal(detectBrowser(A + 'Chrome/126.0 Mobile Safari/537.36 OPR/83.0').id, 'opera')
+  assert.equal(detectBrowser('Mozilla/5.0 (Android 13; Mobile; rv:127.0) Gecko/127.0 Firefox/127.0').id, 'firefox')
+  assert.equal(detectBrowser(A + 'Version/4.0 Chrome/112.0 Mobile Safari/537.36 XiaoMi/MiuiBrowser/14.5').id, 'mi')
+  assert.equal(detectBrowser('Mozilla/5.0 (Linux; Android 13; SM-A546E; wv) AppleWebKit/537.36 Version/4.0 Chrome/126.0 Mobile Safari/537.36 Instagram 330').id, 'inapp')
+  assert.equal(detectBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Version/17.5 Mobile/15E148 Safari/604.1').id, 'ios-safari')
+  assert.match(installGuideHtml({ id: 'firefox', android: true }), /Firefox[\s\S]*Buka di Chrome/)
+  assert.match(installGuideHtml({ id: 'mi', android: true }), /kurang didukung[\s\S]*intent:\/\//)
+  assert.doesNotMatch(installGuideHtml({ id: 'chrome', android: true }), /intent:/)
+})

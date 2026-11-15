@@ -13,6 +13,7 @@ import { playAyah } from '../services/audio.js'
 import { ayahShareText } from '../components/ayah-card.js'
 import { rerender } from '../router.js'
 import { APP } from '../config.js'
+import { installApp, shouldOfferInstall, installDismissed, dismissInstall } from '../services/install.js'
 
 const SHORTCUTS = [
   ['/quran', 'book', 'Baca Quran'],
@@ -57,6 +58,26 @@ export default async function home(root) {
       <div class="skeleton sk-line"></div><div class="skeleton sk-line"></div>
     </section>
   </div>`
+  // Ajakan memasang aplikasi (semua peramban; disembunyikan bila sudah terpasang atau ditutup pengguna).
+  if (shouldOfferInstall() && !installDismissed()) {
+    $('.home-hero', root).insertAdjacentHTML(
+      'afterend',
+      `<div class="install-banner" data-install-banner>
+        <span class="shortcut-ic">${icon('download')}</span>
+        <span class="install-banner-text"><strong>Pasang QuranKu</strong><small>Layar penuh & bisa offline</small></span>
+        <button class="btn btn-primary btn-sm" data-install-now>Pasang</button>
+        <button class="icon-btn" data-install-close aria-label="Tutup ajakan pasang">${icon('close')}</button>
+      </div>`
+    )
+    const bn = $('[data-install-banner]', root)
+    $('[data-install-now]', bn).onclick = async () => {
+      if ((await installApp()) === 'accepted') bn.remove()
+    }
+    $('[data-install-close]', bn).onclick = () => {
+      dismissInstall()
+      bn.remove()
+    }
+  }
 
   // Lanjutkan membaca + info surah terakhir
   const renderContinue = async () => {

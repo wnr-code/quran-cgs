@@ -98,3 +98,8 @@ Terakhir diperbarui: 15 November 2026.
 - **Tandai teks**: tekan lama/pilih kata pada ayat → muncul menu kecil (Salin, Tandai/Hapus tanda, Bookmark, Bagikan, Lainnya). Tanda disimpan di perangkat (`quranku:tanda`), dibulatkan ke kata utuh agar sambungan huruf Arab tidak rusak. Ketuk tanda untuk menghapusnya.
 - Audit fitur: semua rute diperiksa pada lebar 360px & 412px (terang/gelap) — tanpa error JavaScript; smoke 25/25, infaq 4/4, fallback 4/4.
 - Belum: tanda belum ikut dalam cadangan/pulihkan data; tekan lama di ponsel sungguhan belum diuji (hanya simulasi seleksi di Chromium).
+
+## 1.3.3
+
+- **Pasang aplikasi (PWA) di semua peramban**: sebelumnya kartu "Pasang QuranKu" hanya muncul bila peramban mengirim `beforeinstallprompt` (Chrome/Edge), sehingga di Firefox, Opera, Samsung Internet, Mi Browser, dan peramban dalam aplikasi tidak ada jalan memasang. Sekarang ajakan tampil di Beranda (bisa ditutup, ditawarkan lagi setelah 14 hari) dan kartu di Lainnya selalu ada selama belum terpasang. Bila dialog bawaan tidak tersedia, muncul panduan langkah sesuai peramban + tombol "Buka di Chrome" (`src/services/install.js`).
+- Belum diuji di ponsel sungguhan: nama menu tiap peramban dapat berbeda antarversi; tautan `intent://` ke Chrome hanya berlaku di Android.
