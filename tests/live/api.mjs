@@ -4,7 +4,7 @@ import { createEquran } from '../../src/api/equran.js'
 import { alquranCloud, stripBasmalah } from '../../src/api/alqurancloud.js'
 import { parseDoa } from '../../src/api/doa-api.js'
 import { validateSurahList, validateSurahDetail, validateTafsir } from '../../src/utils/validation.js'
-import { API, QARI } from '../../src/config.js'
+import { API, QARI_AYAH as QARI } from '../../src/config.js'
 
 const out = []
 let failed = 0

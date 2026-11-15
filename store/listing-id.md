@@ -20,7 +20,7 @@ MEMBACA DENGAN NYAMAN
 • Lanjutkan tepat di ayat terakhir yang dibaca
 
 MUROTTAL
-• 6 pilihan qari
+• 31 pilihan qari (6 dengan audio per ayat)
 • Putar per ayat atau satu surah penuh
 • Ulangi ayat atau surah, atur kecepatan
 • Unduh audio surah pilihan untuk didengar tanpa internet
