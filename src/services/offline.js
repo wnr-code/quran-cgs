@@ -2,6 +2,7 @@
 import { getSurah, getTafsir, forgetSurah, clearMemory } from '../api/api-adapter.js'
 import { surahRepo, tafsirRepo, audioRepo } from '../database/repositories.js'
 import { emit, toast } from '../utils/helpers.js'
+import { getAudioState } from './audio.js'
 
 export const AUDIO_CACHE = 'quranku-audio-v1'
 
@@ -9,13 +10,24 @@ export async function registerServiceWorker() {
   if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return null
   try {
     const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
-    reg.addEventListener('updatefound', () => {
-      const sw = reg.installing
-      if (!sw) return
-      sw.addEventListener('statechange', () => {
-        if (sw.state === 'installed' && navigator.serviceWorker.controller) toast('Versi baru QuranKu siap. Tutup lalu buka kembali aplikasi untuk memperbarui.', 6000)
-      })
+    // Versi baru dipasang otomatis: Service Worker baru langsung mengambil alih, lalu halaman dimuat ulang
+    // sekali — kecuali pengguna sedang membaca atau memutar murottal (ditunda sampai aplikasi disembunyikan).
+    const hadController = !!navigator.serviceWorker.controller
+    let reloaded = false
+    const busy = () => document.body.classList.contains('reading-mode') || document.body.classList.contains('sheet-open') || getAudioState().playing
+    const reload = () => {
+      if (reloaded) return
+      reloaded = true
+      location.reload()
+    }
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController) return
+      if (!busy()) return reload()
+      toast('Versi baru QuranKu siap dan akan dipasang saat aplikasi dibuka kembali.', 5000)
+      document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && !getAudioState().playing && reload())
     })
+    // Aplikasi yang lama terbuka (TWA/PWA) tetap memeriksa versi baru saat kembali ke layar.
+    document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && navigator.onLine && reg.update().catch(() => {}))
     return reg
   } catch (e) {
     console.warn('[sw] gagal mendaftar', e)

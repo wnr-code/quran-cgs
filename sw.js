@@ -29,6 +29,8 @@ self.addEventListener('install', (event) => {
           } catch {}
         })
       )
+      // Langsung aktif tanpa menunggu semua tab ditutup, supaya pembaruan tidak tertahan di versi lama.
+      await self.skipWaiting()
     })
   )
 })
