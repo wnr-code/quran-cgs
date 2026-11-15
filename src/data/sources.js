@@ -81,6 +81,14 @@ export const SOURCES = [
         host: 'islam.nu.or.id/shalat'
       },
       {
+        name: 'Quran NU Online (quran.nu.or.id)',
+        role: 'Doa penutup wirid salat',
+        use: 'Doa usai salat fardu (pujian, shalawat, dan permohonan): teks Arab, Latin, dan arti. Disimpan di aplikasi sehingga dapat dibuka offline.',
+        note: 'Disalin dari halaman “Doa Shalat — Doa Usai Shalat Fardhu”, dengan beberapa perbaikan salah ketik pada Latin dan arti.',
+        url: 'https://quran.nu.or.id/doa/doa-shalat',
+        host: 'quran.nu.or.id'
+      },
+      {
         name: 'fitrahive/dua-dhikr',
         role: 'Doa sesudah wudhu',
         use: 'Bacaan sesudah wudhu: teks Arab, Latin, terjemahan, keterangan, dan rujukan hadis. Disimpan di aplikasi sehingga dapat dibuka offline.',

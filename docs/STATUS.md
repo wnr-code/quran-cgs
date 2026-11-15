@@ -203,3 +203,9 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Tab Al-Qur'an kini juga punya tombol Salin.
 - Ikon font: subset Font Awesome Free 6.7.2 (13 glif, ±2,5 KB) di `public/fonts/qk-icons-*.woff2`, lisensi di `public/fonts/LICENSE-fontawesome-free.txt`. Dipakai di halaman Doa; bagian lain aplikasi masih memakai ikon SVG.
 - Tautan media sosial tidak dapat diuji sampai terkirim dari sandbox; hanya bentuk URL yang diuji.
+
+## 1.3.19 — Doa penutup wirid salat dari Quran NU Online
+
+- Langkah 13 wirid setelah salat kini berisi doa usai salat fardu (dua kartu: pujian & shalawat; permohonan) dari <https://quran.nu.or.id/doa/doa-shalat> bagian "Doa Usai Shalat Fardhu" — Arab, Latin, dan arti dari NU.
+- Teks Arab disalin apa adanya dari halaman NU (bukan dari transkripsi tangkapan layar). Perbaikan salah ketik yang dilakukan: Latin "wa âlihi sayyidinâ" → "wa âli sayyidinâ", "Allâḫumma" → "Allâhumma", "sayyidinâ Muḫammadun" → "sayyidunâ Muḫammadun", "raḫmatikâ" → "raḫmatika", "ḫasanatanwa" → "ḫasanatan wa", "‘adzaban-nâri" → "‘adzâban-nâri"; kalimat Latin "Wa na‘ûdzu bika min syarri …" yang tidak ada di halaman NU ditambahkan mengikuti teks Arabnya; arti "jimat ampunanmu" → "ketetapan ampunan-Mu".
+- Halaman yang sama memuat wirid lengkap versi NU dengan Latin dan arti (susunannya berbeda dari artikel Langitan yang dipakai di langkah 1–12) — kandidat pengganti Latin/arti buatan QuranKu.

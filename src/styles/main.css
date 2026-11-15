@@ -4435,3 +4435,10 @@ button.cal-cell:focus-visible {
 .share-opt.tg .share-ic { background: #229ed9; }
 .share-opt.fb .share-ic { background: #1877f2; }
 .share-opt.x .share-ic { background: #000; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28); }
+
+/* 1.3.19: doa panjang berparagraf */
+.dzikir .ayah-ar,
+.dzikir .ayah-latin,
+.dzikir .ayah-id {
+  white-space: pre-line;
+}

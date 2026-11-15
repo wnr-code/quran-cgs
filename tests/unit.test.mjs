@@ -258,6 +258,12 @@ test('doa wudhu & wirid setelah salat: lengkap, berhuruf Arab, bersumber', () =>
     for (const l of d.links) assert.ok(l.s >= 1 && l.s <= 114 && l.a >= 1 && l.label)
   }
   assert.equal(dz.salat.filter((d) => /33x/.test(d.notes)).length, 3)
+  // Doa penutup (langkah 13) dari Quran NU Online, lengkap Arab/Latin/arti.
+  const doa = dz.salat.filter((d) => d.step === 13)
+  assert.equal(doa.length, 2)
+  for (const d of doa) assert.ok(d.from === 'nu-doa' && d.arabic && d.latin && d.translation)
+  assert.match(doa[1].arabic, /رَبَّنَا اٰتِنَا فِي الدُّنْيَا حَسَنَةً/)
+  assert.match(dz.sourceDoaSalat.url, /^https:\/\/quran\.nu\.or\.id\/doa\/doa-shalat$/)
   assert.ok(SOURCES.some((g) => g.items.some((i) => i.name === 'fitrahive/dua-dhikr')))
 })
 
