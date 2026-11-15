@@ -398,3 +398,18 @@ test('cuplikan tautan: tag Open Graph/Twitter lengkap & gambar 1200×630', async
   assert.deepEqual([m.width, m.height, m.format], [1200, 630, 'jpeg'])
   assert.ok(readFileSync(new URL('../public/og-image.jpg', import.meta.url)).length < 300 * 1024, 'di bawah 300 KB (batas WhatsApp)')
 })
+
+test('bagikan doa: teks lengkap & tautan media sosial', async () => {
+  const { doaText, doaUrl, shareLinks } = await import('../src/utils/doa-share.js')
+  const p = { title: 'Istighfar', ar: 'أَسْتَغْفِرُ اللهَ', latin: 'Astaghfirullāh', arti: 'Aku memohon ampun kepada Allah.', ref: 'NU Online', tab: 'salat' }
+  assert.equal(doaText(p), 'Istighfar\n\nأَسْتَغْفِرُ اللهَ\n\nAstaghfirullāh\n\nArtinya: Aku memohon ampun kepada Allah.\n\n(NU Online)')
+  assert.equal(doaText({ title: 'A', ar: 'ب', latin: '', arti: '', ref: '', tab: 'quran' }), 'A\n\nب')
+  assert.equal(doaUrl(p, 'https://quran.cgs.my.id'), 'https://quran.cgs.my.id/#/doa/salat')
+  const l = shareLinks(p, 'https://quran.cgs.my.id')
+  assert.match(l.whatsapp, /^https:\/\/wa\.me\/\?text=Istighfar%0A/)
+  assert.ok(decodeURIComponent(l.whatsapp).endsWith('https://quran.cgs.my.id/#/doa/salat'))
+  assert.match(l.telegram, /^https:\/\/t\.me\/share\/url\?url=https%3A%2F%2Fquran\.cgs\.my\.id%2F%23%2Fdoa%2Fsalat&text=/)
+  assert.match(l.facebook, /sharer\.php\?u=https%3A/)
+  const long = shareLinks({ ...p, ar: 'ا'.repeat(500) }, 'https://quran.cgs.my.id')
+  assert.ok(decodeURIComponent(new URL(long.x).searchParams.get('text')).length <= 200)
+})

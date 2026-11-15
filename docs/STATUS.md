@@ -195,3 +195,11 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Wirid setelah salat diganti dengan susunan 13 langkah dari <https://islam.nu.or.id/shalat/susunan-bacaan-wirid-sesudah-shalat-lima-waktu-aLgk4> (Mahbib Khoiron, 2-7-2017; susunan KH Muhammad bin Abdullah Faqih, Langitan). Teks Arab disalin apa adanya.
 - Artikel NU hanya memuat teks Arab. **Latin dan arti zikir disusun QuranKu, belum ditinjau ustaz**; ayat Al-Qur'an (Ayat Kursi, Al-Baqarah 285–286, Ali Imran) diberi tautan ke mushaf, tanpa Latin/arti di kartu.
 - Doa sesudah wudhu masih dari fitrahive/dua-dhikr; doa sehari-hari masih dari EQuran.id.
+
+## 1.3.18 — Doa: lafaz saja, ukuran Arab, bagikan, ikon font
+
+- Bilah tampilan di halaman Doa (semua tab): tombol **Arti** dan **Latin** (tampil/sembunyi) serta **Arab: Normal/Besar/Lebih besar**. Pilihan disimpan di `localStorage` `quranku:doa-tampilan`.
+- Tombol **Bagikan** di tiap doa → lembar pilihan WhatsApp, Telegram, Facebook, X, "Lainnya" (menu bagikan bawaan perangkat bila tersedia), dan Salin teks. Teks berisi judul, Arab, Latin, arti, sumber, dan tautan `…/#/doa/<tab>` (`src/utils/doa-share.js`). Facebook hanya menerima tautan, sehingga teks ikut disalin.
+- Tab Al-Qur'an kini juga punya tombol Salin.
+- Ikon font: subset Font Awesome Free 6.7.2 (13 glif, ±2,5 KB) di `public/fonts/qk-icons-*.woff2`, lisensi di `public/fonts/LICENSE-fontawesome-free.txt`. Dipakai di halaman Doa; bagian lain aplikasi masih memakai ikon SVG.
+- Tautan media sosial tidak dapat diuji sampai terkirim dari sandbox; hanya bentuk URL yang diuji.
