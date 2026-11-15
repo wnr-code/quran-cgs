@@ -34,7 +34,10 @@ export function pickSurahAudio(surah, qari = audioSettings().qari) {
   if (!surah) return null
   const extra = QARI_SURAH[qari]
   const n = Number(surah.nomor)
-  if (extra && Number.isInteger(n) && n >= 1 && n <= 114) return { url: `${extra.base}/${String(n).padStart(3, '0')}.mp3`, qari }
+  if (extra && Number.isInteger(n) && n >= 1 && n <= 114) {
+    const file = `${String(n).padStart(3, '0')}.mp3`
+    return { url: `${extra.base}/${file}`, alt: extra.alt ? `${extra.alt}/${file}` : '', qari }
+  }
   return pickAudio(surah.audioFull, extra ? ayahQari() : qari)
 }
 
@@ -45,6 +48,7 @@ export function ayahQari() {
   return QARI_AYAH[s.ayahQari] ? s.ayahQari : DEFAULT_QARI
 }
 let toldSurahOnly = false
+let fallbackUrl = ''
 
 function notify() {
   emit('audio:state', getAudioState())
@@ -100,6 +104,7 @@ export async function playAyah(surah, ayahNo) {
     if (!toldSurahOnly) toast(`${QARI[chosen]} hanya tersedia untuk surah penuh. Audio per ayat memakai ${QARI[pick.qari] || 'qari lain'}.`, 5000)
     toldSurahOnly = true
   } else if (pick.qari !== chosen) toast(`Qari pilihan tidak tersedia, memutar ${QARI[pick.qari] || 'qari lain'}.`)
+  fallbackUrl = ''
   Object.assign(state, { mode: 'ayah', surah, ayah: ayahNo, qari: pick.qari })
   setMediaSession()
   emit('audio:ayah', { surah: surah.nomor, ayah: ayahNo })
@@ -114,6 +119,7 @@ export async function playSurah(surah) {
   if (pick.qari !== audioSettings().qari) toast(`Qari pilihan tidak tersedia, memutar ${QARI[pick.qari] || 'qari lain'}.`)
   Object.assign(state, { mode: 'surah', surah, ayah: 0, qari: pick.qari })
   setMediaSession()
+  fallbackUrl = pick.alt || ''
   await load(pick.url)
 }
 
@@ -202,6 +208,12 @@ if (el) {
   el.addEventListener('timeupdate', () => emit('audio:time', { currentTime: el.currentTime, duration: Number.isFinite(el.duration) ? el.duration : 0 }))
   el.addEventListener('error', () => {
     if (!state.mode) return
+    // Qari tambahan: alamat utama gagal → coba sekali alamat resmi cadangan.
+    if (state.mode === 'surah' && fallbackUrl && navigator.onLine) {
+      const url = fallbackUrl
+      fallbackUrl = ''
+      return void load(url)
+    }
     state.playing = false
     state.loading = false
     notify()

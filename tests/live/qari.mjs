@@ -48,6 +48,7 @@ if (moshafs) {
 const summary = []
 const moved = []
 const lines = []
+let i0 = 0
 
 for (const q of QARI_EXTRA) {
   const problems = []
@@ -65,7 +66,8 @@ for (const q of QARI_EXTRA) {
       if (same.length === 1) m = same[0]
       else if (same.length > 1) problems.push('cocok dengan lebih dari satu mushaf: ' + same.map((x) => x.server).join(', '))
     }
-    if (m && m.server !== q.base) moved.push(`${q.id.slice(2)}=${m.server.replace('https://cdn.mp3quran.net/audio/', '')}`)
+    if (m && m.server !== q.alt) problems.push(`alamat resmi berbeda dari 'alt': ${m.server}`)
+    if (m && m.server !== q.base && m.server !== q.alt) moved.push(`${q.id.slice(2)}=${m.server.replace('https://cdn.mp3quran.net/audio/', '')}`)
     if (!m) problems.push(problems.length ? 'tidak dapat dipastikan' : 'tidak ditemukan di API mp3quran (alamat maupun ukuran berkas)')
     else {
       api = `${m.reciter} — ${m.name} (${m.total})`
@@ -87,8 +89,16 @@ for (const q of QARI_EXTRA) {
   } catch (e) {
     problems.push('audio tidak terjangkau: ' + e.message)
   }
+  // Alamat cadangan (resmi terbaru) harus berisi berkas yang sama dan dapat diputar dari peramban.
+  try {
+    const [main, alt] = await Promise.all([size(`${q.base}/002.mp3`), size(`${q.alt}/002.mp3`)])
+    if (!(alt.len > 0 && alt.len === main.len)) problems.push(`alt 002 berbeda: ${alt.status} ${alt.len} vs ${main.len}`)
+    sizes += ` | alt: ranges=${alt.ranges || '-'} cors=${alt.cors || '-'} type=${alt.type}`
+  } catch (e) {
+    problems.push('alt tidak terjangkau: ' + e.message)
+  }
   summary.push({ id: q.id, ok: !problems.length })
-  lines.push(`${problems.length ? '✗' : '✓'} ${q.id.slice(2)} = ${api}${problems.length ? ' !! ' + problems.join('; ') : ''}`)
+  lines.push(`${problems.length ? '✗' : '✓'} ${q.id.slice(2)} = ${api}${problems.length ? ' !! ' + problems.join('; ') : ''}${i0++ ? '' : ' [' + sizes + ']'}`)
   if (problems.length) failed++
   console.log(`${problems.length ? '✗' : '✓'} ${q.name}: ${problems.join('; ')} | API: ${api} | ${sizes}`)
 }
