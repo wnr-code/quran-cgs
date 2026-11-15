@@ -1,7 +1,7 @@
 // Webhook Trakteer → Cloudflare D1.
 // Atur di Trakteer: Integrations → Webhook → URL: https://quran.cgs.my.id/api/trakteer-webhook
-// Simpan "Webhook Token" dari Trakteer sebagai secret Pages: TRAKTEER_WEBHOOK_TOKEN. Binding D1: DB.
-const json = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } })
+// Simpan "Webhook Token" dari Trakteer sebagai secret Worker: TRAKTEER_WEBHOOK_TOKEN. Binding D1: DB.
+import { ensureSchema, insertDonation, json } from '../lib/db.js'
 
 function safeEqual(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false
@@ -52,9 +52,8 @@ export async function onRequestPost({ request, env }) {
   if (!d) return json({ ok: false, error: 'invalid_payload' }, 400)
   // Transaksi uji dari tombol "Send Webhook Test" Trakteer tidak ditampilkan di papan donatur.
   const isTest = /^test/i.test(d.id) ? 1 : 0
-  await env.DB.prepare('INSERT OR IGNORE INTO donations (id, name, unit, quantity, amount, type, is_test, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)')
-    .bind(d.id, d.name, d.unit, d.quantity, d.amount, d.type, isTest, d.created_at)
-    .run()
+  await ensureSchema(env.DB)
+  await insertDonation(env.DB, { ...d, is_test: isTest }, 'webhook')
   return json({ ok: true })
 }
 

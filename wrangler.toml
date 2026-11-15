@@ -1,6 +1,6 @@
 # Konfigurasi Cloudflare Workers (dengan aset statis). Dipakai oleh `npx wrangler deploy`.
 # `name` harus sama dengan nama Worker di dashboard Cloudflare.
-# Secret TRAKTEER_WEBHOOK_TOKEN TIDAK ditulis di sini — isi lewat dashboard (Settings → Variables and Secrets).
+# Secret TIDAK ditulis di sini — isi lewat dashboard (Settings → Variables and Secrets). Daftarnya: docs/INFAQ.md
 name = "quran-cgs"
 main = "worker/index.js"
 compatibility_date = "2025-10-01"
@@ -12,6 +12,15 @@ command = "npm run build"
 [assets]
 directory = "./dist"
 binding = "ASSETS"
+
+# Infaq: username halaman pembayaran & harga 1 unit (rupiah). Sesuaikan INFAQ_UNIT_PRICE dengan harga unit di akun Anda.
+[vars]
+INFAQ_USERNAME = "lanteraku"
+INFAQ_UNIT_PRICE = "5000"
+
+# Sinkronisasi riwayat infaq dari Public API tiap 15 menit (gratis).
+[triggers]
+crons = ["*/15 * * * *"]
 
 [[d1_databases]]
 binding = "DB"

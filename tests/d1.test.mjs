@@ -1,28 +1,16 @@
 // Uji integrasi papan donatur: webhook Trakteer → SQL sungguhan (SQLite, mesin yang sama dengan D1) → /api/donors.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
-import { DatabaseSync } from 'node:sqlite'
+import { fakeD1 } from './helpers.mjs'
+import { ensureSchema } from '../functions/lib/db.js'
 import { onRequestPost } from '../functions/api/trakteer-webhook.js'
 import { onRequestGet } from '../functions/api/donors.js'
-
-/** Tiruan tipis antarmuka D1 di atas SQLite. */
-function fakeD1() {
-  const db = new DatabaseSync(':memory:')
-  db.exec(readFileSync('migrations/0001_donations.sql', 'utf8'))
-  const stmt = (sql, args = []) => ({
-    bind: (...a) => stmt(sql, a),
-    run: async () => ({ success: true, meta: db.prepare(sql).run(...args) }),
-    all: async () => ({ results: db.prepare(sql).all(...args) }),
-    first: async () => db.prepare(sql).get(...args) ?? null
-  })
-  return { prepare: (sql) => stmt(sql), batch: async (list) => Promise.all(list.map((s) => s.all())), _db: db }
-}
 
 const post = (env, body) => onRequestPost({ request: new Request('https://x/api/trakteer-webhook', { method: 'POST', headers: { 'X-Webhook-Token': 't', 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), env })
 
 test('webhook → D1 → papan donatur harian/mingguan/bulanan', async () => {
   const env = { DB: fakeD1(), TRAKTEER_WEBHOOK_TOKEN: 't' }
+  await ensureSchema(env.DB)
   const now = Date.now()
   const iso = (ms) => new Date(ms).toISOString()
   const day = 86400000

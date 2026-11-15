@@ -18,14 +18,10 @@ export const API = {
   retries: 1
 }
 
-// === INFAQ / TRAKTEER ===
-// Username Trakteer pengembang (bagian setelah trakteer.id/).
-// Bisa diganti lewat env Cloudflare Pages: VITE_TRAKTEER_USERNAME
-export const TRAKTEER = {
-  username: (env.VITE_TRAKTEER_USERNAME || 'anichinapk').trim(),
-  get url() {
-    return this.username ? `https://trakteer.id/${encodeURIComponent(this.username)}/tip` : ''
-  },
+// === INFAQ ===
+// Seluruh proses pembayaran diatur di sisi server (Cloudflare Worker); tidak ada kunci di frontend.
+export const INFAQ = {
+  api: '/api/infaq',
   donorsApi: '/api/donors'
 }
 

@@ -10,7 +10,7 @@ Jawaban di bawah mencerminkan perilaku kode saat ini. Tinjau kembali bila fitur 
 | Data dienkripsi saat transit | Ya | Seluruh koneksi HTTPS. |
 | Pengguna dapat meminta penghapusan data | Ya | Pengaturan → Hapus semua data saya; atau hapus data aplikasi. |
 
-Catatan infaq: pembayaran terjadi di situs Trakteer (di luar aplikasi) dan tunduk pada kebijakan Trakteer. Nama tampilan dan nominal yang dikirim Trakteer ditampilkan di papan donatur. Bila Anda menilai hal ini sebagai pengumpulan data melalui aplikasi, deklarasikan **Info pribadi → Nama** dan **Info keuangan → Riwayat pembelian**, tujuan *Fungsi aplikasi*, opsional. Kebijakan privasi sudah menjelaskan hal ini.
+Catatan infaq: alur infaq kini berada di dalam aplikasi. Nama tampilan, nominal, dan pesan yang diisi pengguna dikirim ke server aplikasi untuk membuat permintaan pembayaran; pembayaran diproses oleh Trakteer dan mitranya. Nama tampilan dan nominal ditampilkan di papan donatur. Ini termasuk pengumpulan data melalui aplikasi, jadi deklarasikan **Info pribadi → Nama** dan **Info keuangan → Riwayat pembelian**, tujuan *Fungsi aplikasi*, opsional. Kebijakan privasi sudah menjelaskan hal ini.
 
 ## Rating konten (kuesioner IARC)
 - Kategori: Referensi, Berita, atau Pendidikan

@@ -18,7 +18,7 @@ Nama Worker di dashboard harus sama dengan `name` di `wrangler.toml` (`quran-cgs
 Worker → **Settings → Domains & Routes → Add → Custom domain** → `quran.cgs.my.id`. HTTPS aktif otomatis.
 
 ## 3. Papan donatur
-Ikuti [INFAQ.md](INFAQ.md): buat tabel di D1 `quran` dan isi secret `TRAKTEER_WEBHOOK_TOKEN`. Binding D1 `DB` sudah ada di `wrangler.toml`.
+Ikuti [INFAQ.md](INFAQ.md): isi secret infaq dan daftarkan webhook. Tabel D1 dibuat otomatis. Binding D1 `DB` sudah ada di `wrangler.toml`.
 
 ## 4. Uji setelah deploy
 | Uji | Cara |
