@@ -11,7 +11,7 @@ import { onRequestPost as webhookPost, onRequestGet as webhookGet } from '../fun
 
 const json = (obj, status) => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } })
 
-export default {
+const app = {
   async fetch(request, env, ctx) {
     const url = new URL(request.url)
     const p = url.pathname.replace(/\/+$/, '')
@@ -55,4 +55,22 @@ export default {
       })
     )
   }
+}
+
+// Alamat resmi aplikasi (utama & cadangan) boleh saling memanggil API: dipakai saat salah satunya mati.
+const ALLOWED_ORIGINS = new Set(['https://quran.cgs.my.id', 'https://quran-cgs.appwnr.workers.dev'])
+export const corsHeaders = (origin) =>
+  ALLOWED_ORIGINS.has(origin) ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400', Vary: 'Origin' } : null
+
+export default {
+  async fetch(request, env, ctx) {
+    const cors = new URL(request.url).pathname.startsWith('/api/') && corsHeaders(request.headers.get('Origin') || '')
+    if (cors && request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors })
+    const res = await app.fetch(request, env, ctx)
+    if (!cors) return res
+    const out = new Response(res.body, res)
+    for (const [k, v] of Object.entries(cors)) out.headers.set(k, v)
+    return out
+  },
+  scheduled: (event, env, ctx) => app.scheduled(event, env, ctx)
 }

@@ -11,6 +11,9 @@ import { registerServiceWorker, watchConnectivity } from './services/offline.js'
 import { startReminderLoop } from './services/notification.js'
 import { initAdzan, adzanTick } from './services/adzan.js'
 import { getSurahList } from './api/api-adapter.js'
+import { installFetchFailover } from './services/failover.js'
+
+installFetchFailover()
 
 initSettings()
 

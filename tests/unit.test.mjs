@@ -306,3 +306,62 @@ test('install: peramban dikenali & panduan sesuai', async () => {
   assert.match(installGuideHtml({ id: 'mi', android: true }), /kurang didukung[\s\S]*intent:\/\//)
   assert.doesNotMatch(installGuideHtml({ id: 'chrome', android: true }), /intent:/)
 })
+
+test('failover: alamat utama mati → data diambil dari alamat cadangan', async () => {
+  const { createFailoverFetch, otherMirrors } = await import('../src/services/failover.js')
+  const P = 'https://quran.cgs.my.id', B = 'https://quran-cgs.appwnr.workers.dev'
+  assert.deepEqual(otherMirrors(P), [B])
+  assert.deepEqual(otherMirrors(B), [P])
+  assert.deepEqual(otherMirrors('http://localhost:8787'), [])
+  let dead = true, t = 0
+  const calls = []
+  const base = async (input, init) => {
+    const u = String(input)
+    calls.push([u, init && init.mode])
+    if (!u.startsWith('http') || u.startsWith(P)) {
+      if (dead) throw new TypeError('Failed to fetch')
+      return new Response('utama')
+    }
+    if (u.startsWith(B)) return new Response('cadangan')
+    return new Response('luar')
+  }
+  const f = createFailoverFetch(base, P, [P, B], { now: () => t })
+  assert.equal(await (await f('/api/donors?x=1')).text(), 'cadangan')
+  assert.deepEqual(calls, [['/api/donors?x=1', undefined], [B + '/api/donors?x=1', 'cors']])
+  // Selama 3 menit berikutnya langsung ke cadangan (tidak menunggu utama gagal lagi).
+  calls.length = 0
+  assert.equal(await (await f('/data/surah/1.json')).text(), 'cadangan')
+  assert.equal(calls.length, 1)
+  // POST membawa body yang sama.
+  let sent
+  const f2 = createFailoverFetch(async (u, i) => { if (!String(u).startsWith(B)) return new Response('', { status: 522 }); sent = i; return new Response('ok') }, P, [P, B])
+  assert.equal(await (await f2('/api/infaq/create', { method: 'POST', body: '{"quantity":1}' })).text(), 'ok')
+  assert.equal(sent.body, '{"quantity":1}')
+  assert.equal(sent.credentials, 'omit')
+  // Utama hidup lagi → kembali ke utama setelah masa tunggu.
+  dead = false
+  t = 4 * 60 * 1000
+  assert.equal(await (await f('/version.json')).text(), 'utama')
+  // Permintaan lain (lintas-origin / bukan data) tidak disentuh; perangkat offline tidak mencoba cadangan.
+  assert.equal(await (await f('https://equran.id/api/v2/surat')).text(), 'luar')
+  dead = true
+  const off = createFailoverFetch(base, P, [P, B], { isOnline: () => false })
+  await assert.rejects(off('/api/donors'), TypeError)
+  // Galat 4xx biasa bukan tanda mati.
+  const f3 = createFailoverFetch(async () => new Response('', { status: 404 }), P, [P, B])
+  assert.equal((await f3('/api/x')).status, 404)
+})
+
+test('worker: CORS hanya untuk alamat resmi + preflight', async () => {
+  const { default: worker, corsHeaders } = await import('../worker/index.js')
+  assert.equal(corsHeaders('https://evil.example'), null)
+  const env = { ASSETS: { fetch: async () => new Response('aset') } }
+  const pre = await worker.fetch(new Request('https://quran-cgs.appwnr.workers.dev/api/infaq/create', { method: 'OPTIONS', headers: { Origin: 'https://quran.cgs.my.id' } }), env, { waitUntil() {} })
+  assert.equal(pre.status, 204)
+  assert.equal(pre.headers.get('Access-Control-Allow-Origin'), 'https://quran.cgs.my.id')
+  const nf = await worker.fetch(new Request('https://quran-cgs.appwnr.workers.dev/api/tidak-ada', { headers: { Origin: 'https://quran.cgs.my.id' } }), env, { waitUntil() {} })
+  assert.equal(nf.status, 404)
+  assert.equal(nf.headers.get('Access-Control-Allow-Origin'), 'https://quran.cgs.my.id')
+  const bad = await worker.fetch(new Request('https://quran-cgs.appwnr.workers.dev/api/tidak-ada', { headers: { Origin: 'https://evil.example' } }), env, { waitUntil() {} })
+  assert.equal(bad.headers.get('Access-Control-Allow-Origin'), null)
+})

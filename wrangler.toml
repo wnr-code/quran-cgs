@@ -4,6 +4,8 @@
 name = "quran-cgs"
 main = "worker/index.js"
 compatibility_date = "2025-10-01"
+# Alamat cadangan https://quran-cgs.appwnr.workers.dev harus tetap aktif (dipakai otomatis bila domain utama mati).
+workers_dev = true
 
 # Aplikasi dibangun otomatis sebelum deploy (hasil di dist/).
 [build]
