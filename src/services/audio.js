@@ -85,7 +85,7 @@ function setMediaSession() {
       title: state.mode === 'ayah' ? `${state.surah.namaLatin} — Ayat ${state.ayah}` : `Surah ${state.surah.namaLatin}`,
       artist: QARI[state.qari] || 'Murottal',
       album: 'QuranKu',
-      artwork: [{ src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' }]
+      artwork: [{ src: '/icons/icon-512-v2.png', sizes: '512x512', type: 'image/png' }]
     })
     navigator.mediaSession.setActionHandler('play', () => resume())
     navigator.mediaSession.setActionHandler('pause', () => pause())

@@ -29,8 +29,10 @@ android {
         applicationId twa.applicationId
         minSdk 23
         targetSdk 36
-        versionCode 1
-        versionName '1.0.0'
+        // versionCode HARUS naik pada setiap APK baru — bila sama, Android menganggapnya versi yang sama dan
+        // ikon/isi lama tetap dipakai. CI mengisinya otomatis dari nomor run (QURANKU_VERSION_CODE).
+        versionCode((System.getenv('QURANKU_VERSION_CODE') ?: '2') as Integer)
+        versionName(System.getenv('QURANKU_VERSION_NAME') ?: new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version)
 
         manifestPlaceholders = [
             hostName       : twa.hostName,

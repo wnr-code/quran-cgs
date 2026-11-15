@@ -394,3 +394,256 @@ body.reading-mode .rd-wrap {
 body.reading-mode #toast {
   bottom: calc(var(--bar-h) + var(--safe-b) + 20px);
 }
+
+/* ===== Tab mode baca + garis kemajuan ===== */
+.rd-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  pointer-events: none;
+}
+.rd-progress i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--rd-accent);
+  border-radius: 0 2px 2px 0;
+  transition: width 0.3s ease;
+}
+.rd-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 auto 14px;
+  max-width: 440px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rd-text) 7%, transparent);
+}
+.rd-tabs button {
+  flex: 1;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--rd-muted);
+  transition: background 0.2s, color 0.2s;
+}
+.rd-tabs button .icon {
+  width: 16px;
+  height: 16px;
+}
+.rd-tabs button.on {
+  background: var(--rd-bg);
+  color: var(--rd-accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+}
+body.reading-mode .rd-tabs {
+  display: none;
+}
+.ayah-btns .icon-btn:hover {
+  color: var(--rd-accent);
+}
+
+/* ===== Mode Halaman: satu halaman mushaf per lembar, digeser ke samping ===== */
+body.reader-paged {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.reader.mode-page {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.reader.mode-page .rd-wrap {
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  padding-inline: 0;
+  padding-top: calc(var(--bar-h) + var(--safe-t) + 10px);
+  padding-bottom: calc(var(--bar-h) + var(--nav-h) + var(--safe-b));
+}
+body.reading-mode .reader.mode-page .rd-wrap {
+  padding-bottom: calc(var(--bar-h) + var(--safe-b));
+}
+.reader.mode-page.bars-hidden .rd-wrap {
+  padding-top: calc(var(--safe-t) + 6px);
+  padding-bottom: var(--safe-b);
+}
+.reader.mode-page .rd-tabs {
+  width: calc(100% - 2 * var(--rd-margin));
+  margin-bottom: 6px;
+  flex: none;
+}
+.reader.mode-page .surah-hero,
+.reader.mode-page .rd-wrap > .basmalah,
+.reader.mode-page .surah-nav,
+.reader.mode-page .edition-note {
+  display: none;
+}
+.mushaf-pages {
+  flex: 1;
+  min-height: 0;
+  margin-top: 0;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.mushaf-pages::-webkit-scrollbar {
+  display: none;
+}
+.mpage {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--rd-margin);
+  box-sizing: border-box;
+}
+.mpage-head,
+.mpage-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: var(--rd-width);
+  margin: 0 auto;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  color: var(--rd-muted);
+  padding: 4px 2px;
+  user-select: none;
+}
+.mpage-head {
+  border-bottom: 1px solid var(--rd-line);
+}
+.mpage-foot {
+  border-top: 1px solid var(--rd-line);
+}
+.mpage-foot > * {
+  flex: 1;
+}
+.mpage-foot > :last-child {
+  text-align: end;
+}
+.mpage-no {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--rd-accent);
+  font-family: var(--font-ar);
+  line-height: 1.5;
+}
+.mpage-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.8;
+}
+.mpage-foot > .mpage-hint:last-child {
+  justify-content: flex-end;
+}
+.mpage-hint .icon {
+  width: 13px;
+  height: 13px;
+}
+.mpage-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  width: 100%;
+  max-width: var(--rd-width);
+  margin: 0 auto;
+  padding: 0.3em 2px 0.6em;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+}
+.mpage-text {
+  font-family: var(--font-ar);
+  font-size: var(--rd-font);
+  line-height: var(--rd-lh);
+  text-align: justify;
+  text-align-last: center;
+  word-spacing: 0.04em;
+  font-feature-settings: 'liga', 'calt', 'kern', 'mark', 'mkmk';
+  overflow-wrap: break-word;
+}
+.mpage-text .ayah {
+  cursor: pointer;
+  border-radius: 8px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition: background 0.2s;
+}
+.mpage-title {
+  text-align: center;
+  border: 1.5px solid var(--rd-accent);
+  outline: 1px solid var(--rd-accent);
+  outline-offset: 3px;
+  border-radius: 12px;
+  margin: 8px 5px 4px;
+  padding: 4px 10px 8px;
+  background: var(--ornament), color-mix(in srgb, var(--rd-accent) 7%, transparent);
+}
+.mpage-title span {
+  display: block;
+  font-family: var(--font-ar);
+  font-size: 1.7rem;
+  line-height: 1.9;
+}
+.mpage-title small {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--rd-muted);
+}
+.mpage-body .basmalah {
+  font-family: var(--font-ar);
+  margin: 6px 0 0;
+  line-height: 2.2;
+}
+.mpage-end {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-family: var(--font-ui);
+}
+.mpage-end-in {
+  max-width: 420px;
+}
+.mpage-end-in .state-icon {
+  width: 44px;
+  height: 44px;
+  color: var(--rd-accent);
+}
+.mpage-end-in p {
+  font-family: var(--font-ar);
+  font-size: 1.6rem;
+  line-height: 2.2;
+  color: var(--rd-accent);
+}
+.mpage-end-in .btn-row {
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+body.route-reader #toast {
+  bottom: calc(var(--bar-h) + var(--nav-h) + var(--safe-b) + 16px);
+}
+.mpage-foot {
+  padding-bottom: 8px;
+}

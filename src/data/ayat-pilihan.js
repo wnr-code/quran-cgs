@@ -2,13 +2,31 @@
 export const AYAT_PILIHAN = [
   [2, 152], [2, 153], [2, 186], [2, 286], [3, 139], [3, 159], [3, 200], [8, 46], [9, 51], [11, 88], [12, 87], [13, 28],
   [14, 7], [16, 97], [17, 82], [20, 114], [24, 35], [29, 69], [33, 41], [39, 53], [40, 60], [41, 30], [49, 13], [55, 13],
-  [57, 4], [59, 18], [64, 11], [65, 2], [65, 3], [93, 5], [94, 5], [94, 6], [103, 3]
+  [57, 4], [59, 18], [64, 11], [65, 2], [65, 3], [93, 5], [94, 5], [94, 6], [103, 3],
+  [2, 45], [2, 177], [2, 216], [2, 255], [2, 261], [3, 8], [3, 26], [3, 31], [3, 103], [3, 133], [3, 134], [3, 185],
+  [4, 36], [4, 59], [5, 2], [5, 8], [6, 59], [6, 162], [7, 23], [7, 56], [7, 199], [10, 57], [13, 11], [14, 34],
+  [15, 9], [16, 90], [16, 125], [17, 23], [17, 24], [18, 10], [18, 46], [18, 110], [20, 25], [21, 35], [21, 87], [23, 1],
+  [23, 118], [25, 63], [25, 74], [28, 77], [29, 45], [30, 21], [31, 17], [31, 18], [33, 21], [33, 56], [33, 70], [35, 28],
+  [39, 10], [42, 30], [47, 7], [49, 10], [49, 12], [51, 56], [53, 39], [62, 10], [63, 9], [66, 6], [67, 2], [84, 6],
+  [87, 14], [89, 27], [96, 1], [99, 7], [112, 1]
 ]
 
-export function ayatHariIni(date = new Date()) {
-  const start = new Date(date.getFullYear(), 0, 0)
-  const day = Math.floor((date - start) / 86400000)
-  return AYAT_PILIHAN[day % AYAT_PILIHAN.length]
+/** Kunci tanggal lokal (YYYY-M-D) — dipakai untuk mendeteksi pergantian hari saat aplikasi tetap terbuka. */
+export const dayKey = (date = new Date()) => `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+
+/** Nomor hari lokal sejak epoch (berganti tepat tengah malam waktu perangkat). */
+const dayNumber = (date) => Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000)
+
+/**
+ * Ayat untuk suatu hari. Urutan diacak tetap (bukan berurutan surah) supaya ayat yang berdekatan tidak muncul
+ * berhari-hari berturut-turut; `offset` dipakai tombol "Ayat lain".
+ */
+export function ayatHariIni(date = new Date(), offset = 0) {
+  const n = AYAT_PILIHAN.length
+  // 37 relatif prima terhadap jumlah ayat → setiap ayat muncul tepat sekali per putaran.
+  const step = [37, 41, 43, 47, 53].find((p) => n % p !== 0)
+  const i = (((dayNumber(date) + offset) * step) % n + n) % n
+  return AYAT_PILIHAN[i]
 }
 
 // Doa-doa yang bersumber langsung dari Al-Qur'an (judul ringkas + rujukan ayat). Teks dimuat dari data surah.

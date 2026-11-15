@@ -35,6 +35,9 @@ const badge = svg(`<g fill="none" stroke="#fff" stroke-width="30" stroke-linejoi
 
 const png = (src, size, out) => sharp(Buffer.from(src)).resize(size, size).png({ compressionLevel: 9 }).toFile(root + out)
 
+// PENTING: nama berkas ikon web diberi akhiran versi (-v2). Bila logo diganti lagi, naikkan akhirannya di sini,
+// di public/manifest.webmanifest, index.html, dan vite.config.js — PWA yang sudah terpasang hanya mengganti ikonnya
+// bila ALAMAT ikon di manifest berubah (berkas bernama sama dianggap tidak berubah oleh peramban).
 // Logo resmi (assets/logo-source.png, 1254×1254, sudut transparan). Semua ikon aplikasi diturunkan dari berkas ini.
 const LOGO = readFileSync(root + 'assets/logo-source.png')
 const out = (img, file) => img.png({ compressionLevel: 9, palette: false }).toFile(root + file)
@@ -52,13 +55,13 @@ async function logoFull(size, file, scale = 1) {
   return out(sharp(bgBuf).composite([{ input: fg, left: off, top: off }]).removeAlpha(), file)
 }
 
-await logoAny(192, 'public/icons/icon-192.png')
-await logoAny(512, 'public/icons/icon-512.png')
-await logoAny(48, 'public/icons/favicon-48.png')
-await logoFull(192, 'public/icons/maskable-192.png', 0.8)
-await logoFull(512, 'public/icons/maskable-512.png', 0.8)
-await logoFull(180, 'public/icons/apple-touch-icon.png')
-await png(badge, 96, 'public/icons/badge-96.png')
+await logoAny(192, 'public/icons/icon-192-v2.png')
+await logoAny(512, 'public/icons/icon-512-v2.png')
+await logoAny(48, 'public/icons/favicon-48-v2.png')
+await logoFull(192, 'public/icons/maskable-192-v2.png', 0.8)
+await logoFull(512, 'public/icons/maskable-512-v2.png', 0.8)
+await logoFull(180, 'public/icons/apple-touch-icon-v2.png')
+await png(badge, 96, 'public/icons/badge-96-v2.png')
 await logoFull(512, 'store/graphics/icon-512.png')
 
 // Ikon launcher & splash Android (TWA)

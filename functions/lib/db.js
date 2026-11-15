@@ -10,7 +10,11 @@ const STATEMENTS = [
     mode TEXT NOT NULL DEFAULT 'redirect', status TEXT NOT NULL DEFAULT 'pending', ref TEXT,
     donation_id TEXT UNIQUE, ip TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL)`,
   `CREATE INDEX IF NOT EXISTS idx_intents_created ON infaq_intents (created_at)`,
-  `CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL, at INTEGER NOT NULL)`
+  `CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL, at INTEGER NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS push_subs (
+    endpoint TEXT PRIMARY KEY, p256dh TEXT NOT NULL, auth TEXT NOT NULL, lat REAL NOT NULL, lng REAL NOT NULL,
+    method TEXT NOT NULL DEFAULT 'kemenag', tz TEXT NOT NULL DEFAULT 'Asia/Jakarta', place TEXT NOT NULL DEFAULT '',
+    hijri_adjust INTEGER NOT NULL DEFAULT 0, prefs TEXT NOT NULL DEFAULT '{}', last_id TEXT, updated_at INTEGER NOT NULL)`
 ]
 
 const ready = new WeakSet()

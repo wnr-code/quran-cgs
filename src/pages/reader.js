@@ -2,7 +2,7 @@
 import { getSurah, getSurahList, friendlyError } from '../api/api-adapter.js'
 import { icon } from '../components/icons.js'
 import { skeleton, errorState } from '../components/navbar.js'
-import { flowHtml, focusHtml, openAyahSheet } from '../components/ayah-card.js'
+import { flowHtml, focusHtml, pagesHtml, openAyahSheet, ayahShareText } from '../components/ayah-card.js'
 import { applyReaderStyle, openReaderSettings, openJumpSheet } from '../components/reading-toolbar.js'
 import { openSheet } from '../components/modal.js'
 import { getSettings, saveSettings } from '../services/storage.js'
@@ -10,13 +10,13 @@ import { savePosition, getLastRead, addHistory } from '../services/reading-posit
 import { markRead } from '../services/progress.js'
 import { playAyah, playSurah, toggle as toggleAudio, getAudioState } from '../services/audio.js'
 import { bookmarkRepo, noteRepo } from '../database/repositories.js'
-import { $, $$, esc, on, throttle, toast, isStandalone } from '../utils/helpers.js'
+import { $, $$, esc, on, throttle, toast, isStandalone, copyText, shareText } from '../utils/helpers.js'
 import { qnum } from '../utils/arabic-numbers.js'
 import { juzOf, pageOf } from '../utils/quran-meta.js'
 import { tempatTurunLabel } from '../utils/format.js'
 import { isSurahNo } from '../utils/validation.js'
 import { navigate, rerender } from '../router.js'
-import { BASMALAH } from '../config.js'
+import { BASMALAH, APP } from '../config.js'
 
 export default async function reader(root, { params, query, initial }) {
   const n = parseInt(params.n, 10)
@@ -65,11 +65,17 @@ export default async function reader(root, { params, query, initial }) {
         <strong>${esc(surah.namaLatin)}</strong>
         <small>Juz <span class="qn" data-juz></span> · Hal <span class="qn" data-page></span> · Ayat <span class="qn" data-cur></span></small>
       </button>
-      <button class="icon-btn" data-act="mode" aria-label="Ganti mode baca">${icon('flow')}</button>
+      <button class="icon-btn" data-act="play-surah" aria-label="Putar murottal surah ini">${icon('headphones')}</button>
       <button class="icon-btn" data-act="settings" aria-label="Pengaturan tampilan">${icon('type')}</button>
       <button class="icon-btn" data-act="immersive" aria-label="Mode membaca layar penuh">${icon('expand')}</button>
+      <span class="rd-progress" aria-hidden="true"><i data-progress></i></span>
     </header>
     <div class="rd-wrap">
+      <div class="rd-tabs" role="tablist" aria-label="Mode baca">
+        <button role="tab" data-mode="focus">${icon('list')}<span>Terjemahan</span></button>
+        <button role="tab" data-mode="continuous">${icon('flow')}<span>Mushaf</span></button>
+        <button role="tab" data-mode="page">${icon('book')}<span>Halaman</span></button>
+      </div>
       <section class="surah-hero">
         <div class="surah-frame">
           <p class="surah-frame-ar" lang="ar" dir="rtl">${esc(surah.nama)}</p>
@@ -105,14 +111,32 @@ export default async function reader(root, { params, query, initial }) {
   const elJuz = $('[data-juz]', readerEl)
   const elPage = $('[data-page]', readerEl)
   const topBar = $('.rd-top', readerEl)
+  const elProgress = $('[data-progress]', readerEl)
 
   const threshold = () => (barsHidden ? 0 : topBar.offsetHeight) + 28
   const elOf = (a) => ayahEls[a - 1]
+  const modeNow = () => {
+    const m = getSettings().reader.mode
+    return m === 'focus' || m === 'page' ? m : 'continuous'
+  }
+  let pageMode = false
+  let pageEls = []
+  const pageIdx = () => Math.min(pageEls.length - 1, Math.max(0, Math.round(Math.abs(content.scrollLeft) / (content.clientWidth || 1))))
+  const scrollToPage = (i, smooth = false) => {
+    const el = pageEls[i]
+    if (!el) return
+    // Arah RTL: geseran bernilai negatif di peramban modern; posisi dihitung dari letak lembar agar aman di semua mesin.
+    const left = el.getBoundingClientRect().left - content.getBoundingClientRect().left + content.scrollLeft
+    content.scrollTo({ left, behavior: smooth ? 'smooth' : 'auto' })
+  }
 
   function renderContent() {
-    const mode = getSettings().reader.mode
+    const mode = modeNow()
+    pageMode = mode === 'page'
     applyReaderStyle(readerEl)
-    content.className = 'mushaf ' + (mode === 'focus' ? 'mushaf-focus' : 'mushaf-flow')
+    readerEl.classList.toggle('mode-page', pageMode)
+    document.body.classList.toggle('reader-paged', pageMode)
+    content.className = 'mushaf ' + (mode === 'focus' ? 'mushaf-focus' : pageMode ? 'mushaf-pages' : 'mushaf-flow')
     if (mode === 'focus') {
       content.removeAttribute('dir')
       content.removeAttribute('lang')
@@ -120,9 +144,25 @@ export default async function reader(root, { params, query, initial }) {
       content.setAttribute('dir', 'rtl')
       content.setAttribute('lang', 'ar')
     }
-    content.innerHTML = mode === 'focus' ? focusHtml(surah, marks) : flowHtml(surah, marks)
+    content.innerHTML = mode === 'focus' ? focusHtml(surah, marks) : pageMode ? pagesHtml(surah, marks, { basmalah: showBasmalah ? BASMALAH : '' }) : flowHtml(surah, marks)
     ayahEls = $$('.ayah', content)
-    $('[data-act="mode"]', topBar).innerHTML = icon(mode === 'focus' ? 'flow' : 'list')
+    pageEls = pageMode ? $$('.mpage', content) : []
+    $$('.rd-tabs [data-mode]', readerEl).forEach((b) => {
+      b.classList.toggle('on', b.dataset.mode === mode)
+      b.setAttribute('aria-selected', b.dataset.mode === mode)
+    })
+    // Mode Halaman: tombol bawah berpindah halaman (halaman berikutnya ada di sebelah kiri, seperti mushaf).
+    const bottom = $('.rd-bottom', readerEl)
+    const prevBtn = $('[data-act="prev"]', bottom)
+    const nextBtn = $('[data-act="next"]', bottom)
+    prevBtn.innerHTML = icon(pageMode ? 'forward' : 'up')
+    nextBtn.innerHTML = icon(pageMode ? 'back' : 'down')
+    prevBtn.setAttribute('aria-label', pageMode ? 'Halaman sebelumnya' : 'Ayat sebelumnya')
+    nextBtn.setAttribute('aria-label', pageMode ? 'Halaman berikutnya' : 'Ayat berikutnya')
+    if (pageMode) {
+      bottom.insertBefore(nextBtn, prevBtn)
+      window.scrollTo(0, 0)
+    } else bottom.insertBefore(prevBtn, nextBtn)
     highlightPlaying()
   }
 
@@ -130,12 +170,19 @@ export default async function reader(root, { params, query, initial }) {
     elCur.textContent = qnum(current)
     elJuz.textContent = qnum(juzOf(n, current))
     elPage.textContent = qnum(pageOf(n, current))
+    elProgress.style.width = `${Math.max(2, Math.round((current / total) * 100))}%`
     const bm = $('[data-act="bookmark"]', $('.rd-bottom', readerEl))
     bm.classList.toggle('on', marks.bookmarks.has(current))
     bm.setAttribute('aria-pressed', marks.bookmarks.has(current))
   }
 
   function findCurrent() {
+    if (pageMode) {
+      const el = pageEls[pageIdx()]
+      if (!el || el.hasAttribute('data-end')) return total
+      const f = +el.dataset.first
+      return current >= f && current <= +el.dataset.last ? current : f
+    }
     const y = threshold()
     let lo = 0
     let hi = ayahEls.length - 1
@@ -150,6 +197,17 @@ export default async function reader(root, { params, query, initial }) {
   function scrollToAyah(a, { smooth = false, offset = null, flash = false } = {}) {
     const el = elOf(a)
     if (!el) return
+    if (pageMode) {
+      const pg = el.closest('.mpage')
+      scrollToPage(pageEls.indexOf(pg), smooth)
+      const box = $('.mpage-body', pg)
+      box.scrollTop = a === +pg.dataset.first ? 0 : Math.max(0, el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 12)
+      if (flash) {
+        el.classList.add('flash')
+        setTimeout(() => el.classList.remove('flash'), 1800)
+      }
+      return
+    }
     const top = el.getBoundingClientRect().top + window.scrollY - (offset ?? threshold() - 8)
     window.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' })
     if (flash) {
@@ -168,8 +226,8 @@ export default async function reader(root, { params, query, initial }) {
       surahName: surah.namaLatin,
       surahNameAr: surah.nama,
       total,
-      offset: el ? validOffset(Math.round(el.getBoundingClientRect().top)) : null,
-      mode: getSettings().reader.mode,
+      offset: el && !pageMode ? validOffset(Math.round(el.getBoundingClientRect().top)) : null,
+      mode: modeNow(),
       immersive
     })
   }
@@ -184,13 +242,13 @@ export default async function reader(root, { params, query, initial }) {
   const onScroll = throttle(() => {
     if (destroyed || !ready) return
     const y = window.scrollY
-    if (immersive && !document.body.classList.contains('sheet-open')) {
+    if (!pageMode && immersive && !document.body.classList.contains('sheet-open')) {
       if (y > lastY + 12 && y > 120) setBars(true)
       else if (y < lastY - 12) setBars(false)
     }
     lastY = y
     const c = findCurrent()
-    const atEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 40
+    const atEnd = pageMode ? pageIdx() === pageEls.length - 1 : window.innerHeight + y >= document.documentElement.scrollHeight - 40
     if (c !== current) {
       // Tandai ayat yang telah dilewati sebagai terbaca (hanya gerak maju wajar, bukan lompatan jauh).
       if (c > lastMarked && c - lastMarked <= 25) markRead(n, lastMarked, c - 1)
@@ -283,19 +341,22 @@ export default async function reader(root, { params, query, initial }) {
     }
   }
 
-  function switchMode() {
+  const MODE_LABEL = { focus: 'Terjemahan per ayat', continuous: 'Mushaf (gulir ke bawah)', page: 'Halaman — geser ke kiri/kanan untuk pindah halaman' }
+  function setMode(mode) {
+    if (mode === modeNow()) return
     const keep = current
-    saveSettings({ reader: { mode: getSettings().reader.mode === 'focus' ? 'continuous' : 'focus' } })
+    saveSettings({ reader: { mode } })
     renderContent()
     scrollToAyah(keep)
-    toast(getSettings().reader.mode === 'focus' ? 'Ayah Focus Mode' : 'Mushaf Continuous Mode')
+    toast(MODE_LABEL[mode])
     persist()
   }
+  const goPage = (d) => scrollToPage(pageIdx() + d, true)
 
   const actions = {
     back: () => navigate('/quran'),
     jump: () => openJumpSheet({ surah, currentAyah: current, surahList, onGo: goTo }),
-    mode: switchMode,
+    mode: () => setMode(modeNow() === 'focus' ? 'continuous' : 'focus'),
     settings: () =>
       openReaderSettings((patch) => {
         const keep = current
@@ -310,8 +371,8 @@ export default async function reader(root, { params, query, initial }) {
         title: `Tentang Surah ${surah.namaLatin}`,
         content: `<p class="prose">${esc(surah.deskripsi || 'Deskripsi tidak tersedia dari sumber data.')}</p><p class="hint">Sumber: ${esc(surah.edition ? surah.edition.label : surah.source)}</p>`
       }),
-    prev: () => current > 1 && goTo(n, current - 1),
-    next: () => current < total && goTo(n, current + 1),
+    prev: () => (pageMode ? goPage(-1) : current > 1 && goTo(n, current - 1)),
+    next: () => (pageMode ? goPage(1) : current < total && goTo(n, current + 1)),
     play: () => {
       const s = getAudioState()
       if (s.mode === 'ayah' && s.surah && s.surah.nomor === n) toggleAudio()
@@ -322,6 +383,8 @@ export default async function reader(root, { params, query, initial }) {
   }
 
   const onClick = (e) => {
+    const tabEl = e.target.closest('.rd-tabs [data-mode]')
+    if (tabEl) return setMode(tabEl.dataset.mode)
     const actEl = e.target.closest('[data-act]')
     if (actEl && readerEl.contains(actEl)) {
       const act = actEl.dataset.act
@@ -332,13 +395,16 @@ export default async function reader(root, { params, query, initial }) {
         if (act === 'play') playAyah(surah, a)
         else if (act === 'bookmark') toggleBookmark(a)
         else if (act === 'more') openAyahSheet(surah, a, sheetOpts)
+        else if (act === 'copy') copyText(ayahShareText(surah, surah.ayat[a - 1])).then((ok) => toast(ok ? `Ayat ${a} disalin` : 'Gagal menyalin'))
+        else if (act === 'share')
+          shareText(`QS. ${surah.namaLatin} ${n}:${a}`, ayahShareText(surah, surah.ayat[a - 1]), `${APP.origin}/#/surah/${n}/${a}`).then((r) => r === 'copied' && toast('Teks & tautan disalin'))
         return
       }
       if (actions[act]) actions[act]()
       return
     }
     if (e.target.closest('a, button, input, .rd-bar')) return
-    const ay = e.target.closest('.mushaf-flow .ayah')
+    const ay = e.target.closest('.mushaf-flow .ayah, .mushaf-pages .ayah')
     if (ay) {
       // Mode mushaf: sentuh ayat untuk membuka terjemahan & aksi.
       if (window.getSelection && String(window.getSelection())) return
@@ -355,11 +421,14 @@ export default async function reader(root, { params, query, initial }) {
       e.preventDefault()
       openAyahSheet(surah, +e.target.dataset.a, sheetOpts)
     } else if (e.key === 'f') actions.immersive()
+    else if (pageMode && e.key === 'ArrowLeft') goPage(1)
+    else if (pageMode && e.key === 'ArrowRight') goPage(-1)
   }
 
   readerEl.addEventListener('click', onClick)
   document.addEventListener('keydown', onKey)
   window.addEventListener('scroll', onScroll, { passive: true })
+  content.addEventListener('scroll', onScroll, { passive: true })
   document.addEventListener('fullscreenchange', onFsChange)
   const onHide = () => persist()
   window.addEventListener('pagehide', onHide)
@@ -367,7 +436,9 @@ export default async function reader(root, { params, query, initial }) {
     highlightPlaying()
     if (d && d.surah === n && elOf(d.ayah)) {
       const r = elOf(d.ayah).getBoundingClientRect()
-      if (r.top < threshold() || r.top > window.innerHeight * 0.75) scrollToAyah(d.ayah, { smooth: true })
+      if (pageMode) {
+        if (elOf(d.ayah).closest('.mpage') !== pageEls[pageIdx()] || r.bottom > content.getBoundingClientRect().bottom || r.top < content.getBoundingClientRect().top) scrollToAyah(d.ayah, { smooth: true })
+      } else if (r.top < threshold() || r.top > window.innerHeight * 0.75) scrollToAyah(d.ayah, { smooth: true })
     }
   }), on('audio:state', highlightPlaying)]
 
@@ -399,7 +470,7 @@ export default async function reader(root, { params, query, initial }) {
     document.removeEventListener('fullscreenchange', onFsChange)
     window.removeEventListener('pagehide', onHide)
     offAudio.forEach((f) => f())
-    document.body.classList.remove('reading-mode')
+    document.body.classList.remove('reading-mode', 'reader-paged')
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
   }
 }

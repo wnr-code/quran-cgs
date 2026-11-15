@@ -39,7 +39,10 @@ export function focusHtml(surah, marks) {
           <span class="ayah-btns">
             <button class="icon-btn sm" data-act="play" aria-label="Putar ayat ${k}">${icon('play')}</button>
             <button class="icon-btn sm bm-btn" data-act="bookmark" aria-label="Bookmark ayat ${k}" aria-pressed="${bm}">${icon('bookmark')}</button>
-            <button class="icon-btn sm" data-act="more" aria-label="Aksi lain ayat ${k}">${icon('more')}</button>
+            <a class="icon-btn sm" href="#/tafsir/${n}/${k}" aria-label="Tafsir ayat ${k}">${icon('book')}</a>
+            <button class="icon-btn sm" data-act="copy" aria-label="Salin ayat ${k}">${icon('copy')}</button>
+            <button class="icon-btn sm" data-act="share" aria-label="Bagikan ayat ${k}">${icon('share')}</button>
+            <button class="icon-btn sm" data-act="more" aria-label="Catatan & aksi lain ayat ${k}">${icon('more')}</button>
           </span>
         </header>
         <p class="ayah-ar" dir="rtl" lang="ar">${esc(a.teksArab)}${sajdaHtml(n, k)}</p>
@@ -48,6 +51,49 @@ export function focusHtml(surah, marks) {
       </article>`
     })
     .join('')
+}
+
+/**
+ * Mode Halaman: ayat dikelompokkan per halaman Mushaf Madinah; tiap halaman satu "lembar" yang digeser ke samping
+ * (kanan → kiri seperti mushaf cetak). Lembar terakhir berisi navigasi surah.
+ */
+export function pagesHtml(surah, marks, { basmalah = '' } = {}) {
+  const n = surah.nomor
+  const groups = []
+  for (const a of surah.ayat) {
+    const pg = pageOf(n, a.nomorAyat)
+    const g = groups[groups.length - 1]
+    if (g && g.page === pg) g.ayat.push(a)
+    else groups.push({ page: pg, ayat: [a] })
+  }
+  const pages = groups
+    .map((g, i) => {
+      const first = g.ayat[0].nomorAyat
+      const last = g.ayat[g.ayat.length - 1].nomorAyat
+      const head =
+        i === 0
+          ? `<div class="mpage-title"><span lang="ar">${esc(surah.nama)}</span><small dir="ltr">${esc(surah.namaLatin)} · ${esc(surah.arti)}</small></div>${basmalah ? `<p class="basmalah">${basmalah}</p>` : ''}`
+          : ''
+      const body = g.ayat
+        .map((a) => {
+          const k = a.nomorAyat
+          const cls = (marks.bookmarks.has(k) ? ' is-bookmarked' : '') + (marks.notes.has(k) ? ' has-note' : '')
+          return `<span class="ayah${cls}" data-a="${k}" tabindex="0" role="button"><span class="ayah-text">${esc(a.teksArab)}</span>${sajdaHtml(n, k)}&nbsp;${numHtml(k)}</span> `
+        })
+        .join('')
+      return `<section class="mpage" data-p="${g.page}" data-first="${first}" data-last="${last}" aria-label="Halaman ${g.page}">
+        <header class="mpage-head" dir="ltr"><span>${esc(surah.namaLatin)}</span><span>Juz <span class="qn">${qnum(juzOf(n, first))}</span></span></header>
+        <div class="mpage-body" dir="rtl" lang="ar">${head}<div class="mpage-text">${body}</div></div>
+        <footer class="mpage-foot" dir="ltr"><span class="mpage-hint">${i < groups.length - 1 ? icon('back') + 'geser' : ''}</span><span class="qn mpage-no">${qnum(g.page)}</span><span class="mpage-hint">${i + 1} / ${groups.length}</span></footer>
+      </section>`
+    })
+    .join('')
+  const end = `<section class="mpage mpage-end" data-end dir="ltr">
+      <div class="mpage-end-in">${icon('check', 'state-icon')}<h3>Akhir Surah ${esc(surah.namaLatin)}</h3>
+      <p>صَدَقَ اللّٰهُ الْعَظِيْمُ</p>
+      <div class="btn-row">${n < 114 ? `<a class="btn btn-primary" href="#/surah/${n + 1}">Surah berikutnya${icon('forward')}</a>` : ''}${n > 1 ? `<a class="btn" href="#/surah/${n - 1}">${icon('back')}Surah sebelumnya</a>` : ''}<a class="btn" href="#/quran">${icon('list')}Daftar surah</a></div></div>
+    </section>`
+  return pages + end
 }
 
 export function ayahShareText(surah, a) {

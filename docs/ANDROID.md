@@ -62,3 +62,12 @@ Tombol infaq membuka Trakteer di peramban dan tidak membuka fitur atau konten ap
 
 ## Mode layar penuh
 TWA dikonfigurasi `standalone` (bilah status tetap tampil, berwarna hijau tua). Mode membaca menyembunyikan navigasi aplikasi dan mencoba Fullscreen API bila diizinkan. Aplikasi tidak mengklaim layar penuh sistem saat UI sistem masih terlihat.
+
+## Ikon di layar utama tidak berganti?
+
+Ikon APK tertanam di dalam APK. Ikon baru hanya muncul setelah APK **hasil build baru** dipasang:
+1. Actions → "Android build" → Run workflow (atau otomatis saat `android/**` berubah), unduh artefak `quranku-android`.
+2. `versionCode` naik otomatis tiap build CI. APK debug ditandatangani kunci sementara runner, jadi **hapus dulu aplikasi lama** lalu pasang yang baru (APK rilis bertanda tangan tetap bisa menimpa).
+3. Bila ikon lama masih tampil, hapus pintasan dari layar utama lalu tambahkan lagi (launcher menyimpan cache ikon).
+
+PWA (dipasang dari Chrome): buka aplikasi sekali saat online agar versi baru aktif. Chrome Android memperbarui ikon WebAPK sendiri dalam ±1–3 hari; agar langsung berganti, copot pemasangan lalu "Pasang aplikasi" lagi.

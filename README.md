@@ -61,7 +61,7 @@ src/styles/           tema, komponen, reader, responsif
 functions/            handler API: proxy EQuran, infaq (buat/status/klaim), webhook, papan donatur
 worker/               entry Cloudflare Worker (merutekan /api/* + aset statis)
 migrations/           skema D1 untuk papan donatur
-android/              proyek Android TWA (Gradle) + twa-manifest.json (Bubblewrap)
+android/              proyek Android TWA (Gradle)
 store/                materi Google Play (deskripsi, grafis, screenshot, Data Safety)
 tests/                unit test + smoke test E2E
 docs/                 panduan deploy, Android, infaq, status fitur

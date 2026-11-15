@@ -195,3 +195,61 @@ test('qari tambahan: daftar valid, id unik, alamat audio surah berpola benar', a
   assert.equal(Object.keys(QARI).length, 6 + QARI_EXTRA.length)
   assert.equal(QARI_SURAH['x-mahir-al-muaiqly'].base, 'https://server12.mp3quran.net/maher')
 })
+
+test('ayat pilihan: rujukan sah, unik, dan berganti setiap hari', async () => {
+  const { AYAT_PILIHAN, ayatHariIni, dayKey } = await import('../src/data/ayat-pilihan.js')
+  assert.ok(AYAT_PILIHAN.length >= 90)
+  const keys = AYAT_PILIHAN.map(([s, a]) => `${s}:${a}`)
+  assert.equal(new Set(keys).size, keys.length, 'tidak ada ayat ganda')
+  for (const [s, a] of AYAT_PILIHAN) assert.ok(s >= 1 && s <= 114 && a >= 1 && a <= meta.ayahCounts[s - 1], `${s}:${a}`)
+  // Setiap hari berbeda dari kemarin, dan satu putaran penuh memunculkan semua ayat tepat sekali.
+  const seen = new Set()
+  let prev = null
+  for (let d = 0; d < AYAT_PILIHAN.length; d++) {
+    const k = ayatHariIni(new Date(2026, 0, 1 + d)).join(':')
+    assert.notEqual(k, prev)
+    seen.add(k)
+    prev = k
+  }
+  assert.equal(seen.size, AYAT_PILIHAN.length)
+  // Stabil sepanjang hari yang sama (jam berbeda), berganti tepat tengah malam waktu perangkat.
+  assert.deepEqual(ayatHariIni(new Date(2026, 10, 14, 0, 1)), ayatHariIni(new Date(2026, 10, 14, 23, 59)))
+  assert.notDeepEqual(ayatHariIni(new Date(2026, 10, 14, 23, 59)), ayatHariIni(new Date(2026, 10, 15, 0, 1)))
+  assert.notDeepEqual(ayatHariIni(new Date(2026, 10, 14), 1), ayatHariIni(new Date(2026, 10, 14), 0))
+  assert.notEqual(dayKey(new Date(2026, 10, 14)), dayKey(new Date(2026, 10, 15)))
+})
+
+test('qari: tidak ada yang ganda (id, nama, alamat audio)', async () => {
+  const { QARI, QARI_AYAH, QARI_SURAH } = await import('../src/config.js').catch(() => ({}))
+  const { QARI_EXTRA } = await import('../src/data/qari-extra.js')
+  const norm = (s) => s.toLowerCase().replace(/\(.*?\)/g, '').replace(/\b(al|as|asy|ash|bin|el)\b/g, '').replace(/[^a-z]/g, '')
+  const names = [...(QARI_AYAH ? Object.values(QARI_AYAH) : []), ...QARI_EXTRA.map((q) => q.name)].map(norm)
+  assert.equal(new Set(names).size, names.length, 'nama qari ganda')
+  assert.equal(new Set(QARI_EXTRA.map((q) => q.id)).size, QARI_EXTRA.length)
+  assert.equal(new Set(QARI_EXTRA.map((q) => q.base)).size, QARI_EXTRA.length, 'alamat audio ganda')
+  if (QARI) assert.equal(Object.keys(QARI).length, Object.keys(QARI_AYAH).length + Object.keys(QARI_SURAH).length)
+})
+
+test('doa wudhu & wirid setelah salat: lengkap, berhuruf Arab, bersumber', () => {
+  const dz = JSON.parse(readFileSync('src/data/dzikir.json', 'utf8'))
+  assert.equal(dz.source.name, 'fitrahive/dua-dhikr')
+  assert.match(dz.source.commit, /^[0-9a-f]{40}$/)
+  assert.equal(dz.wudhu.length, 2)
+  assert.ok(dz.salat.length >= 10)
+  for (const d of [...dz.wudhu, ...dz.salat]) {
+    assert.ok(d.title && d.translation, d.title)
+    assert.match(d.arabic, /[\u0600-\u06FF]/)
+  }
+  assert.ok(SOURCES.some((g) => g.items.some((i) => i.name === 'fitrahive/dua-dhikr')))
+})
+
+test('ikon: manifest menunjuk berkas berversi yang benar-benar ada', () => {
+  const m = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8'))
+  const srcs = [...m.icons, ...m.shortcuts.flatMap((s) => s.icons)].map((i) => i.src)
+  for (const src of srcs) {
+    assert.match(src, /-v\d+\.png$/, src)
+    assert.ok(existsSync('public' + src), src)
+  }
+  const html = readFileSync('index.html', 'utf8')
+  for (const [, href] of html.matchAll(/href="(\/icons\/[^"]+)"/g)) assert.ok(existsSync('public' + href), href)
+})

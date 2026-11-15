@@ -15,16 +15,16 @@
   "categories": ["books", "education", "lifestyle"],
   "prefer_related_applications": false,
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icons/badge-96.png", "sizes": "96x96", "type": "image/png", "purpose": "monochrome" }
+    { "src": "/icons/icon-192-v2.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512-v2.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-192-v2.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/maskable-512-v2.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/badge-96-v2.png", "sizes": "96x96", "type": "image/png", "purpose": "monochrome" }
   ],
   "shortcuts": [
-    { "name": "Lanjutkan membaca", "short_name": "Lanjutkan", "url": "/#/lanjut", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Baca Al-Qur'an", "short_name": "Quran", "url": "/#/quran", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Murottal", "short_name": "Murottal", "url": "/#/murottal", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Jadwal Salat", "short_name": "Salat", "url": "/#/salat", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Lanjutkan membaca", "short_name": "Lanjutkan", "url": "/#/lanjut", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] },
+    { "name": "Baca Al-Qur'an", "short_name": "Quran", "url": "/#/quran", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] },
+    { "name": "Murottal", "short_name": "Murottal", "url": "/#/murottal", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] },
+    { "name": "Jadwal Salat", "short_name": "Salat", "url": "/#/salat", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] }
   ]
 }

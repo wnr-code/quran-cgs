@@ -3,10 +3,38 @@ import { icon } from '../components/icons.js'
 import { locationPickerHtml, bindLocationPicker } from '../components/location-picker.js'
 import { getPrayerTimes, METHODS } from '../api/prayer-api.js'
 import { getSettings, saveSettings } from '../services/storage.js'
-import { requestNotifPermission, notifSupported } from '../services/notification.js'
+import { notifPermission } from '../services/notification.js'
+import { ADZAN_VOICES, PRAYERS, IMSAK_BEFORE, TARHIM_BEFORE, enableAdzan, disableAdzan, playAdzan, stopAdzan, adzanPlaying, pushSupported, isRamadan } from '../services/adzan.js'
 import { formatClock, formatGregorian } from '../utils/format.js'
 import { formatHijri } from '../utils/hijri.js'
-import { $, esc, toast } from '../utils/helpers.js'
+import { $, esc, toast, on } from '../utils/helpers.js'
+
+function adzanCard(s) {
+  const a = s.adzan
+  const perm = notifPermission()
+  const status = !a.enabled
+    ? ''
+    : perm !== 'granted'
+      ? `<p class="adzan-status warn">${icon('info')}Izin notifikasi belum diberikan — adzan hanya berbunyi selama aplikasi terbuka.</p>`
+      : pushSupported()
+        ? `<p class="adzan-status ok">${icon('check')}Pemberitahuan tetap dikirim saat aplikasi ditutup.</p>`
+        : `<p class="adzan-status warn">${icon('info')}Peramban ini tidak mendukung pemberitahuan saat aplikasi ditutup.</p>`
+  return `<section class="card adzan-card">
+    <div class="adzan-head"><span class="shortcut-ic">${icon('mosque')}</span><div><h3>Adzan otomatis</h3><p class="muted">Berbunyi tiap masuk waktu salat</p></div>
+      <label class="switch" aria-label="Adzan otomatis"><input type="checkbox" data-adzan="enabled" ${a.enabled ? 'checked' : ''} /></label></div>
+    ${status}
+    <div class="adzan-body" ${a.enabled ? '' : 'hidden'}>
+      <div class="adzan-chips" role="group" aria-label="Waktu salat yang berbunyi">${PRAYERS.map(([k, l]) => `<label class="chip-toggle"><input type="checkbox" data-adzan="${k}" ${a[k] !== false ? 'checked' : ''} /><span>${l}</span></label>`).join('')}</div>
+      <label class="switch-row"><span>Putar suara adzan<small>Saat aplikasi terbuka atau aktif di latar belakang</small></span><input type="checkbox" data-adzan="sound" ${a.sound ? 'checked' : ''} /></label>
+      <label class="field"><span>Suara adzan</span>
+        <div class="input-row"><select data-adzan-voice>${Object.entries(ADZAN_VOICES).map(([k, l]) => `<option value="${k}" ${k === a.voice ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>
+        <button class="btn" data-adzan-test>${icon('play')}<span>Coba</span></button></div></label>
+      <p class="eyebrow adzan-sub">Bulan Ramadan${isRamadan() ? ' · sedang berlangsung' : ''}</p>
+      <label class="switch-row"><span>Pengingat Imsak<small>${IMSAK_BEFORE} menit sebelum Subuh</small></span><input type="checkbox" data-adzan="imsak" ${a.imsak ? 'checked' : ''} /></label>
+      <label class="switch-row"><span>Pengingat Tarhim<small>${TARHIM_BEFORE} menit sebelum Subuh</small></span><input type="checkbox" data-adzan="tarhim" ${a.tarhim ? 'checked' : ''} /></label>
+      <p class="hint">Saat aplikasi ditutup, yang muncul adalah pemberitahuan dengan nada notifikasi perangkat — ketuk untuk memutar adzan. Imsak & tarhim berupa pemberitahuan dan hanya aktif pada bulan Ramadan. Suara adzan: aladhan.com.</p>
+    </div></section>`
+}
 
 export default function prayer(root) {
   root.innerHTML = `<div class="page">${pageHeader('Jadwal Salat')}<div data-body></div></div>`
@@ -37,10 +65,10 @@ export default function prayer(root) {
           <p class="hint">Waktu ditampilkan dalam zona waktu perangkat. Hasil hisab dapat berbeda 1–2 menit dari jadwal resmi Kemenag RI/otoritas setempat; Imsak = Subuh − 10 menit.</p></section>`
     }
     body.innerHTML = `${table}
+      ${adzanCard(s)}
       ${locationPickerHtml()}
       <section class="card"><label class="field"><span>Metode perhitungan</span><select data-method>${Object.entries(METHODS).map(([k, m]) => `<option value="${k}" ${k === s.prayerMethod ? 'selected' : ''}>${esc(m.label)}</option>`).join('')}</select></label>
-        <label class="switch-row"><span>Pengingat waktu salat</span><input type="checkbox" data-rem ${s.reminders.prayer ? 'checked' : ''} /></label>
-        <p class="hint">Pengingat hanya muncul selama QuranKu terbuka atau masih aktif di latar belakang (tanpa server push).</p></section>`
+</section>`
   }
 
   bindLocationPicker(body, render)
@@ -55,25 +83,43 @@ export default function prayer(root) {
     if (t.matches('[data-method]')) {
       saveSettings({ prayerMethod: t.value })
       render()
-    } else if (t.matches('[data-rem]')) {
-      if (t.checked) {
-        if (!getSettings().location) {
-          t.checked = false
-          return toast('Pilih lokasi terlebih dahulu.')
-        }
-        if (!notifSupported() || (await requestNotifPermission()) !== 'granted') {
-          t.checked = false
-          return toast('Notifikasi tidak didukung atau izin ditolak.')
-        }
+    } else if (t.matches('[data-adzan-voice]')) {
+      saveSettings({ adzan: { voice: t.value } })
+      if (adzanPlaying()) playAdzan('uji')
+    } else if (t.matches('[data-adzan]')) {
+      const key = t.dataset.adzan
+      if (key !== 'enabled') return void saveSettings({ adzan: { [key]: t.checked } })
+      if (!t.checked) {
+        await disableAdzan()
+        toast('Adzan otomatis dimatikan')
+        return render()
       }
-      saveSettings({ reminders: { prayer: t.checked } })
-      toast(t.checked ? 'Pengingat salat aktif' : 'Pengingat salat dimatikan')
+      if (!getSettings().location) {
+        t.checked = false
+        return toast('Pilih lokasi terlebih dahulu.')
+      }
+      t.disabled = true
+      const r = await enableAdzan()
+      toast(r.push === 'ok' ? 'Adzan otomatis aktif — pemberitahuan uji dikirim' : r.push === 'denied' ? 'Aktif. Izinkan notifikasi agar tetap diingatkan saat aplikasi ditutup.' : 'Adzan otomatis aktif (selama aplikasi terbuka)', 3600)
+      render()
     }
+  })
+  body.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-adzan-test]')) return
+    if (adzanPlaying()) stopAdzan()
+    else playAdzan('uji')
+  })
+  const offAdzan = on('adzan:state', (st) => {
+    const b = $('[data-adzan-test]', body)
+    if (b) b.innerHTML = `${icon(st.playing ? 'stop' : 'play')}<span>${st.playing ? 'Henti' : 'Coba'}</span>`
   })
   render()
   timer = setInterval(() => {
     // Perbarui hitung mundur tanpa mengganggu interaksi form
     if (!document.activeElement || !body.contains(document.activeElement) || document.activeElement.tagName === 'BUTTON') render()
   }, 60000)
-  return () => clearInterval(timer)
+  return () => {
+    clearInterval(timer)
+    offAdzan()
+  }
 }
