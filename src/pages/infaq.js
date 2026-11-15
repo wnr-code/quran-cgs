@@ -30,6 +30,7 @@ export function embedUrl(tipUrl, ref = '') {
   const path = u.pathname.replace(/^\/v1(?=\/)/, '').replace(/\/+$/, '')
   return `${u.origin}/v1${path}/embed/modal?embedId=0&ref=${ref}`
 }
+const TICKER = 'Jika pembayaran blank atau tidak muncul: kembali lalu pilih QRIS atau transfer bank/virtual account. GoPay & ShopeePay tidak dapat berjalan di jendela ini — ketuk tulisan ini untuk membuka halaman pembayaran.'
 const TRAKTEER_ORIGIN = new URL(TRBTN.url).origin
 
 const initial = (name) => (String(name || '').trim().match(/[\p{L}\p{N}]/u) || ['H'])[0].toUpperCase()
@@ -92,6 +93,7 @@ export default function infaq(root) {
     el.setAttribute('aria-modal', 'true')
     el.setAttribute('aria-label', 'Infaq QuranKu')
     el.innerHTML = `<div class="trk-wait" data-wait><span class="spinner" aria-hidden="true"></span><h3>INFAQ QURANKU</h3><p class="muted">Membuka formulir infaq…</p></div>
+      <a class="trk-ticker" href="${TRBTN.url}" target="_blank" rel="noopener noreferrer" data-trk-ticker aria-label="${TICKER}"><span class="trk-ticker-run" aria-hidden="true"><span>${TICKER}</span><span>${TICKER}</span></span></a>
       <iframe title="Formulir infaq" allow="payment *; clipboard-write *" allowtransparency="true" referrerpolicy="strict-origin-when-cross-origin"></iframe>
       <button type="button" class="trk-x" data-trk-close aria-label="Tutup">${icon('close')}</button>`
     const frame = el.querySelector('iframe')

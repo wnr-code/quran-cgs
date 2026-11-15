@@ -96,6 +96,14 @@ await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol 
   assert.equal(await page.$eval('#view [data-trk-direct]', (a) => a.href), 'https://trakteer.id/lanteraku/tip') // jalan untuk dompet digital
   // Tidak ada tombol/teks milik aplikasi yang menutupi formulir penyedia setelah termuat
   assert.equal(await page.$('.trk-overlay [data-trk-close], .trk-overlay .trk-help'), null)
+  // Teks berjalan berada di ATAS bingkai formulir, tidak menimpanya
+  const geo = await page.evaluate(() => {
+    const t = document.querySelector('[data-trk-ticker]').getBoundingClientRect()
+    const f = document.querySelector('.trk-overlay iframe').getBoundingClientRect()
+    return { tb: t.bottom, ft: f.top, fb: f.bottom, vh: innerHeight, href: document.querySelector('[data-trk-ticker]').href }
+  })
+  assert.ok(geo.tb <= geo.ft + 0.5 && Math.abs(geo.fb - geo.vh) < 1, JSON.stringify(geo))
+  assert.equal(geo.href, 'https://trakteer.id/lanteraku/tip')
   await new Promise((r) => setTimeout(r, 500))
   await page.screenshot({ path: `${SHOTS}/15-infaq-popup.png` })
   assert.equal((await browser.pages()).length, pagesBefore, 'tidak ada tab baru')
