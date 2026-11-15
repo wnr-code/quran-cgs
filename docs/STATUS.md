@@ -176,3 +176,15 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Tanda titik di sel (hari besar/catatan/pengingat), daftar "Catatan bulan ini" dan "Hari besar terdekat".
 - Keterangan hari besar disusun dari pengetahuan umum; **belum ditinjau ustaz**.
 - Uji: `tests/calendar.test.mjs`, `tests/e2e/calendar.mjs`.
+
+## 1.3.15 — Kalender: tanggal merah & pasaran Jawa
+
+- Pasaran (Legi, Pahing, Pon, Wage, Kliwon) dihitung dari siklus 5 hari; acuan uji: 17-8-1945 Jumat Legi, 6-6-1901 Kamis Pon, 1-1-1970 Kamis Wage, 14-2-2024 Rabu Legi (`src/utils/javanese.js`).
+- Libur nasional 2026 & 2027 dari SKB 3 Menteri, cuti bersama 2027 (`src/data/libur-nasional.js`). Cuti bersama 2026 tidak dimuat. Tahun lain: perkiraan (tanggal tetap, Paskah hitungan, hari besar Islam menurut kalender aplikasi), tanpa Imlek/Nyepi/Waisak — **perlu diperbarui tiap SKB baru terbit**.
+- Minggu & libur nasional berwarna merah; cuti bersama jingga.
+
+## 1.3.16 — Doa sebelum berwudhu dari NU Online
+
+- Enam bacaan sebelum berwudhu (ta‘awudz, basmalah, dua tahmid, ta‘awudz dari was-was setan, dua kalimat syahadat) disalin apa adanya dari <https://islam.nu.or.id/doa/doa-sebelum-berwudhu-M7e7B> (Alhafiz Kurniawan, 14-12-2020; mengutip Hasyiyatus Syarqawi hlm. 52). Menggantikan entri "Bismillāh" dari fitrahive/dua-dhikr.
+- Doa sesudah berwudhu dan wirid setelah salat tetap dari fitrahive/dua-dhikr.
+- Data di `src/data/dzikir.json` (`from: "nu"`, `sourceNU`); atribusi di halaman Doa Wudhu dan Tentang → Sumber data.

@@ -302,7 +302,8 @@ await step('Mode Terjemahan: ikon aksi per ayat', async () => {
 await step('Doa wudhu & wirid setelah salat (tersimpan di aplikasi)', async () => {
   await go('/doa/wudhu')
   await page.waitForSelector('.dzikir')
-  assert.equal(await count('.dzikir'), 2)
+  assert.equal(await count('.dzikir'), 7)
+  assert.match(await text('.dzikir:first-child .doa-ref'), /NU Online/)
   await go('/doa/salat')
   await page.waitForSelector('.dzikir')
   assert.equal(await count('.dzikir'), 13)

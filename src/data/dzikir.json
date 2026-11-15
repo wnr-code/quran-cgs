@@ -7,13 +7,70 @@
  },
  "wudhu": [
   {
-   "title": "Doa Sebelum Berwudhu",
-   "arabic": "بِسْمِ اللَّهِ",
-   "latin": "Bismillāh",
-   "translation": "Dengan nama Allah (aku mulai berwudhu).",
+   "title": "Ta‘awudz sebelum berwudhu",
+   "arabic": "أَعُوْذُ بِاللهِ مِنَ الشَّيْطَانِ الرَّجِيْمِ",
+   "latin": "A‘ūdzu billāhi minas syaithānir rajīm.",
+   "translation": "Aku berlindung kepada Allah dari gangguan setan yang terkutuk.",
    "notes": "",
-   "fawaid": "Disyariatkan memulai setiap perkara yang penting dengan mengucapkan bismillah dalam hal ibadah ataupun lainnya.",
-   "source": "HR. at-Tirmidzi dan al-Baihaqi"
+   "fawaid": "",
+   "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
+   "group": "Doa Sebelum Berwudhu",
+   "from": "nu"
+  },
+  {
+   "title": "Basmalah sebelum berwudhu",
+   "arabic": "بِسْمِ اللهِ الرَّحْمنِ الرَّحِيمْ",
+   "latin": "Bismillāhir rahmānir rahīm.",
+   "translation": "Dengan menyebut nama Allah Yang Maha Pengasih lagi Maha Penyayang.",
+   "notes": "",
+   "fawaid": "",
+   "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
+   "group": "Doa Sebelum Berwudhu",
+   "from": "nu"
+  },
+  {
+   "title": "Tahmid atas nikmat Islam sebelum berwudhu",
+   "arabic": "الْحَمْدُ لِلَّهِ عَلَى الْإِسْلَامِ وَنِعْمَتِهِ",
+   "latin": "Alhamdulillāhi ‘alal Islāmi wa ni‘matihī.",
+   "translation": "Segala puji bagi Allah atas Islam dan nikmatnya.",
+   "notes": "",
+   "fawaid": "",
+   "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
+   "group": "Doa Sebelum Berwudhu",
+   "from": "nu"
+  },
+  {
+   "title": "Tahmid atas nikmat air sebelum berwudhu",
+   "arabic": "وَالْحَمْدُ لِلَّهِ الَّذِي جَعَلَ الْمَاءَ طَهُورًا وَالْإِسْلَامَ نُورًا",
+   "latin": "Walhamdulillāhil ladzī ja‘alal mā`a thahūran, wal Islāma nūran.",
+   "translation": "Segala puji bagi Allah yang menjadikan air itu suci dan Islam itu cahaya.",
+   "notes": "",
+   "fawaid": "",
+   "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
+   "group": "Doa Sebelum Berwudhu",
+   "from": "nu"
+  },
+  {
+   "title": "Ta‘awudz dari was-was setan",
+   "arabic": "رَبِّ أَعُوذُ بِك مِنْ هَمَزَاتِ الشَّيَاطِينِ وَأَعُوذُ بِكَ رَبِّ أَنْ يَحْضُرُون",
+   "latin": "Rabbi a‘ūdzu bika min hamazātis syayāthīni, wa a‘ūdzu bika rabbi an yahdhurūn.",
+   "translation": "Tuhanku, aku berlindung kepada-Mu dari gangguan setan. Aku juga berlindung kepada-Mu wahai Tuhanku dari kepungan mereka.",
+   "notes": "",
+   "fawaid": "Lafaz ini berasal dari Surat Al-Mukminun ayat 97-98.",
+   "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
+   "group": "Doa Sebelum Berwudhu",
+   "from": "nu"
+  },
+  {
+   "title": "Dua kalimat syahadat sebelum berwudhu",
+   "arabic": "أَشْهَدُ أَنْ لآّاِلَهَ إِلاَّ اللهُ وَأَشْهَدُ أَنَّ مُحَمَّدًا رَسُوْلُ اللهِ",
+   "latin": "Asyhadu an lā ilāha illallāhu, wa asyhadu anna Muhammadan rasūlullāhi.",
+   "translation": "Aku bersaksi, tiada tuhan selain Allah. Aku juga bersaksi bahwa Muhammad adalah utusan Allah.",
+   "notes": "",
+   "fawaid": "",
+   "source": "NU Online, “Doa Sebelum Berwudhu” (Alhafiz Kurniawan) — dikutip dari Hasyiyatus Syarqawi, Syekh Abdullah As-Syarqawi, hlm. 52",
+   "group": "Doa Sebelum Berwudhu",
+   "from": "nu"
   },
   {
    "title": "Doa Sesudah Berwudhu",
@@ -143,5 +200,11 @@
    "fawaid": "Ilmu yang bermanfaat adalah bekal yang memudahkan kehidupan, mendapatkan rizki yang baik menjadi tujuan seseorang dalam bekerja, dan amalan yang diterima harapan setiap orang yang beramal. Maka seyogyanya seorang hamba senantiasa meminta 3 hal ini pada setiap pagi sebelum memulai berbagai aktivitasnya.",
    "source": "HR. Ibnu Majah No. 925 dan Ahmad 6: 305, 322. Al-Hafizh Abu Thohir mengatakan bahwa hadits ini shahih"
   }
- ]
+ ],
+ "sourceNU": {
+  "name": "NU Online (islam.nu.or.id)",
+  "url": "https://islam.nu.or.id/doa/doa-sebelum-berwudhu-M7e7B",
+  "author": "Alhafiz Kurniawan",
+  "published": "2020-12-14"
+ }
 }

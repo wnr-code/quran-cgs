@@ -65,9 +65,17 @@ export const SOURCES = [
         host: 'aladhan.com'
       },
       {
+        name: 'NU Online (islam.nu.or.id)',
+        role: 'Doa sebelum berwudhu',
+        use: 'Enam bacaan sebelum berwudhu (ta‘awudz, basmalah, dua tahmid, ta‘awudz dari was-was setan, dua kalimat syahadat): teks Arab, Latin, dan arti. Disimpan di aplikasi sehingga dapat dibuka offline.',
+        note: 'Disalin apa adanya dari artikel “Doa Sebelum Berwudhu” (Alhafiz Kurniawan, 14 Desember 2020), yang mengutip Kitab Hasyiyatus Syarqawi karya Syekh Abdullah As-Syarqawi halaman 52.',
+        url: 'https://islam.nu.or.id/doa/doa-sebelum-berwudhu-M7e7B',
+        host: 'islam.nu.or.id'
+      },
+      {
         name: 'fitrahive/dua-dhikr',
-        role: 'Doa wudhu & wirid setelah salat',
-        use: 'Bacaan sebelum/sesudah wudhu dan dzikir setelah salat wajib: teks Arab, Latin, terjemahan, keterangan, dan rujukan hadis. Disimpan di aplikasi sehingga dapat dibuka offline.',
+        role: 'Doa sesudah wudhu & wirid setelah salat',
+        use: 'Bacaan sesudah wudhu dan dzikir setelah salat wajib: teks Arab, Latin, terjemahan, keterangan, dan rujukan hadis. Disimpan di aplikasi sehingga dapat dibuka offline.',
         note: 'Disalin apa adanya (lisensi MIT). Setiap bacaan mencantumkan rujukan riwayatnya (mis. HR. Muslim, HR. al-Bukhari).',
         url: 'https://github.com/fitrahive/dua-dhikr',
         host: 'github.com/fitrahive/dua-dhikr'

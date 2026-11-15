@@ -39,6 +39,24 @@ await step('Kalender tampil; ketuk hari besar menampilkan keterangannya', async 
   await js('[data-today]')
 })
 
+await step('Tanggal merah & pasaran: Natal 2026 merah, rincian memuat weton dan nama libur', async () => {
+  const now = await page.evaluate(() => [new Date().getFullYear(), new Date().getMonth()])
+  const steps = (2026 - now[0]) * 12 + (11 - now[1])
+  for (let i = 0; i < Math.abs(steps); i++) await js(`[data-m="${steps > 0 ? 1 : -1}"]`)
+  await page.waitForSelector('[data-day="2026-12-25"].red', T)
+  assert.ok(await page.$('[data-day="2026-12-27"].red'), 'hari Minggu merah')
+  assert.equal(await page.$('[data-day="2026-12-24"].red'), null)
+  await js('[data-day="2026-12-25"]')
+  await page.waitForSelector('.sheet-wrap.open [data-weton]', T)
+  assert.equal(await page.$eval('[data-weton]', (e) => e.textContent), 'Jumat Legi')
+  assert.match(await page.$eval('.day-event.red', (e) => e.textContent), /Natal.*SKB 3 Menteri/)
+  await page.screenshot({ path: `${SHOTS}/19-kalender-tanggal-merah.png` })
+  await js('.sheet-head [data-close]')
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap'), T)
+  await page.screenshot({ path: `${SHOTS}/20-kalender-desember.png` })
+  await js('[data-today]')
+})
+
 await step('Catatan: tambah dengan pengingat, tanda muncul di sel, ubah, bertahan setelah muat ulang, hapus', async () => {
   await js('button.cal-cell.today')
   await page.waitForSelector('.sheet-wrap.open [data-form]', T)
