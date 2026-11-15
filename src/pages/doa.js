@@ -2,31 +2,40 @@ import { pageHeader, skeleton } from '../components/navbar.js'
 import { icon } from '../components/icons.js'
 import { DOA_QURAN } from '../data/ayat-pilihan.js'
 import { getSurah, friendlyError } from '../api/api-adapter.js'
-import { getDoaHarian } from '../api/doa-api.js'
 import { $, esc, debounce, copyText, toast } from '../utils/helpers.js'
-import { openSheet } from '../components/modal.js'
-import { APP } from '../config.js'
-import { doaText, doaUrl as urlOf, shareLinks as linksOf } from '../utils/doa-share.js'
-
-const doaUrl = (p) => urlOf(p, APP.origin)
-const shareLinks = (p) => linksOf(p, APP.origin)
+import { doaText } from '../utils/doa-share.js'
+import { fi, openShare } from '../components/share-sheet.js'
 import { ayahMarker } from '../utils/arabic-numbers.js'
 import DZIKIR from '../data/dzikir.json'
+import NU from '../data/doa-nu.json'
 
-let tab = 'quran'
+let tab = 'harian'
+/** Kategori doa harian yang sedang dibuka (null = daftar kategori). */
+let cat = null
 const TABS = [
-  ['quran', "Al-Qur'an"],
-  ['harian', 'Sehari-hari'],
+  ['harian', 'Harian'],
   ['wudhu', 'Wudhu'],
-  ['salat', 'Usai Salat']
+  ['salat', 'Usai Salat'],
+  ['quran', "Al-Qur'an"]
 ]
+const NU_TOTAL = NU.categories.reduce((n, c) => n + c.items.length, 0)
+/** Kartu kategori: kategori doa harian + pintasan ke tab Wudhu dan Usai Salat (juga kategori di Quran NU Online). */
+const CAT_CARDS = [
+  ...NU.categories.map((c) => ({ cat: c.slug, name: c.name, icon: c.icon, desc: c.desc, n: c.items.length })),
+  { tab: 'wudhu', name: 'Wudhu', icon: 'droplet', desc: 'Niat dan doa tiap gerakan wudhu', n: DZIKIR.wudhu.length },
+  { tab: 'salat', name: 'Usai Salat', icon: 'pray', desc: 'Wirid lalu doa setelah salat fardu', n: DZIKIR.salat.length },
+  { tab: 'quran', name: "Doa dari Al-Qur'an", icon: 'quran', desc: 'Ayat-ayat doa, langsung dari mushaf', n: DOA_QURAN.length }
+]
+const SOURCE_NOTE = {
+  nu: 'Teks Arab, Latin, dan arti disalin apa adanya dari Quran NU Online; kategori dan judul doa mengikuti sumber.',
+  dzikir: 'Teks Arab, Latin, dan arti disalin apa adanya dari Quran NU Online. Judul kartu dan pemisahan bagian disusun QuranKu agar mudah diikuti.'
+}
+const srcFoot = (html) => `<footer class="src-foot">${fi('book-open')}<p>${html}</p></footer>`
+const nuLink = (url, label) => `<a class="link" href="${url}" target="_blank" rel="noopener">${label}</a>`
 /** Bacaan yang sudah ditandai (selama aplikasi terbuka). */
 const done = { wudhu: new Set(), salat: new Set() }
 const KIND_LABEL = { wirid: 'Wirid', doa: 'Doa', niat: 'Niat' }
 const SECTION_CLASS = { wirid: 'wirid', doa: 'doa', niat: 'doa' }
-
-/** Ikon font (subset Font Awesome Free, lihat public/fonts). */
-const fi = (name, brand) => `<i class="fi fi-${name}${brand ? ' fib' : ''}" aria-hidden="true"></i>`
 
 /** Pilihan tampilan (arti/latin/ukuran Arab) disimpan di perangkat. */
 const VIEW_KEY = 'quranku:doa-tampilan'
@@ -63,8 +72,6 @@ export default function doa(root, { params = {} } = {}) {
     <div data-body></div></div>`
   const body = $('[data-body]', root)
   const input = $('input', root)
-  let harian = null
-  let harianErr = null
   const norm = (s) => String(s).toLowerCase()
   const quranData = new Map()
 
@@ -92,60 +99,26 @@ export default function doa(root, { params = {} } = {}) {
     applyView()
   })
 
-  /** Data doa dari kunci tombol: "q:<i>" (Al-Qur'an), "h:<id>" (sehari-hari), "<wudhu|salat>:<i>". */
+  /** Data doa dari kunci tombol: "q:<i>" (Al-Qur'an), "n:<slug>" (doa harian), "<wudhu|salat>:<i>". */
   function payload(key) {
     const [k, id] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)]
     if (k === 'q') return quranData.get(+id) || null
-    if (k === 'h') {
-      const d = harian && harian.find((x) => String(x.id) === id)
-      return d ? { title: d.nama, ar: d.ar, latin: d.tr, arti: d.idn, ref: d.tentang, tab: 'harian' } : null
+    if (k === 'n') {
+      for (const c of NU.categories) {
+        const d = c.items.find((x) => x.id === id)
+        if (d) return { title: d.title, ar: d.parts.map((x) => x.ar).join('\n'), latin: d.parts.map((x) => x.latin).join('\n'), arti: d.parts.map((x) => x.arti).join('\n'), ref: `Quran NU Online — Doa ${c.name}`, tab: 'harian' }
+      }
+      return null
     }
     const d = DZIKIR[k] && DZIKIR[k][+id]
     return d ? { title: d.title, ar: d.arabic, latin: d.latin, arti: d.translation, ref: d.source, tab: k } : null
-  }
-
-  function openShare(p) {
-    const L = shareLinks(p)
-    const opt = (cls, href, ic, label) => `<a class="share-opt ${cls}" href="${esc(href)}" target="_blank" rel="noopener" data-net="${cls}"><span class="share-ic">${fi(ic, true)}</span>${label}</a>`
-    openSheet({
-      title: 'Bagikan doa',
-      content: `<p class="share-title">${esc(p.title)}</p>
-        <div class="share-grid">
-          ${opt('wa', L.whatsapp, 'whatsapp', 'WhatsApp')}
-          ${opt('tg', L.telegram, 'telegram', 'Telegram')}
-          ${opt('fb', L.facebook, 'facebook', 'Facebook')}
-          ${opt('x', L.x, 'x', 'X')}
-          ${navigator.share ? `<button class="share-opt" data-native><span class="share-ic">${fi('more')}</span>Lainnya</button>` : ''}
-          <button class="share-opt" data-copyshare><span class="share-ic">${fi('copy')}</span>Salin teks</button>
-        </div>
-        <p class="hint">Yang dibagikan: judul, lafaz Arab, Latin, arti, sumber, dan tautan ke QuranKu. Facebook hanya menerima tautan, jadi teks doa ikut disalin agar bisa ditempel.</p>`,
-      onOpen(el, close) {
-        el.addEventListener('click', async (e) => {
-          if (e.target.closest('[data-net="fb"]')) {
-            copyText(doaText(p)).then((ok) => ok && toast('Teks doa disalin — tempel di Facebook'))
-            return close()
-          }
-          if (e.target.closest('[data-net]')) return close()
-          if (e.target.closest('[data-copyshare]')) {
-            toast((await copyText(`${doaText(p)}\n\n${doaUrl(p)}`)) ? 'Teks doa disalin' : 'Gagal menyalin')
-            return close()
-          }
-          if (e.target.closest('[data-native]')) {
-            try {
-              await navigator.share({ title: p.title, text: doaText(p), url: doaUrl(p) })
-              close()
-            } catch {}
-          }
-        })
-      }
-    })
   }
 
   function renderQuran() {
     const q = norm(input.value)
     const items = DOA_QURAN.map((d, i) => ({ ...d, i })).filter((d) => !q || norm(d.title).includes(q))
     body.innerHTML = `<div class="list">${items.map((d) => `<details class="doa" data-i="${d.i}"><summary><span><strong>${esc(d.title)}</strong><small>QS. ${d.s}:${d.from}${d.to !== d.from ? '–' + d.to : ''}</small></span>${icon('down')}</summary><div class="doa-body" data-slot>${skeleton(2, 'sk-line')}</div></details>`).join('')}</div>
-      <p class="hint pad">Ayat ditampilkan utuh sebagaimana sumber data Al-Qur'an; lafaz doa terdapat di dalam ayat tersebut. Referensi: nomor surah dan ayat.</p>`
+      ${srcFoot("<strong>Sumber:</strong> teks ayat dari data Al-Qur'an aplikasi (lihat Tentang → Sumber data). Ayat ditampilkan utuh; lafaz doa terdapat di dalam ayat tersebut.")}`
   }
 
   async function fillQuran(det) {
@@ -167,27 +140,32 @@ export default function doa(root, { params = {} } = {}) {
     }
   }
 
-  async function renderHarian() {
-    if (!harian && !harianErr) {
-      body.innerHTML = skeleton(6)
-      try {
-        harian = await getDoaHarian()
-      } catch (e) {
-        harianErr = e
-      }
-      if (tab !== 'harian') return
-    }
-    if (!harian) {
-      body.innerHTML = `<div class="state">${icon('cloudOff', 'state-icon')}<h3>Doa sehari-hari belum tersedia</h3><p>Kumpulan ini dimuat dari EQuran.id dan belum dapat diambil saat ini. QuranKu tidak menulis sendiri teks doa agar terjaga keasliannya. Gunakan tab “Doa dari Al-Qur'an” yang tersedia offline setelah surahnya tersimpan.</p><button class="btn btn-primary" data-retry>${icon('refresh')}Coba lagi</button></div>`
+  /** Satu doa harian (bisa terdiri atas beberapa bacaan). */
+  const doaItem = (d, no, label) => `<details class="doa doa-nu"><summary><span class="doa-no">${no}</span><span><strong>${esc(d.title)}</strong>${label ? `<small>${esc(label)}</small>` : d.parts.length > 1 ? `<small>${d.parts.length} bacaan</small>` : ''}</span>${icon('down')}</summary><div class="doa-body">
+      ${d.parts.map((x) => `<div class="doa-part"><div class="dzikir-ar"><p class="ayah-ar" lang="ar" dir="rtl">${esc(x.ar)}</p></div><p class="ayah-latin">${esc(x.latin)}</p><p class="ayah-id">${esc(x.arti)}</p></div>`).join('')}
+      <div class="doa-foot"><div class="doa-acts"><button class="btn sm" data-copyn="${d.id}">${fi('copy')}Salin</button><button class="btn sm" data-share="n:${d.id}">${fi('share')}Bagikan</button></div></div></div></details>`
+
+  /** Doa harian per kategori (seperti Quran NU Online): daftar kategori → daftar doa; pencarian menembus semua kategori. */
+  function renderHarian() {
+    const q = norm(input.value).trim()
+    const foot = (c) => srcFoot(`<strong>Sumber:</strong> ${nuLink(c ? `${NU.source.url}/${c.slug}` : NU.source.url, 'Quran NU Online')}${c ? `, kategori “Doa ${esc(c.name)}”` : ''}. ${SOURCE_NOTE.nu}`)
+    if (q) {
+      const hits = NU.categories.flatMap((c) => c.items.filter((d) => norm(d.title).includes(q) || d.parts.some((x) => norm(x.arti).includes(q) || norm(x.latin).includes(q))).map((d) => ({ d, c })))
+      body.innerHTML = `<p class="doa-count">${hits.length} doa ditemukan di ${NU.categories.length} kategori</p>
+        <div class="list">${hits.map(({ d, c }, i) => doaItem(d, i + 1, c.name)).join('') || '<p class="muted pad">Tidak ditemukan. Coba kata lain, mis. “tidur”, “hujan”, “utang”.</p>'}</div>${foot()}`
       return
     }
-    const q = norm(input.value)
-    const items = harian.filter((d) => !q || norm(d.nama).includes(q) || norm(d.grup).includes(q) || norm(d.idn).includes(q))
-    body.innerHTML = `<div class="list">${items.map((d) => `<details class="doa"><summary><span><strong>${esc(d.nama)}</strong>${d.grup ? `<small>${esc(d.grup)}</small>` : ''}</span>${icon('down')}</summary><div class="doa-body">
-        <p class="ayah-ar" lang="ar" dir="rtl">${esc(d.ar)}</p>${d.tr ? `<p class="ayah-latin">${esc(d.tr)}</p>` : ''}${d.idn ? `<p class="ayah-id">${esc(d.idn)}</p>` : ''}
-        <div class="doa-foot">${d.tentang ? `<p class="doa-ref">Referensi: ${esc(d.tentang)}</p>` : '<p class="doa-ref">Referensi tidak disertakan oleh sumber data.</p>'}
-        <div class="doa-acts"><button class="btn sm" data-copy="${esc(d.id)}">${fi('copy')}Salin</button><button class="btn sm" data-share="h:${esc(d.id)}">${fi('share')}Bagikan</button></div></div></div></details>`).join('') || '<p class="muted pad">Tidak ditemukan.</p>'}</div>
-      <p class="hint pad">Sumber: EQuran.id (${harian.length} doa), ditampilkan apa adanya.</p>`
+    const c = cat && NU.categories.find((x) => x.slug === cat)
+    if (!c) {
+      body.innerHTML = `<p class="dzikir-intro">Pilih kategori. ${NU_TOTAL} doa harian tersusun dalam ${NU.categories.length} kategori, tersimpan di aplikasi sehingga bisa dibuka tanpa internet.</p>
+        <div class="cat-grid">${CAT_CARDS.map((x, i) => `<button class="cat-card${x.tab ? ' is-link' : ''}" style="--i:${i}" ${x.cat ? `data-cat="${x.cat}"` : `data-goto="${x.tab}"`}>
+          <span class="cat-ic">${fi(x.icon)}</span><strong>${esc(x.name)}</strong><small>${esc(x.desc)}</small><em>${x.n} ${x.tab ? 'bacaan' : 'doa'}</em></button>`).join('')}</div>
+        <p class="hint pad">Kategori lain dari Quran NU Online (Waktu Tertentu, Kualitas Diri, Pernikahan, Hamil &amp; Persalinan, Baca Al-Qur'an, Salat lainnya, Haji &amp; Umrah, Kematian) menyusul.</p>${foot()}`
+      return
+    }
+    body.innerHTML = `<div class="cat-head"><button class="btn sm" data-cat="">${fi('arrow-left')}Kategori</button><div><h2>${fi(c.icon)}Doa ${esc(c.name)}</h2><small>${c.items.length} doa · ${esc(c.desc)}</small></div></div>
+      <div class="cat-chips">${NU.categories.map((x) => `<button class="chip${x.slug === c.slug ? ' active' : ''}" data-cat="${x.slug}">${esc(x.name)}</button>`).join('')}</div>
+      <div class="list">${c.items.map((d, i) => doaItem(d, i + 1)).join('')}</div>${foot(c)}`
   }
 
   /** Doa wudhu & wirid/doa usai salat: data tersimpan di aplikasi (offline), dari Quran NU Online. */
@@ -222,7 +200,6 @@ export default function doa(root, { params = {} } = {}) {
           ${d.fawaid ? `<p class="dzikir-note">${icon('info')}<span>${esc(d.fawaid)}</span></p>` : ''}
           ${d.links && d.links.length ? `<div class="dzikir-links">${d.links.map((l) => `<a class="chip chip-link" href="#/surah/${l.s}/${l.a}">${fi('book-open')}${esc(l.label)}</a>`).join('')}</div>` : ''}
           <footer class="dzikir-foot">
-            <p class="doa-ref">Sumber: ${esc(d.source)}</p>
             <div class="dzikir-acts">
               ${n ? `<button class="btn sm dzikir-count" data-count="${n}" data-n="0" data-for="${d.i}" aria-label="Penghitung bacaan">${icon('beads')}<span>0 / ${n}</span></button>` : ''}
               <button class="btn sm" data-copyz="${kind}:${d.i}">${fi('copy')}Salin</button>
@@ -230,7 +207,7 @@ export default function doa(root, { params = {} } = {}) {
             </div>
           </footer></article>`
       }).join('') || '<p class="muted pad">Tidak ditemukan.</p>'}</div>
-      <p class="hint pad">Sumber: <a class="link" href="${page.url}" target="_blank" rel="noopener">${esc(DZIKIR.source.name)}</a>, halaman “${esc(page.title)}”. Teks Arab, Latin, dan arti berasal dari sumber tersebut; judul kartu, pengelompokan, dan beberapa perbaikan salah ketik pada Latin/arti oleh QuranKu.</p>`
+      ${srcFoot(`<strong>Sumber:</strong> ${nuLink(page.url, esc(DZIKIR.source.name))}, halaman “${esc(page.title)}”. ${SOURCE_NOTE.dzikir}${page.note ? ' ' + esc(page.note) : ''}`)}`
     paintProgress(kind)
   }
 
@@ -266,17 +243,27 @@ export default function doa(root, { params = {} } = {}) {
   root.querySelector('.tabs').addEventListener('click', (e) => {
     const b = e.target.closest('[data-tab]')
     if (b) {
+      if (b.dataset.tab === 'harian' && tab === 'harian') cat = null
       tab = b.dataset.tab
       render()
     }
   })
   body.addEventListener('toggle', (e) => {
     if (e.target.matches('details[data-i]') && e.target.open) fillQuran(e.target)
+    if (e.target.matches('details.doa-nu') && e.target.open) body.querySelectorAll('details.doa-nu[open]').forEach((d) => d !== e.target && (d.open = false))
   }, true)
   body.addEventListener('click', async (e) => {
-    if (e.target.closest('[data-retry]')) {
-      harianErr = null
-      return render()
+    const ct = e.target.closest('[data-cat]')
+    if (ct) {
+      cat = ct.dataset.cat || null
+      render()
+      return window.scrollTo({ top: 0 })
+    }
+    const gt = e.target.closest('[data-goto]')
+    if (gt) {
+      tab = gt.dataset.goto
+      render()
+      return window.scrollTo({ top: 0 })
     }
     const cnt = e.target.closest('[data-count]')
     if (cnt) {
@@ -300,9 +287,9 @@ export default function doa(root, { params = {} } = {}) {
       const p = payload(sh.dataset.share)
       return p && openShare(p)
     }
-    const c = e.target.closest('[data-copyz],[data-copy],[data-copyq]')
+    const c = e.target.closest('[data-copyz],[data-copyn],[data-copyq]')
     if (c) {
-      const key = c.dataset.copyz || (c.dataset.copyq != null ? `q:${c.dataset.copyq}` : `h:${c.dataset.copy}`)
+      const key = c.dataset.copyz || (c.dataset.copyq != null ? `q:${c.dataset.copyq}` : `n:${c.dataset.copyn}`)
       const p = payload(key)
       if (p) toast((await copyText(doaText(p))) ? 'Bacaan disalin' : 'Gagal menyalin')
     }

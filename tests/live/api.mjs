@@ -2,7 +2,6 @@
 // Jalankan: node tests/live/api.mjs   (di CI: workflow "Live API test")
 import { createEquran } from '../../src/api/equran.js'
 import { alquranCloud, stripBasmalah } from '../../src/api/alqurancloud.js'
-import { parseDoa } from '../../src/api/doa-api.js'
 import { validateSurahList, validateSurahDetail, validateTafsir } from '../../src/utils/validation.js'
 import { API, QARI_AYAH as QARI } from '../../src/config.js'
 
@@ -92,24 +91,6 @@ await step('EQuran: berkas audio surah penuh', async () => {
 })
 await step('EQuran: tafsir (surah 1, 2, 114)', async () => {
   for (const n of [1, 2, 114]) assert(validateTafsir(await eq.tafsir(n), n), 'tafsir ' + n + ' tidak valid')
-})
-await step('EQuran: API doa harian', async () => {
-  const r = await fetch(API.equranDoa, { signal: AbortSignal.timeout(20000) })
-  const json = await r.json()
-  const first = Array.isArray(json) ? json[0] : json && json.data && json.data[0]
-  const keys = first ? Object.keys(first).join(',') : JSON.stringify(json).slice(0, 200)
-  let data
-  try {
-    data = parseDoa(json)
-  } catch (e) {
-    throw new Error(`${e.message}; status=${r.status}; kunci: ${keys}`)
-  }
-  const d = data[0]
-  assert(d.nama && d.ar, 'isi kosong')
-  const rawList = Array.isArray(json) ? json : json.data
-  const dropped = rawList.filter((x) => !data.some((y) => y.id === x.id))
-  const sample = dropped[0] ? ` contoh dilewati: id=${dropped[0].id} nama="${String(dropped[0].nama).slice(0, 40)}" ar="${String(dropped[0].ar).slice(0, 40)}"` : ''
-  return `${data.length} doa dipakai dari ${rawList.length} (${dropped.length} dilewati);${sample} kunci: ${keys}; ACAO=${r.headers.get('access-control-allow-origin')}; terisi: tr=${!!d.tr} idn=${!!d.idn} tentang=${!!d.tentang} grup=${!!d.grup}`
 })
 await step('Al Quran Cloud: daftar & surah 2, 9, 114 lolos validasi', async () => {
   assert(validateSurahList(await alquranCloud.list()), 'daftar tidak valid')

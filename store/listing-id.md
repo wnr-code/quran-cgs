@@ -54,7 +54,7 @@ Surah yang pernah dibuka tersimpan di perangkat. Anda juga dapat mengunduh selur
 MENJAGA PRIVASI
 Tanpa iklan dan tanpa pelacakan. Bookmark, catatan, dan lokasi hanya tersimpan di perangkat Anda.
 
-Sumber data: EQuran.id (teks, terjemahan, dan tafsir Kemenag RI) dan Al Quran Cloud.
+Sumber data: EQuran.id (teks, terjemahan, dan tafsir Kemenag RI), Al Quran Cloud, dan Quran NU Online (doa dan wirid).
 
 **Kategori:** Buku & Referensi
 **Tag:** Al-Qur'an, Islam, Murottal, Jadwal Salat

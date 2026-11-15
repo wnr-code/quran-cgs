@@ -38,8 +38,8 @@ export const SOURCES = [
         host: 'github.com/risan/quran-json'
       },
       {
-        name: 'Ayat pilihan & doa dari Al-Qur\'an',
-        use: 'Daftar rujukan ayat (nomor surah:ayat) untuk “Ayat hari ini” dan tab doa Qur\'ani, disusun untuk aplikasi ini. Teks ayatnya tetap diambil dari sumber Al-Qur\'an di atas.'
+        name: 'Ayat pilihan, doa dari Al-Qur\'an & penyemangat beranda',
+        use: 'Daftar rujukan ayat (nomor surah:ayat) untuk “Ayat hari ini” dan tab doa Qur\'ani, disusun untuk aplikasi ini; teks ayatnya tetap diambil dari sumber Al-Qur\'an di atas. Kalimat penyemangat kecil di beranda adalah potongan terjemahan ayat (dengan rujukan surah:ayat), bukan kata-kata karangan.'
       },
       {
         name: 'quran-meta',
@@ -66,21 +66,15 @@ export const SOURCES = [
       },
       {
         name: 'Quran NU Online (quran.nu.or.id)',
-        role: 'Doa wudhu, wirid & doa usai salat',
-        use: 'Niat dan doa wudhu (11 bacaan) serta wirid dan doa usai salat fardu: teks Arab, Latin, dan arti. Disimpan di aplikasi sehingga dapat dibuka offline.',
-        note: 'Disalin dari halaman “Doa Wudhu” dan “Doa Shalat — Doa Usai Shalat Fardhu”. Judul kartu, pengelompokan Wirid/Doa, dan beberapa perbaikan salah ketik pada Latin/arti oleh QuranKu (dicatat di docs/STATUS.md).',
+        role: 'Seluruh doa harian, doa wudhu, wirid & doa usai salat',
+        use: 'Teks Arab, Latin, dan arti untuk doa harian (kategori Keseharian, Rezeki, Tolak Bala, Kesehatan, Perjalanan, Ilmu), doa wudhu, serta wirid dan doa usai salat fardu. Disimpan di aplikasi sehingga dapat dibuka offline.',
+        note: 'Disalin dari halaman kategori di quran.nu.or.id/doa; teks Arab, Latin, dan arti ditampilkan apa adanya (tidak dikoreksi). Kategori dan judul doa harian mengikuti sumber; pada doa wudhu dan usai salat, judul kartu dan pemisahan Wirid/Doa disusun QuranKu. Kategori lain menyusul.',
         url: 'https://quran.nu.or.id/doa',
         host: 'quran.nu.or.id'
       },
       {
-        name: 'EQuran.id API Doa',
-        use: 'Doa harian: teks Arab, Latin, terjemahan, dan rujukan. Bila layanan tidak tersedia, halaman doa menampilkan keterangan (tidak ada doa buatan).',
-        url: 'https://equran.id',
-        host: 'equran.id'
-      },
-      {
         name: 'wnr-code/asmaul_husna',
-        use: '99 Asmaul Husna (data versi 2): tulisan Arab, Latin, arti, makna, faedah/amalan, dan rujukan ayat.',
+        use: '99 Asmaul Husna (data versi 2.0.0): tulisan Arab, Latin, arti, makna, faedah/amalan, dan rujukan ayat.',
         license: 'MIT',
         url: 'https://github.com/wnr-code/asmaul_husna',
         host: 'github.com/wnr-code/asmaul_husna'
@@ -133,8 +127,15 @@ export const SOURCES = [
         host: 'software.sil.org/scheherazade'
       },
       {
-        name: 'Ikon dan ornamen',
-        use: 'Logo, ikon garis, dan ornamen geometris dibuat khusus untuk QuranKu.'
+        name: 'Font Awesome Free 6.7.2',
+        use: 'Ikon font di beranda (ucapan sesuai waktu), halaman Doa, Asmaul Husna, dan lembar Bagikan. Hanya ikon yang dipakai yang disertakan (subset), disajikan dari aplikasi.',
+        license: 'Ikon CC BY 4.0, font SIL OFL 1.1',
+        url: 'https://fontawesome.com',
+        host: 'fontawesome.com'
+      },
+      {
+        name: 'Ikon garis dan ornamen',
+        use: 'Logo, ikon garis (SVG), dan ornamen geometris dibuat khusus untuk QuranKu.'
       }
     ]
   },

@@ -6,7 +6,8 @@ import { getSettings } from '../services/storage.js'
 import { nextPrayer } from '../api/prayer-api.js'
 import { ayatHariIni, dayKey } from '../data/ayat-pilihan.js'
 import { formatHijri } from '../utils/hijri.js'
-import { formatGregorian, greeting, formatClock } from '../utils/format.js'
+import { formatGregorian, greeting, greetingIcon, formatClock } from '../utils/format.js'
+import { MUTIARA } from '../data/mutiara.js'
 import { qnum, ayahRef } from '../utils/arabic-numbers.js'
 import { $, esc, on, toast, shareText } from '../utils/helpers.js'
 import { playAyah } from '../services/audio.js'
@@ -35,9 +36,10 @@ export default async function home(root) {
       <div class="brand">${LOGO_SVG}<div><strong>QuranKu</strong><small>Al-Qur'an Digital</small></div>
         <a class="icon-btn on-dark" href="#/cari" aria-label="Cari">${icon('search')}</a>
         <a class="icon-btn on-dark" href="#/pengaturan" aria-label="Pengaturan">${icon('settings')}</a></div>
-      <p class="salam">Assalamu’alaikum</p>
-      <p class="greet">${greeting(now)}, semoga harimu penuh berkah.</p>
+      <p class="salam" lang="ar" dir="rtl" aria-label="Assalamu’alaikum">اَلسَّلَامُ عَلَيْكُمْ</p>
+      <p class="greet"><i class="fi fi-${greetingIcon(now)} greet-ic" aria-hidden="true"></i><span>${greeting(now)}, semoga harimu penuh berkah.</span></p>
       <div class="dates">${hijri ? `<span>${icon('moon')}${esc(hijri)}</span>` : ''}<span>${icon('calendar')}${esc(formatGregorian(now))}</span></div>
+      <a class="mutiara" data-mutiara href="#"></a>
     </header>
 
     <section class="card continue" data-continue>
@@ -58,6 +60,12 @@ export default async function home(root) {
       <div class="skeleton sk-line"></div><div class="skeleton sk-line"></div>
     </section>
   </div>`
+
+  // Penyemangat acak: potongan terjemahan ayat, berganti tiap beranda dibuka.
+  const m = MUTIARA[Math.floor(Math.random() * MUTIARA.length)]
+  const mu = root.querySelector('[data-mutiara]')
+  mu.href = `#/surah/${m.s}/${m.a}`
+  mu.innerHTML = `<i class="fi fi-quote" aria-hidden="true"></i><span>${esc(m.t)} <small>${esc(m.r)}</small></span>`
   // Ajakan memasang aplikasi (semua peramban; disembunyikan bila sudah terpasang atau ditutup pengguna).
   if (shouldOfferInstall() && !installDismissed()) {
     $('.home-hero', root).insertAdjacentHTML(

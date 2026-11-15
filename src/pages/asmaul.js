@@ -5,6 +5,7 @@ import { getSurah } from '../api/api-adapter.js'
 import data from '../data/asmaul-husna.json'
 import { $, esc, debounce, copyText, toast } from '../utils/helpers.js'
 import { qnum } from '../utils/arabic-numbers.js'
+import { fi, openShare } from '../components/share-sheet.js'
 
 const TOTAL = data.items.length
 
@@ -18,7 +19,8 @@ export default function asmaul(root) {
     <div class="search-box">${icon('search')}<input type="search" placeholder="Cari nama, arti, atau makna…" aria-label="Cari" autocomplete="off" /></div>
     <p class="asma-count" data-count></p>
     <div class="asma-grid" data-list></div>
-    <p class="hint pad">Sentuh sebuah nama untuk melihat makna, faedah, dan rujukan ayatnya. Sumber data: ${esc(data.source)} — makna &amp; faedah adalah ringkasan dari sumber tersebut; rujukan ayat dapat dibuka untuk dibaca langsung.</p></div>`
+    <p class="hint pad">Sentuh sebuah nama untuk melihat makna, faedah, dan rujukan ayatnya, lalu salin atau bagikan.</p>
+    <footer class="src-foot">${fi('book-open')}<p><strong>Sumber:</strong> ${esc(data.source)}. Makna &amp; faedah adalah ringkasan dari sumber tersebut; rujukan ayat dapat dibuka untuk dibaca langsung.</p></footer></div>`
   const list = $('[data-list]', root)
   const input = $('input', root)
   const count = $('[data-count]', root)
@@ -54,9 +56,13 @@ export default function asmaul(root) {
     ${x.makna ? `<section class="asma-sec"><h4>${icon('book')}Makna</h4><p>${esc(x.makna)}</p></section>` : ''}
     ${x.amalan ? `<section class="asma-sec"><h4>${icon('hands')}Faedah &amp; amalan</h4><p>${esc(x.amalan)}</p></section>` : ''}
     ${x.ref && x.ref.length ? `<section class="asma-sec"><h4>${icon('bookmark')}Rujukan</h4><div class="asma-refs">${x.ref.map((r) => (r.s ? `<a class="chip chip-link" href="#/surah/${r.s}/${r.a}">${esc(r.t)}</a>` : `<span class="asma-ref-note">${esc(r.t)}</span>`)).join('')}</div></section>` : ''}
+    <div class="asma-detail-acts">
+      <button class="btn" data-copy>${fi('copy')}Salin</button>
+      <button class="btn btn-primary" data-share>${fi('share')}Bagikan</button>
+    </div>
     <div class="asma-detail-nav">
       <button class="btn" data-go="-1" ${x.id <= 1 ? 'disabled' : ''}>${icon('back')}Sebelumnya</button>
-      <button class="btn" data-copy>${icon('copy')}Salin</button>
+      <span class="asma-pos">${x.id} / ${TOTAL}</span>
       <button class="btn" data-go="1" ${x.id >= TOTAL ? 'disabled' : ''}>Berikutnya${icon('forward')}</button>
     </div>`
   list.addEventListener('click', (e) => {
@@ -76,6 +82,11 @@ export default function asmaul(root) {
               cur = nx
               box.innerHTML = detail(cur)
             }
+          } else if (ev.target.closest('[data-share]')) {
+            openShare(
+              { title: `Asmaul Husna ke-${cur.id}: ${cur.latin}`, ar: cur.arab, latin: cur.latin, arti: [cur.arti, cur.makna].filter(Boolean).join('. '), path: '/asmaul-husna' },
+              { title: 'Bagikan Asmaul Husna', what: 'Asmaul Husna' }
+            )
           } else if (ev.target.closest('[data-copy]')) {
             toast((await copyText(`${cur.arab}\n${cur.latin} — ${cur.arti}${cur.makna ? '\n\n' + cur.makna : ''}`)) ? 'Disalin' : 'Gagal menyalin')
           }

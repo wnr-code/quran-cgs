@@ -23,7 +23,7 @@ export default function about(root) {
         <li>Tandai teks, bookmark, catatan, dan posisi bacaan terakhir</li>
         <li>Murottal per ayat dan per surah dengan banyak qari</li>
         <li>Jadwal salat, adzan otomatis, arah kiblat, kalender Hijriah</li>
-        <li>Doa harian, wirid setelah salat, Asmaul Husna, tasbih digital</li>
+        <li>Doa harian per kategori, doa wudhu, wirid &amp; doa usai salat, Asmaul Husna, tasbih digital</li>
         <li>Target tilawah dan statistik; bisa dipasang dan dipakai offline</li>
       </ul></section>
 

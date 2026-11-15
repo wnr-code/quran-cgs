@@ -26,7 +26,6 @@ export const APP = {
 
 export const API = {
   equran: 'https://equran.id/api/v2',
-  equranDoa: 'https://equran.id/api/doa',
   // Proxy opsional (Cloudflare Pages Function) dipakai bila akses langsung gagal (mis. CORS).
   equranProxy: '/api/quran',
   alquranCloud: 'https://api.alquran.cloud/v1',
