@@ -224,9 +224,17 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - **Doa harian** kini dari Quran NU Online, tersimpan di aplikasi (offline) dan disusun per kategori seperti sumbernya: Keseharian 19, Rezeki 9, Tolak Bala 13, Kesehatan 5, Perjalanan 7, Ilmu 9 (62 doa). Salinan mentah di `scripts/nu-doa/*.txt`, diubah ke `src/data/doa-nu.json` dengan `node scripts/build-nu-doa.mjs` (menolak slug ganda). Judul doa dari sitemap quran.nu.or.id; batas antar-doa untuk kategori yang jumlah bloknya ≠ jumlah doa (Rezeki, Perjalanan, Ilmu) dicek ke halaman tiap doa.
 - Doa harian dari EQuran.id **dibuang** (`src/api/doa-api.js`, `API.equranDoa`) supaya tidak ada doa ganda dari dua sumber.
 - **Belum dimigrasikan (8 kategori):** Waktu Tertentu 12, Kualitas Diri 10, Pernikahan & Rumah Tangga 10, Hamil & Persalinan 7, Doa para Nabi di Al-Qur'an 14, Baca Al-Qur'an 7, Doa Shalat (19 sisanya), Haji & Umrah 21, Kematian 6. "Sumber & keterangan" tiap doa (rujukan kitab) juga belum disalin.
-- **Teks doa harian tidak dikoreksi** (permintaan pemilik, 1.3.22): Arab, Latin, dan arti persis seperti halaman NU, termasuk yang tampak salah ketik (mis. "kependudukan", "anugerahmu-Mu"). Yang berbeda hanya teknis: tanda kutip pembungkus arti dan karakter tak terlihat dibuang, bacaan dua baris dijadikan satu baris. Koreksi pada data wudhu/usai salat (1.3.19–1.3.20) masih ada.
+- **Teks doa harian tidak dikoreksi** (permintaan pemilik, 1.3.22): Arab, Latin, dan arti persis seperti halaman NU, termasuk yang tampak salah ketik (mis. "kependudukan", "anugerahmu-Mu"). Yang berbeda hanya teknis: tanda kutip pembungkus arti dan karakter tak terlihat dibuang, bacaan dua baris dijadikan satu baris.
 - Sumber hanya di kaki halaman (`.src-foot`) dengan keterangan singkat; tidak lagi di tiap kartu.
 - Asmaul Husna: tombol **Bagikan** (WhatsApp, Telegram, Facebook, X, Lainnya, Salin) lewat `src/components/share-sheet.js` yang dipakai bersama halaman Doa.
 - Beranda: salam bertulisan Arab, ikon font sesuai waktu (pagi/siang/sore/malam), penyemangat acak dari `src/data/mutiara.js` — potongan terjemahan ayat dengan rujukan, **belum dicocokkan kata per kata dengan terjemahan Kemenag**.
 - Halaman Tentang: entri EQuran doa dihapus, Font Awesome Free ditambahkan (sebelumnya tidak tercantum), entri NU diperbarui.
 - Jadwal salat Lembaga Falakiyah NU: belum dikerjakan.
+
+## 1.3.23 — Semua teks doa persis seperti Quran NU Online; sumber di README & Tentang diperbarui
+
+- Koreksi QuranKu pada wirid/doa usai salat (1.3.19–1.3.20) **dibatalkan** setelah dicocokkan ulang dengan halaman `doa-shalat/doa-usai-shalat-fardhu`: Latin dan arti kembali seperti NU (termasuk "mustqîm", "illâhu wahdahu", "milikinya", "jimat ampunanmu", "âlihi sayyidinâ", dan kalimat "wa na‘ûdzu bika…" yang tidak ada di Latin NU). Catatan koreksi di bagian 1.3.19/1.3.20 di atas tidak berlaku lagi.
+- Yang tetap berbeda dari halaman NU (teknis, bukan kata): tanda ‘ain yang di NU ditulis dengan backtick ditulis ‘; penanda "×٣ / 3x / 33x" dipindah ke label "Dibaca N×"; tasbih/tahmid/takbir tiga kartu; tanda kutip pembungkus arti dibuang.
+- Doa wudhu tidak dicocokkan ulang pada putaran ini (sejak awal disalin tanpa koreksi).
+- README (tabel Sumber data, daftar fitur), halaman Tentang, kebijakan privasi, dan teks listing: doa EQuran.id & fitrahive/dua-dhikr dihapus, Quran NU Online dan Font Awesome ditambahkan.
+- Versi di "Info aplikasi" Android untuk PWA (WebAPK) ditentukan Chrome, bukan aplikasi; versi sebenarnya ada di Lainnya → kartu versi. Produksi saat pemeriksaan: 1.3.20 (PR #26 belum di-merge).

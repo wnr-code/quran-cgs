@@ -28,7 +28,7 @@ const CAT_CARDS = [
 ]
 const SOURCE_NOTE = {
   nu: 'Teks Arab, Latin, dan arti disalin apa adanya dari Quran NU Online; kategori dan judul doa mengikuti sumber.',
-  dzikir: 'Teks Arab, Latin, dan arti disalin dari Quran NU Online. Judul kartu, pemisahan Wirid/Doa, dan perbaikan salah ketik kecil pada Latin/arti oleh QuranKu.'
+  dzikir: 'Teks Arab, Latin, dan arti disalin apa adanya dari Quran NU Online. Judul kartu dan pemisahan bagian disusun QuranKu agar mudah diikuti.'
 }
 const srcFoot = (html) => `<footer class="src-foot">${fi('book-open')}<p>${html}</p></footer>`
 const nuLink = (url, label) => `<a class="link" href="${url}" target="_blank" rel="noopener">${label}</a>`
@@ -207,7 +207,7 @@ export default function doa(root, { params = {} } = {}) {
             </div>
           </footer></article>`
       }).join('') || '<p class="muted pad">Tidak ditemukan.</p>'}</div>
-      ${srcFoot(`<strong>Sumber:</strong> ${nuLink(page.url, esc(DZIKIR.source.name))}, halaman “${esc(page.title)}”. ${SOURCE_NOTE.dzikir}`)}`
+      ${srcFoot(`<strong>Sumber:</strong> ${nuLink(page.url, esc(DZIKIR.source.name))}, halaman “${esc(page.title)}”. ${SOURCE_NOTE.dzikir}${page.note ? ' ' + esc(page.note) : ''}`)}`
     paintProgress(kind)
   }
 
