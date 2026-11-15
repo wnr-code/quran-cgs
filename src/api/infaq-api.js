@@ -44,7 +44,7 @@ function cleanIntent(j) {
 
 export async function getInfaqConfig() {
   const j = await request('/config', { timeout: 10000 })
-  return { enabled: j.enabled === true && num(j.unitPrice) > 0, unitPrice: num(j.unitPrice), maxQuantity: num(j.maxQuantity) || 1, direct: j.direct === true }
+  return { enabled: j.enabled === true && num(j.unitPrice) > 0, unitPrice: num(j.unitPrice), maxQuantity: num(j.maxQuantity) || 1, direct: j.direct === true, embedUrl: typeof j.embedUrl === 'string' && j.embedUrl.startsWith('https://') ? j.embedUrl : '' }
 }
 
 export const createInfaq = async ({ quantity, name, message }) => cleanIntent(await request('/create', { method: 'POST', body: { quantity, name, message }, timeout: 30000 }))

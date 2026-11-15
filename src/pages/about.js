@@ -13,7 +13,7 @@ const sourceItem = (s) => `<li class="source-item">
 
 export default function about(root) {
   root.innerHTML = `<div class="page">${pageHeader('Tentang QuranKu')}
-    <section class="card about-hero">${LOGO_SVG}<h2>${APP.name}</h2><p class="muted">Versi ${APP.version} · ${APP.packageId}</p>
+    <section class="card about-hero">${LOGO_SVG}<h2>${APP.name}</h2><p class="muted">Versi <span data-version>${esc(APP.versionLabel)}</span><br />${APP.packageId}</p>
       <p>Aplikasi Al-Qur'an digital gratis: mode baca mushaf, terjemahan, tafsir, murottal, dan dukungan offline.</p></section>
 
     <section class="sources" id="sumber-data">

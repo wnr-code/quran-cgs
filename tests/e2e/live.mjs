@@ -98,6 +98,19 @@ await step('Audio per ayat berputar dari halaman baca', async () => {
   await page.waitForSelector('.ayah.playing', T)
   await page.waitForFunction(() => !document.querySelector('#mini-player').hidden, T)
 })
+await step('Murottal qari tambahan (mp3quran.net): surah penuh benar-benar berputar', async () => {
+  await go('/murottal')
+  await page.waitForSelector('[data-play]', T)
+  const reqs = []
+  page.on('request', (r) => /mp3quran\.net/.test(r.url()) && reqs.push(r.url()))
+  await page.select('[data-qari]', 'x-mahir-al-muaiqly')
+  await page.$$eval('[data-play]', (b) => b[b.length - 1].click())
+  await page.waitForFunction(() => /Mahir/.test(document.querySelector('[data-np]').textContent) && [...document.querySelectorAll('[data-cur]')].some((e) => /[1-9]/.test(e.textContent)), T)
+  assert.ok(reqs.some((u) => u.endsWith('/maher/114.mp3')), 'alamat audio: ' + reqs.join(','))
+  const out = `posisi ${await page.$eval('[data-cur]', (e) => e.textContent)} dari ${reqs[0]}`
+  await page.$$eval('#mini-player [data-act]', (b) => b[0] && b[0].click())
+  return out
+})
 await step('Tidak ada error JavaScript', async () => assert.deepEqual(errors, []))
 await browser.close()
 process.exit(failed ? 1 : 0)

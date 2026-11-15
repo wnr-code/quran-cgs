@@ -177,3 +177,21 @@ test('daftar sumber data lengkap & tautan aman', () => {
   }
   for (const name of ['EQuran.id API v2', 'Al Quran Cloud API', 'quran-meta', 'Amiri Quran']) assert.ok(items.some((s) => s.name === name), name)
 })
+
+test('qari tambahan: daftar valid, id unik, alamat audio surah berpola benar', async () => {
+  const { QARI_EXTRA } = await import('../src/data/qari-extra.js')
+  const { QARI, QARI_AYAH, QARI_SURAH } = await import('../src/config.js')
+  assert.ok(QARI_EXTRA.length >= 20)
+  assert.equal(new Set(QARI_EXTRA.map((q) => q.id)).size, QARI_EXTRA.length)
+  assert.equal(new Set(QARI_EXTRA.map((q) => q.base)).size, QARI_EXTRA.length)
+  for (const q of QARI_EXTRA) {
+    assert.match(q.id, /^x-[a-z0-9-]+$/)
+    assert.ok(!QARI_AYAH[q.id])
+    assert.match(q.base, /^https:\/\/server\d{1,2}\.mp3quran\.net\/[\w\-\/]+$/)
+    assert.match(q.alt, /^https:\/\/cdn\.mp3quran\.net\/audio\/[\w-]+\/r\d$/)
+    assert.ok(['murattal', 'mujawwad'].includes(q.style))
+    assert.ok(q.name.length > 3 && !/^(syekh|qari)\s/i.test(q.name))
+  }
+  assert.equal(Object.keys(QARI).length, 6 + QARI_EXTRA.length)
+  assert.equal(QARI_SURAH['x-mahir-al-muaiqly'].base, 'https://server12.mp3quran.net/maher')
+})

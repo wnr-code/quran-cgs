@@ -179,9 +179,10 @@ ${waiting}${tail}`
   function openPayPopup() {
     const it = intent
     if (!it) return
-    if (!it.embedUrl) return void window.open(it.url, '_blank', 'noopener,noreferrer') // niat lama tanpa alamat bingkai
+    const embedUrl = it.embedUrl || (cfg && cfg.embedUrl) // niat lama (sebelum ada popup) memakai alamat dari konfigurasi
+    if (!embedUrl) return void window.open(it.url, '_blank', 'noopener,noreferrer')
     closePopup()
-    const origin = new URL(it.embedUrl).origin
+    const origin = new URL(embedUrl).origin
     const onMsg = (e) => {
       if (e.origin !== origin) return
       const type = typeof e.data === 'string' ? e.data : e.data && (e.data.type || e.data.event)
@@ -191,7 +192,7 @@ ${waiting}${tail}`
       title: 'Pembayaran infaq',
       wide: true,
       content: `<div class="pay-frame"><div class="pay-loading" data-loading><span class="spinner" aria-hidden="true"></span><p class="muted">Memuat pembayaran…</p></div>
-          <iframe data-frame title="Pembayaran infaq" src="${esc(it.embedUrl)}" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-write"></iframe></div>
+          <iframe data-frame title="Pembayaran infaq" src="${esc(embedUrl)}" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-write"></iframe></div>
         <p class="hint center pay-note">Isi nama <b>${esc(it.name || 'Hamba Allah')}</b> dan jumlah <b>${it.quantity}</b> (${formatRupiah(it.amount)}) agar infaq dikenali otomatis.
           Jendela kosong? <a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer" data-ext>Buka di tab baru</a>.</p>`,
       onOpen(body) {

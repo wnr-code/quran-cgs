@@ -21,7 +21,7 @@ const publicDonation = (d) => (d ? { name: d.name, amount: d.amount, at: d.creat
 
 export async function onConfig({ env }) {
   const cfg = providerConfig(env)
-  return json({ ok: true, enabled: !!(cfg.username && cfg.unitPrice && env.DB), unitPrice: cfg.unitPrice, maxQuantity: MAX_QTY, direct: cfg.hasDirect }, 200, 'public, max-age=300')
+  return json({ ok: true, enabled: !!(cfg.username && cfg.unitPrice && env.DB), unitPrice: cfg.unitPrice, maxQuantity: MAX_QTY, direct: cfg.hasDirect, embedUrl: cfg.embedUrl }, 200, 'public, max-age=300')
 }
 
 export async function onCreate({ request, env }) {

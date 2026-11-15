@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { join, relative, sep } from 'node:path'
+import { execSync } from 'node:child_process'
 
 /** Menghasilkan dist/sw.js dari templat sw.js dengan daftar precache & versi berbasis isi berkas. */
 function serviceWorkerPlugin() {
@@ -15,7 +16,7 @@ function serviceWorkerPlugin() {
     p === 'theme-init.js' ||
     /^assets\/.+\.(js|css)$/.test(p) ||
     /^fonts\/.+\.woff2$/.test(p) ||
-    /^icons\/(icon-192\.png|icon-512\.png|favicon\.svg|apple-touch-icon\.png|badge-96\.png)$/.test(p)
+    /^icons\/(icon-192\.png|icon-512\.png|favicon-48\.png|apple-touch-icon\.png|badge-96\.png)$/.test(p)
   return {
     name: 'quranku-service-worker',
     apply: 'build',
@@ -39,7 +40,26 @@ function serviceWorkerPlugin() {
   }
 }
 
+/**
+ * Identitas build yang ditampilkan di aplikasi. Berubah otomatis pada setiap build:
+ * nomor build = waktu build (WIB), ditambah potongan commit bila tersedia (Cloudflare Workers Builds / GitHub Actions / git lokal).
+ */
+function buildInfo() {
+  const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
+  const d = new Date(Date.now() + 7 * 3600 * 1000)
+  const p = (n) => String(n).padStart(2, '0')
+  const number = `${p(d.getUTCFullYear() % 100)}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}.${p(d.getUTCHours())}${p(d.getUTCMinutes())}`
+  let commit = process.env.WORKERS_CI_COMMIT_SHA || process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || ''
+  if (!commit) {
+    try {
+      commit = execSync('git rev-parse HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+    } catch {}
+  }
+  return { version: pkg.version, number, commit: /^[0-9a-f]{7,40}$/.test(commit) ? commit.slice(0, 7) : '', time: new Date().toISOString() }
+}
+
 export default defineConfig({
+  define: { __APP_BUILD__: JSON.stringify(buildInfo()) },
   plugins: [serviceWorkerPlugin()],
   server: { host: '0.0.0.0', port: 5173, allowedHosts: true },
   preview: { host: '0.0.0.0', port: 4173, allowedHosts: true },

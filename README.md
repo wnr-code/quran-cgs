@@ -34,7 +34,7 @@ Konfigurasi opsional (salin `.env.example` → `.env`, atau isi di Cloudflare �
 - **Al-Qur'an**: 114 surah, 30 juz, 6236 ayat; teks Arab, transliterasi, terjemahan Indonesia; info juz/halaman; penanda sajdah; pencarian (nama/nomor surah, `2:255`, `juz 30`, `halaman 50`, kata terjemahan/Latin pada surah tersimpan).
 - **Mode membaca**: Mushaf Continuous (ayat mengalir) dan Ayah Focus; mode imersif; preset Mushaf Klasik / Ivory Reading / Dark Reading / Night Comfort; ukuran font, tinggi baris, jarak, lebar, margin, warna; posisi bacaan tersimpan dan dipulihkan.
 - **Angka Arab-Indic** (٠–٩) sebagai bawaan untuk nomor surah/ayat/juz/halaman, dengan penanda ayat ﴿١﴾; dapat diganti ke Latin. Data internal, URL, dan referensi (`2:255`) tetap bilangan biasa.
-- **Murottal**: 6 qari, per ayat dan per surah, ulangi, putar otomatis, kecepatan, volume, mini player, unduh manual untuk offline.
+- **Murottal**: 6 qari per ayat dan per surah (EQuran.id) + 25 qari tambahan surah penuh (mp3quran.net, riwayat Hafs), ulangi, putar otomatis, kecepatan, volume, mini player, unduh manual untuk offline.
 - **Tafsir** per ayat (Kemenag RI via EQuran.id), bookmark tafsir.
 - **Bookmark, kategori, catatan, riwayat**, ekspor/impor cadangan JSON.
 - **Target tilawah** dan statistik harian/mingguan/bulanan, pengingat.

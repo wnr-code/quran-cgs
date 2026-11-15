@@ -1,5 +1,5 @@
 // Pemutar murottal global: audio per ayat & seluruh surah, repeat, auto-play, kecepatan, volume.
-import { QARI } from '../config.js'
+import { QARI, QARI_AYAH, QARI_SURAH, DEFAULT_QARI } from '../config.js'
 import { getSettings, saveSettings } from './storage.js'
 import { resolveAudioUrl } from './offline.js'
 import { emit, toast } from '../utils/helpers.js'
@@ -28,6 +28,27 @@ export function pickAudio(map, qari = audioSettings().qari) {
   const k = Object.keys(map)[0]
   return k ? { url: map[k], qari: k } : null
 }
+
+/** URL audio surah penuh. Qari tambahan memakai alamat <dasar>/<NNN>.mp3; lainnya dari data surah. */
+export function pickSurahAudio(surah, qari = audioSettings().qari) {
+  if (!surah) return null
+  const extra = QARI_SURAH[qari]
+  const n = Number(surah.nomor)
+  if (extra && Number.isInteger(n) && n >= 1 && n <= 114) {
+    const file = `${String(n).padStart(3, '0')}.mp3`
+    return { url: `${extra.base}/${file}`, alt: extra.alt ? `${extra.alt}/${file}` : '', qari }
+  }
+  return pickAudio(surah.audioFull, extra ? ayahQari() : qari)
+}
+
+/** Qari untuk audio per ayat: qari pilihan bila mendukung, selain itu qari per-ayat yang terakhir dipilih. */
+export function ayahQari() {
+  const s = audioSettings()
+  if (QARI_AYAH[s.qari]) return s.qari
+  return QARI_AYAH[s.ayahQari] ? s.ayahQari : DEFAULT_QARI
+}
+let toldSurahOnly = false
+let fallbackUrl = ''
 
 function notify() {
   emit('audio:state', getAudioState())
@@ -76,9 +97,14 @@ function setMediaSession() {
 export async function playAyah(surah, ayahNo) {
   if (!el || !surah) return
   const a = surah.ayat && surah.ayat[ayahNo - 1]
-  const pick = a && pickAudio(a.audio)
+  const chosen = audioSettings().qari
+  const pick = a && pickAudio(a.audio, ayahQari())
   if (!pick) return toast('Audio ayat tidak tersedia dari sumber data ini.')
-  if (pick.qari !== audioSettings().qari) toast(`Qari pilihan tidak tersedia, memutar ${QARI[pick.qari] || 'qari lain'}.`)
+  if (QARI_SURAH[chosen]) {
+    if (!toldSurahOnly) toast(`${QARI[chosen]} hanya tersedia untuk surah penuh. Audio per ayat memakai ${QARI[pick.qari] || 'qari lain'}.`, 5000)
+    toldSurahOnly = true
+  } else if (pick.qari !== chosen) toast(`Qari pilihan tidak tersedia, memutar ${QARI[pick.qari] || 'qari lain'}.`)
+  fallbackUrl = ''
   Object.assign(state, { mode: 'ayah', surah, ayah: ayahNo, qari: pick.qari })
   setMediaSession()
   emit('audio:ayah', { surah: surah.nomor, ayah: ayahNo })
@@ -88,11 +114,12 @@ export async function playAyah(surah, ayahNo) {
 /** surah: detail atau ringkasan (cukup punya audioFull). */
 export async function playSurah(surah) {
   if (!el || !surah) return
-  const pick = pickAudio(surah.audioFull)
+  const pick = pickSurahAudio(surah)
   if (!pick) return toast('Audio surah tidak tersedia dari sumber data ini.')
   if (pick.qari !== audioSettings().qari) toast(`Qari pilihan tidak tersedia, memutar ${QARI[pick.qari] || 'qari lain'}.`)
   Object.assign(state, { mode: 'surah', surah, ayah: 0, qari: pick.qari })
   setMediaSession()
+  fallbackUrl = pick.alt || ''
   await load(pick.url)
 }
 
@@ -141,7 +168,8 @@ export function setAutoPlay(autoPlay) {
   saveSettings({ audio: { autoPlay } })
 }
 export function setQari(qari) {
-  saveSettings({ audio: { qari } })
+  if (!QARI[qari]) return
+  saveSettings({ audio: QARI_AYAH[qari] ? { qari, ayahQari: qari } : { qari } })
   // Lanjutkan pemutaran dengan qari baru
   if (state.mode === 'ayah') playAyah(state.surah, state.ayah)
   else if (state.mode === 'surah') playSurah(state.surah)
@@ -180,6 +208,12 @@ if (el) {
   el.addEventListener('timeupdate', () => emit('audio:time', { currentTime: el.currentTime, duration: Number.isFinite(el.duration) ? el.duration : 0 }))
   el.addEventListener('error', () => {
     if (!state.mode) return
+    // Qari tambahan: alamat utama gagal → coba sekali alamat resmi cadangan.
+    if (state.mode === 'surah' && fallbackUrl && navigator.onLine) {
+      const url = fallbackUrl
+      fallbackUrl = ''
+      return void load(url)
+    }
     state.playing = false
     state.loading = false
     notify()

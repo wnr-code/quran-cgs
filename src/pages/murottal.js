@@ -1,5 +1,5 @@
 import { getSurahList, getSurah, friendlyError } from '../api/api-adapter.js'
-import { QARI } from '../config.js'
+import { QARI, QARI_AYAH, QARI_SURAH } from '../config.js'
 import { pageHeader, skeleton, errorState } from '../components/navbar.js'
 import { icon } from '../components/icons.js'
 import { openSheet } from '../components/modal.js'
@@ -11,13 +11,19 @@ import { qnum } from '../utils/arabic-numbers.js'
 import { formatTime, formatBytes } from '../utils/format.js'
 import { rerender } from '../router.js'
 
+const qariOption = (current) => (k) => `<option value="${k}" ${k === current ? 'selected' : ''}>${esc(QARI[k])}</option>`
+
 export default async function murottal(root) {
   const a0 = getSettings().audio
   root.innerHTML = `<div class="page">
     ${pageHeader('Murottal', { back: false })}
     <section class="card now-playing ornament" data-np></section>
     <section class="card">
-      <label class="field"><span>Qari</span><select data-qari>${Object.entries(QARI).map(([k, v]) => `<option value="${k}" ${k === a0.qari ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
+      <label class="field"><span>Qari</span><select data-qari>
+        <optgroup label="Per ayat & surah penuh">${Object.keys(QARI_AYAH).map(qariOption(a0.qari)).join('')}</optgroup>
+        <optgroup label="Surah penuh saja">${Object.keys(QARI_SURAH).map(qariOption(a0.qari)).join('')}</optgroup>
+      </select></label>
+      <p class="hint" data-qari-note ${QARI_SURAH[a0.qari] ? '' : 'hidden'}>Qari ini hanya memiliki audio surah penuh. Audio per ayat di halaman baca tetap memakai qari per-ayat terakhir yang Anda pilih.</p>
       <div class="control-grid">
         <label class="field"><span>Ulangi</span><select data-repeat><option value="none">Tidak</option><option value="ayah">Ulangi ayat</option><option value="surah">Ulangi surah</option></select></label>
         <label class="field"><span>Kecepatan</span><select data-rate>${[0.75, 1, 1.25, 1.5].map((r) => `<option value="${r}">${r}×</option>`).join('')}</select></label>
@@ -83,7 +89,8 @@ export default async function murottal(root) {
 
   $('[data-qari]', root).onchange = (e) => {
     audio.setQari(e.target.value)
-    renderList()
+    $('[data-qari-note]', root).hidden = !QARI_SURAH[e.target.value]
+    if (listReady) renderList() // daftar surah mungkin masih dimuat
   }
   $('[data-repeat]', root).onchange = (e) => audio.setRepeat(e.target.value)
   $('[data-rate]', root).onchange = (e) => audio.setRate(parseFloat(e.target.value))
@@ -94,6 +101,7 @@ export default async function murottal(root) {
   $('[data-auto]', root).onchange = (e) => audio.setAutoPlay(e.target.checked)
 
   let list
+  let listReady = false
   try {
     list = await getSurahList()
   } catch (e) {
@@ -104,6 +112,7 @@ export default async function murottal(root) {
   const input = $('.search-box input', root)
   const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '')
 
+  listReady = true
   async function renderList() {
     const q = norm(input.value)
     const items = q ? list.filter((s) => norm(s.namaLatin).includes(q) || String(s.nomor) === q) : list
@@ -118,7 +127,7 @@ export default async function murottal(root) {
     // Tandai yang sudah diunduh
     for (const row of listEl.querySelectorAll('.audio-row')) {
       const s = list[row.dataset.n - 1]
-      const pick = audio.pickAudio(s.audioFull)
+      const pick = audio.pickSurahAudio(s)
       if (pick && (await isAudioDownloaded(pick.url))) row.querySelector('[data-dl]').classList.add('on')
     }
   }
@@ -139,7 +148,7 @@ export default async function murottal(root) {
     }
     const dl = e.target.closest('[data-dl]')
     if (dl) {
-      const pick = audio.pickAudio(s.audioFull)
+      const pick = audio.pickSurahAudio(s)
       if (!pick) return toast('Audio surah tidak tersedia.')
       if (dl.classList.contains('on')) {
         await deleteAudio(pick.url)
