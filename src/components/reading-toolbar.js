@@ -43,8 +43,9 @@ export function openReaderSettings(onChange) {
     content: `
       <div class="field"><span>Mode baca</span>
         <div class="seg" data-seg="mode">
-          <button data-v="continuous" class="${r.mode === 'continuous' ? 'on' : ''}">${icon('flow')}Mushaf Continuous</button>
-          <button data-v="focus" class="${r.mode === 'focus' ? 'on' : ''}">${icon('list')}Ayah Focus</button>
+          <button data-v="focus" class="${r.mode === 'focus' ? 'on' : ''}">${icon('list')}Terjemahan</button>
+          <button data-v="continuous" class="${r.mode === 'continuous' ? 'on' : ''}">${icon('flow')}Mushaf</button>
+          <button data-v="page" class="${r.mode === 'page' ? 'on' : ''}">${icon('book')}Halaman</button>
         </div></div>
       <div class="field"><span>Preset tampilan</span>
         <div class="preset-grid" data-seg="preset">
@@ -61,8 +62,8 @@ export function openReaderSettings(onChange) {
           <button data-v="amiri" class="${fontSel === 'amiri' ? 'on' : ''}">Amiri Quran</button>
           <button data-v="scheherazade" class="${fontSel === 'scheherazade' ? 'on' : ''}">Scheherazade New</button>
         </div></div>
-      <label class="switch-row"><span>Tampilkan terjemahan (mode fokus)</span><input type="checkbox" name="showTranslation" ${r.showTranslation ? 'checked' : ''} /></label>
-      <label class="switch-row"><span>Tampilkan transliterasi Latin (mode fokus)</span><input type="checkbox" name="showLatin" ${r.showLatin ? 'checked' : ''} /></label>
+      <label class="switch-row"><span>Tampilkan terjemahan (mode Terjemahan)</span><input type="checkbox" name="showTranslation" ${r.showTranslation ? 'checked' : ''} /></label>
+      <label class="switch-row"><span>Tampilkan transliterasi Latin (mode Terjemahan)</span><input type="checkbox" name="showLatin" ${r.showLatin ? 'checked' : ''} /></label>
       <div class="field"><span>Warna kustom (opsional, menimpa preset)</span>
         <div class="color-row">
           <label>Latar <input type="color" name="customBg" value="${r.customBg || '#faf6ea'}" /></label>

@@ -5,12 +5,25 @@ import { getSurah, friendlyError } from '../api/api-adapter.js'
 import { getDoaHarian } from '../api/doa-api.js'
 import { $, esc, debounce, copyText, toast } from '../utils/helpers.js'
 import { ayahMarker } from '../utils/arabic-numbers.js'
+import DZIKIR from '../data/dzikir.json'
 
 let tab = 'quran'
+const TABS = [
+  ['quran', "Al-Qur'an"],
+  ['harian', 'Sehari-hari'],
+  ['wudhu', 'Wudhu'],
+  ['salat', 'Wirid Salat']
+]
+/** "Dibaca 33x" → 33 (untuk penghitung ketuk); selain itu 0. */
+const repeatOf = (notes) => {
+  const m = /(\d+)\s*x/i.exec(notes || '')
+  return m && +m[1] > 1 ? +m[1] : 0
+}
 
-export default function doa(root) {
+export default function doa(root, { params = {} } = {}) {
+  if (params.tab && TABS.some(([k]) => k === params.tab)) tab = params.tab
   root.innerHTML = `<div class="page">${pageHeader('Doa Harian')}
-    <div class="tabs"><button data-tab="quran">Doa dari Al-Qur'an</button><button data-tab="harian">Doa Sehari-hari</button></div>
+    <div class="tabs scroll">${TABS.map(([k, l]) => `<button data-tab="${k}">${l}</button>`).join('')}</div>
     <div class="search-box">${icon('search')}<input type="search" placeholder="Cari doa…" aria-label="Cari doa" autocomplete="off" /></div>
     <div data-body></div></div>`
   const body = $('[data-body]', root)
@@ -66,9 +79,38 @@ export default function doa(root) {
       <p class="hint pad">Sumber: EQuran.id (${harian.length} doa), ditampilkan apa adanya.</p>`
   }
 
+  /** Doa wudhu & wirid setelah salat: data tersimpan di aplikasi (offline), disalin apa adanya dari sumbernya. */
+  function renderDzikir(kind) {
+    const q = norm(input.value)
+    const all = DZIKIR[kind]
+    const items = all.map((d, i) => ({ ...d, i })).filter((d) => !q || norm(d.title).includes(q) || norm(d.translation).includes(q) || norm(d.latin).includes(q))
+    const intro =
+      kind === 'salat'
+        ? 'Dzikir yang dibaca setelah salam dari salat wajib, berurutan dari atas ke bawah. Ketuk penghitung untuk bacaan yang diulang.'
+        : 'Bacaan sebelum dan sesudah berwudhu.'
+    body.innerHTML = `<p class="hint pad">${intro}</p>
+      <div class="dzikir-list">${items.map((d) => {
+        const n = repeatOf(d.notes)
+        return `<article class="card dzikir">
+          <header><span class="dzikir-no">${d.i + 1}</span><h3>${esc(d.title)}</h3>${d.notes ? `<span class="chip">${esc(d.notes)}</span>` : ''}</header>
+          <p class="ayah-ar" lang="ar" dir="rtl">${esc(d.arabic)}</p>
+          ${d.latin ? `<p class="ayah-latin">${esc(d.latin)}</p>` : ''}
+          <p class="ayah-id">${esc(d.translation)}</p>
+          ${d.fawaid ? `<details class="dzikir-more"><summary>${icon('info')}Keterangan</summary><p>${esc(d.fawaid)}</p></details>` : ''}
+          <p class="doa-ref">${d.source ? `Referensi: ${esc(d.source)}` : 'Referensi tidak disertakan oleh sumber data.'}</p>
+          <div class="dzikir-acts">
+            ${n ? `<button class="btn sm dzikir-count" data-count="${n}" data-n="0" aria-label="Penghitung bacaan">${icon('beads')}<span>0 / ${n}</span></button>` : ''}
+            <button class="btn sm" data-copyz="${kind}:${d.i}">${icon('copy')}Salin</button>
+          </div></article>`
+      }).join('') || '<p class="muted pad">Tidak ditemukan.</p>'}</div>
+      <p class="hint pad">Sumber: <a class="link" href="${DZIKIR.source.url}" target="_blank" rel="noopener">${esc(DZIKIR.source.name)}</a> (lisensi ${esc(DZIKIR.source.license)}) — kumpulan doa & dzikir berdasarkan hadis dengan rujukan riwayat di tiap bacaan. Teks ditampilkan apa adanya; QuranKu tidak menulis sendiri lafaz doa.</p>`
+  }
+
   const render = () => {
     root.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab))
-    tab === 'quran' ? renderQuran() : renderHarian()
+    if (tab === 'quran') renderQuran()
+    else if (tab === 'harian') renderHarian()
+    else renderDzikir(tab)
   }
   root.querySelector('.tabs').addEventListener('click', (e) => {
     const b = e.target.closest('[data-tab]')
@@ -84,6 +126,22 @@ export default function doa(root) {
     if (e.target.closest('[data-retry]')) {
       harianErr = null
       return render()
+    }
+    const cnt = e.target.closest('[data-count]')
+    if (cnt) {
+      const max = +cnt.dataset.count
+      const n = +cnt.dataset.n >= max ? 0 : +cnt.dataset.n + 1
+      cnt.dataset.n = n
+      cnt.querySelector('span').textContent = `${n} / ${max}`
+      cnt.classList.toggle('done', n >= max)
+      if (n >= max && navigator.vibrate) navigator.vibrate(60)
+      return
+    }
+    const z = e.target.closest('[data-copyz]')
+    if (z) {
+      const [kind, i] = z.dataset.copyz.split(':')
+      const d = DZIKIR[kind][+i]
+      return toast((await copyText([d.title, d.arabic, d.latin, d.translation, d.source && `(${d.source})`].filter(Boolean).join('\n\n'))) ? 'Bacaan disalin' : 'Gagal menyalin')
     }
     const c = e.target.closest('[data-copy]')
     if (c && harian) {

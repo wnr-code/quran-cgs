@@ -59,4 +59,4 @@ export function icon(name, cls = '') {
 }
 
 // Logo QuranKu: bintang delapan (rub el hizb) dengan mushaf terbuka.
-export const LOGO_SVG = `<img class="logo" src="/icons/icon-192.png" width="44" height="44" alt="" decoding="async" />`
+export const LOGO_SVG = `<img class="logo" src="/icons/icon-192-v2.png" width="44" height="44" alt="" decoding="async" />`

@@ -4,11 +4,15 @@ import { getLastRead } from '../services/reading-position.js'
 import { todayProgress, goalPages, GOAL_TYPES } from '../services/progress.js'
 import { getSettings } from '../services/storage.js'
 import { nextPrayer } from '../api/prayer-api.js'
-import { ayatHariIni } from '../data/ayat-pilihan.js'
+import { ayatHariIni, dayKey } from '../data/ayat-pilihan.js'
 import { formatHijri } from '../utils/hijri.js'
 import { formatGregorian, greeting, formatClock } from '../utils/format.js'
 import { qnum, ayahRef } from '../utils/arabic-numbers.js'
-import { $, esc, on } from '../utils/helpers.js'
+import { $, esc, on, toast, shareText } from '../utils/helpers.js'
+import { playAyah } from '../services/audio.js'
+import { ayahShareText } from '../components/ayah-card.js'
+import { rerender } from '../router.js'
+import { APP } from '../config.js'
 
 const SHORTCUTS = [
   ['/quran', 'book', 'Baca Quran'],
@@ -96,26 +100,51 @@ export default async function home(root) {
     } catch {}
   }
 
+  let ayahOffset = 0
   const renderAyah = async () => {
-    const [sNo, aNo] = ayatHariIni()
+    const [sNo, aNo] = ayatHariIni(new Date(), ayahOffset)
     const el = $('[data-ayah]', root)
+    const head = `<div class="ayah-day-head"><p class="eyebrow">${ayahOffset ? 'Ayat pilihan' : 'Ayat pilihan hari ini'}</p>
+      <button class="icon-btn sm" data-ayah-next aria-label="Tampilkan ayat pilihan lain">${icon('refresh')}</button></div>`
     try {
       const surah = await getSurah(sNo)
       const a = surah.ayat[aNo - 1]
       if (!el.isConnected) return
-      el.innerHTML = `<p class="eyebrow">Ayat pilihan hari ini</p>
+      el.innerHTML = `${head}
         <p class="ayah-day-ar" lang="ar" dir="rtl">${esc(a.teksArab)}</p>
-        <p class="ayah-day-tr">${esc(a.teksIndonesia)}</p>
-        <a class="link" href="#/surah/${sNo}/${aNo}">QS. ${esc(surah.namaLatin)} ${ayahRef(sNo, aNo)} ${icon('forward')}</a>`
+        ${a.teksIndonesia ? `<p class="ayah-day-tr">${esc(a.teksIndonesia)}</p>` : ''}
+        <div class="ayah-day-foot"><a class="link" href="#/surah/${sNo}/${aNo}">QS. ${esc(surah.namaLatin)} ${ayahRef(sNo, aNo)} ${icon('forward')}</a>
+          <span class="ayah-day-acts"><button class="icon-btn sm" data-ayah-play aria-label="Putar ayat">${icon('play')}</button>
+          <button class="icon-btn sm" data-ayah-share aria-label="Bagikan ayat">${icon('share')}</button></span></div>`
+      $('[data-ayah-play]', el).onclick = () => playAyah(surah, aNo)
+      $('[data-ayah-share]', el).onclick = async () => {
+        const r = await shareText(`QS. ${surah.namaLatin} ${ayahRef(sNo, aNo)}`, ayahShareText(surah, a), `${APP.origin}/#/surah/${sNo}/${aNo}`)
+        if (r === 'copied') toast('Ayat & tautan disalin')
+      }
     } catch {
-      if (el.isConnected) el.innerHTML = `<p class="eyebrow">Ayat pilihan hari ini</p><p class="muted">Ayat belum dapat dimuat (QS. ${ayahRef(sNo, aNo)}). Sambungkan internet sekali agar tersimpan.</p><a class="link" href="#/surah/${sNo}/${aNo}">Buka ayat ${icon('forward')}</a>`
+      if (el.isConnected) el.innerHTML = `${head}<p class="muted">Ayat belum dapat dimuat (QS. ${ayahRef(sNo, aNo)}). Sambungkan internet sekali agar tersimpan.</p><a class="link" href="#/surah/${sNo}/${aNo}">Buka ayat ${icon('forward')}</a>`
+    }
+    const nextBtn = $('[data-ayah-next]', el)
+    if (nextBtn) nextBtn.onclick = () => {
+      ayahOffset++
+      renderAyah()
     }
   }
+
+  // Aplikasi yang tetap terbuka melewati tengah malam: tanggal, sapaan, dan ayat hari ini diperbarui saat kembali ke layar.
+  const shownDay = dayKey(now)
+  const onVisible = () => {
+    if (document.visibilityState === 'visible' && dayKey() !== shownDay) rerender()
+  }
+  document.addEventListener('visibilitychange', onVisible)
 
   renderContinue()
   renderGoal()
   renderPrayer()
   renderAyah()
   const off = on('progress:changed', renderGoal)
-  return off
+  return () => {
+    off()
+    document.removeEventListener('visibilitychange', onVisible)
+  }
 }

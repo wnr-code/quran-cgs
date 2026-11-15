@@ -18,7 +18,7 @@ export async function requestNotifPermission() {
 
 export async function showNotification(title, body, tag) {
   if (notifPermission() !== 'granted') return false
-  const opts = { body, tag, icon: '/icons/icon-192.png', badge: '/icons/badge-96.png', lang: 'id' }
+  const opts = { body, tag, icon: '/icons/icon-192-v2.png', badge: '/icons/badge-96-v2.png', lang: 'id' }
   try {
     const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null
     if (reg) await reg.showNotification(title, opts)

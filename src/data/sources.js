@@ -53,6 +53,14 @@ export const SOURCES = [
     icon: 'hands',
     items: [
       {
+        name: 'fitrahive/dua-dhikr',
+        role: 'Doa wudhu & wirid setelah salat',
+        use: 'Bacaan sebelum/sesudah wudhu dan dzikir setelah salat wajib: teks Arab, Latin, terjemahan, keterangan, dan rujukan hadis. Disimpan di aplikasi sehingga dapat dibuka offline.',
+        note: 'Disalin apa adanya (lisensi MIT). Setiap bacaan mencantumkan rujukan riwayatnya (mis. HR. Muslim, HR. al-Bukhari).',
+        url: 'https://github.com/fitrahive/dua-dhikr',
+        host: 'github.com/fitrahive/dua-dhikr'
+      },
+      {
         name: 'EQuran.id API Doa',
         use: 'Doa harian: teks Arab, Latin, terjemahan, dan rujukan. Bila layanan tidak tersedia, halaman doa menampilkan keterangan (tidak ada doa buatan).',
         url: 'https://equran.id',

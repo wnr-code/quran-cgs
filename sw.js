@@ -4,7 +4,8 @@
 const VERSION = '__SW_VERSION__'
 const PRECACHE = __PRECACHE_LIST__
 const SHELL = `quranku-shell-${VERSION}`
-const RUNTIME = 'quranku-runtime-v1'
+// v2: cache lama menyimpan manifest & ikon versi lama selamanya (penyebab ikon PWA tidak ikut berganti).
+const RUNTIME = 'quranku-runtime-v2'
 const AUDIO = 'quranku-audio-v1'
 const KEEP = new Set([SHELL, RUNTIME, AUDIO])
 
@@ -58,6 +59,18 @@ async function shellFirst(request) {
   }
 }
 
+/** Manifest & berkas kecil yang harus selalu terbaru: jaringan dulu, cache hanya saat offline. */
+async function networkFirst(request) {
+  const cache = await caches.open(RUNTIME)
+  try {
+    const res = await fetch(new Request(request.url, { cache: 'no-cache' }))
+    if (res.ok) cache.put(request.url, res.clone())
+    return res
+  } catch {
+    return (await cache.match(request.url)) || Response.error()
+  }
+}
+
 async function cacheFirst(request) {
   const cached = await caches.match(request, { ignoreSearch: false })
   if (cached) return unredirect(cached)
@@ -108,6 +121,10 @@ self.addEventListener('fetch', (event) => {
     if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/data/') || url.pathname === '/sw.js') return // selalu jaringan (data disimpan aplikasi di IndexedDB)
     if (request.mode === 'navigate' && (url.pathname === '/' || url.pathname === '/index.html')) {
       event.respondWith(shellFirst(request))
+      return
+    }
+    if (url.pathname === '/manifest.webmanifest' || url.pathname.startsWith('/.well-known/')) {
+      event.respondWith(networkFirst(request))
       return
     }
     event.respondWith(cacheFirst(request))

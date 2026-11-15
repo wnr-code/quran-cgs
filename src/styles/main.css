@@ -2070,3 +2070,173 @@ body.has-player {
   font-size: 0.8rem;
   color: var(--muted);
 }
+
+/* ===== Ayat pilihan (Beranda) ===== */
+.ayah-day-head,
+.ayah-day-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ayah-day-head .eyebrow {
+  margin: 0;
+}
+.ayah-day-acts {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+
+/* ===== Doa wudhu & wirid setelah salat ===== */
+.tabs.scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs.scroll::-webkit-scrollbar {
+  display: none;
+}
+.tabs.scroll button {
+  flex: 1 0 auto;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+.dzikir-list {
+  display: grid;
+  gap: 12px;
+}
+.dzikir header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.dzikir header h3 {
+  flex: 1;
+  font-size: 0.98rem;
+  line-height: 1.35;
+}
+.dzikir-no {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.dzikir .chip {
+  flex: none;
+}
+.dzikir .ayah-ar {
+  font-family: var(--font-ar);
+  font-size: 1.55rem;
+  line-height: 2.4;
+  text-align: right;
+  margin: 6px 0;
+}
+.dzikir-more {
+  margin: 8px 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+.dzikir-more summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--primary);
+  list-style: none;
+}
+.dzikir-more summary::-webkit-details-marker {
+  display: none;
+}
+.dzikir-more summary .icon {
+  width: 16px;
+  height: 16px;
+}
+.dzikir-more p {
+  margin-top: 6px;
+  line-height: 1.6;
+}
+.dzikir-acts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.dzikir-count {
+  font-variant-numeric: tabular-nums;
+  min-width: 108px;
+}
+.btn.dzikir-count.done {
+  background-color: var(--primary) !important;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.dzikir-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+.dzikir {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ===== Penyegaran tampilan ===== */
+.shortcut,
+.menu-item,
+.card {
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.shortcut:active,
+.menu-item:active {
+  transform: scale(0.96);
+}
+@media (hover: hover) {
+  .shortcut:hover,
+  .menu-item:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+    box-shadow: 0 8px 20px rgba(11, 61, 46, 0.1);
+  }
+}
+.shortcut-ic {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--primary) 16%, transparent), color-mix(in srgb, var(--accent, #c9a961) 22%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.ayah-day {
+  position: relative;
+  overflow: hidden;
+  background: var(--ornament, none), linear-gradient(160deg, color-mix(in srgb, var(--primary) 7%, var(--surface)), var(--surface) 60%);
+  border-color: color-mix(in srgb, var(--accent, #c9a961) 45%, var(--border));
+}
+.ayah-day-ar {
+  text-align: center;
+}
+.ayah-day-tr {
+  text-align: center;
+}
+.page {
+  animation: page-in 0.22s ease both;
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page {
+    animation: none;
+  }
+  .shortcut,
+  .menu-item,
+  .card {
+    transition: none;
+  }
+}

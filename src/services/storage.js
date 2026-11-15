@@ -5,7 +5,7 @@ import { setNumeralMode } from '../utils/arabic-numbers.js'
 const KEY = 'quranku:settings'
 
 export const READER_DEFAULTS = {
-  mode: 'continuous', // 'continuous' | 'focus'
+  mode: 'continuous', // 'continuous' (mushaf mengalir) | 'focus' (per ayat + terjemahan) | 'page' (per halaman, geser ke samping)
   preset: 'ivory', // 'classic' | 'ivory' | 'dark' | 'night'
   fontSize: 30,
   lineHeight: 2.4,

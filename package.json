@@ -1,7 +1,7 @@
 {
   "name": "quranku",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "QuranKu — Al-Qur'an digital premium (PWA + Android TWA)",
   "type": "module",
   "scripts": {

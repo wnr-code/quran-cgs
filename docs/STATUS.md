@@ -56,3 +56,11 @@ Terakhir diperbarui: 15 November 2026.
 ## Yang harus Anda isi
 1. Sidik jari SHA-256 di `public/.well-known/assetlinks.json`.
 2. Secret infaq (`TRAKTEER_WEBHOOK_TOKEN`, `TRAKTEER_API_KEY`) dan pendaftaran webhook; lihat [INFAQ.md](INFAQ.md).
+
+## Pembaruan 1.1.0
+
+- **Ikon PWA/APK tidak berganti — diperbaiki.** Penyebab: Service Worker menyimpan `manifest.webmanifest` dan berkas ikon di cache runtime tanpa batas waktu, dan nama berkas ikon tidak berubah, sehingga peramban menganggap ikon sama. Sekarang: nama ikon berversi (`*-v2.png`), manifest selalu diambil dari jaringan, cache runtime lama dibuang (`quranku-runtime-v2`). APK: `versionCode` kini naik otomatis di CI (sebelumnya selalu 1).
+- **Mode baca baru "Halaman"**: satu halaman Mushaf Madinah per lembar, digeser ke samping (kanan → kiri). Tab mode: Terjemahan · Mushaf · Halaman. Ikon aksi per ayat (putar, bookmark, tafsir, salin, bagikan, lainnya) dan garis kemajuan surah.
+- **Ayat pilihan**: 100 ayat (sebelumnya 33), berganti tepat tengah malam waktu perangkat, diperbarui saat aplikasi kembali ke layar, tombol "ayat lain", putar, bagikan.
+- **Doa Wudhu & Wirid Setelah Salat**: `src/data/dzikir.json`, disalin apa adanya dari `fitrahive/dua-dhikr` (MIT) lewat `scripts/gen-dzikir.mjs`; tiap bacaan mencantumkan rujukan hadis.
+- Uji: qari tidak ganda, ayat pilihan, ikon berversi, dzikir (unit); mode Halaman, wirid, ayat pilihan (E2E).

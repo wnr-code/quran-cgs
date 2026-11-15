@@ -9,6 +9,8 @@ const GROUPS = [
     ['/kiblat', 'compass', 'Arah Kiblat', 'Kompas ke Ka’bah'],
     ['/kalender', 'calendar', 'Kalender Hijriah', 'Tanggal & hari besar'],
     ['/doa', 'hands', 'Doa Harian', 'Arab, Latin, arti'],
+    ['/doa/salat', 'beads', 'Wirid Setelah Salat', 'Dzikir sesudah salam'],
+    ['/doa/wudhu', 'shield', 'Doa Wudhu', 'Sebelum & sesudah wudhu'],
     ['/asmaul-husna', 'star', 'Asmaul Husna', '99 nama Allah'],
     ['/tasbih', 'beads', 'Tasbih Digital', 'Penghitung zikir']
   ]],
