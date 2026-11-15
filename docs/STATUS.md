@@ -167,3 +167,12 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 ### Webhook 401 (1.3.13)
 
 `401 unauthorized` saat "Send Webhook Test" berarti nilai secret `TRAKTEER_WEBHOOK_TOKEN` di Worker tidak sama dengan Webhook Token di dasbor Trakteer (bila secret belum ada, jawabannya 503 `not_configured`). Perbandingan kini mengabaikan spasi/baris baru/tanda kutip di tepi, dan jawaban 401 memuat `hint`. Perbaikan: Cloudflare → Workers → quran-cgs → Settings → Variables and Secrets → `TRAKTEER_WEBHOOK_TOKEN` = token dari Trakteer → Deploy. Setelah 3 kegagalan Trakteer mematikan webhook otomatis: aktifkan lagi.
+
+## 1.3.14 — Kalender: rincian tanggal, catatan & pengingat
+
+- Ketuk tanggal → lembar rincian: tanggal Masehi/Hijriah, keterangan hari besar (`ISLAMIC_DAYS[].desc`), amalan terkait (puasa Senin/Kamis, Ayyamul Bidh, tasyrik, Ramadan, Jumat).
+- Catatan pribadi per tanggal (tambah/ubah/hapus, maks. 20 × 300 karakter) di `localStorage` `quranku:kalender` — tidak dikirim ke server dan tidak ikut cadangan.
+- Pengingat opsional (jam): notifikasi lokal lewat `startReminderLoop`; hanya muncul selama aplikasi terbuka/berjalan di latar, atau saat dibuka pada hari itu setelah jamnya lewat. Tidak ada push server.
+- Tanda titik di sel (hari besar/catatan/pengingat), daftar "Catatan bulan ini" dan "Hari besar terdekat".
+- Keterangan hari besar disusun dari pengetahuan umum; **belum ditinjau ustaz**.
+- Uji: `tests/calendar.test.mjs`, `tests/e2e/calendar.mjs`.

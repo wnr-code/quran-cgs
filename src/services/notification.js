@@ -4,6 +4,7 @@
 import { getSettings } from './storage.js'
 import { todayProgress, goalPages } from './progress.js'
 import { dateKey, formatClock } from '../utils/format.js'
+import { takeDueReminders } from './calendar-notes.js'
 
 export const notifSupported = () => 'Notification' in globalThis
 export const notifPermission = () => (notifSupported() ? Notification.permission : 'unsupported')
@@ -42,8 +43,11 @@ const fireOnce = (key, title, body) => {
 async function tick() {
   const s = getSettings()
   const r = s.reminders
-  if (notifPermission() !== 'granted' || (!r.tilawah && !r.goal)) return
+  if (notifPermission() !== 'granted') return
   const now = new Date()
+  // Pengingat catatan kalender: tampil saat jamnya tiba (atau begitu aplikasi dibuka sesudahnya pada hari yang sama).
+  for (const n of takeDueReminders(now)) showNotification('Pengingat kalender', n.text, 'kal-' + n.id)
+  if (!r.tilawah && !r.goal) return
   const hm = formatClock(now)
   if (r.tilawah && hm === r.tilawahTime) fireOnce('tilawah', 'Waktunya tilawah', 'Luangkan waktu sejenak untuk membaca Al-Qur’an hari ini.')
   if (r.goal && hm === '20:30') {
