@@ -36,10 +36,24 @@ const initial = (name) => (String(name || '').trim().match(/[\p{L}\p{N}]/u) || [
 export default function infaq(root) {
   root.innerHTML = `<div class="page infaq-page">${pageHeader('Infaq Pengembang')}
     <section class="card infaq-hero ornament">${icon('heart', 'infaq-ic')}
-      <h2>Dukung pengembangan QuranKu</h2>
-      <p class="np-sub">QuranKu gratis, tanpa iklan, dan tanpa pelacakan. Infaq Anda membantu biaya pengembangan dan pemeliharaan. Jazakumullahu khairan.</p>
+      <h2>Dukung Pengembangan QuranKu</h2>
+      <p class="np-sub">QuranKu hadir sebagai aplikasi Al-Qur'an yang gratis, tanpa iklan, dan tanpa pelacakan — dan akan tetap gratis bagi siapa pun, memberi ataupun tidak.</p>
+    </section>
+    <section class="card akad" data-akad>
+      <p class="eyebrow">${icon('info')} Akad & tujuan infaq</p>
+      <p>Kami membuka kesempatan bagi siapa pun yang ingin memberikan <b>infaq atau sedekah secara sukarela</b> sebagai dukungan terhadap pengembangan, pemeliharaan, operasional, dan keberlangsungan QuranKu.</p>
+      <ul class="akad-list">
+        <li>${icon('check')}<span><b>Pemberian sukarela (hibah/sedekah), bukan jual beli.</b> Tidak ada barang, ayat, fitur, atau layanan yang dijual. Al-Qur'an dan seluruh isi aplikasi tidak diperjualbelikan dan tetap gratis.</span></li>
+        <li>${icon('check')}<span><b>Bukan pinjaman, investasi, atau titipan.</b> Tidak ada pengembalian, bagi hasil, keuntungan, ataupun imbalan apa pun yang dijanjikan.</span></li>
+        <li>${icon('check')}<span><b>Menjadi milik pengelola setelah diterima.</b> Dana dipakai untuk biaya server dan domain, pengembangan, pemeliharaan, operasional, <b>termasuk kebutuhan hidup pengelolanya</b> agar dapat terus mengurus QuranKu.</span></li>
+        <li>${icon('check')}<span><b>Bukan zakat dan bukan wakaf.</b> Mohon tidak meniatkannya sebagai zakat; salurkan zakat Anda kepada amil yang berwenang.</span></li>
+        <li>${icon('check')}<span><b>Tanpa paksaan dan tanpa batas nominal.</b> Berilah dari harta yang halal dan tidak memberatkan diri maupun keluarga.</span></li>
+        <li>${icon('check')}<span><b>Transparan soal potongan.</b> Pembayaran diproses penyedia layanan pembayaran pihak ketiga yang dapat mengenakan biaya layanan; yang sampai ke pengelola adalah jumlah setelah potongan itu. Sebutan unit di formulir (misalnya “Kopi”) hanyalah satuan nominal, bukan barang yang dibeli.</span></li>
+        <li>${icon('check')}<span><b>Papan donatur hanya ucapan terima kasih.</b> Bukan imbalan dan bukan perlombaan. Bila ingin menjaga keikhlasan, isi nama “Hamba Allah”.</span></li>
+      </ul>
+      <p class="akad-ijab"><b>Pernyataan akad.</b> Dengan menekan tombol INFAQ dan menyelesaikan pembayaran, Anda menyatakan memberi dana tersebut secara sukarela sebagai infaq/sedekah kepada pengelola QuranKu untuk keperluan di atas, tanpa mengharap imbalan dari pengelola; dan pengelola menerimanya.</p>
       <button type="button" class="trbtn-infaq" data-infaq-open style="--trbtn:${TRBTN.color}"><img src="${TRBTN.img}" alt="" width="22" height="22" decoding="async" data-trbtn-img /><span>${TRBTN.text}</span></button>
-      <ul class="infaq-safe"><li>${icon('shield')}Pembayaran diproses penyedia resmi</li><li>${icon('heart')}Nominal bebas</li></ul>
+      <p class="akad-doa">Semoga setiap kebaikan menjadi amal jariyah dan Allah Subhanahu wa Ta'ala membalasnya dengan sebaik-baik balasan.<br /><b>Jazakumullahu khairan katsiran.</b></p>
     </section>
     <div class="infaq-stats" data-stats hidden></div>
     <section class="card"><p class="eyebrow">${icon('trophy')} Papan donatur</p>

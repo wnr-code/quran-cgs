@@ -146,3 +146,7 @@ Terakhir diperbarui: 15 November 2026.
 - Menutup popup bukan bukti bayar: papan hanya dimuat ulang; data hanya dari webhook.
 - CSP `frame-src https:` (penyedia pembayaran dapat berpindah ke gerbang pembayaran lain di dalam bingkai).
 - Halaman **Lainnya** disegarkan: kartu identitas, kartu infaq, menu berbentuk ubin berwarna per kelompok.
+
+## 1.3.10 — Akad infaq diperjelas
+
+Halaman Infaq kini memuat kartu "Akad & tujuan infaq" sebelum tombol: pemberian sukarela (tabarru': hibah/sedekah), bukan jual beli/pinjaman/investasi, bukan zakat/wakaf, dana menjadi milik pengelola dan dipakai juga untuk kebutuhan pengelola, ada potongan penyedia pembayaran, papan donatur bukan imbalan, serta pernyataan akad. Teks disusun dari kaidah umum fikih hibah/sedekah; **belum ditinjau ustaz/ahli fikih** — sebaiknya ditinjau.

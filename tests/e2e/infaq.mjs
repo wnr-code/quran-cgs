@@ -69,6 +69,9 @@ await step('Tombol INFAQ sesuai identitas sematan; nama penyedia tidak tampil', 
   assert.equal(btn.img, 'https://mirror-uploads.trakteer.id/images/units/uic-WAJ1GG3F86NzLSXQAwcEDJTa83KnmEMF1794742909.png')
   assert.ok(!/trakteer/i.test(await page.$eval('#view', (e) => e.textContent)), 'nama penyedia masih tampil')
   assert.equal(await page.$('[data-q], [data-custom], [data-pay]'), null, 'tidak ada lagi isian nominal di aplikasi')
+  // Akad dijelaskan sebelum tombol: sukarela, bukan jual beli, bukan zakat, dipakai juga untuk pengelola
+  const akad = await page.$eval('[data-akad]', (e) => e.textContent)
+  for (const w of [/sukarela/, /bukan jual beli/, /Bukan pinjaman, investasi/, /Bukan zakat/, /kebutuhan hidup pengelolanya/, /Pernyataan akad/]) assert.match(akad, w)
 })
 
 await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol kembali menutup', async () => {
