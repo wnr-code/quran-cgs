@@ -23,7 +23,7 @@ gradle :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace 2
 test_status=${PIPESTATUS[0]}
 set -e
 if (( test_status != 0 )); then
-  matches=$(grep -E 'FAILURE:|What went wrong|Execution failed|Could not|No matching variant|Received status|Required by:|AssertionError|No matching nodes|expected:|Caused by:|Exception' "$diag_dir/android-connected-tests-gradle.log" | tail -n 45 || true)
+  matches=$(grep -E '(^e:|: error:|Unresolved reference|Type mismatch|Overload resolution ambiguity|Cannot infer|No value passed|Too many arguments|No parameter with name|FAILURE:|What went wrong|Execution failed|Could not|No matching variant|Received status|Required by:|AssertionError|No matching nodes|expected:|Caused by:|Exception)' "$diag_dir/android-connected-tests-gradle.log" | tail -n 60 || true)
   if [[ -n "$matches" ]]; then
     {
       echo '### Android 16 smoke-test failure details'

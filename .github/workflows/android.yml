@@ -79,6 +79,7 @@ jobs:
           name: android-emulator-failure-log
           path: |
             ${{ runner.temp }}/android-connected-tests.log
+            ${{ runner.temp }}/android-connected-tests-gradle.log
             ${{ runner.temp }}/android-emulator-logcat.txt
             android/app/build/outputs/androidTest-results/connected/debug/**
             android/app/build/reports/androidTests/connected/debug/**
@@ -95,13 +96,15 @@ jobs:
         if: failure()
         working-directory: android
         run: |
-          if [ -f "$RUNNER_TEMP/gradle.log" ]; then
-            grep -E '^(e:)|: error:|Unresolved reference|Type mismatch|Overload resolution ambiguity' "$RUNNER_TEMP/gradle.log" | tail -n 60 | while IFS= read -r line; do
-              escaped=${line//'%'/'%25'}
-              escaped=${escaped//$'\r'/'%0D'}
-              printf '::error title=Android compiler::%s\n' "$escaped"
-            done
-          fi
+          for log in "$RUNNER_TEMP/gradle.log" "$RUNNER_TEMP/android-connected-tests-gradle.log"; do
+            if [ -f "$log" ]; then
+              grep -E '^(e:)|: error:|Unresolved reference|Type mismatch|Overload resolution ambiguity|Cannot infer|No value passed|Too many arguments|No parameter with name' "$log" | tail -n 60 | while IFS= read -r line; do
+                escaped=${line//'%'/'%25'}
+                escaped=${escaped//$'\r'/'%0D'}
+                printf '::error title=Android compiler::%s\n' "$escaped"
+              done || true
+            fi
+          done
       - name: Kumpulkan & periksa APK yang bisa dipasang
         run: |
           VER=$(node -p "require('../package.json').version")
