@@ -1,6 +1,7 @@
 // Reverse geocoding dipanggil hanya setelah pengguna menekan "Gunakan lokasi saya".
 // Koordinat diproses langsung oleh OpenStreetMap Nominatim agar nama wilayah bisa ditampilkan.
 import { CITIES } from '../data/cities.js'
+import { APP } from '../config.js'
 
 const ENDPOINT = 'https://nominatim.openstreetmap.org/reverse'
 const EARTH_RADIUS_KM = 6371
@@ -81,6 +82,8 @@ export async function reverseGeocode(loc, { fetchImpl = globalThis.fetch, timeou
   try {
     const response = await fetchImpl(url.href, {
       signal: controller.signal,
+      referrer: `${APP.origin}/`,
+      referrerPolicy: 'strict-origin-when-cross-origin',
       headers: { Accept: 'application/json' }
     })
     if (!response.ok) throw new Error(`Pencarian nama wilayah gagal (HTTP ${response.status})`)

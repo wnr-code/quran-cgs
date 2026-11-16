@@ -39,6 +39,8 @@ test('reverse geocoding meminta nama berbahasa Indonesia dengan koordinat GPS ya
   assert.equal(url.searchParams.get('lon'), '108.4836')
   assert.equal(url.searchParams.get('accept-language'), 'id')
   assert.equal(requestedOptions.headers.Accept, 'application/json')
+  assert.equal(requestedOptions.referrer, 'https://quran.cgs.my.id/')
+  assert.equal(requestedOptions.referrerPolicy, 'strict-origin-when-cross-origin')
   assert.ok(requestedOptions.signal instanceof AbortSignal)
   assert.equal(name, 'Kuningan, Kabupaten Kuningan, Jawa Barat')
   await assert.rejects(reverseGeocode({ lat: 91, lng: 0 }, { fetchImpl: () => assert.fail('tidak boleh meminta lokasi invalid') }), /Koordinat lokasi tidak valid/)
