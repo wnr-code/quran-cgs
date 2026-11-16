@@ -1160,6 +1160,61 @@ body.reading-mode .reader.mode-page .rd-wrap {
 .about-privacy-card .about-privacy-copy + .about-privacy-copy {
   margin-top: 9px;
 }
+.cigatas-signature {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  margin: 0 auto;
+  padding: 8px 12px 10px;
+  text-align: center;
+}
+.cigatas-signature-label {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.cigatas-signature-link {
+  display: block;
+  width: min(230px, 70vw);
+  max-width: 100%;
+  border-radius: 12px;
+  transition: transform var(--motion-fast) ease;
+}
+.cigatas-signature-link:hover {
+  transform: translateY(-2px);
+}
+.cigatas-signature-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.cigatas-signature img,
+.about-identity-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 7px 14px color-mix(in srgb, var(--primary) 18%, transparent));
+}
+.about-identity-card {
+  text-align: center;
+}
+.about-identity-card .eyebrow {
+  justify-content: center;
+}
+.about-identity-card figure {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.about-identity-card figure img {
+  width: min(100%, 520px);
+}
+.about-identity-card figcaption {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
 .source-logo {
   display: block;
   flex: 0 0 22px;

@@ -38,5 +38,13 @@ export default function about(root) {
       <p class="about-privacy-copy">Jika Anda membuka formulir infaq, Trakteer dan mitra pembayarannya menangani data formulir/pembayaran. Server QuranKu menerima data transaksi untuk papan donatur; nama tampilan dan ucapan yang Anda kirim dapat ditampilkan di sana.</p>
       <p class="about-privacy-copy">Jika Anda memakai fitur Bagikan, layanan yang dipilih menerima teks doa dan tautan QuranKu yang disiapkan untuk Anda.</p>
       <div class="btn-row about-privacy-actions"><a class="btn" href="/privacy.html" target="_blank" rel="noopener noreferrer">${icon('shield')}Kebijakan Privasi</a><a class="btn" href="#/infaq">${icon('heart')}Donasi</a></div></section>
+
+    <section class="card about-identity-card">
+      <p class="eyebrow">Identitas</p>
+      <figure>
+        <img src="/cigatas-identity.png" width="1212" height="512" loading="lazy" decoding="async" alt="Cigatas — #TongEureunNgaji" />
+        <figcaption>Cigatas · #TongEureunNgaji</figcaption>
+      </figure>
+    </section>
   </div>`
 }

@@ -566,6 +566,18 @@ test('beranda: ikon ucapan sesuai waktu & penyemangat berujukan ayat', async () 
   assert.match(styles, /\.salam\s*\{[^}]*text-align:\s*center/)
 })
 
+test('identitas Cigatas: label PNG transparan ada di bawah Beranda dan halaman Tentang', () => {
+  const logo = readFileSync('public/cigatas-identity.png')
+  assert.deepEqual([...logo.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10], 'PNG yang sah')
+  assert.equal(logo[25], 6, 'PNG RGBA dengan kanal transparansi')
+  const home = readFileSync('src/pages/home.js', 'utf8')
+  const about = readFileSync('src/pages/about.js', 'utf8')
+  assert.match(home, /class="cigatas-signature"[\s\S]*src="\/cigatas-identity\.png"/)
+  assert.match(about, /class="card about-identity-card"[\s\S]*src="\/cigatas-identity\.png"/)
+  assert.match(about, /Cigatas · #TongEureunNgaji/)
+  assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'cigatas-identity\.png'/, 'ikut precache untuk pemakaian offline')
+})
+
 test('header Lainnya: identitas QuranKu, slogan berganti tanpa pengulangan langsung', async () => {
   const { MORE_SLOGANS, nextMoreSlogan } = await import('../src/pages/more.js')
   assert.ok(MORE_SLOGANS.includes('Menemani Hari, Mendekatkan Hati kepada Kalamullah.'))

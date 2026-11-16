@@ -67,6 +67,13 @@ export default async function home(root) {
       <p class="eyebrow">Ayat pilihan hari ini</p>
       <div class="skeleton sk-line"></div><div class="skeleton sk-line"></div>
     </section>
+
+    <footer class="cigatas-signature" aria-label="Identitas Cigatas">
+      <span class="cigatas-signature-label">Identitas</span>
+      <a class="cigatas-signature-link" href="#/tentang" aria-label="Lihat identitas Cigatas di Tentang">
+        <img src="/cigatas-identity.png" width="1212" height="512" loading="lazy" decoding="async" alt="Cigatas — #TongEureunNgaji" />
+      </a>
+    </footer>
   </div>`
 
   // Penyemangat acak: potongan terjemahan ayat, berganti tiap beranda dibuka.
