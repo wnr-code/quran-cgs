@@ -19,7 +19,7 @@
     "gen:local": "node scripts/gen-local.mjs",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --test tests/unit.test.mjs tests/d1.test.mjs tests/infaq.test.mjs tests/adzan.test.mjs tests/calendar.test.mjs",
+    "test": "node --test tests/unit.test.mjs tests/d1.test.mjs tests/infaq.test.mjs tests/adzan.test.mjs tests/calendar.test.mjs tests/location.test.mjs",
     "gen:meta": "node scripts/gen-meta.mjs",
     "cap:sync": "npm run build && cap sync android",
     "cap:open": "cap open android",

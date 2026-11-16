@@ -2017,14 +2017,105 @@ body.has-player {
   font-weight: 700;
   outline: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
 }
-.loc-now {
+.fasting-schedule {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 9%, var(--surface)), var(--surface));
+}
+.fasting-schedule-head {
   display: flex;
   align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.fasting-schedule-head .eyebrow {
+  margin: 0 0 3px;
+}
+.fasting-schedule-head h2 {
+  margin: 0;
+}
+.fasting-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+  color: var(--primary);
+}
+.fasting-icon .icon {
+  width: 21px;
+  height: 21px;
+}
+.fasting-times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.fasting-time {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 13px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 82%, var(--accent) 5%);
+}
+.fasting-time > span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+.fasting-time b {
+  color: var(--primary);
+  font-size: clamp(1.35rem, 5vw, 1.7rem);
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+}
+.fasting-time small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+.fasting-schedule > .hint {
+  margin: 12px 0 0;
+}
+.loc-now {
+  display: flex;
+  align-items: flex-start;
   gap: 8px;
   font-weight: 600;
 }
+.loc-now > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
 .loc-now .icon {
+  flex: none;
   color: var(--primary);
+}
+.loc-coordinates {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.prayer-coordinates {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: -3px 0 7px;
+  color: color-mix(in srgb, var(--hero-ink) 78%, transparent);
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+}
+.prayer-coordinates .icon {
+  width: 14px;
+  height: 14px;
+  color: color-mix(in srgb, var(--accent) 85%, white);
 }
 .cal-head {
   display: flex;
