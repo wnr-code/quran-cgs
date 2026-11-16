@@ -31,6 +31,17 @@ export function formatHijri(date = new Date(), adjustDays = 0) {
   return h ? `${h.day} ${HIJRI_MONTHS[h.month - 1]} ${h.year} H` : ''
 }
 
+/** Awal Ramadan berikutnya menurut Umm al-Qura; hitung hari kalender lokal (inklusif). */
+export function nextRamadan(from = new Date(), adjustDays = 0, maxDays = 400) {
+  const start = new Date(from.getFullYear(), from.getMonth(), from.getDate())
+  for (let days = 0; days <= maxDays; days++) {
+    const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + days)
+    const h = toHijri(date, adjustDays)
+    if (h && h.month === 9 && h.day === 1) return { date, days }
+  }
+  return null
+}
+
 // Hari besar Islam berdasarkan tanggal Hijriah tetap.
 export const ISLAMIC_DAYS = [
   { m: 1, d: 1, name: 'Tahun Baru Hijriah', desc: 'Awal tahun dalam kalender Hijriah, yang perhitungannya dimulai dari tahun hijrah Nabi Muhammad ﷺ dari Makkah ke Madinah. Muharam termasuk empat bulan haram (mulia).' },

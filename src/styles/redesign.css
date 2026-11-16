@@ -195,14 +195,141 @@ textarea {
   padding-top: 14px;
   border-top-color: rgba(255, 255, 255, 0.12);
 }
-.home-hero .dates span {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.075);
-  border-color: rgba(255, 255, 255, 0.13);
-}
 .home-hero .dates .icon {
   color: color-mix(in srgb, var(--accent) 78%, white);
+}
+
+/* Gregorian + Hijri dates share one compact horizontal line in every date-bearing hero. */
+.hero-date-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: clamp(4px, 1.4vw, 8px);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--hero-ink);
+  line-height: 1.3;
+}
+.hero-date-line > .hero-date-item {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 1 auto;
+  gap: 5px;
+  min-width: 0;
+  max-width: calc(50% - 9px);
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.075);
+  color: inherit;
+  font-size: clamp(0.65rem, 2.9vw, 0.78rem);
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+.hero-date-line > .hero-date-item:only-child {
+  max-width: 100%;
+}
+.hero-date-line .hero-date-text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hero-date-line .icon {
+  width: 13px;
+  height: 13px;
+  color: color-mix(in srgb, var(--accent) 82%, white);
+}
+.hero-date-line > .hero-date-separator {
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: color-mix(in srgb, var(--hero-ink) 72%, transparent);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.home-hero .dates > .hero-date-item {
+  padding: 6px 9px;
+  border-color: rgba(255, 255, 255, 0.13);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.075);
+}
+.cal-hero .hero-date-line,
+.prayer-card .hero-date-line {
+  margin: 2px auto 4px;
+}
+.ramadan-countdown {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(100%, 430px);
+  min-width: 0;
+  margin: 7px 0 5px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 46%, rgba(255, 255, 255, 0.2));
+  border-radius: 18px;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.065));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 20px rgba(0, 0, 0, 0.09);
+  color: var(--hero-ink);
+  text-align: start;
+}
+.ramadan-countdown-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--accent) 48%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: #f2cf7a;
+}
+.ramadan-countdown-icon .icon {
+  width: 18px;
+  height: 18px;
+}
+.ramadan-countdown-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  line-height: 1.3;
+}
+.ramadan-countdown-copy small {
+  color: color-mix(in srgb, var(--hero-ink) 78%, transparent);
+  font-size: 0.67rem;
+}
+.ramadan-countdown-copy strong {
+  font-size: clamp(0.91rem, 3.8vw, 1.05rem);
+  font-weight: 750;
+  letter-spacing: -0.015em;
+}
+.ramadan-countdown-date {
+  display: flex;
+  flex: none;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.12);
+  color: color-mix(in srgb, var(--hero-ink) 90%, var(--accent));
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .mutiara {
   align-items: flex-start;
@@ -315,6 +442,13 @@ textarea {
 /* Daftar surah/juz: scannable rows, clean search and a quiet segmented switch. */
 .quran-page {
   gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+.quran-page [data-list] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 .quran-page .search-box {
   height: 54px;
@@ -367,6 +501,9 @@ textarea {
 }
 .quran-page .list {
   display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   gap: 8px;
   overflow: visible;
   border: 0;
@@ -378,6 +515,9 @@ textarea {
   border-top: 0;
 }
 .quran-page .surah-row {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 72px;
   contain-intrinsic-size: auto 72px;
   gap: 12px;
@@ -401,6 +541,10 @@ textarea {
 .quran-page .num-star::after {
   display: none;
 }
+.quran-page .surah-meta {
+  flex: 1 1 0;
+  min-width: 0;
+}
 .quran-page .surah-meta strong {
   font-size: 0.94rem;
   font-weight: 700;
@@ -411,8 +555,13 @@ textarea {
   font-size: 0.73rem;
 }
 .quran-page .surah-ar {
-  font-size: 1.38rem;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: clamp(52px, 24vw, 104px);
+  overflow: hidden;
   color: var(--primary);
+  font-size: 1.38rem;
+  text-overflow: ellipsis;
 }
 .quran-page .dot-saved {
   width: 7px;
@@ -639,6 +788,12 @@ body.reading-mode .reader.mode-page .rd-wrap {
   }
 }
 
+@media (max-width: 480px) {
+  .hero-date-line .icon {
+    display: none;
+  }
+}
+
 @media (max-width: 380px) {
   .page {
     padding-inline: 14px;
@@ -647,12 +802,35 @@ body.reading-mode .reader.mode-page .rd-wrap {
     margin-inline: -14px;
     padding-inline: 17px;
   }
-  .home-hero .dates {
-    gap: 6px;
+  .hero-date-line {
+    gap: 4px;
   }
-  .home-hero .dates span {
-    font-size: 0.72rem;
-    padding-inline: 8px;
+  .hero-date-line > .hero-date-item {
+    max-width: calc(50% - 8px);
+    padding: 4px 6px;
+    font-size: clamp(0.61rem, 3vw, 0.68rem);
+  }
+  .home-hero .dates {
+    gap: 4px;
+  }
+  .home-hero .dates > .hero-date-item {
+    padding-inline: 6px;
+  }
+  .ramadan-countdown {
+    gap: 7px;
+    padding: 9px 10px;
+  }
+  .ramadan-countdown-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+  }
+  .ramadan-countdown-copy strong {
+    font-size: 0.88rem;
+  }
+  .ramadan-countdown-date {
+    padding: 5px 6px;
+    font-size: 0.61rem;
   }
   .shortcut-grid {
     gap: 6px;

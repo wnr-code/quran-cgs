@@ -4,6 +4,7 @@ import { setNumeralMode } from '../utils/arabic-numbers.js'
 import { deriveTheme, normalizeCustom, CUSTOM_DEFAULT } from '../utils/theme.js'
 
 const KEY = 'quranku:settings'
+const ARABIC_FONT_MIGRATION_KEY = 'quranku:migration:readable-quran-font-v1'
 /** Variabel tema kustom yang sudah dihitung, dibaca public/theme-init.js sebelum render pertama. */
 const THEME_VARS_KEY = 'quranku:theme-vars'
 
@@ -26,7 +27,7 @@ export const DEFAULTS = {
   theme: 'auto', // 'auto' | 'light' | 'dark' | 'custom'
   customTheme: { ...CUSTOM_DEFAULT }, // { primary, accent, bg } — dipakai bila theme === 'custom'
   numerals: 'arabic', // 'arabic' | 'latin'
-  arabicFont: 'amiri', // 'amiri' | 'scheherazade'
+  arabicFont: 'scheherazade', // Naskh-style local font; users can still choose 'amiri'.
   hijriAdjust: 0,
   reader: { ...READER_DEFAULTS },
   audio: { qari: '05', autoPlay: true, repeat: 'none', rate: 1, volume: 1 },
@@ -42,6 +43,16 @@ function load() {
   let saved = {}
   try {
     saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}
+  } catch {}
+  // Pindahkan font bawaan lama ke Naskh lokal yang lebih lega, satu kali saja; Amiri tetap bisa dipilih kembali.
+  try {
+    if (localStorage.getItem(ARABIC_FONT_MIGRATION_KEY) !== '1') {
+      if (saved.arabicFont === 'amiri') {
+        saved = { ...saved, arabicFont: 'scheherazade' }
+        localStorage.setItem(KEY, JSON.stringify(saved))
+      }
+      localStorage.setItem(ARABIC_FONT_MIGRATION_KEY, '1')
+    }
   } catch {}
   const s = { ...DEFAULTS, ...saved }
   for (const k of ['reader', 'audio', 'goal', 'reminders', 'adzan']) s[k] = { ...DEFAULTS[k], ...(saved[k] || {}) }
