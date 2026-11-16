@@ -696,6 +696,31 @@ test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache'
   assert.match(html, /sp-bye [^;]*8s/) // menutup sendiri bila aplikasi gagal dimuat
   assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'splash\.js'/)
   assert.match(readFileSync('src/app.js', 'utf8'), /hideSplash\(\)/)
+  assert.match(readFileSync('src/app.js', 'utf8'), /showFirstRunOnboarding\(\)/)
+})
+
+test('pengenalan pertama: tiga langkah, navigasi, dan penanda selesai tersimpan', async () => {
+  const { ONBOARDING_KEY, ONBOARDING_SLIDES, hasCompletedOnboarding, markOnboardingComplete, renderOnboardingSlide } = await import('../src/services/onboarding.js')
+  assert.equal(ONBOARDING_SLIDES.length, 3)
+  const memory = new Map()
+  const storage = {
+    getItem: (key) => memory.has(key) ? memory.get(key) : null,
+    setItem: (key, value) => memory.set(key, String(value))
+  }
+  assert.equal(hasCompletedOnboarding(storage), false)
+  assert.equal(markOnboardingComplete(storage), true)
+  assert.equal(hasCompletedOnboarding(storage), true)
+  assert.equal(memory.get(ONBOARDING_KEY), '1')
+
+  const first = renderOnboardingSlide(0)
+  assert.match(first, /role="dialog" aria-modal="true"/)
+  assert.match(first, /BACA DENGAN NYAMAN/)
+  assert.match(first, /data-onboarding-next/)
+  assert.match(first, /data-onboarding-back[^>]*hidden/)
+  const last = renderOnboardingSlide(2)
+  assert.match(last, /Mulai menggunakan QuranKu/)
+  assert.match(last, /aria-valuenow="3"/)
+  assert.match(readFileSync('src/styles/onboarding.css', 'utf8'), /prefers-reduced-motion/)
 })
 
 test('sumber data: halaman terpisah, footer tidak menaut langsung ke situs sumber', async () => {

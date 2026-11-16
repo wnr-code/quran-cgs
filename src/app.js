@@ -4,6 +4,7 @@ import './styles/main.css'
 import './styles/reader.css'
 import './styles/responsive.css'
 import './styles/redesign.css'
+import './styles/onboarding.css'
 import { initSettings } from './services/storage.js'
 import { addRoute, startRouter, navigate } from './router.js'
 import { getLastRead } from './services/reading-position.js'
@@ -17,6 +18,7 @@ import { installFetchFailover } from './services/failover.js'
 import { initializeNativeShell, hideNativeSplash } from './services/native-shell.js'
 import { prepareLegacyNativeData, importLegacyNativeSurahs } from './services/legacy-migration.js'
 import { isStandalone } from './utils/helpers.js'
+import { showFirstRunOnboarding } from './services/onboarding.js'
 
 installFetchFailover()
 
@@ -60,10 +62,15 @@ renderNavbar(nav)
 initMiniPlayer(document.getElementById('mini-player'))
 watchConnectivity()
 
+let firstRoute = true
 startRouter(document.getElementById('view'), (path, meta) => {
   setActiveNav(nav, path)
   document.body.classList.toggle('route-reader', !!meta.reader)
   hideSplash()
+  if (firstRoute) {
+    firstRoute = false
+    showFirstRunOnboarding()
+  }
 })
 
 // Restore legacy preferences without blocking the first route, then import any cached Quran chapters in the background.
