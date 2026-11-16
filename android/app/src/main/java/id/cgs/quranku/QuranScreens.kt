@@ -21,7 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -65,15 +65,29 @@ internal fun QuranListScreen(context: Context, onOpenSurah: (Int) -> Unit) {
     var search by rememberSaveable { mutableStateOf("") }
     var loading by remember { mutableStateOf(true) }
     var loadFailed by remember { mutableStateOf(false) }
-    LaunchedEffect(context) {
-        loading = true
+    var retryTick by remember { mutableIntStateOf(0) }
+    LaunchedEffect(context, retryTick) {
+        loading = surahs.isEmpty()
         loadFailed = false
         try {
-            surahs = withContext(Dispatchers.IO) { QuranRepository.surahList(context) }
+            val bundled = try {
+                withContext(Dispatchers.IO) { QuranRepository.metadataList(context) }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                emptyList()
+            }
+            if (bundled.isNotEmpty()) {
+                surahs = bundled
+                loading = false
+            }
+            val refreshed = try {
+                withContext(Dispatchers.IO) { QuranRepository.surahList(context) }
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+                emptyList()
+            }
+            if (refreshed.isNotEmpty()) surahs = refreshed
             loadFailed = surahs.isEmpty()
-        } catch (error: Exception) {
-            if (error is CancellationException) throw error
-            loadFailed = true
         } finally {
             loading = false
         }
@@ -106,11 +120,22 @@ internal fun QuranListScreen(context: Context, onOpenSurah: (Int) -> Unit) {
             }
             if (!loading && filtered.isEmpty()) {
                 item {
-                    Text(
-                        if (loadFailed) "Daftar surah belum tersedia. Periksa koneksi lalu coba lagi." else "Surah tidak ditemukan.",
-                        Modifier.padding(20.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (loadFailed) {
+                        Column(
+                            Modifier.fillMaxWidth().padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                "Daftar surah belum tersedia. Periksa koneksi lalu coba lagi.",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            TextButton(onClick = { retryTick++ }) { Text("Coba lagi", color = Green) }
+                        }
+                    } else {
+                        Text("Surah tidak ditemukan.", Modifier.padding(20.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             }
             items(filtered, key = { it.number }) { surah ->
@@ -175,10 +200,12 @@ internal fun QuranReaderScreen(
         failure = false
         try {
             chapter = withContext(Dispatchers.IO) { QuranRepository.chapter(context, surahNumber) }
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
             failure = true
+        } finally {
+            loading = false
         }
-        loading = false
     }
     LaunchedEffect(chapter, listState) {
         val current = chapter ?: return@LaunchedEffect
@@ -210,7 +237,7 @@ internal fun QuranReaderScreen(
         when {
             loading && chapter == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Green) }
             failure && chapter == null -> Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Outlined.MenuBook, null, tint = Green, modifier = Modifier.size(42.dp))
+                Icon(Icons.AutoMirrored.Outlined.MenuBook, null, tint = Green, modifier = Modifier.size(42.dp))
                 Spacer(Modifier.height(12.dp))
                 Text("Surah belum tersimpan di perangkat", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
                 Text("Sambungkan internet lalu coba lagi. Bacaan tidak diubah atau dibuat oleh aplikasi.", Modifier.padding(top = 6.dp), color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center, fontSize = 12.sp, lineHeight = 18.sp)

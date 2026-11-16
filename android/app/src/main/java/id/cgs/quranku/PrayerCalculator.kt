@@ -19,7 +19,7 @@ import kotlin.math.tan
 
 object PrayerCalculator {
     /** Perkiraan astronomis lokal: sudut Subuh 20°, Isya 18°, Asar Syafi'i, ihtiyat 2 menit. */
-    fun times(city: City, date: LocalDate, zone: ZoneId = ZoneId.systemDefault()): List<PrayerTime> {
+    fun times(city: City, date: LocalDate, zone: ZoneId = city.zone): List<PrayerTime> {
         val daysInYear = if (date.isLeapYear) 366.0 else 365.0
         val gamma = 2.0 * Math.PI / daysInYear * (date.dayOfYear - 1)
         val equationOfTime = 229.18 * (
@@ -71,9 +71,10 @@ object PrayerCalculator {
     }
 
     fun next(city: City, now: java.time.ZonedDateTime): PrayerTime? {
-        val today = times(city, now.toLocalDate(), now.zone)
-            .firstOrNull { !it.secondary && it.time.isAfter(now.toLocalTime()) }
+        val localNow = now.withZoneSameInstant(city.zone)
+        val today = times(city, localNow.toLocalDate(), city.zone)
+            .firstOrNull { !it.secondary && it.time.isAfter(localNow.toLocalTime()) }
         if (today != null) return today
-        return times(city, now.toLocalDate().plusDays(1), now.zone).firstOrNull { !it.secondary }
+        return times(city, localNow.toLocalDate().plusDays(1), city.zone).firstOrNull { !it.secondary }
     }
 }

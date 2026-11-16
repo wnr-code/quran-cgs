@@ -294,8 +294,10 @@ internal fun AsmaulHusnaScreen(items: List<HusnaItem>, onBack: () -> Unit) {
 
 @Composable
 internal fun TasbihScreen(onBack: () -> Unit, preferences: android.content.SharedPreferences) {
-    var count by rememberSaveable { mutableIntStateOf(preferences.getInt("tasbih_count", 0)) }
-    var target by rememberSaveable { mutableIntStateOf(preferences.getInt("tasbih_target", 33)) }
+    var count by rememberSaveable { mutableIntStateOf(preferences.intOrDefault("tasbih_count", 0).coerceAtLeast(0)) }
+    var target by rememberSaveable {
+        mutableIntStateOf(preferences.intOrDefault("tasbih_target", 33).takeIf { it in setOf(33, 99, 100) } ?: 33)
+    }
     val haptics = LocalHapticFeedback.current
     LaunchedEffect(count) { preferences.edit().putInt("tasbih_count", count).apply() }
     LaunchedEffect(target) { preferences.edit().putInt("tasbih_target", target).apply() }

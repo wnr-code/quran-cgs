@@ -4,10 +4,11 @@ Sejak versi **1.4.0**, APK bukan lagi Trusted Web Activity (TWA) atau halaman si
 
 ## Isi dan batasan versi native
 
-- **Al-Qur'an:** metadata 114 surah tersedia offline. Teks Arab, transliterasi, dan terjemahan Kementerian Agama RI diambil langsung dari EQuran.id ketika surah dibuka pertama kali, lalu disimpan di perangkat. Bacaan yang sudah tersimpan dapat dibuka offline; surah yang belum pernah dimuat memerlukan internet.
+- **Al-Qur'an:** metadata 114 surah tersedia offline dan langsung mengisi daftar sebelum penyegaran data daring selesai. Teks Arab, transliterasi, dan terjemahan Kementerian Agama RI diambil dari EQuran.id ketika surah dibuka pertama kali, divalidasi jumlah/urutan ayatnya, lalu disimpan di perangkat. Bacaan yang sudah tersimpan dapat dibuka offline; surah yang belum pernah dimuat memerlukan internet.
 - **Doa:** data Doa Harian, Wudhu, dan Usai Salat dari `src/data/` disalin ke APK setiap build. Bacaan tetap tersedia offline; halaman bacaan punya kontrol Latin/arti dan Bagikan.
-- **Jadwal salat:** dihitung di perangkat dari kota yang dipilih pengguna (tidak meminta GPS). Koordinat kota merupakan perkiraan pusat kota. Perhitungan astronomis Kemenag 20°/18°, Asar Syafi'i, ihtiyat dua menit; waktu dapat berbeda beberapa menit dari jadwal resmi. Cocokkan dengan jadwal Kemenag/otoritas setempat.
+- **Jadwal salat:** dihitung di perangkat dari kota yang dipilih pengguna (tidak meminta GPS), memakai zona waktunya (WIB/WITA/WIT atau UTC+3 untuk Makkah/Madinah). Koordinat kota merupakan perkiraan pusat kota. Perhitungan astronomis Kemenag 20°/18°, Asar Syafi'i, ihtiyat dua menit; waktu dapat berbeda beberapa menit dari jadwal resmi. Cocokkan dengan jadwal Kemenag/otoritas setempat.
 - **Kiblat:** menampilkan bearing dari koordinat kota; bukan kompas sensor dan tidak menunjukkan arah relatif ke posisi ponsel.
+- **Tampilan mushaf:** teks Arab ditata dalam kartu ayat memakai font Arab sistem; belum ada font mushaf Madinah khusus, tata letak per halaman/baris, atau pewarnaan tajwid. Bentuk huruf dan pemenggalan baris masih perlu diperiksa di berbagai perangkat fisik.
 - Ada Tasbih Digital dan Asmaul Husna, serta dukungan mode terang/gelap sesuai sistem.
 - **Belum dipindahkan dari PWA/web:** murottal/audio, tafsir, bookmark, kalender dan catatan, target tilawah, notifikasi/adzan, infaq, ekspor-impor, serta fitur offline PWA. Fitur tersebut tetap tersedia di situs/PWA.
 - Izin Android aplikasi: `INTERNET`. Tidak meminta akun, izin lokasi, atau notifikasi.

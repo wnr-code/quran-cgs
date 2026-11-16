@@ -3,6 +3,7 @@ package id.cgs.quranku
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
+import java.time.ZoneId
 
 data class DuaPart(
     val arabic: String,
@@ -38,8 +39,19 @@ data class HusnaItem(
 data class City(
     val name: String,
     val latitude: Double,
-    val longitude: Double
-)
+    val longitude: Double,
+    val timeZoneId: String = "Asia/Jakarta"
+) {
+    val zone: ZoneId get() = ZoneId.of(timeZoneId)
+    val timeZoneLabel: String
+        get() = when (timeZoneId) {
+            "Asia/Jakarta" -> "WIB"
+            "Asia/Makassar" -> "WITA"
+            "Asia/Jayapura" -> "WIT"
+            "Asia/Riyadh" -> "UTC+3"
+            else -> timeZoneId.substringAfterLast('/')
+        }
+}
 
 data class LocalContent(
     val dailyGroups: List<DuaGroup>,
@@ -120,7 +132,8 @@ object NativeContentRepository {
             City(
                 name = item.optString("name"),
                 latitude = item.optDouble("lat"),
-                longitude = item.optDouble("lng")
+                longitude = item.optDouble("lng"),
+                timeZoneId = runCatching { ZoneId.of(item.optString("timeZoneId")).id }.getOrDefault("Asia/Jakarta")
             )
         }.sortedBy { it.name }
 

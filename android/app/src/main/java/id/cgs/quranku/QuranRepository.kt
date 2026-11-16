@@ -49,17 +49,20 @@ object QuranRepository {
                     revelation = row.optString("tempatTurun")
                 )
             }
-            if (results.size == 114) results else fallback
+            if (results.map { it.number } == (1..114).toList() && results.all { it.latin.isNotBlank() && it.ayahs > 0 }) results else fallback
         } catch (_: Exception) {
             fallback
         }
     }
 
     suspend fun chapter(context: Context, number: Int): QuranChapter = withContext(Dispatchers.IO) {
+        require(number in 1..114) { "Nomor surah harus 1–114" }
         val cache = File(context.filesDir, "quran/surah-$number.json")
         if (cache.exists()) {
             try {
-                return@withContext parseChapter(JSONObject(cache.readText(Charsets.UTF_8)))
+                val cached = parseChapter(JSONObject(cache.readText(Charsets.UTF_8)))
+                validateChapter(cached, number)
+                return@withContext cached
             } catch (_: Exception) {
                 cache.delete()
             }
@@ -67,7 +70,7 @@ object QuranRepository {
         val response = requestJson("$EQURAN_API/surat/$number")
         val root = response.optJSONObject("data") ?: error("Respons data surah tidak ditemukan")
         val chapter = parseChapter(root)
-        if (chapter.info.number != number || chapter.verses.isEmpty()) error("Data surah tidak lengkap")
+        validateChapter(chapter, number)
         cache.parentFile?.mkdirs()
         cache.writeText(root.toString(), Charsets.UTF_8)
         chapter
@@ -76,7 +79,7 @@ object QuranRepository {
     fun metadataList(context: Context): List<SurahInfo> {
         val root = JSONObject(context.assets.open("surah-metadata.json").bufferedReader(Charsets.UTF_8).use { it.readText() })
         val rows = root.getJSONArray("surahs")
-        return (0 until rows.length()).map { index ->
+        val surahs = (0 until rows.length()).map { index ->
             val row = rows.getJSONObject(index)
             SurahInfo(
                 number = row.getInt("number"),
@@ -86,6 +89,16 @@ object QuranRepository {
                 ayahs = row.getInt("ayahs")
             )
         }
+        require(surahs.map { it.number } == (1..114).toList()) { "Metadata surah harus berisi nomor 1–114 berurutan" }
+        require(surahs.all { it.latin.isNotBlank() && it.arabic.isNotBlank() && it.ayahs > 0 }) { "Metadata surah tidak lengkap" }
+        return surahs
+    }
+
+    private fun validateChapter(chapter: QuranChapter, expectedNumber: Int) {
+        require(chapter.info.number == expectedNumber) { "Nomor surah pada respons tidak sesuai" }
+        require(chapter.verses.isNotEmpty() && chapter.verses.size == chapter.info.ayahs) { "Jumlah ayat pada respons tidak sesuai" }
+        require(chapter.verses.map { it.number } == (1..chapter.verses.size).toList()) { "Nomor ayat pada respons tidak berurutan" }
+        require(chapter.verses.all { it.arabic.isNotBlank() }) { "Teks Arab pada respons tidak lengkap" }
     }
 
     private fun parseChapter(root: JSONObject): QuranChapter {

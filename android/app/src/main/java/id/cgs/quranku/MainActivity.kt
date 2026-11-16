@@ -38,7 +38,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccessTime
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -47,7 +47,7 @@ import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
@@ -68,6 +68,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -105,30 +106,33 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     @Volatile
     private var startupReady = false
+    private var shortcutDestination by mutableStateOf("")
+    private var shortcutIntentVersion by mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        shortcutDestination = intent?.data?.host.orEmpty()
         splashScreen.setKeepOnScreenCondition { !startupReady }
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             QuranKuTheme {
                 val dark = androidx.compose.foundation.isSystemInDarkTheme()
                 SideEffect {
-                    window.statusBarColor = android.graphics.Color.parseColor("#103B31")
-                    window.navigationBarColor = android.graphics.Color.parseColor(if (dark) "#111A16" else "#F6F5F0")
                     WindowInsetsControllerCompat(window, window.decorView).apply {
                         isAppearanceLightStatusBars = false
                         isAppearanceLightNavigationBars = !dark
                     }
                 }
-                val start = intent?.data?.host.orEmpty()
+                val start = shortcutDestination
                 Box(Modifier.fillMaxSize().background(Forest)) {
-                    QuranKuApp(
-                        startDestination = start,
-                        onStartupFinished = { startupReady = true },
-                        modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
-                    )
+                    key(start, shortcutIntentVersion) {
+                        QuranKuApp(
+                            startDestination = start,
+                            onStartupFinished = { startupReady = true },
+                            modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()
+                        )
+                    }
                     Box(
                         Modifier.align(Alignment.BottomCenter)
                             .fillMaxWidth()
@@ -139,9 +143,16 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        shortcutDestination = intent.data?.host.orEmpty()
+        shortcutIntentVersion++
+    }
 }
 
-private fun SharedPreferences.intOrDefault(key: String, default: Int): Int = try {
+internal fun SharedPreferences.intOrDefault(key: String, default: Int): Int = try {
     getInt(key, default)
 } catch (_: ClassCastException) {
     Log.w("QuranKu", "Preferensi $key rusak atau bertipe lama; nilai awal dipakai")
@@ -170,6 +181,7 @@ private fun QuranKuApp(
         mutableStateOf(if (startDestination == "quran" || startDestination == "resume") "quran" else "home")
     }
     var page by rememberSaveable { mutableStateOf(if (startDestination == "resume") "reader" else "") }
+    var returnPage by rememberSaveable { mutableStateOf("") }
     var selectedGroupId by rememberSaveable { mutableStateOf("") }
     var selectedDuaId by rememberSaveable { mutableStateOf("") }
     var selectedSurah by rememberSaveable { mutableIntStateOf(preferences.intOrDefault("last_surah", 1).coerceIn(1, 114)) }
@@ -214,6 +226,10 @@ private fun QuranKuApp(
         preferences.edit().apply {
             if (value == null) remove("city_name") else putString("city_name", value.name)
         }.apply()
+        if (returnPage == "qibla" && value != null) {
+            page = returnPage
+            returnPage = ""
+        }
     }
     fun openSurah(number: Int) {
         selectedSurah = number.coerceIn(1, 114)
@@ -223,8 +239,12 @@ private fun QuranKuApp(
         page = "reader"
     }
     fun backOneLevel() {
-        when (page) {
-            "dua-detail" -> page = "dua-group"
+        when {
+            page == "dua-detail" -> page = "dua-group"
+            returnPage.isNotBlank() -> {
+                page = returnPage
+                returnPage = ""
+            }
             else -> page = ""
         }
     }
@@ -278,9 +298,9 @@ private fun QuranKuApp(
                 }
                 "asma" -> AsmaulHusnaScreen(localContent?.husna.orEmpty(), onBack = ::backOneLevel)
                 "tasbih" -> TasbihScreen(onBack = ::backOneLevel, preferences = preferences)
-                "qibla" -> QiblaScreen(city, onBack = ::backOneLevel, onChooseCity = { page = "prayer" })
+                "qibla" -> QiblaScreen(city, onBack = ::backOneLevel, onChooseCity = { returnPage = "qibla"; page = "prayer" })
                 "sources" -> NativeSourcesScreen(onBack = ::backOneLevel)
-                "about" -> NativeAboutScreen(onBack = ::backOneLevel, version = BuildConfig.VERSION_NAME, onSources = { page = "sources" })
+                "about" -> NativeAboutScreen(onBack = ::backOneLevel, version = BuildConfig.VERSION_NAME, onSources = { returnPage = "about"; page = "sources" })
                 "settings" -> NativeSettingsScreen(onBack = ::backOneLevel)
                 else -> when (selectedTab) {
                     "quran" -> QuranListScreen(appContext, onOpenSurah = ::openSurah)
@@ -320,7 +340,7 @@ private data class MainNavItem(val id: String, val label: String, val icon: andr
 private fun QuranBottomNavigation(selected: String, onSelect: (String) -> Unit) {
     val items = listOf(
         MainNavItem("home", "Beranda", Icons.Outlined.Home),
-        MainNavItem("quran", "Al-Qur'an", Icons.Outlined.MenuBook),
+        MainNavItem("quran", "Al-Qur'an", Icons.AutoMirrored.Outlined.MenuBook),
         MainNavItem("doa", "Doa", Icons.Outlined.FavoriteBorder),
         MainNavItem("more", "Lainnya", Icons.Outlined.GridView)
     )
@@ -378,7 +398,7 @@ private fun HomeScreen(
                 ContinueReadingCard(lastSurah, lastAyah, onOpenLast)
                 SectionTitle("Jelajahi", "Temani ibadah harianmu")
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    QuickActionCard("Al-Qur'an", "Baca & renungkan", Icons.Outlined.MenuBook, MintLight, Modifier.weight(1f), onQuran)
+                    QuickActionCard("Al-Qur'an", "Baca & renungkan", Icons.AutoMirrored.Outlined.MenuBook, MintLight, Modifier.weight(1f), onQuran)
                     QuickActionCard("Doa harian", "Doa pilihan", Icons.Outlined.FavoriteBorder, Color(0xFFF7EDE7), Modifier.weight(1f), onDoa)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -430,7 +450,7 @@ private fun HomeHero(now: ZonedDateTime) {
         in 15..17 -> "Selamat sore"
         else -> "Selamat malam"
     }
-    val date = now.toLocalDate().format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale("id", "ID")))
+    val date = now.toLocalDate().format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.forLanguageTag("id-ID")))
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -492,7 +512,7 @@ private fun HomeHero(now: ZonedDateTime) {
                 ) {
                     Icon(Icons.Outlined.CalendarMonth, null, tint = Gold, modifier = Modifier.size(15.dp))
                     Text(
-                        date.replaceFirstChar { it.uppercase(Locale("id", "ID")) },
+                        date.replaceFirstChar { it.uppercase(Locale.forLanguageTag("id-ID")) },
                         color = Color.White.copy(alpha = 0.86f),
                         fontSize = 11.sp
                     )
@@ -504,6 +524,7 @@ private fun HomeHero(now: ZonedDateTime) {
 
 @Composable
 private fun NextPrayerCard(city: City?, next: PrayerTime?, now: ZonedDateTime, onClick: () -> Unit) {
+    val cityNow = remember(city, now) { city?.let { now.withZoneSameInstant(it.zone) } ?: now }
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -525,13 +546,13 @@ private fun NextPrayerCard(city: City?, next: PrayerTime?, now: ZonedDateTime, o
                     Text("Pilih lokasi untuk mulai", color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 } else {
                     Text("${next.name} · ${next.time.format(DateTimeFormatter.ofPattern("HH:mm"))}", color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                    val target = now.withHour(next.time.hour).withMinute(next.time.minute).withSecond(0).withNano(0).let {
-                        if (it.isAfter(now)) it else it.plusDays(1)
+                    val target = cityNow.withHour(next.time.hour).withMinute(next.time.minute).withSecond(0).withNano(0).let {
+                        if (it.isAfter(cityNow)) it else it.plusDays(1)
                     }
-                    val remaining = Duration.between(now, target)
+                    val remaining = Duration.between(cityNow, target)
                     val hours = remaining.toHours()
                     val minutes = remaining.toMinutes() % 60
-                    Text("${city.name} · ${if (hours > 0) "${hours}j " else ""}${minutes}m lagi", color = Muted, fontSize = 11.sp)
+                    Text("${city.name} · ${city.timeZoneLabel} · ${if (hours > 0) "${hours}j " else ""}${minutes}m lagi", color = Muted, fontSize = 11.sp)
                 }
             }
             Icon(Icons.Outlined.ChevronRight, null, tint = Muted, modifier = Modifier.size(22.dp))
@@ -741,7 +762,7 @@ internal fun NativePageHeader(
                 shape = CircleShape,
                 modifier = Modifier.size(42.dp)
             ) {
-                Box(contentAlignment = Alignment.Center) { Icon(Icons.Outlined.ArrowBack, "Kembali", tint = Color.White, modifier = Modifier.size(21.dp)) }
+                Box(contentAlignment = Alignment.Center) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "Kembali", tint = Color.White, modifier = Modifier.size(21.dp)) }
             }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
