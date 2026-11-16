@@ -12,8 +12,11 @@ import { formatHijri } from '../utils/hijri.js'
 import { APP, BASMALAH } from '../config.js'
 import { clearLegacyNativeData } from '../services/legacy-migration.js'
 import { THEME_PRESETS, deriveTheme } from '../utils/theme.js'
+import { checkForUpdate } from '../services/offline.js'
+import { isNativePlatform } from '../services/platform.js'
 
-const seg = (key, opts, cur) => `<div class="seg" data-seg="${key}">${opts.map(([v, l]) => `<button data-v="${v}" class="${String(cur) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`
+const SEG_LABELS = { theme: 'Pilih tema', numerals: 'Format angka Al-Qur’an', arabicFont: 'Font Arab', hijriAdjust: 'Koreksi tanggal Hijriah' }
+const seg = (key, opts, cur) => `<div class="seg" data-seg="${key}" role="group" aria-label="${SEG_LABELS[key] || key}">${opts.map(([v, l]) => `<button type="button" data-v="${v}" class="${String(cur) === String(v) ? 'on' : ''}" aria-pressed="${String(cur) === String(v)}">${l}</button>`).join('')}</div>`
 
 /** Panel tema kustom: palet siap pakai + tiga warna pilihan sendiri. */
 const sw = (p) => `linear-gradient(135deg, ${deriveTheme(p).vars['--hero-2']} 0 50%, ${p.bg} 50% 100%)`
@@ -33,9 +36,11 @@ export default function settings(root) {
   const body = $('[data-body]', root)
   const render = () => {
     const s = getSettings()
+    const native = isNativePlatform()
     body.innerHTML = `
       <section class="card"><p class="eyebrow">Tampilan</p>
-        <div class="field"><span>Tema</span>${seg('theme', [['auto', 'Otomatis'], ['light', 'Terang'], ['dark', 'Gelap'], ['custom', 'Kustom']], s.theme)}</div>
+        <div class="field"><span>Tema</span>${seg('theme', [['auto', 'Otomatis'], ['light', 'Terang'], ['dark', 'Gelap'], ['ramadan', 'Ramadan'], ['custom', 'Kustom']], s.theme)}</div>
+        <p class="hint">Tema Ramadan memakai palet malam zamrud-emas dan lentera dekoratif.</p>
         ${s.theme === 'custom' ? customPanel(s.customTheme) : ''}
         <div class="field"><span>Format angka Al-Qur'an</span>${seg('numerals', [['arabic', `Arab-Indic (${toArabicIndic(123)})`], ['latin', 'Latin (123)']], s.numerals)}</div>
         <div class="field"><span>Font Arab</span>${seg('arabicFont', [['amiri', 'Amiri Quran'], ['scheherazade', 'Scheherazade New']], s.arabicFont)}</div>
@@ -57,6 +62,11 @@ export default function settings(root) {
       <section class="card danger-zone"><p class="eyebrow">Hapus data</p>
         <p class="muted">Menghapus seluruh data QuranKu di perangkat ini: bookmark, catatan, riwayat, progres, pengaturan, lokasi, teks & audio tersimpan.</p>
         <div class="btn-row"><button class="btn btn-danger" data-wipe>${icon('trash')}Hapus semua data saya</button></div></section>
+      <section class="card version-card" aria-label="Versi dan pembaruan QuranKu">
+        <span class="shortcut-ic" aria-hidden="true">${icon('refresh')}</span>
+        <span class="version-text"><strong>QuranKu ${APP.version}</strong><small data-version>${APP.versionLabel}</small><small data-update-note role="status" aria-live="polite">${native ? 'Untuk memperbarui, pasang APK terbaru dari sumber pemasangannya.' : 'Versi yang berjalan di perangkat ini.'}</small></span>
+        ${native ? '' : '<button type="button" class="btn btn-sm" data-update aria-label="Periksa pembaruan QuranKu">Periksa</button>'}
+      </section>
       <p class="hint pad center">${APP.name} v${APP.version}</p>`
   }
   body.addEventListener('click', async (e) => {
@@ -65,6 +75,25 @@ export default function settings(root) {
       const key = b.closest('[data-seg]').dataset.seg
       saveSettings({ [key]: key === 'hijriAdjust' ? +b.dataset.v : b.dataset.v })
       return render()
+    }
+    const updateButton = e.target.closest('[data-update]')
+    if (updateButton) {
+      if (updateButton.disabled) return
+      const note = body.querySelector('[data-update-note]')
+      updateButton.disabled = true
+      note.textContent = 'Memeriksa versi terbaru…'
+      try {
+        const result = await checkForUpdate({ force: true })
+        if (result === 'updating') note.textContent = 'Pembaruan tersedia; sedang dipasang dan aplikasi akan dimuat ulang.'
+        else {
+          note.textContent = result === 'offline' ? 'Tidak dapat memeriksa versi terbaru. Periksa koneksi internet.' : 'QuranKu sudah menggunakan versi terbaru.'
+          updateButton.disabled = false
+        }
+      } catch {
+        note.textContent = 'Pemeriksaan gagal. Coba lagi saat koneksi tersedia.'
+        updateButton.disabled = false
+      }
+      return
     }
     const ps = e.target.closest('[data-preset]')
     if (ps) {

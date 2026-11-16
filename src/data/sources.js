@@ -96,7 +96,7 @@ export const SOURCES = [
       {
         name: 'OpenStreetMap Nominatim',
         use: 'Mencari nama kota, kecamatan, atau wilayah dari koordinat GPS saat pengguna menekan “Gunakan lokasi saya”.',
-        note: 'Koordinat dikirim langsung dari perangkat ke Nominatim, bukan ke server QuranKu. Atribusi data: © OpenStreetMap contributors.',
+        note: 'Koordinat dikirim langsung dari perangkat ke Nominatim, bukan ke server QuranKu; layanan dapat menerima alamat IP dan informasi teknis permintaan. Atribusi data: © OpenStreetMap contributors.',
         license: 'Data OpenStreetMap: ODbL 1.0',
         url: 'https://nominatim.openstreetmap.org',
         host: 'nominatim.openstreetmap.org'
@@ -139,7 +139,8 @@ export const SOURCES = [
         use: 'Ikon font di beranda (ucapan sesuai waktu), halaman Doa, Asmaul Husna, dan lembar Bagikan. Hanya ikon yang dipakai yang disertakan (subset), disajikan dari aplikasi.',
         license: 'Ikon CC BY 4.0, font SIL OFL 1.1',
         url: 'https://fontawesome.com',
-        host: 'fontawesome.com'
+        host: 'fontawesome.com',
+        logo: '/brand-logos/fontawesome.svg'
       },
       {
         name: 'Ikon garis dan ornamen',
@@ -151,10 +152,11 @@ export const SOURCES = [
     group: 'Pustaka perangkat lunak',
     icon: 'grid',
     items: [
-      { name: 'Vite', use: 'Alat build aplikasi web.', license: 'MIT', url: 'https://vite.dev', host: 'vite.dev' },
+      { name: 'Vite', use: 'Alat build aplikasi web.', license: 'MIT', url: 'https://vite.dev', host: 'vite.dev', logo: '/brand-logos/vite.svg' },
       { name: 'qrcode-generator (Kazuhiko Arase)', use: 'Menggambar kode QR pembayaran di halaman infaq, langsung di perangkat.', license: 'MIT', url: 'https://github.com/kazuhikoarase/qrcode-generator', host: 'github.com/kazuhikoarase/qrcode-generator' },
-      { name: 'Fontsource', use: 'Paket berkas font Amiri Quran dan Scheherazade New yang disalin ke aplikasi saat build.', url: 'https://fontsource.org', host: 'fontsource.org' },
-      { name: 'Capacitor 8 (Ionic)', use: 'Cangkang Android tipis untuk menjalankan UI web bersama dan mengakses tombol kembali, status bar, splash screen, serta lokasi opsional.', license: 'MIT', url: 'https://github.com/ionic-team/capacitor', host: 'github.com/ionic-team/capacitor' }
+      { name: 'Fontsource', use: 'Paket berkas font Amiri Quran dan Scheherazade New yang disalin ke aplikasi saat build.', url: 'https://fontsource.org', host: 'fontsource.org', logo: '/brand-logos/fontsource.svg' },
+      { name: 'Capacitor 8 (Ionic)', use: 'Cangkang Android tipis untuk menjalankan UI web bersama dan mengakses tombol kembali, status bar, splash screen, serta lokasi opsional.', license: 'MIT', url: 'https://github.com/ionic-team/capacitor', host: 'github.com/ionic-team/capacitor', logo: '/brand-logos/capacitor.svg' },
+      { name: 'Logo merek (Simple Icons)', use: 'Bentuk logo Vite, Font Awesome, dan Capacitor di daftar ini berasal dari Simple Icons. Logo hanya untuk identifikasi; merek dagang tetap milik masing-masing pemilik.', license: 'CC0 1.0', url: 'https://simpleicons.org', host: 'simpleicons.org' }
     ]
   },
   {
@@ -171,7 +173,7 @@ export const SOURCES = [
       {
         name: 'Web Push (layanan pemberitahuan peramban)',
         use: 'Pada PWA/peramban yang mendukung, pemberitahuan adzan, imsak, dan tarhim saat aplikasi tertutup dikirim lewat layanan push peramban Anda (mis. Google FCM, Mozilla, Apple).',
-        note: 'Hanya dipakai bila Anda menyalakan Adzan otomatis berbasis Web Push. Yang disimpan di server: alamat langganan push, koordinat lokasi salat (dibulatkan ±1 km), dan pilihan waktu. APK Android Capacitor tidak mendaftar Web Push.'
+        note: 'Hanya dipakai bila Anda menyalakan Adzan otomatis berbasis Web Push. Server menyimpan alamat langganan dan kunci enkripsi, lokasi yang dibulatkan sekitar ±1 km, nama wilayah, zona waktu, metode/koreksi tanggal, dan pilihan waktu; permintaan penghapusan dikirim saat fitur dimatikan. APK Android Capacitor tidak mendaftar Web Push.'
       },
       {
         name: 'Trakteer',

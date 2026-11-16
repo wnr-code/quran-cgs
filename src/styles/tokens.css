@@ -105,3 +105,27 @@
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.18), 0 10px 28px rgba(0, 0, 0, 0.2);
   --shadow-floating: 0 12px 34px rgba(0, 0, 0, 0.48), 0 2px 8px rgba(0, 0, 0, 0.26);
 }
+
+:root[data-theme='ramadan'] {
+  color-scheme: dark;
+  --bg: #091914;
+  --surface: #10251f;
+  --surface-2: #16342a;
+  --text: #f4efdf;
+  --muted: #aec0b4;
+  --primary: #72cda3;
+  --primary-ink: #08261d;
+  --accent: #edca73;
+  --gold: #edca73;
+  --border: #2b5141;
+  --danger: #fa8f84;
+  --success: #73d7a2;
+  --warning: #efcc76;
+  --hero-1: #071f1a;
+  --hero-2: #14513d;
+  --hero-ink: #fff8e8;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-raised: 0 10px 28px rgba(0, 0, 0, 0.52);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.18), 0 10px 28px rgba(0, 0, 0, 0.2);
+  --shadow-floating: 0 12px 34px rgba(0, 0, 0, 0.48), 0 2px 8px rgba(0, 0, 0, 0.26);
+}

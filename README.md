@@ -4,7 +4,7 @@
 [![CI](https://github.com/wnr-code/quran-cgs/actions/workflows/ci.yml/badge.svg)](https://github.com/wnr-code/quran-cgs/actions/workflows/ci.yml)
 
 Aplikasi Al-Qur'an digital berbahasa Indonesia dengan **satu antarmuka bersama** untuk PWA web dan APK Android. Keduanya memakai HTML, CSS, JavaScript, halaman, dan API yang sama; Capacitor menyediakan cangkang Android tipis, bukan UI Compose terpisah.
-Gratis, tanpa iklan, tanpa akun, tanpa pelacak, dan **sumber terbuka (MIT)**. PWA memakai Cloudflare Workers + D1; Android membundel antarmuka dan data cadangan untuk penggunaan offline.
+Gratis, tanpa iklan, tidak memerlukan akun, tanpa pelacak iklan atau analitik, dan **sumber terbuka (MIT)**. PWA memakai Cloudflare Workers + D1; Android membundel antarmuka dan data cadangan untuk penggunaan offline. Layanan pihak ketiga dapat menerima metadata koneksi saat digunakan; lihat [Kebijakan Privasi](public/privacy.html).
 
 **Buka aplikasi:** https://quran.cgs.my.id · cadangan: https://quran-cgs.appwnr.workers.dev
 

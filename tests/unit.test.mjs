@@ -505,6 +505,13 @@ test('doa harian NU: per kategori, lengkap, tanpa duplikat', () => {
   // Sumber data lama (EQuran doa) tidak dipakai lagi.
   assert.ok(!SOURCES.some((g) => g.items.some((i) => /EQuran\.id API Doa/.test(i.name))))
   assert.ok(SOURCES.some((g) => g.items.some((i) => /Font Awesome/.test(i.name))))
+  const logoItems = SOURCES.flatMap((g) => g.items).filter((i) => i.logo)
+  assert.deepEqual(new Set(logoItems.map((i) => i.name)), new Set(['Font Awesome Free 6.7.2', 'Vite', 'Fontsource', 'Capacitor 8 (Ionic)']))
+  for (const item of logoItems) {
+    assert.match(item.logo, /^\/brand-logos\/[a-z-]+\.svg$/)
+    assert.ok(existsSync(new URL(`../public${item.logo}`, import.meta.url)), `logo lokal tersedia: ${item.name}`)
+  }
+  assert.ok(SOURCES.some((g) => g.items.some((i) => i.name === 'Logo merek (Simple Icons)' && i.license === 'CC0 1.0')))
 })
 
 test('beranda: ikon ucapan sesuai waktu & penyemangat berujukan ayat', async () => {
@@ -526,6 +533,44 @@ test('beranda: ikon ucapan sesuai waktu & penyemangat berujukan ayat', async () 
   assert.match(home, /class="salutation"[\s\S]*class="salam"/)
   assert.match(home, /class="greet"[\s\S]*<strong>\$\{esc\(greeting\(now\)\)\}<\/strong>/)
   assert.match(styles, /\.salam\s*\{[^}]*text-align:\s*center/)
+})
+
+test('header Lainnya: identitas QuranKu, slogan berganti tanpa pengulangan langsung', async () => {
+  const { MORE_SLOGANS, nextMoreSlogan } = await import('../src/pages/more.js')
+  assert.ok(MORE_SLOGANS.includes('Menemani Hari, Mendekatkan Hati kepada Kalamullah.'))
+  assert.ok(MORE_SLOGANS.length >= 3)
+  const first = nextMoreSlogan(() => 0)
+  const second = nextMoreSlogan(() => 0)
+  assert.notEqual(first, second)
+  const more = readFileSync('src/pages/more.js', 'utf8')
+  assert.match(more, /كَلَامُ اللَّهِ/)
+  assert.match(more, /Gratis[\s\S]*Tanpa Iklan[\s\S]*Tanpa Analitik/)
+})
+
+test('tema Ramadan: palet, animasi lentera, dan gerakan berkurang', () => {
+  const tokens = readFileSync('src/styles/tokens.css', 'utf8')
+  const styles = readFileSync('src/styles/redesign.css', 'utf8')
+  const init = readFileSync('public/theme-init.js', 'utf8')
+  const nativeShell = readFileSync('src/services/native-shell.js', 'utf8')
+  assert.match(tokens, /:root\[data-theme='ramadan'\]/)
+  assert.match(styles, /@keyframes ramadan-lantern-sway/)
+  assert.match(styles, /prefers-reduced-motion:\s*reduce[\s\S]*?\.ramadan-lantern/)
+  assert.match(init, /t === 'ramadan'/)
+  assert.match(nativeShell, /theme === 'dark' \|\| theme === 'ramadan'/)
+})
+
+test('kebijakan privasi menjelaskan pelacak, lokasi, Web Push, dan data papan donatur', () => {
+  const policy = readFileSync('public/privacy.html', 'utf8')
+  const about = readFileSync('src/pages/about.js', 'utf8')
+  assert.match(policy, /tidak memasang pelacak iklan atau analitik/)
+  assert.match(policy, /Nominatim dapat memproses alamat IP/)
+  assert.match(policy, /pesan\/ucapan bila dikirim/)
+  assert.match(policy, /Catatan endpoint lama/)
+  assert.match(policy, /WhatsApp, Telegram, Facebook, dan X \(Twitter\)/)
+  assert.match(policy, /hitungan tasbih, bookmark, catatan, riwayat, dan progres tilawah/)
+  assert.doesNotMatch(policy, /Kami tidak menyimpan alamat email maupun pesan dukungan Anda/)
+  assert.match(about, /nama tampilan dan ucapan yang Anda kirim dapat ditampilkan/)
+  assert.match(about, /layanan yang dipilih menerima teks doa dan tautan QuranKu/)
 })
 
 test('bagikan: tautan Asmaul Husna memakai path', async () => {
@@ -578,6 +623,8 @@ test('migrasi font Arab lama ke Scheherazade tetap satu kali dan Amiri tetap bis
     assert.equal(values.get('quranku:migration:readable-quran-font-v1'), '1')
     values.set('quranku:settings', JSON.stringify({ arabicFont: 'amiri', theme: 'light' }))
     assert.equal((await loadFresh()).getSettings().arabicFont, 'amiri')
+    values.set('quranku:settings', JSON.stringify({ arabicFont: 'scheherazade', theme: 'ramadan' }))
+    assert.equal((await loadFresh()).getSettings().theme, 'ramadan')
   } finally {
     if (previous) Object.defineProperty(globalThis, 'localStorage', previous)
     else delete globalThis.localStorage

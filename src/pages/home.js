@@ -1,4 +1,5 @@
 import { LOGO_SVG, icon } from '../components/icons.js'
+import { ramadanLanterns } from '../components/page-layout.js'
 import { getSurah } from '../api/api-adapter.js'
 import { getLastRead } from '../services/reading-position.js'
 import { todayProgress, goalPages, GOAL_TYPES } from '../services/progress.js'
@@ -33,6 +34,7 @@ export default async function home(root) {
   const hijri = formatHijri(now, s.hijriAdjust)
   root.innerHTML = `<div class="page home">
     <header class="home-hero ornament">
+      ${ramadanLanterns()}
       <div class="brand">${LOGO_SVG}<div><strong>QuranKu</strong><small>Al-Qur'an Digital</small></div>
         <a class="icon-btn on-dark" href="#/cari" aria-label="Cari">${icon('search')}</a>
         <a class="icon-btn on-dark" href="#/pengaturan" aria-label="Pengaturan">${icon('settings')}</a></div>

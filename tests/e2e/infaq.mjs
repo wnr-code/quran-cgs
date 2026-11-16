@@ -68,9 +68,16 @@ const frameOpened = () =>
 await step('Tombol INFAQ sesuai identitas sematan; nama penyedia tidak tampil', async () => {
   await page.goto(`${BASE}/#/infaq`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('[data-infaq-open]', T)
-  const btn = await page.$eval('[data-infaq-open]', (b) => ({ text: b.textContent.trim(), bg: getComputedStyle(b).backgroundColor, img: b.querySelector('img')?.getAttribute('src') || '' }))
+  const btn = await page.$eval('[data-infaq-open]', (b) => {
+    const probe = document.createElement('span')
+    probe.style.backgroundColor = 'var(--primary)'
+    document.body.appendChild(probe)
+    const primary = getComputedStyle(probe).backgroundColor
+    probe.remove()
+    return { text: b.textContent.trim(), bg: getComputedStyle(b).backgroundColor, primary, img: b.querySelector('img')?.getAttribute('src') || '' }
+  })
   assert.equal(btn.text, 'INFAQ')
-  assert.equal(btn.bg, 'rgb(26, 98, 117)') // #1A6275
+  assert.equal(btn.bg, btn.primary, 'tombol memakai warna utama tema aktif')
   assert.equal(btn.img, 'https://mirror-uploads.trakteer.id/images/units/uic-WAJ1GG3F86NzLSXQAwcEDJTa83KnmEMF1794742909.png')
   assert.ok(!/trakteer/i.test(await page.$eval('#view', (e) => e.textContent)), 'nama penyedia masih tampil')
   assert.equal(await page.$('[data-q], [data-custom], [data-pay]'), null, 'tidak ada lagi isian nominal di aplikasi')
@@ -153,10 +160,33 @@ await step('Papan donatur: menutup popup tidak menambah donatur; webhook menampi
   await page.screenshot({ path: `${SHOTS}/14-infaq-papan.png` })
 })
 
-await step('Halaman Lainnya: kartu infaq & menu tampil', async () => {
+await step('Halaman Lainnya: identitas, slogan, kartu bertema & menu tampil', async () => {
   await page.evaluate(() => (location.hash = '#/lainnya'))
   await page.waitForSelector('.more-page .more-infaq', T)
   assert.ok((await page.$$('.more-page .menu-item')).length >= 12)
+  assert.equal(await page.$eval('.more-hero h2', (e) => e.textContent), 'QuranKu')
+  assert.equal(await page.$eval('.more-arabic', (e) => e.textContent), 'كَلَامُ اللَّهِ')
+  assert.ok((await page.$eval('[data-more-slogan]', (e) => e.textContent.trim())).length > 10)
+  assert.equal(await page.$eval('.more-promise', (e) => e.textContent.replace(/\s+/g, ' ').trim()), 'Gratis • Tanpa Iklan • Tanpa Analitik')
+  assert.equal(await page.$('.more-page .version-card'), null, 'cek versi dipindah ke Pengaturan')
+  const colors = await page.evaluate(() => {
+    const root = document.documentElement
+    const card = document.querySelector('.more-infaq')
+    const previous = root.dataset.theme
+    const before = getComputedStyle(card).backgroundImage
+    root.dataset.theme = 'ramadan'
+    const after = getComputedStyle(card).backgroundImage
+    const color = getComputedStyle(card).color
+    const probe = document.createElement('span')
+    probe.style.color = 'var(--primary-ink)'
+    document.body.appendChild(probe)
+    const ink = getComputedStyle(probe).color
+    probe.remove()
+    root.dataset.theme = previous
+    return { before, after, color, ink }
+  })
+  assert.notEqual(colors.before, colors.after, 'kartu infaq berubah mengikuti tema')
+  assert.equal(colors.color, colors.ink, 'teks kartu mengikuti warna kontras tema')
   await page.screenshot({ path: `${SHOTS}/16-lainnya.png` })
   await tap('.more-infaq')
   await page.waitForSelector('[data-infaq-open]', T)

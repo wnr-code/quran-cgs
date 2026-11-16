@@ -13,10 +13,9 @@ import { APP } from '../config.js'
 
 const PERIODS = { daily: 'Hari ini', weekly: 'Minggu ini', monthly: 'Bulan ini', all: 'Semua' }
 
-// Identitas tombol sesuai kode sematan Trakteer milik pengelola (teks, warna, alamat, gambar, ukuran).
+// Identitas tombol sesuai kode sematan Trakteer milik pengelola; warna mengikuti tema QuranKu.
 export const TRBTN = {
   text: 'INFAQ',
-  color: '#1A6275',
   url: 'https://trakteer.id/lanteraku/tip',
   img: 'https://mirror-uploads.trakteer.id/images/units/uic-WAJ1GG3F86NzLSXQAwcEDJTa83KnmEMF1794742909.png',
   size: 30
@@ -64,8 +63,8 @@ export default function infaq(root) {
   root.innerHTML = `<div class="page infaq-page">${pageHeader('Infaq Pengembang')}
     <section class="card infaq-hero ornament">${icon('heart', 'infaq-ic')}
       <h2>Dukung Pengembangan QuranKu</h2>
-      <p class="np-sub">QuranKu hadir sebagai aplikasi Al-Qur'an yang gratis, tanpa iklan, dan tanpa pelacakan — dan akan tetap gratis bagi siapa pun, memberi ataupun tidak.</p>
-      <button type="button" class="trbtn-infaq" data-infaq-open style="--trbtn:${TRBTN.color}"><img src="${TRBTN.img}" alt="" width="22" height="22" decoding="async" data-trbtn-img /><span>${TRBTN.text}</span></button>
+      <p class="np-sub">QuranKu tetap gratis dan tanpa iklan, memberi ataupun tidak. Aplikasi tidak memakai pelacak iklan atau analitik. Formulir pembayaran dimuat dari Trakteer setelah Anda menekan tombol.</p>
+      <button type="button" class="trbtn-infaq" data-infaq-open><img src="${TRBTN.img}" alt="" width="22" height="22" decoding="async" data-trbtn-img /><span>${TRBTN.text}</span></button>
       <button type="button" class="akad-link" data-akad-open>${icon('info')}Baca akad & tujuan infaq</button>
     </section>
     <p class="hint pad infaq-note">Di dalam aplikasi, gunakan <b>QRIS</b> atau <b>transfer bank/virtual account</b>. Dompet digital seperti GoPay dan ShopeePay perlu membuka aplikasinya sehingga tidak dapat berjalan di jendela ini — untuk itu <a href="${TRBTN.url}" target="_blank" rel="noopener noreferrer" data-trk-direct>buka halaman pembayaran</a>.</p>

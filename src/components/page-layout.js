@@ -1,9 +1,13 @@
 import { icon } from './icons.js'
 import { esc } from '../utils/helpers.js'
 
+/** Dekorasi lentera untuk tema Ramadan; disembunyikan dari teknologi bantu. */
+export const ramadanLanterns = () => `<div class="ramadan-lanterns" aria-hidden="true"><span class="ramadan-lantern ramadan-lantern--one"><i></i></span><span class="ramadan-lantern ramadan-lantern--two"><i></i></span></div>`
+
 /** Standard page title bar used by every non-reader page. */
 export function pageHeader(title, { back = true, actions = '', subtitle = '' } = {}) {
   return `<header class="page-head">
+    ${ramadanLanterns()}
     ${back ? `<button class="icon-btn" data-back aria-label="Kembali">${icon('back')}</button>` : ''}
     <div class="page-title"><h1>${esc(title)}</h1>${subtitle ? `<p>${esc(subtitle)}</p>` : ''}</div>
     <div class="page-actions">${actions}</div>
