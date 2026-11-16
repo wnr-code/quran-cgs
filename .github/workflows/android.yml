@@ -60,20 +60,7 @@ jobs:
           profile: pixel_2
           emulator-boot-timeout: 600
           disable-animations: true
-          script: |
-            bash <<'ANDROID_TESTS'
-            set -euo pipefail
-            cd android
-            adb wait-for-device
-            adb shell settings put global window_animation_scale 0
-            adb shell settings put global transition_animation_scale 0
-            adb shell settings put global animator_duration_scale 0
-            set +e
-            gradle :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace 2>&1 | tee "$RUNNER_TEMP/android-connected-tests.log"
-            test_status=${PIPESTATUS[0]}
-            timeout 20s adb logcat -d -v threadtime > "$RUNNER_TEMP/android-emulator-logcat.txt" 2>&1 || true
-            exit "$test_status"
-            ANDROID_TESTS
+          script: bash android/scripts/run-emulator-tests.sh
       - name: Upload log uji emulator jika gagal
         if: failure()
         uses: actions/upload-artifact@v4
