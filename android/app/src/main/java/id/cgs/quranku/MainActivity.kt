@@ -450,7 +450,7 @@ private fun HomeHero(now: ZonedDateTime) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Image(
-                    painter = painterResource(id = R.mipmap.ic_launcher),
+                    painter = painterResource(id = R.drawable.quranku_splash_icon),
                     contentDescription = "Ikon QuranKu",
                     modifier = Modifier.size(42.dp).clip(RoundedCornerShape(13.dp))
                 )
@@ -822,7 +822,7 @@ private fun NativeAboutScreen(onBack: () -> Unit, version: String, onSources: ()
             Column(Modifier.padding(horizontal = 18.dp, vertical = 20.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
                 Card(colors = CardDefaults.cardColors(containerColor = Forest), shape = RoundedCornerShape(25.dp)) {
                     Row(Modifier.fillMaxWidth().padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Image(painterResource(R.mipmap.ic_launcher), null, Modifier.size(56.dp).clip(RoundedCornerShape(17.dp)))
+                        Image(painterResource(R.drawable.quranku_splash_icon), null, Modifier.size(56.dp).clip(RoundedCornerShape(17.dp)))
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("QuranKu", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                             Text("Aplikasi Android native · versi $version", color = Color.White.copy(alpha = 0.76f), fontSize = 12.sp)
