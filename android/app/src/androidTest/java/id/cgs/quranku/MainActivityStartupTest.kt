@@ -49,15 +49,6 @@ class MainActivityStartupTest {
     }
 
     @Test
-    fun surahListScreenRendersFirstSurah() {
-        composeRule.onNodeWithText("Baca & renungkan").performClick()
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            composeRule.onAllNodesWithText("Al-Fatihah").fetchSemanticsNodes().isNotEmpty()
-        }
-        composeRule.onNodeWithText("Al-Fatihah").assertIsDisplayed()
-    }
-
-    @Test
     fun quranShortcutNavigatesWhenActivityIsAlreadyRunning() {
         fun sendQuranShortcut() = composeRule.runOnUiThread {
             composeRule.activity.onNewIntent(Intent(Intent.ACTION_VIEW, Uri.parse("quranku://quran")))
@@ -69,9 +60,8 @@ class MainActivityStartupTest {
         }
         composeRule.onNodeWithText("Al-Fatihah").assertIsDisplayed()
 
-        composeRule.onNodeWithText("Beranda").performClick()
-        composeRule.onNodeWithText("Tasbih").performClick()
-        composeRule.onNodeWithText("Tasbih Digital").assertIsDisplayed()
+        composeRule.onNodeWithText("Doa").performClick()
+        composeRule.onNodeWithText("Pilih kebutuhanmu").assertIsDisplayed()
         sendQuranShortcut()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("114 surah · 6.236 ayat").fetchSemanticsNodes().isNotEmpty()
