@@ -1,6 +1,6 @@
 # Android native (Jetpack Compose)
 
-Sejak versi **1.4.0**, APK bukan lagi Trusted Web Activity (TWA) atau halaman situs di dalam WebView. Beranda, navigasi, daftar surah, pembaca, doa, jadwal, kiblat, tasbih, Asmaul Husna, dan halaman informasi dibuat dengan komponen Android native. Aplikasi tidak memuat `quran.cgs.my.id` sebagai antarmuka. Rangkaian revisi 1.4.1 menambahkan splash screen Android resmi, penanganan aman saat data awal gagal dibaca, serta uji startup pada emulator Android 16.
+Sejak versi **1.4.0**, APK bukan lagi Trusted Web Activity (TWA) atau halaman situs di dalam WebView. Beranda, navigasi, daftar surah, pembaca, doa, jadwal, kiblat, tasbih, Asmaul Husna, dan halaman informasi dibuat dengan komponen Android native. Aplikasi tidak memuat `quran.cgs.my.id` sebagai antarmuka. Revisi 1.4.1 menambahkan splash screen Android resmi dan penanganan aman data awal. Uji emulator mereproduksi penyebab aplikasi menutup saat dibuka: Compose tidak dapat merender resource ikon peluncur adaptive XML; pemakaian diganti ke ikon vektor. Uji startup/data offline kini lulus pada Android 16.
 
 ## Isi dan batasan versi native
 
@@ -20,7 +20,7 @@ Workflow GitHub **Android build** berjalan otomatis saat berkas `android/` berub
 1. Buka run workflow yang selesai dengan status **success**.
 2. Di bagian **Artifacts**, unduh `QuranKu-APK-untuk-dipasang` dan ekstrak zip.
 3. Tanpa secret kunci rilis, nama APK berakhiran `-uji.apk`: itu APK debug, bertanda tangan kunci debug sementara. Versi rilis bertanda tangan, bila secret sudah disiapkan, berakhiran `.apk` tanpa `-uji`.
-4. `quranku-play-store-aab` hanya untuk Play Console dan bukan berkas yang diketuk untuk instalasi langsung.
+4. `quranku-play-store-aab` dibuat hanya bila keystore dan seluruh password/alias signing tersedia; berkas itu untuk Play Console, bukan untuk instalasi langsung. Tanpa kunci, workflow memberi label `quranku-aab-unsigned-build` untuk verifikasi proses build saja—AAB tanpa tanda tangan **tidak bisa diunggah ke Play Console**.
 
 APK menggunakan package `id.cgs.quranku`, minSdk 23, compileSdk 36, targetSdk 36. Nama versinya mengikuti `package.json`; `versionCode` CI dinaikkan berdasarkan nomor build.
 

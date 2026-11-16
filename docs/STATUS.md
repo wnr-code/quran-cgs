@@ -1,6 +1,6 @@
 # Status fitur — teruji, belum teruji, dan batasan
 
-Terakhir diperbarui: 15 November 2026.
+Terakhir diperbarui: 14 November 2026.
 
 ## Cara pengujian
 - `npm test` — 13 unit/integrasi test, semuanya lulus (termasuk webhook → SQL sungguhan → papan donatur).
@@ -38,7 +38,7 @@ Terakhir diperbarui: 15 November 2026.
 | Infaq terhadap Trakteer & D1 sungguhan | Alur aplikasi, webhook, sinkronisasi Public API, dan klaim ID transaksi teruji secara lokal (SQLite + `wrangler dev`). Belum pernah dijalankan terhadap Trakteer atau D1 produksi. Mode QRIS langsung tidak resmi dan belum terverifikasi; lihat [INFAQ.md](INFAQ.md). |
 | Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
 | Notifikasi dan kompas kiblat | Memerlukan perangkat fisik. |
-| Android APK/AAB | 1.4.0 berhasil dibangun di [workflow run 43783371276](https://github.com/wnr-code/quran-cgs/actions/runs/43783371276). Perbaikan 1.4.1 sedang disiapkan dengan target API 36 dan uji startup emulator Android 16. **Belum diuji di HP fisik atau diajukan ke Play.** Lihat [ANDROID.md](ANDROID.md). |
+| Android APK/AAB | 1.4.1 berhasil dibangun dan lolos uji instrumentasi startup/data offline pada emulator Android 16 (API 36) di [workflow run 43795724435](https://github.com/wnr-code/quran-cgs/actions/runs/43795724435). Artefak APK debug `QuranKu-1.4.1-uji.apk` (versionCode 300) tersedia di Actions; AAB tanpa kunci hanya untuk validasi build, bukan untuk diunggah ke Play. **Belum diuji di HP fisik atau diajukan ke Play.** Lihat [ANDROID.md](ANDROID.md). |
 | Instalasi PWA di ponsel, Lighthouse, iOS Safari | Belum diuji. |
 
 ## Belum dikerjakan / berbeda dari spesifikasi
@@ -268,4 +268,6 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Splash screen APK memakai Jetpack SplashScreen API dengan ikon vektor buku QuranKu dan warna latar yang mengikuti mode terang/gelap.
 - Target SDK dan pengujian diarahkan ke Android 16 / API 36, sesuai batas pengiriman update Google Play yang berlaku sejak 31 Agustus 2026. CI menambahkan tes instrumentasi launch/asset pada emulator Android 16; ini belum menggantikan uji HP fisik atau Play Console Pre-launch report.
 - Header beranda web dan native memisahkan salam Arab, salam waktu, dan tanggal dengan hierarki serta jarak yang lebih rapi; header tab dan halaman native memakai pola gradien/ornamen yang konsisten.
-- Build dan pengujian Android 1.4.1 masih menunggu hasil workflow pada branch ini; belum ada klaim lulus Play Store.
+- Akar crash startup terkonfirmasi di emulator: Compose `painterResource()` diberi ikon peluncur adaptive XML (`R.mipmap.ic_launcher`), yang tidak didukung dan melempar `IllegalArgumentException`. Beranda dan Tentang kini memakai ikon buku `VectorDrawable` yang didukung.
+- Uji instrumentasi `freshLaunchRendersHomeGreeting` serta `bundledContentLoadsAndPrayerDoaTabOpens` lulus pada emulator Pixel Android 16 / API 36; workflow [43795724435](https://github.com/wnr-code/quran-cgs/actions/runs/43795724435) juga membangun APK debug dan AAB.
+- Ini belum menggantikan uji HP fisik, Play Console Pre-launch report, penandatanganan dengan kunci upload pemilik, atau keputusan Google Play; belum ada klaim lulus Play Store.

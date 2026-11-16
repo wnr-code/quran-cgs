@@ -34,12 +34,23 @@ jobs:
         with:
           gradle-version: '8.13'
       - name: Siapkan keystore (bila secrets tersedia)
+        id: release_signing
         env:
           KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -n "$KS" ]; then
+            if [ -z "$KS_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+              echo '::error::Keystore disediakan, tetapi salah satu secret password/alias belum diisi.'
+              exit 1
+            fi
             echo "$KS" | base64 -d > "$RUNNER_TEMP/quranku.jks"
             echo "QURANKU_KEYSTORE_FILE=$RUNNER_TEMP/quranku.jks" >> "$GITHUB_ENV"
+            echo 'enabled=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'enabled=false' >> "$GITHUB_OUTPUT"
           fi
       - name: Build APK debug (untuk pengujian)
         run: |
@@ -119,8 +130,17 @@ jobs:
         with:
           name: QuranKu-APK-untuk-dipasang
           path: ${{ runner.temp }}/pasang/*.apk
-      - uses: actions/upload-artifact@v4
+      - name: Unggah AAB bertanda tangan untuk Google Play
+        if: steps.release_signing.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v4
         with:
           name: quranku-play-store-aab
           path: ${{ runner.temp }}/toko/*.aab
-          if-no-files-found: ignore
+          if-no-files-found: error
+      - name: Unggah AAB tanpa tanda tangan (validasi build saja)
+        if: steps.release_signing.outputs.enabled != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: quranku-aab-unsigned-build
+          path: ${{ runner.temp }}/toko/*.aab
+          if-no-files-found: error
