@@ -49,7 +49,7 @@ final class PrayerTimesCalculator {
         );
         double nightSeconds = (tomorrowSunriseUtc - sunsetUtc) / 1000.0;
         long sunriseUtc = utcMillis(year, month, day, today.sunrise);
-        long safeFajr = sunriseUtc - Math.round(nightSeconds * 0.5);
+        long safeFajr = sunriseUtc - Math.round(nightSeconds * 0.5 * 1000.0);
         long fajrUtc = Double.isFinite(fajr) ? utcMillis(year, month, day, fajr) : Long.MIN_VALUE;
         if (fajrUtc == Long.MIN_VALUE || safeFajr > fajrUtc) fajrUtc = safeFajr;
 
@@ -58,7 +58,7 @@ final class PrayerTimesCalculator {
             ishaUtc = sunsetUtc + params.ishaInterval * 60_000L;
         } else {
             long rawIsha = Double.isFinite(isha) ? utcMillis(year, month, day, isha) : Long.MIN_VALUE;
-            long safeIsha = sunsetUtc + Math.round(nightSeconds * 0.5);
+            long safeIsha = sunsetUtc + Math.round(nightSeconds * 0.5 * 1000.0);
             ishaUtc = rawIsha == Long.MIN_VALUE || safeIsha < rawIsha ? safeIsha : rawIsha;
         }
 
