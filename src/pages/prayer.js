@@ -63,7 +63,11 @@ export default function prayer(root) {
         countdown = `<p class="np-sub">${next.name} dalam ${Math.floor(mins / 60) ? Math.floor(mins / 60) + ' jam ' : ''}${mins % 60} menit</p>`
       }
       table = `<section class="card prayer-card ornament"><p class="eyebrow">${esc(loc.name || 'Lokasi')}</p>
-          <h2>${esc(formatGregorian(date))}</h2><p class="np-sub">${esc(formatHijri(date, s.hijriAdjust))}</p>${countdown}
+          <div class="hero-date-line" role="group" aria-label="Tanggal Masehi dan Hijriah">
+            <span class="hero-date-item">${icon('calendar')}<span class="hero-date-text">${esc(formatGregorian(date))}</span></span>
+            <span class="hero-date-separator" aria-hidden="true">·</span>
+            <span class="hero-date-item">${icon('moon')}<span class="hero-date-text">${esc(formatHijri(date, s.hijriAdjust))}</span></span>
+          </div>${countdown}
           <div class="day-nav"><button class="icon-btn on-dark" data-day="-1" aria-label="Hari sebelumnya">${icon('back')}</button><button class="btn sm on-dark" data-day="0">Hari ini</button><button class="icon-btn on-dark" data-day="1" aria-label="Hari berikutnya">${icon('forward')}</button></div></section>
         <section class="card"><ul class="prayer-list">${times.map((p) => `<li class="${p.key === nextKey ? 'next' : ''} ${p.minor ? 'minor' : ''}"><span>${p.name}</span><b>${formatClock(p.time)}</b></li>`).join('')}</ul>
           <p class="hint">Waktu ditampilkan dalam zona waktu perangkat. Hasil hisab dapat berbeda 1–2 menit dari jadwal resmi Kemenag RI/otoritas setempat; Imsak = Subuh − 10 menit.</p></section>`

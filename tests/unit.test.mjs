@@ -549,10 +549,36 @@ test('tema kustom: variabel turunan sah, terbaca, dan tahan masukan rusak', asyn
   assert.deepEqual(normalizeCustom(undefined), CUSTOM_DEFAULT)
 })
 
+test('migrasi font Arab lama ke Scheherazade tetap satu kali dan Amiri tetap bisa dipilih', async () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+  const values = new Map([['quranku:settings', JSON.stringify({ arabicFont: 'amiri', theme: 'light' })]])
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: (key) => values.has(key) ? values.get(key) : null,
+      setItem: (key, value) => values.set(key, String(value)),
+      removeItem: (key) => values.delete(key)
+    }
+  })
+  try {
+    const loadFresh = () => import(`../src/services/storage.js?font-migration=${Math.random()}`)
+    const { getSettings } = await loadFresh()
+    assert.equal(getSettings().arabicFont, 'scheherazade')
+    assert.equal(getSettings().theme, 'light')
+    assert.equal(values.get('quranku:migration:readable-quran-font-v1'), '1')
+    values.set('quranku:settings', JSON.stringify({ arabicFont: 'amiri', theme: 'light' }))
+    assert.equal((await loadFresh()).getSettings().arabicFont, 'amiri')
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'localStorage', previous)
+    else delete globalThis.localStorage
+  }
+})
+
 test('preset pembaca mengikuti tema global tanpa menghapus preset mushaf', async () => {
-  const { READER_DEFAULTS } = await import('../src/services/storage.js')
+  const { READER_DEFAULTS, DEFAULTS } = await import('../src/services/storage.js')
   const { PRESETS, applyReaderStyle } = await import('../src/components/reading-toolbar.js')
   assert.equal(READER_DEFAULTS.preset, 'theme')
+  assert.equal(DEFAULTS.arabicFont, 'scheherazade')
   assert.equal(PRESETS.theme, 'Ikuti tema aplikasi')
   assert.ok(PRESETS.classic && PRESETS.ivory && PRESETS.dark && PRESETS.night)
 
@@ -569,7 +595,7 @@ test('preset pembaca mengikuti tema global tanpa menghapus preset mushaf', async
   assert.equal(el.dataset.preset, 'theme')
   assert.equal(vars.get('--rd-font'), `${READER_DEFAULTS.fontSize}px`)
   const css = readFileSync('src/styles/reader.css', 'utf8')
-  assert.match(css, /\.reader\[data-preset='theme'\][^{]*\{[^}]*--rd-bg:\s*var\(--bg\)/)
+  assert.match(css, /\.reader\[data-preset='theme'\][^{]*\{[^}]*--rd-bg:\s*var\(--surface\)/)
 })
 
 test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache', () => {

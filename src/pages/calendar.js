@@ -5,7 +5,7 @@ import { openSheet } from '../components/modal.js'
 import { getSettings } from '../services/storage.js'
 import { dayKey, notesOf, noteDays, saveNote, deleteNote } from '../services/calendar-notes.js'
 import { requestNotifPermission, notifPermission, notifSupported } from '../services/notification.js'
-import { toHijri, HIJRI_MONTHS, islamicDayOf, dayNotes, formatHijri } from '../utils/hijri.js'
+import { toHijri, HIJRI_MONTHS, islamicDayOf, dayNotes, formatHijri, nextRamadan } from '../utils/hijri.js'
 import { weton, pasaranOf } from '../utils/javanese.js'
 import { holidayOf, hasOfficial } from '../data/libur-nasional.js'
 import { formatGregorian } from '../utils/format.js'
@@ -76,8 +76,23 @@ export default function calendar(root) {
     const todayEv = islamicDayOf(toHijri(today, adj))
     const todayHol = holidayOf(today, adj)
     const next = upcoming(today, adj)
+    const ramadan = nextRamadan(today, adj)
+    const ramadanCountdown = ramadan
+      ? `<div class="ramadan-countdown" role="note" aria-label="Perkiraan awal puasa Ramadan: ${ramadan.days === 0 ? 'diperkirakan hari ini' : `${ramadan.days} hari lagi`}.">
+          <span class="ramadan-countdown-icon">${icon('moon')}</span>
+          <span class="ramadan-countdown-copy"><small>Perkiraan awal puasa Ramadan</small><strong>${ramadan.days === 0 ? 'Diperkirakan hari ini' : `${ramadan.days} hari lagi puasa`}</strong></span>
+          <span class="ramadan-countdown-date">${esc(shortDate(ramadan.date))}</span>
+        </div>`
+      : ''
     body.innerHTML = `
-      <section class="card ornament prayer-card cal-hero"><p class="eyebrow">Hari ini</p><h2>${esc(formatHijri(today, adj))}</h2><p class="np-sub">${esc(formatGregorian(today))} · ${esc(pasaranOf(today))}</p>
+      <section class="card ornament prayer-card cal-hero"><p class="eyebrow">Hari ini</p>
+        <div class="hero-date-line" role="group" aria-label="Tanggal Masehi dan Hijriah">
+          <span class="hero-date-item">${icon('calendar')}<span class="hero-date-text">${esc(formatGregorian(today))}</span></span>
+          <span class="hero-date-separator" aria-hidden="true">·</span>
+          <span class="hero-date-item">${icon('moon')}<span class="hero-date-text">${esc(formatHijri(today, adj))}</span></span>
+        </div>
+        <p class="np-sub">${esc(pasaranOf(today))}</p>
+        ${ramadanCountdown}
         ${todayHol ? `<span class="cal-chip red">${esc(todayHol.name)}</span>` : ''}
         ${todayEv ? `<span class="cal-chip">${icon('star')}${esc(todayEv.name)}</span>` : ''}
         <button type="button" class="cal-hero-btn" data-day="${dayKey(today)}">${icon('plus')}Catatan hari ini</button></section>

@@ -1,7 +1,7 @@
 /* ===== QURANKU READING MODE ===== */
 .reader {
-  /* The default reader palette follows the shared app theme; named presets remain opt-in overrides. */
-  --rd-bg: var(--bg);
+  /* A softly white reading paper in light mode; dark/custom themes still flow through semantic surfaces. */
+  --rd-bg: var(--surface);
   --rd-text: var(--text);
   --rd-accent: var(--accent);
   --rd-muted: var(--muted);
@@ -20,7 +20,7 @@
   transition: background 0.25s, color 0.25s;
 }
 .reader[data-preset='theme'] {
-  --rd-bg: var(--bg);
+  --rd-bg: var(--surface);
   --rd-text: var(--text);
   --rd-accent: var(--accent);
   --rd-muted: var(--muted);

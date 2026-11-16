@@ -38,7 +38,7 @@
 
   /* Type */
   --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
-  --font-ar: 'Amiri Quran', 'Scheherazade New', 'Noto Naskh Arabic', 'Traditional Arabic', 'Geeza Pro', 'Times New Roman', serif;
+  --font-ar: 'Scheherazade New', 'Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Geeza Pro', 'Times New Roman', serif;
   --text-xs: 0.72rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -73,6 +73,10 @@
   --motion-normal: 220ms;
   --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 38%, transparent);
   --ornament: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23c9a961' stroke-opacity='.16' stroke-width='1'%3E%3Crect x='22' y='22' width='28' height='28'/%3E%3Crect x='22' y='22' width='28' height='28' transform='rotate(45 36 36)'/%3E%3Cpath d='M0 36h16M56 36h16M36 0v16M36 56v16'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+:root[data-arabic-font='amiri'] {
+  --font-ar: 'Amiri Quran', 'Scheherazade New', 'Noto Naskh Arabic', 'Traditional Arabic', 'Geeza Pro', serif;
 }
 
 :root[data-arabic-font='scheherazade'] {

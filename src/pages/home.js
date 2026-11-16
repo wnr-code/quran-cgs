@@ -41,7 +41,10 @@ export default async function home(root) {
         <p class="salam" lang="ar" dir="rtl" aria-label="Assalamu’alaikum">اَلسَّلَامُ عَلَيْكُمْ</p>
       </div>
       <p class="greet"><i class="fi fi-${greetingIcon(now)} greet-ic" aria-hidden="true"></i><span><strong>${esc(greeting(now))}</strong><small>Semoga harimu penuh berkah.</small></span></p>
-      <div class="dates">${hijri ? `<span>${icon('moon')}${esc(hijri)}</span>` : ''}<span>${icon('calendar')}${esc(formatGregorian(now))}</span></div>
+      <div class="dates hero-date-line" role="group" aria-label="Tanggal Masehi dan Hijriah">
+        <span class="hero-date-item">${icon('calendar')}<span class="hero-date-text">${esc(formatGregorian(now))}</span></span>
+        ${hijri ? `<span class="hero-date-separator" aria-hidden="true">·</span><span class="hero-date-item">${icon('moon')}<span class="hero-date-text">${esc(hijri)}</span></span>` : ''}
+      </div>
       <a class="mutiara" data-mutiara href="#"></a>
     </header>
 

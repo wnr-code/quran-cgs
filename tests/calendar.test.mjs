@@ -5,12 +5,24 @@ import assert from 'node:assert/strict'
 const store = new Map()
 globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) }
 const { dayKey, notesOf, noteDays, saveNote, deleteNote, takeDueReminders } = await import('../src/services/calendar-notes.js')
-const { ISLAMIC_DAYS, islamicDayOf, dayNotes } = await import('../src/utils/hijri.js')
+const { ISLAMIC_DAYS, islamicDayOf, dayNotes, toHijri, nextRamadan } = await import('../src/utils/hijri.js')
 
 test('hari besar: semua punya keterangan; pencarian menurut tanggal Hijriah', () => {
   for (const d of ISLAMIC_DAYS) assert.ok(d.name && d.desc && d.desc.length > 40, d.name)
   assert.equal(islamicDayOf({ month: 10, day: 1 }).name, 'Idulfitri')
   assert.equal(islamicDayOf({ month: 2, day: 2 }), null)
+})
+
+test('hitung mundur Ramadan: tanggal awal puasa berikutnya dan hitungan hari inklusif', () => {
+  const today = new Date(2026, 10, 16)
+  const next = nextRamadan(today)
+  assert.ok(next && next.days > 0 && next.days <= 400)
+  assert.equal(toHijri(next.date).month, 9)
+  assert.equal(toHijri(next.date).day, 1)
+  assert.equal(nextRamadan(next.date).days, 0)
+  const followingDay = new Date(next.date.getFullYear(), next.date.getMonth(), next.date.getDate() + 1)
+  assert.ok(nextRamadan(followingDay).days > 0)
+  assert.equal(nextRamadan(today, 0, 0), null)
 })
 
 test('keterangan amalan: Senin/Kamis, Ayyamul Bidh, tanpa anjuran puasa di hari terlarang & Ramadan', () => {
