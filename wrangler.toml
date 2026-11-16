@@ -1,4 +1,4 @@
-# Konfigurasi Cloudflare Workers (dengan aset statis). Dipakai oleh `npx wrangler deploy`.
+# Konfigurasi Cloudflare Workers (dengan aset statis), untuk deploy dan Preview Wrangler.
 # `name` harus sama dengan nama Worker di dashboard Cloudflare.
 # Secret TIDAK ditulis di sini — isi lewat dashboard (Settings → Variables and Secrets). Daftarnya: docs/INFAQ.md
 name = "quran-cgs"
@@ -6,6 +6,25 @@ main = "worker/index.js"
 compatibility_date = "2025-10-01"
 # Alamat cadangan https://quran-cgs.appwnr.workers.dev harus tetap aktif (dipakai otomatis bila domain utama mati).
 workers_dev = true
+
+# Wrangler preview deployments require an explicit observability policy.
+[previews.observability]
+enabled = true
+head_sampling_rate = 1
+
+[previews.observability.issues]
+enabled = false
+
+[previews.observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
+[previews.observability.traces]
+enabled = false
+head_sampling_rate = 1
+persist = true
 
 # Aplikasi dibangun otomatis sebelum deploy (hasil di dist/).
 [build]
