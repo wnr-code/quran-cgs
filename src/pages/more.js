@@ -1,8 +1,9 @@
-import { pageHeader } from '../components/navbar.js'
+import { pageHeader } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { toast } from '../utils/helpers.js'
 import { APP } from '../config.js'
 import { checkForUpdate } from '../services/offline.js'
+import { isNativePlatform } from '../services/platform.js'
 
 const GROUPS = [
   ['Ibadah', [
@@ -29,6 +30,7 @@ const GROUPS = [
 import { installApp, shouldOfferInstall } from '../services/install.js'
 
 export default function more(root) {
+  const native = isNativePlatform()
   root.innerHTML = `<div class="page more-page">${pageHeader('Lainnya', { back: false })}
     <section class="more-hero"><img src="/icons/icon-192-v2.png" alt="" width="56" height="56" />
       <div><h2>QuranKu</h2><p>Teman ibadah harian — gratis, tanpa iklan.</p><span class="more-chip">Versi ${APP.version}</span></div></section>
@@ -37,12 +39,13 @@ export default function more(root) {
     ${GROUPS.map(([g, items]) => `<h3 class="section-title">${g}</h3><div class="menu-grid tone-${g.toLowerCase()}">${items.map(([p, i, t, s]) => `<a class="menu-item" href="#${p}"><span class="shortcut-ic">${icon(i)}</span><span><strong>${t}</strong><small>${s}</small></span></a>`).join('')}</div>`).join('')}
     <section class="card version-card">
       <span class="shortcut-ic">${icon('refresh')}</span>
-      <span class="version-text"><strong>QuranKu ${APP.version}</strong><small data-version>${APP.versionLabel}</small><small data-update-note>Versi yang berjalan di perangkat ini</small></span>
-      <button class="btn btn-sm" data-update>Periksa</button>
+      <span class="version-text"><strong>QuranKu ${APP.version}</strong><small data-version>${APP.versionLabel}</small><small data-update-note>${native ? 'Pembaruan tersedia melalui sumber pemasangan APK Anda.' : 'Versi yang berjalan di perangkat ini'}</small></span>
+      ${native ? '' : '<button class="btn btn-sm" data-update>Periksa</button>'}
     </section>
   </div>`
   const note = root.querySelector('[data-update-note]')
-  root.querySelector('[data-update]').onclick = async (e) => {
+  const updateButton = root.querySelector('[data-update]')
+  if (updateButton) updateButton.onclick = async (e) => {
     e.currentTarget.disabled = true
     note.textContent = 'Memeriksa versi terbaru…'
     const r = await checkForUpdate({ force: true })

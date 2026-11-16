@@ -2,6 +2,7 @@
 // Metode default: sudut Kemenag RI (Subuh 20°, Isya 18°), mazhab Syafi'i, ihtiyat +2 menit.
 // Ini perhitungan astronomis; jadwal resmi tetap mengacu pada Kemenag RI / otoritas setempat.
 import { Coordinates, CalculationMethod, PrayerTimes, Madhab } from 'adhan'
+import { Capacitor } from '@capacitor/core'
 
 export const METHODS = {
   kemenag: { label: 'Kemenag RI (20° / 18°, ihtiyat 2 mnt)' },
@@ -60,13 +61,30 @@ export function nextPrayer(loc, method, now = new Date()) {
   return main(tmr)[0]
 }
 
-export function getCurrentPosition() {
+export async function getCurrentPosition() {
+  const options = { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 }
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { Geolocation } = await import('@capacitor/geolocation')
+      const position = await Geolocation.getCurrentPosition(options)
+      return { lat: +position.coords.latitude.toFixed(4), lng: +position.coords.longitude.toFixed(4), name: 'Lokasi saya' }
+    } catch (error) {
+      const code = error && error.code
+      const message = code === 'OS-PLUG-GLOC-0003'
+        ? 'Izin lokasi ditolak'
+        : code === 'OS-PLUG-GLOC-0007'
+          ? 'Aktifkan layanan lokasi pada perangkat'
+          : 'Lokasi tidak dapat ditentukan'
+      throw new Error(message)
+    }
+  }
+
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) return reject(new Error('Perangkat tidak mendukung lokasi'))
     navigator.geolocation.getCurrentPosition(
-      (p) => resolve({ lat: +p.coords.latitude.toFixed(4), lng: +p.coords.longitude.toFixed(4), name: 'Lokasi saya' }),
-      (e) => reject(new Error(e.code === 1 ? 'Izin lokasi ditolak' : 'Lokasi tidak dapat ditentukan')),
-      { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 }
+      (position) => resolve({ lat: +position.coords.latitude.toFixed(4), lng: +position.coords.longitude.toFixed(4), name: 'Lokasi saya' }),
+      (error) => reject(new Error(error.code === 1 ? 'Izin lokasi ditolak' : 'Lokasi tidak dapat ditentukan')),
+      options
     )
   })
 }

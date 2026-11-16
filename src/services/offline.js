@@ -4,11 +4,13 @@ import { surahRepo, tafsirRepo, audioRepo } from '../database/repositories.js'
 import { emit, toast } from '../utils/helpers.js'
 import { getAudioState } from './audio.js'
 import { APP } from '../config.js'
+import { isNativePlatform } from './platform.js'
 
 export const AUDIO_CACHE = 'quranku-audio-v1'
 
 export async function registerServiceWorker() {
-  if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return null
+  // Capacitor already serves this production bundle from the installed APK; let Android updates replace it.
+  if (isNativePlatform() || !('serviceWorker' in navigator) || !import.meta.env.PROD) return null
   try {
     const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
     // Versi baru dipasang otomatis: Service Worker baru langsung mengambil alih, lalu halaman dimuat ulang
@@ -27,7 +29,7 @@ export async function registerServiceWorker() {
       toast('Versi baru QuranKu siap dan akan dipasang saat aplikasi dibuka kembali.', 5000)
       document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && !getAudioState().playing && reload())
     })
-    // Aplikasi yang lama terbuka (TWA/PWA) tetap memeriksa versi baru saat kembali ke layar.
+    // PWA yang lama terbuka tetap memeriksa versi baru saat kembali ke layar.
     document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && navigator.onLine && checkForUpdate().catch(() => {}))
     // PWA terpasang sering dibuka dari keadaan tersimpan (tanpa navigasi baru), jadi versi diperiksa sendiri saat mulai.
     setTimeout(() => navigator.onLine && checkForUpdate().catch(() => {}), 3000)
@@ -43,7 +45,8 @@ export async function registerServiceWorker() {
  * Mengembalikan 'latest' | 'updating' | 'offline'. Dipanggil saat aplikasi dibuka dan dari tombol "Periksa pembaruan".
  */
 export async function checkForUpdate({ force = false } = {}) {
-  if (!import.meta.env.PROD) return 'latest'
+  // Capacitor assets are bundled in the APK; platform updates come through Android, not the PWA update path.
+  if (isNativePlatform() || !import.meta.env.PROD) return 'latest'
   let remote
   try {
     const res = await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })

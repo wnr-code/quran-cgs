@@ -1,0 +1,92 @@
+/* QuranKu design tokens. Shared by the PWA and the Capacitor Android shell. */
+:root {
+  color-scheme: light;
+
+  /* Brand colors */
+  --emerald: #0f6b4f;
+  --forest: #0b3d2e;
+  --gold: #b8923a;
+  --ivory: #f7f3e8;
+
+  /* Semantic color roles — components should use these rather than page-specific hex values. */
+  --bg: #f7f3e8;
+  --surface: #fffdf8;
+  --surface-2: #f0eadb;
+  --text: #1b2a23;
+  --muted: #67766d;
+  --primary: #0f6b4f;
+  --primary-ink: #ffffff;
+  --accent: #b8923a;
+  --border: #e5ddc8;
+  --danger: #b3261e;
+  --success: #246b48;
+  --warning: #8a5b11;
+  --hero-1: #0b3d2e;
+  --hero-2: #0f6b4f;
+  --hero-ink: #fbf7ec;
+
+  /* Spacing scale (4 px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Type */
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font-ar: 'Amiri Quran', 'Scheherazade New', 'Noto Naskh Arabic', 'Traditional Arabic', 'Geeza Pro', 'Times New Roman', serif;
+  --text-xs: 0.72rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --line-height-body: 1.55;
+  --line-height-tight: 1.25;
+
+  /* Surfaces, controls, layout, and motion */
+  --shadow: 0 1px 2px rgba(20, 40, 30, 0.05), 0 8px 24px rgba(20, 40, 30, 0.07);
+  --shadow-raised: 0 8px 24px rgba(20, 40, 30, 0.16);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --radius-pill: 999px;
+  --control-height: 44px;
+  --page-max: 760px;
+  --bar-nav: 64px;
+  --nav-h: 78px;
+  --player-h: 0px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --motion-fast: 120ms;
+  --motion-normal: 220ms;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 38%, transparent);
+  --ornament: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23c9a961' stroke-opacity='.16' stroke-width='1'%3E%3Crect x='22' y='22' width='28' height='28'/%3E%3Crect x='22' y='22' width='28' height='28' transform='rotate(45 36 36)'/%3E%3Cpath d='M0 36h16M56 36h16M36 0v16M36 56v16'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+:root[data-arabic-font='scheherazade'] {
+  --font-ar: 'Scheherazade New', 'Amiri Quran', 'Noto Naskh Arabic', 'Traditional Arabic', 'Geeza Pro', serif;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0a0f0d;
+  --surface: #111a16;
+  --surface-2: #17241e;
+  --text: #f1ece0;
+  --muted: #9aa79f;
+  --primary: #37a882;
+  --primary-ink: #06120d;
+  --accent: #c9a961;
+  --border: #213329;
+  --danger: #f2877f;
+  --success: #78c79b;
+  --warning: #e5bf72;
+  --hero-1: #0b1f18;
+  --hero-2: #0f3a2c;
+  --hero-ink: #f1ece0;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-raised: 0 10px 28px rgba(0, 0, 0, 0.52);
+}

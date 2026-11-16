@@ -1,5 +1,5 @@
-// Router berbasis hash (#/path) — aman untuk hosting statis, mode offline, dan Android TWA.
-import { skeleton, errorState } from './components/navbar.js'
+// Router berbasis hash (#/path) — aman untuk hosting statis, mode offline, PWA, dan Capacitor Android.
+import { skeleton, errorState } from './components/page-layout.js'
 import { esc } from './utils/helpers.js'
 
 const routes = []

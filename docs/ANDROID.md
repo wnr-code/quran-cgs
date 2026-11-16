@@ -1,81 +1,84 @@
-# Android native (Jetpack Compose)
+# Android APK (Capacitor)
 
-Sejak versi **1.4.0**, APK bukan lagi Trusted Web Activity (TWA) atau halaman situs di dalam WebView. Beranda, navigasi, daftar surah, pembaca, doa, jadwal, kiblat, tasbih, Asmaul Husna, dan halaman informasi dibuat dengan komponen Android native. Aplikasi tidak memuat `quran.cgs.my.id` sebagai antarmuka. Revisi 1.4.1 menambahkan splash screen Android resmi dan penanganan aman data awal. Uji emulator mereproduksi penyebab aplikasi menutup saat dibuka: Compose tidak dapat merender resource ikon peluncur adaptive XML; pemakaian diganti ke ikon vektor. Uji startup/data offline kini lulus pada Android 16.
+QuranKu menggunakan **satu aplikasi web bersama** untuk PWA dan APK Android. APK menjalankan hasil build Vite (`dist/`) di WebView lokal Capacitor; ia tidak memuat situs produksi sebagai UI dan tidak memiliki halaman Compose terpisah. Halaman, navigasi, tema, API, IndexedDB, dan fitur dibagi dengan PWA. Cangkang Android menyediakan tombol kembali, status bar/splash, lokasi atas permintaan, serta jembatan migrasi data lama.
 
-## Isi dan batasan versi native
+## Fitur dan batasan Android
 
-- **Al-Qur'an:** metadata 114 surah tersedia offline dan langsung mengisi daftar sebelum penyegaran data daring selesai. Teks Arab, transliterasi, dan terjemahan Kementerian Agama RI diambil dari EQuran.id ketika surah dibuka pertama kali, divalidasi jumlah/urutan ayatnya, lalu disimpan di perangkat. Bacaan yang sudah tersimpan dapat dibuka offline; surah yang belum pernah dimuat memerlukan internet.
-- **Doa:** data Doa Harian, Wudhu, dan Usai Salat dari `src/data/` disalin ke APK setiap build. Bacaan tetap tersedia offline; halaman bacaan punya kontrol Latin/arti dan Bagikan.
-- **Jadwal salat:** dihitung di perangkat dari kota yang dipilih pengguna (tidak meminta GPS), memakai zona waktunya (WIB/WITA/WIT atau UTC+3 untuk Makkah/Madinah). Koordinat kota merupakan perkiraan pusat kota. Perhitungan astronomis Kemenag 20°/18°, Asar Syafi'i, ihtiyat dua menit; waktu dapat berbeda beberapa menit dari jadwal resmi. Cocokkan dengan jadwal Kemenag/otoritas setempat.
-- **Kiblat:** menampilkan bearing dari koordinat kota; bukan kompas sensor dan tidak menunjukkan arah relatif ke posisi ponsel.
-- **Tampilan mushaf:** teks Arab ditata dalam kartu ayat memakai font Arab sistem; belum ada font mushaf Madinah khusus, tata letak per halaman/baris, atau pewarnaan tajwid. Bentuk huruf dan pemenggalan baris masih perlu diperiksa di berbagai perangkat fisik.
-- Ada Tasbih Digital dan Asmaul Husna, serta dukungan mode terang/gelap sesuai sistem.
-- **Belum dipindahkan dari PWA/web:** murottal/audio, tafsir, bookmark, kalender dan catatan, target tilawah, notifikasi/adzan, infaq, ekspor-impor, serta fitur offline PWA. Fitur tersebut tetap tersedia di situs/PWA.
-- Izin Android aplikasi: `INTERNET`. Tidak meminta akun, izin lokasi, atau notifikasi.
-- Uji instrumentasi CI membuka beranda dan doa offline pada emulator Android 16 (API 36). Ini membantu menangkap crash saat startup, tetapi **bukan pengganti pengujian di HP fisik**; periksa ukuran layar, aksesibilitas, perilaku OEM, dan Play Console Pre-launch report sebelum rilis publik.
+- UI PWA dibundel ke APK, jadi shell dan berkas yang sudah dibundel tersedia tanpa internet. API jaringan dan konten yang belum tersimpan tetap memerlukan koneksi; bacaan yang tersimpan di IndexedDB/cache bisa dipakai offline.
+- Al-Qur'an, doa, jadwal salat, kiblat, tasbih, bookmark, target, kalender, pencarian, murottal, infaq, dan halaman pengaturan memakai implementasi bersama. Fitur online tetap mengikuti ketersediaan API dan layanan terkait.
+- Lokasi bersifat opsional. Aplikasi hanya meminta izin **lokasi perkiraan** setelah pengguna menekan **Gunakan lokasi saya**; pilihan kota dan koordinat manual juga tersedia. Android memproses lokasi di perangkat.
+- Pengingat yang jatuh tempo saat APK terbuka tampil sebagai pesan di dalam aplikasi; suara adzan dapat diputar selama aplikasi berjalan. APK tidak mendaftarkan Web Push, alarm latar, atau notifikasi sistem. Pengingat/adzan tidak dijamin muncul setelah aplikasi ditutup. Web Push di PWA/peramban tetap mengikuti perilaku web.
+- Service Worker PWA tidak didaftarkan di Capacitor. Aset web Android diperbarui bersama APK; pembaruan dari halaman Pengaturan hanya berlaku untuk PWA.
+- Font Arab Amiri Quran dan Scheherazade New ikut dibundel. Verifikasi bentuk huruf dan pemenggalan baris pada perangkat fisik sebelum rilis.
 
-## Build tanpa Android Studio
+## Migrasi data dari APK Compose lama
 
-Workflow GitHub **Android build** berjalan otomatis saat berkas `android/` berubah. Bisa juga dijalankan manual dari **Actions → Android build → Run workflow**. Android Studio tidak diperlukan untuk mengambil hasil build. Sebelum membuat artefak, workflow membangun dan menguji aplikasi di emulator Pixel virtual Android 16 (API 36); kegagalan startup melampirkan logcat untuk diagnosis.
+Package Android tetap `id.cgs.quranku`, sehingga Android dapat mempertahankan data privat lama ketika APK baru dipasang sebagai **pembaruan** dengan tanda tangan yang sama. Pada peluncuran pertama, jembatan native membaca preferensi `quranku_native` dan file `files/quran/surah-*.json` dari APK lama. Data yang dapat dipindahkan:
 
-1. Buka run workflow yang selesai dengan status **success**.
-2. Di bagian **Artifacts**, unduh `QuranKu-APK-untuk-dipasang` dan ekstrak zip.
-3. Tanpa secret kunci rilis, nama APK berakhiran `-uji.apk`: itu APK debug, bertanda tangan kunci debug sementara. Versi rilis bertanda tangan, bila secret sudah disiapkan, berakhiran `.apk` tanpa `-uji`.
-4. `quranku-play-store-aab` dibuat hanya bila keystore dan seluruh password/alias signing tersedia; berkas itu untuk Play Console, bukan untuk instalasi langsung. Tanpa kunci, workflow memberi label `quranku-aab-unsigned-build` untuk verifikasi proses build saja—AAB tanpa tanda tangan **tidak bisa diunggah ke Play Console**.
+- posisi baca terakhir (`last_surah`, `last_ayah`);
+- kota, bila namanya cocok dengan daftar kota QuranKu sekarang;
+- hitungan dan target tasbih;
+- cache surah yang lolos pemetaan format dan validasi ayat bersama.
 
-APK menggunakan package `id.cgs.quranku`, minSdk 23, compileSdk 36, targetSdk 36. Nama versinya mengikuti `package.json`; `versionCode` CI dinaikkan berdasarkan nomor build.
+Preferensi kecil dipulihkan setelah router mulai; cache surah diimpor di latar belakang. Cache lama tidak dihapus setelah berhasil dipindahkan. **Jangan menghapus instalasi APK lama sebelum mencoba memperbarui aplikasi**: uninstall menghapus preferensi dan cache privat itu. Android juga menolak pembaruan bila sertifikat penandatangan berbeda. Jika demikian dan data lokal penting, jangan uninstall dulu; gunakan build yang ditandatangani dengan kunci lama atau cadangan Android. Menu **Pengaturan → Hapus semua data saya** menghapus data bersama serta sisa preferensi/cache Compose lama.
 
-### Splash screen native
+## Persyaratan build
 
-Aplikasi memakai Jetpack `core-splashscreen` dan theme XML `Theme.QuranKu.Splash`, bukan layar splash Compose yang ditumpuk di atas splash sistem. Ikon buku vektor QuranKu tampil di latar hijau (atau hijau gelap pada mode malam), lalu transisi ke theme Compose setelah aset offline awal selesai dibaca. Pemanggilan `installSplashScreen()` berada sebelum `super.onCreate()` sesuai [panduan resmi Android](https://developer.android.com/develop/ui/views/launch/splash-screen). Splash tidak menunggu permintaan jaringan.
+- Node.js 22 dan npm.
+- JDK 21 (Capacitor 8 / plugin geolocation menggunakan Java 21).
+- Android SDK Platform 36 dan Build Tools 36.0.0.
+- Gradle Wrapper 8.14.3 dan Android Gradle Plugin 8.13.0 sudah tercatat di proyek.
 
-### Target API dan pemeriksaan Play Store
+### Build dan jalankan secara lokal
 
-Sejak **31 Agustus 2026**, Google Play mensyaratkan aplikasi baru dan pembaruan aplikasi ponsel/tablet menargetkan Android 16 (API 36) atau lebih tinggi. Proyek ini sekarang memakai `targetSdk 36`; lihat [ketentuan resmi target API](https://developer.android.com/google/play/requirements/target-sdk) dan [perubahan perilaku Android 16](https://developer.android.com/about/versions/16/behavior-changes-16). Edge-to-edge sudah diaktifkan dan layar memakai padding system bar; tetap tinjau kembali perilaku predictive back serta tampilan layar lebar.
-
-Uji emulator CI hanya memverifikasi proses build, pembukaan UI, dan aset offline dasar. Uji itu **tidak menjamin lolos peninjauan Google Play**. Sebelum produksi, tanda tangani AAB dengan kunci upload yang benar, lengkapi deklarasi/metadata Play Console, lalu periksa Pre-launch report dan lakukan uji internal pada perangkat fisik.
-
-### Play Protect dan pemasangan dari luar Play Store
-
-Play Protect dapat memperingatkan atau memblokir APK yang diunduh dari luar Google Play, terutama APK debug/berkunci pengembang yang belum dikenal. Peringatan itu **tidak membuktikan** APK aman maupun berbahaya; build CI hanya memeriksa format paket, tanda tangan, dan smoke test emulator, bukan melakukan sertifikasi Google. Jangan mematikan Play Protect untuk mengatasi peringatan. Untuk distribusi umum, gunakan APK/AAB rilis dengan kunci tetap dan jalur distribusi resmi (misalnya Google Play); tetap ikuti hasil pemeriksaan Google.
-
-Kalau Android menyebut paket tidak valid, pastikan zip diekstrak dahulu dan pilih satu-satunya berkas `QuranKu-…apk`. Jika versi terpasang dibuat dari build debug lain, tanda tangan sementaranya mungkin berbeda: instalasi pembaruan dapat ditolak. Menghapus aplikasi lama lalu memasang yang baru dapat menghilangkan data lokal lama, termasuk cache bacaan dan hitungan tasbih.
-
-## Menyiapkan kunci rilis tetap
-
-Kunci harus dibuat dan disimpan oleh pemilik aplikasi. **Jangan kirim kunci, kata sandi, atau berkas keystore lewat chat; jangan commit ke repository.** Buat sekali di komputer yang memiliki JDK:
+Dari root repository:
 
 ```bash
-keytool -genkeypair -v -keystore quranku-upload.jks -alias quranku -keyalg RSA -keysize 2048 -validity 10000
+npm ci
+npm run gen:icons       # diperlukan setelah sumber ikon/splash diubah
+npm run cap:sync        # build web ke dist/ lalu salin ke android/app/src/main/assets/public
+npm run cap:open        # buka proyek di Android Studio (opsional)
 ```
 
-Simpan `quranku-upload.jks` dan kata sandinya di tempat aman. Encode berkas untuk GitHub Actions, misalnya di Linux:
-
-```bash
-base64 -w0 quranku-upload.jks
-```
-
-Di GitHub → **Settings → Secrets and variables → Actions**, simpan hasil dan informasi kunci sebagai Actions secrets berikut:
-
-- `ANDROID_KEYSTORE_BASE64`
-- `ANDROID_KEYSTORE_PASSWORD`
-- `ANDROID_KEY_ALIAS` (misalnya `quranku`)
-- `ANDROID_KEY_PASSWORD`
-
-Jalankan kembali workflow. Bila keempat nilai valid, CI menandatangani APK dan AAB release dengan kunci yang sama. Simpan cadangan kunci: kehilangan kunci dapat mencegah pembaruan APK yang dipasang langsung. Google Play memakai Play App Signing jika aplikasi diterbitkan di Play; ikuti instruksi Play Console untuk kunci upload.
-
-## Build lokal (opsional)
-
-Perlu JDK 17, Android SDK/Build Tools 36, Android Gradle Plugin 8.13.2, dan Gradle 8.13:
+Atau build APK debug langsung melalui Gradle Wrapper:
 
 ```bash
 cd android
-gradle :app:assembleDebug
-gradle :app:assembleRelease :app:bundleRelease
+./gradlew :app:assembleDebug
+# Dengan perangkat/emulator aktif:
+./gradlew :app:installDebug
 ```
 
-Tanpa kunci rilis yang sesuai, gunakan debug APK untuk tes saja. Contoh lokal ada di `android/keystore.properties.example`; `android/keystore.properties` diabaikan Git.
+Hasil APK debug: `android/app/build/outputs/apk/debug/app-debug.apk`. Jangan menjalankan `cap sync` tanpa build web terbaru; `npm run cap:sync` sudah melakukan keduanya secara berurutan.
 
-## Pemasangan dan laporan masalah
+Untuk memeriksa web/PWA secara terpisah, jalankan `npm test` dan `npm run build` dari root. Pengembangan PWA tetap melalui `npm run dev`; proses Android tidak mengubah perilaku browser.
 
-Untuk mencoba di perangkat sendiri, unduh artefak dari GitHub Actions, ekstrak, lalu pasang APK debug. Saat Android meminta izin memasang aplikasi dari sumber tersebut, putuskan sendiri apakah Anda memercayai sumber berkasnya. Jika gagal, kirim tangkapan layar pesan lengkap, nama APK, model perangkat, dan versi Android. Jangan kirim keystore atau kata sandi.
+## Android CI dan artefak
+
+Workflow **Android build** (`.github/workflows/android.yml`) berjalan untuk perubahan Android/aplikasi pada push atau pull request, dan bisa dijalankan manual dari **Actions → Android build → Run workflow**. Ia memasang JDK 21 dan SDK 36, membuat ikon/splash, membangun UI bersama, menjalankan unit test Gradle, menguji APK di emulator Android 16 (API 36), lalu membangun APK/AAB release. Workflow web utama (`ci.yml`) menjalankan `npm test` dan `npm run build`.
+
+- `QuranKu-APK-untuk-dipasang`: APK debug untuk uji; bila signing secret tersedia, juga menyertakan APK release bertanda tangan.
+- `quranku-play-store-aab`: dibuat hanya jika seluruh secret signing tersedia; AAB untuk Play Console.
+- `quranku-aab-unsigned-build`: AAB tanpa tanda tangan untuk validasi build saja—**tidak dapat diunggah ke Play Console**.
+- Uji instrumentasi membuka Activity dan memastikan beranda bersama serta salam awal dirender. Ini bukan uji semua fitur dan bukan pengganti uji ponsel fisik, pemeriksaan aksesibilitas, atau Play Console Pre-launch report.
+
+Package `id.cgs.quranku`, `minSdk 24`, `compileSdk 36`, dan `targetSdk 36`. Nama versi mengikuti `package.json`. CI mengambil `versionCode` dari nomor run workflow; build lokal memakai 320 sebagai nilai awal, di atas kode CI Compose lama 310. Untuk rilis Play, pastikan versi kode lebih besar dari versi yang pernah diunggah.
+
+## Penandatanganan release
+
+Jangan commit keystore atau password. Contoh konfigurasi ada di `android/keystore.properties.example`; salin menjadi `android/keystore.properties` (diabaikan Git) dan isi nilai milik pemilik aplikasi. `storeFile` yang relatif dihitung dari direktori `android/`. Alternatifnya, berikan variabel lingkungan berikut saat menjalankan Gradle:
+
+- `QURANKU_KEYSTORE_FILE`
+- `QURANKU_KEYSTORE_PASSWORD`
+- `QURANKU_KEY_ALIAS`
+- `QURANKU_KEY_PASSWORD`
+
+Untuk CI GitHub Actions, simpan empat secret berikut pada repository: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Workflow memakai keystore yang sama untuk APK dan AAB release. Tanpa keempat nilai, hasil release tidak ditandatangani. Simpan salinan kunci secara aman; kehilangan kunci dapat mencegah pembaruan APK yang didistribusikan langsung. Untuk Google Play, ikuti konfigurasi Play App Signing dan kunci upload di Play Console.
+
+## API dan CORS Android
+
+Di Capacitor, origin aplikasi adalah `https://localhost`. Pemanggilan same-app `/api/*` diarahkan dari WebView ke origin resmi QuranKu, sedangkan aset `/data/*` dan resource lokal tetap dibaca dari bundle. Worker hanya menambahkan header CORS untuk origin yang terdaftar secara eksplisit, termasuk `https://localhost`; bukan wildcard. PWA dan origin resmi tetap menggunakan jalur yang sama seperti sebelumnya. Perubahan URL API Android harus mempertahankan allowlist sempit ini.
+
+## Izin dan privasi
+
+Manifest Android meminta `INTERNET` dan `ACCESS_COARSE_LOCATION`. Lokasi hanya diminta atas tindakan pengguna; APK tidak meminta `POST_NOTIFICATIONS`, tidak menggunakan lokasi latar, dan tidak mendaftarkan push. Preferensi, posisi baca, bookmark, dan cache lokal tetap berada di perangkat. Jika pengguna mengirim infaq, data transaksi yang diperlukan dikirim ke layanan QuranKu/Trakteer seperti dijelaskan di [kebijakan privasi](../public/privacy.html) dan [panduan Data Safety](../store/data-safety.md).

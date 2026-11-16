@@ -2,7 +2,7 @@
 // Tidak ada tab baru, tidak ada window.open, halaman tidak berpindah. Nominal, nama, dan pesan diisi di formulir Trakteer.
 // Aplikasi tidak pernah menyimpulkan "sudah bayar" dari tertutupnya popup: papan donatur hanya berisi data
 // yang dikirim Trakteer ke server lewat webhook (/api/trakteer-webhook).
-import { pageHeader, skeleton } from '../components/navbar.js'
+import { pageHeader, skeleton } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { getDonors } from '../api/donors-api.js'
 import { openSheet } from '../components/modal.js'

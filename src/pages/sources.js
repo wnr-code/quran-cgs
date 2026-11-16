@@ -1,4 +1,4 @@
-import { pageHeader } from '../components/navbar.js'
+import { pageHeader } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { SOURCES } from '../data/sources.js'
 import { esc, copyText, toast } from '../utils/helpers.js'

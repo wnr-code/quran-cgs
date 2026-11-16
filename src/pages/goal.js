@@ -1,8 +1,9 @@
-import { pageHeader } from '../components/navbar.js'
+import { pageHeader } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { getSettings, saveSettings } from '../services/storage.js'
 import { GOAL_TYPES, goalPages, todayProgress, lastDays, streak } from '../services/progress.js'
 import { requestNotifPermission, notifSupported } from '../services/notification.js'
+import { isNativePlatform } from '../services/platform.js'
 import { $, esc, toast } from '../utils/helpers.js'
 
 export default async function goal(root) {
@@ -11,6 +12,7 @@ export default async function goal(root) {
 
   async function render() {
     const s = getSettings()
+    const native = isNativePlatform()
     const target = goalPages(s.goal)
     const [today, days30] = await Promise.all([todayProgress(), lastDays(30)])
     const week = days30.slice(-7)
@@ -41,7 +43,7 @@ export default async function goal(root) {
         <label class="switch-row"><span>Pengingat tilawah harian</span><input type="checkbox" data-rem="tilawah" ${s.reminders.tilawah ? 'checked' : ''}/></label>
         <label class="field inline"><span>Jam pengingat</span><input type="time" data-time value="${esc(s.reminders.tilawahTime)}" /></label>
         <label class="switch-row"><span>Ingatkan bila target belum tercapai (20.30)</span><input type="checkbox" data-rem="goal" ${s.reminders.goal ? 'checked' : ''}/></label>
-        <p class="hint">Keterbatasan: tanpa server push, pengingat hanya muncul selama QuranKu terbuka atau masih berjalan di latar belakang.</p></section>`
+        <p class="hint">${native ? 'Di aplikasi Android, pengingat muncul sebagai pesan di dalam aplikasi selama QuranKu terbuka; notifikasi sistem saat aplikasi ditutup belum tersedia.' : 'Tanpa server push, pengingat hanya muncul selama QuranKu terbuka atau masih berjalan di latar belakang.'}</p></section>`
   }
 
   body.addEventListener('change', async (e) => {
@@ -62,7 +64,7 @@ export default async function goal(root) {
           return toast('Perangkat/browser ini tidak mendukung notifikasi.')
         }
         const p = await requestNotifPermission()
-        if (p !== 'granted') {
+        if (p !== 'granted' && p !== 'foreground') {
           t.checked = false
           return toast('Izin notifikasi tidak diberikan.')
         }

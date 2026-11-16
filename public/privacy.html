@@ -25,7 +25,7 @@
       <p>QuranKu adalah aplikasi Al-Qur'an digital gratis. Kami merancangnya agar <strong>tidak memerlukan akun, tidak menampilkan iklan, dan tidak memakai pelacak analitik</strong>. Dokumen ini menjelaskan data apa yang diproses dan bagaimana caranya.</p>
 
       <h2>1. Data yang disimpan di perangkat Anda</h2>
-      <p>Data berikut disimpan <strong>hanya di perangkat Anda</strong> (IndexedDB, localStorage, Cache Storage) dan tidak dikirim ke server kami, kecuali bila Anda menyalakan Adzan otomatis (lihat bagian Notifikasi):</p>
+      <p>Data berikut biasanya disimpan <strong>hanya di perangkat Anda</strong> (IndexedDB, localStorage, Cache Storage). Pengecualian terbatas berlaku untuk Web Push Adzan di PWA/peramban dan untuk infaq yang Anda kirim; lihat bagian Notifikasi dan Infaq.</p>
       <ul>
         <li>Pengaturan aplikasi (tema, ukuran font, qari, format angka, metode jadwal salat).</li>
         <li>Posisi bacaan terakhir, riwayat surah, bookmark, kategori bookmark, dan catatan pribadi.</li>
@@ -35,14 +35,14 @@
       </ul>
 
       <h2>2. Lokasi</h2>
-      <p>Lokasi bersifat opsional. Izin lokasi perangkat hanya diminta ketika Anda menekan tombol “Gunakan lokasi saya”. Koordinat dipakai untuk menghitung jadwal salat dan arah kiblat <strong>langsung di perangkat</strong>, disimpan lokal, dan tidak dikirim ke server mana pun. Anda dapat memilih kota atau mengisi koordinat secara manual tanpa memberi izin lokasi.</p>
+      <p>Lokasi bersifat opsional. Izin lokasi hanya diminta ketika Anda menekan tombol “Gunakan lokasi saya”; APK Android hanya meminta lokasi perkiraan. Koordinat dipakai untuk menghitung jadwal salat dan arah kiblat langsung di perangkat. Di APK Android, lokasi tidak dikirim ke server QuranKu. Di PWA/peramban, bila Anda menyalakan Adzan otomatis berbasis Web Push, koordinat dibulatkan sekitar ±1 km dan disimpan di server QuranKu untuk menghitung waktu pemberitahuan. Anda juga dapat memilih kota atau mengisi koordinat manual tanpa memberi izin lokasi.</p>
 
       <h2>3. Notifikasi</h2>
-      <p>Izin notifikasi hanya diminta ketika Anda mengaktifkan pengingat tilawah, target, atau adzan otomatis. Pengingat tilawah dan target dibuat secara lokal oleh aplikasi.</p>
-      <p><strong>Adzan otomatis.</strong> Agar pemberitahuan waktu salat tetap sampai ketika aplikasi ditutup, saat fitur ini dinyalakan aplikasi mendaftarkan <em>langganan push</em> ke server QuranKu. Yang disimpan di server hanyalah: alamat langganan push dari peramban Anda beserta kunci enkripsinya, koordinat lokasi yang <strong>dibulatkan ±1 km</strong>, nama lokasi, zona waktu, metode perhitungan, dan pilihan waktu yang ingin diingatkan. Data ini dipakai semata-mata untuk menghitung jadwal dan mengirim pemberitahuan, tidak dibagikan kepada pihak lain, dan <strong>dihapus</strong> ketika Anda mematikan Adzan otomatis atau ketika langganan tidak lagi berlaku. Pemberitahuan dikirim melalui layanan push peramban Anda (mis. Google FCM, Mozilla, Apple) dalam keadaan terenkripsi. Suara adzan diputar langsung dari cdn.aladhan.com.</p>
+      <p>Di PWA/peramban, izin notifikasi hanya diminta setelah Anda mengaktifkan pengingat tilawah, target, catatan kalender, atau Adzan otomatis. Pengingat tersebut diproses secara lokal saat aplikasi/peramban berjalan; Web Push Adzan dapat bekerja ketika PWA tertutup. APK Android tidak meminta izin notifikasi sistem: pengingat tampil sebagai pesan di dalam aplikasi dan suara adzan diputar hanya selama QuranKu terbuka. Tidak ada alarm latar atau pemberitahuan Android setelah aplikasi ditutup.</p>
+      <p><strong>Web Push Adzan pada PWA.</strong> Agar pemberitahuan waktu salat sampai ketika PWA tertutup, aplikasi mendaftarkan <em>langganan push</em> ke server QuranKu. Yang disimpan hanyalah alamat langganan push dari peramban beserta kunci enkripsinya, koordinat lokasi yang <strong>dibulatkan ±1 km</strong>, nama lokasi, zona waktu, metode perhitungan, dan pilihan waktu. Data dipakai untuk menghitung jadwal dan mengirim pemberitahuan, tidak dibagikan kepada pihak lain, dan <strong>dihapus</strong> ketika Anda mematikan Adzan otomatis atau ketika langganan tidak lagi berlaku. Pemberitahuan dikirim melalui layanan push peramban Anda (mis. Google FCM, Mozilla, Apple) dalam keadaan terenkripsi. Suara adzan diputar langsung dari cdn.aladhan.com.</p>
 
       <h2>4. Layanan pihak ketiga</h2>
-      <p>Untuk menampilkan konten, aplikasi mengambil data dari layanan berikut. Seperti permintaan internet pada umumnya, layanan tersebut dapat menerima alamat IP dan informasi teknis peramban Anda sesuai kebijakan masing-masing. Kami tidak mengirim data pribadi, catatan, bookmark, atau lokasi Anda kepada mereka.</p>
+      <p>Untuk menampilkan konten, aplikasi mengambil data dari layanan berikut. Seperti permintaan internet pada umumnya, layanan tersebut dapat menerima alamat IP dan informasi teknis peramban Anda sesuai kebijakan masing-masing. Kami tidak mengirim catatan atau bookmark ke penyedia konten; lokasi hanya dikirim ke server QuranKu untuk Web Push Adzan PWA sebagaimana dijelaskan di atas.</p>
       <table>
         <tr><th>Layanan</th><th>Kegunaan</th></tr>
         <tr><td>EQuran.id (equran.id)</td><td>Teks Al-Qur'an, terjemahan, transliterasi, tafsir, dan berkas audio murottal.</td></tr>

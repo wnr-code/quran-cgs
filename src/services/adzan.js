@@ -1,7 +1,6 @@
 // Adzan otomatis.
-//  • Aplikasi terbuka / masih hidup di latar belakang → suara adzan diputar otomatis.
-//  • Aplikasi ditutup → server mengirim pemberitahuan push tepat waktunya (bunyi mengikuti nada notifikasi perangkat;
-//    web tidak diizinkan memutar audio saat tertutup). Ketuk pemberitahuan untuk memutar adzan.
+//  • PWA: saat terbuka/aktif di latar, suara adzan diputar; saat tertutup, Worker mengirim Web Push.
+//  • Android Capacitor: suara/pesan pengingat hanya muncul di dalam aplikasi saat terbuka; tidak ada alarm latar.
 import { getSettings, saveSettings } from './storage.js'
 import { getPrayerTimes } from '../api/prayer-api.js'
 import { toHijri } from '../utils/hijri.js'
@@ -11,6 +10,7 @@ import { icon } from '../components/icons.js'
 import { formatClock, dateKey } from '../utils/format.js'
 import { esc, emit, on } from '../utils/helpers.js'
 import { ADZAN_VOICES, adzanUrl } from './adzan-voices.js'
+import { isNativePlatform } from './platform.js'
 
 export { ADZAN_VOICES, adzanUrl }
 
@@ -171,7 +171,7 @@ export function handleSwMessage(data) {
 }
 
 // ---------- Langganan push ----------
-export const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && notifSupported()
+export const pushSupported = () => !isNativePlatform() && 'serviceWorker' in navigator && 'PushManager' in window && notifSupported()
 const unb64 = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0))
 
 async function registration() {
@@ -228,10 +228,11 @@ export async function syncPush({ test = false } = {}) {
 export async function enableAdzan() {
   const s = getSettings()
   if (!s.location) return { ok: false, reason: 'location' }
-  const perm = await requestNotifPermission()
-  // Tanpa izin notifikasi, suara adzan tetap bisa diputar selama aplikasi terbuka.
+  const native = isNativePlatform()
+  const perm = native ? 'unsupported' : await requestNotifPermission()
+  // Tanpa Web Push (termasuk APK native), suara adzan tetap bisa diputar selama aplikasi berjalan.
   saveSettings({ adzan: { enabled: true }, reminders: { prayer: false } })
-  const push = perm === 'granted' ? await syncPush({ test: true }) : 'denied'
+  const push = native ? 'unsupported' : perm === 'granted' ? await syncPush({ test: true }) : 'denied'
   return { ok: true, push }
 }
 

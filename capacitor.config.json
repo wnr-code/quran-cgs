@@ -1,0 +1,26 @@
+{
+  "appId": "id.cgs.quranku",
+  "appName": "QuranKu",
+  "webDir": "dist",
+  "backgroundColor": "#0b3d2e",
+  "android": {
+    "path": "android",
+    "backgroundColor": "#0b3d2e"
+  },
+  "server": {
+    "androidScheme": "https",
+    "hostname": "localhost"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "backgroundColor": "#0b3d2e",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0b3d2e",
+      "overlaysWebView": true
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { pageHeader } from '../components/navbar.js'
+import { pageHeader } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { openSheet } from '../components/modal.js'
 import { getSurah } from '../api/api-adapter.js'

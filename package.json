@@ -2,7 +2,7 @@
   "name": "quranku",
   "private": true,
   "version": "1.4.1",
-  "description": "QuranKu — Al-Qur'an digital (PWA + Android native)",
+  "description": "QuranKu — Al-Qur'an digital (PWA + Capacitor Android)",
   "license": "MIT",
   "author": "WNR Code (https://github.com/wnr-code)",
   "homepage": "https://quran.cgs.my.id",
@@ -15,15 +15,19 @@
     "predev": "node scripts/gen-local.mjs",
     "dev": "vite --host 0.0.0.0",
     "prebuild": "node scripts/gen-local.mjs",
+    "pretest": "node scripts/gen-local.mjs",
     "gen:local": "node scripts/gen-local.mjs",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "test": "node --test tests/unit.test.mjs tests/d1.test.mjs tests/infaq.test.mjs tests/adzan.test.mjs tests/calendar.test.mjs",
     "gen:meta": "node scripts/gen-meta.mjs",
+    "cap:sync": "npm run build && cap sync android",
+    "cap:open": "cap open android",
     "gen:icons": "node scripts/gen-icons.mjs",
     "gen:og": "node scripts/gen-og.mjs"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
     "opentype.js": "^2.0.0",
     "qrcode-generator": "^2.0.4",
     "quran-json": "^3.1.2",
@@ -32,6 +36,12 @@
     "vite": "^6.4.6"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/geolocation": "^8.2.4",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
     "@fontsource/amiri-quran": "^5.3.0",
     "@fontsource/scheherazade-new": "^5.3.0",
     "adhan": "^4.4.6"

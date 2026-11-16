@@ -1,39 +1,87 @@
-# Membangun APK (uji) & AAB (Play Store) dari android/ tanpa perlu Android Studio lokal.
-# Jalankan manual: tab Actions → "Android build" → Run workflow.
-# Secrets (opsional, untuk build bertanda tangan): ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+# Build the shared PWA UI into an Android APK/AAB through Capacitor and smoke-test it on Android 16.
+# Optional release-signing secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+# ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD. Never put signing values in repository files.
 name: Android build
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'android/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.js'
+      - 'index.html'
+      - 'public/**'
+      - 'src/**'
+      - 'scripts/gen-local.mjs'
+      - 'scripts/gen-icons.mjs'
+      - 'worker/**'
+      - '.github/workflows/android.yml'
   push:
     paths:
       - 'android/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.js'
+      - 'index.html'
+      - 'public/**'
+      - 'src/**'
+      - 'scripts/gen-local.mjs'
+      - 'scripts/gen-icons.mjs'
+      - 'worker/**'
       - '.github/workflows/android.yml'
 permissions:
   contents: read
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 50
     env:
       QURANKU_VERSION_CODE: ${{ github.run_number }}0
-    defaults:
-      run:
-        working-directory: android
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
-      - name: Siapkan Android SDK 36 (SDK sudah tersedia di runner)
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36
         run: |
           SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKM" --licenses > /dev/null || true
           "$SDKM" "platforms;android-36" "build-tools;36.0.0" > /dev/null
       - uses: gradle/actions/setup-gradle@v4
+      - name: Generate PWA and Android icons/splash assets
+        run: npm run gen:icons
+      - name: Build shared web UI and sync Capacitor Android assets
+        run: npm run cap:sync
+      - name: Assemble debug APK and host-side tests
+        working-directory: android
+        run: ./gradlew --no-daemon --stacktrace :app:assembleDebug :app:testDebugUnitTest
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Smoke-test the bundled UI on Android 16
+        uses: reactivecircus/android-emulator-runner@v2
+        timeout-minutes: 15
         with:
-          gradle-version: '8.13'
-      - name: Siapkan keystore (bila secrets tersedia)
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          emulator-boot-timeout: 600
+          disable-animations: true
+          script: cd android && ./gradlew --no-daemon --stacktrace :app:connectedDebugAndroidTest
+      - name: Prepare optional release signing
         id: release_signing
         env:
           KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -43,107 +91,71 @@ jobs:
         run: |
           if [ -n "$KS" ]; then
             if [ -z "$KS_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
-              echo '::error::Keystore disediakan, tetapi salah satu secret password/alias belum diisi.'
+              echo '::error::Keystore is configured, but a password or alias secret is missing.'
               exit 1
             fi
             echo "$KS" | base64 -d > "$RUNNER_TEMP/quranku.jks"
             echo "QURANKU_KEYSTORE_FILE=$RUNNER_TEMP/quranku.jks" >> "$GITHUB_ENV"
+            echo "QURANKU_KEYSTORE_PASSWORD=$KS_PASSWORD" >> "$GITHUB_ENV"
+            echo "QURANKU_KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+            echo "QURANKU_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
             echo 'enabled=true' >> "$GITHUB_OUTPUT"
           else
             echo 'enabled=false' >> "$GITHUB_OUTPUT"
           fi
-      - name: Build APK debug (untuk pengujian)
-        run: |
-          run_gradle() { gradle "$@" --no-daemon --console=plain > "$RUNNER_TEMP/gradle.log" 2>&1 || { tail -n 60 "$RUNNER_TEMP/gradle.log"; echo "::error::$(grep -E -A12 'What went wrong|error:|ERROR' "$RUNNER_TEMP/gradle.log" | head -n 40 | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')"; exit 1; }; tail -n 5 "$RUNNER_TEMP/gradle.log"; }
-          run_gradle :app:assembleDebug
-      - name: Aktifkan akselerasi KVM untuk emulator
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-      - name: Uji awal aplikasi pada emulator Android 16
-        uses: reactivecircus/android-emulator-runner@v2
-        timeout-minutes: 12
-        with:
-          api-level: 36
-          target: google_apis
-          arch: x86_64
-          profile: pixel_2
-          emulator-boot-timeout: 600
-          disable-animations: true
-          script: bash -o pipefail -c 'bash "$GITHUB_WORKSPACE/android/scripts/run-emulator-tests.sh" 2>&1 | tee "$RUNNER_TEMP/android-connected-tests.log"'
-      - name: Upload log uji emulator jika gagal
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-emulator-failure-log
-          path: |
-            ${{ runner.temp }}/android-connected-tests.log
-            ${{ runner.temp }}/android-connected-tests-gradle.log
-            ${{ runner.temp }}/android-emulator-logcat.txt
-            android/app/build/outputs/androidTest-results/connected/debug/**
-            android/app/build/reports/androidTests/connected/debug/**
-          if-no-files-found: ignore
-      - name: Build AAB + APK release
-        env:
-          QURANKU_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          QURANKU_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          QURANKU_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          run_gradle() { gradle "$@" --no-daemon --console=plain > "$RUNNER_TEMP/gradle.log" 2>&1 || { tail -n 60 "$RUNNER_TEMP/gradle.log"; echo "::error::$(grep -E -A12 'What went wrong|error:|ERROR' "$RUNNER_TEMP/gradle.log" | head -n 40 | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')"; exit 1; }; tail -n 5 "$RUNNER_TEMP/gradle.log"; }
-          run_gradle :app:bundleRelease :app:assembleRelease
-      - name: Laporkan diagnostik compiler Android
-        if: failure()
+      - name: Build release APK and AAB
         working-directory: android
+        run: ./gradlew --no-daemon --stacktrace :app:assembleRelease :app:bundleRelease
+      - name: Verify APK and prepare install artifacts
+        env:
+          SIGNED: ${{ steps.release_signing.outputs.enabled }}
         run: |
-          for log in "$RUNNER_TEMP/gradle.log" "$RUNNER_TEMP/android-connected-tests-gradle.log"; do
-            if [ -f "$log" ]; then
-              grep -E '^(e:)|: error:|Unresolved reference|Type mismatch|Overload resolution ambiguity|Cannot infer|No value passed|Too many arguments|No parameter with name' "$log" | tail -n 60 | while IFS= read -r line; do
-                escaped=${line//'%'/'%25'}
-                escaped=${escaped//$'\r'/'%0D'}
-                printf '::error title=Android compiler::%s\n' "$escaped"
-              done || true
-            fi
-          done
-      - name: Kumpulkan & periksa APK yang bisa dipasang
-        run: |
-          VER=$(node -p "require('../package.json').version")
+          VER=$(node -p "require('./package.json').version")
           BT="$ANDROID_HOME/build-tools/36.0.0"
-          mkdir -p "$RUNNER_TEMP/pasang" "$RUNNER_TEMP/toko"
-          REL=app/build/outputs/apk/release/app-release.apk
-          if [ -f "$REL" ]; then
-            cp "$REL" "$RUNNER_TEMP/pasang/QuranKu-$VER.apk"; JENIS="rilis (kunci tetap)"
+          mkdir -p "$RUNNER_TEMP/apk" "$RUNNER_TEMP/aab"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/apk/QuranKu-$VER-uji.apk"
+          if [ "$SIGNED" = true ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/apk/QuranKu-$VER.apk"
+            APK="$RUNNER_TEMP/apk/QuranKu-$VER.apk"
           else
-            # Tanpa kunci rilis, APK release tidak bertanda tangan dan DITOLAK Android — jangan dibagikan.
-            cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/pasang/QuranKu-$VER-uji.apk"; JENIS="uji (kunci sementara)"
+            APK="$RUNNER_TEMP/apk/QuranKu-$VER-uji.apk"
           fi
-          cp app/build/outputs/bundle/release/*.aab "$RUNNER_TEMP/toko/" 2>/dev/null || true
-          APK=$(ls "$RUNNER_TEMP"/pasang/*.apk)
-          "$BT/apksigner" verify --print-certs "$APK" > "$RUNNER_TEMP/sig.txt"
+          "$BT/apksigner" verify --print-certs "$APK" > "$RUNNER_TEMP/signature.txt"
           {
-            echo "### APK siap dipasang: $(basename "$APK") — $JENIS"
+            echo "### Android APK: $(basename "$APK")"
             echo '```'
             "$BT/aapt2" dump badging "$APK" | grep -E "^package:|^sdkVersion|^targetSdkVersion|^application-label:"
-            grep -i "SHA-256" "$RUNNER_TEMP/sig.txt"
-            ls -l "$APK" | awk '{print "ukuran: " $5 " byte"}'
+            grep -i 'SHA-256' "$RUNNER_TEMP/signature.txt"
+            ls -lh "$APK" | awk '{print "size: " $5}'
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
-          echo "::notice title=APK::$(basename "$APK") | $JENIS | $("$BT/aapt2" dump badging "$APK" | grep -E '^package:') | $(grep -ci 'SHA-256' "$RUNNER_TEMP/sig.txt") tanda tangan | $(stat -c %s "$APK") byte"
+          cp android/app/build/outputs/bundle/release/*.aab "$RUNNER_TEMP/aab/"
       - uses: actions/upload-artifact@v4
         with:
           name: QuranKu-APK-untuk-dipasang
-          path: ${{ runner.temp }}/pasang/*.apk
-      - name: Unggah AAB bertanda tangan untuk Google Play
+          path: ${{ runner.temp }}/apk/*.apk
+          if-no-files-found: error
+      - name: Upload signed AAB for Play Console
         if: steps.release_signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: quranku-play-store-aab
-          path: ${{ runner.temp }}/toko/*.aab
+          path: ${{ runner.temp }}/aab/*.aab
           if-no-files-found: error
-      - name: Unggah AAB tanpa tanda tangan (validasi build saja)
+      - name: Upload unsigned AAB for build validation only
         if: steps.release_signing.outputs.enabled != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: quranku-aab-unsigned-build
-          path: ${{ runner.temp }}/toko/*.aab
+          path: ${{ runner.temp }}/aab/*.aab
           if-no-files-found: error
+      - name: Upload Android diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-diagnostics
+          path: |
+            android/app/build/reports/**
+            android/app/build/outputs/androidTest-results/**
+            ${{ runner.temp }}/gradle-debug.log
+          if-no-files-found: ignore

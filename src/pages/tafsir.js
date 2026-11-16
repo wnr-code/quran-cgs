@@ -1,6 +1,6 @@
 import { getTafsir, getSurah, friendlyError } from '../api/api-adapter.js'
 import { bookmarkRepo } from '../database/repositories.js'
-import { pageHeader, skeleton, errorState } from '../components/navbar.js'
+import { pageHeader, skeleton, errorState } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { $, $$, esc, toast } from '../utils/helpers.js'
 import { ayahMarker } from '../utils/arabic-numbers.js'

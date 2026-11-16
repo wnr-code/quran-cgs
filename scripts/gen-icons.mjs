@@ -55,6 +55,20 @@ async function logoFull(size, file, scale = 1) {
   return out(sharp(bgBuf).composite([{ input: fg, left: off, top: off }]).removeAlpha(), file)
 }
 
+async function androidSplash(width, height, file) {
+  const background = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#12543f"/><stop offset="1" stop-color="${FOREST}"/></linearGradient>
+    <pattern id="ornament" width="72" height="72" patternUnits="userSpaceOnUse"><g fill="none" stroke="${GOLD}" stroke-opacity=".14"><rect x="22" y="22" width="28" height="28"/><rect x="22" y="22" width="28" height="28" transform="rotate(45 36 36)"/><path d="M0 36h16M56 36h16M36 0v16M36 56v16"/></g></pattern></defs>
+    <rect width="100%" height="100%" fill="url(#bg)"/><rect width="100%" height="100%" fill="url(#ornament)"/>
+  </svg>`
+  const iconSize = Math.round(Math.min(width, height) * 0.52)
+  const icon = await sharp(LOGO).resize(iconSize, iconSize).png().toBuffer()
+  return sharp(Buffer.from(background))
+    .composite([{ input: icon, left: Math.round((width - iconSize) / 2), top: Math.round((height - iconSize) / 2) }])
+    .png({ compressionLevel: 9 })
+    .toFile(root + file)
+}
+
 await logoAny(192, 'public/icons/icon-192-v2.png')
 await logoAny(512, 'public/icons/icon-512-v2.png')
 await logoAny(48, 'public/icons/favicon-48-v2.png')
@@ -64,18 +78,22 @@ await logoFull(180, 'public/icons/apple-touch-icon-v2.png')
 await png(badge, 96, 'public/icons/badge-96-v2.png')
 await logoFull(512, 'store/graphics/icon-512.png')
 
-// Ikon launcher & splash Android (TWA)
+// Capacitor Android launcher, adaptive icon, and orientation-specific splash resources.
 const dens = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 }
 for (const [d, k] of Object.entries(dens)) {
   const dir = `android/app/src/main/res/mipmap-${d}`
   mkdirSync(root + dir, { recursive: true })
   await logoAny(Math.round(48 * k), `${dir}/ic_launcher.png`)
+  await logoAny(Math.round(48 * k), `${dir}/ic_launcher_round.png`)
   await logoFull(Math.round(108 * k), `${dir}/ic_launcher_foreground.png`, 0.66)
   const ddir = `android/app/src/main/res/drawable-${d}`
   mkdirSync(root + ddir, { recursive: true })
   await logoAny(Math.round(160 * k), `${ddir}/splash.png`)
   await png(badge, Math.round(24 * k), `${ddir}/ic_notification_icon.png`)
+  await androidSplash(Math.round(480 * k), Math.round(320 * k), `android/app/src/main/res/drawable-land-${d}/splash.png`)
+  await androidSplash(Math.round(320 * k), Math.round(480 * k), `android/app/src/main/res/drawable-port-${d}/splash.png`)
 }
+await androidSplash(480, 320, 'android/app/src/main/res/drawable/splash.png')
 
 // Feature graphic 1024×500 (teks diubah menjadi path agar tidak bergantung font sistem)
 const font = opentype.parse(readFileSync(root + 'node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-700-normal.woff').buffer)

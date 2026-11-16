@@ -1,6 +1,7 @@
 // Alamat cadangan: bila alamat utama mati (DNS/domain/SSL bermasalah atau galat 5xx dari Cloudflare), permintaan
 // data aplikasi (/api, /data, /version.json) otomatis diulang ke alamat lain yang menyajikan Worker yang sama.
-// Tampilan aplikasi sendiri sudah tersimpan di perangkat oleh Service Worker, jadi tetap terbuka.
+// Tampilan PWA disimpan Service Worker; di Android Capacitor, tampilan dan /data dibundel di APK.
+import { Capacitor } from '@capacitor/core'
 import { APP } from '../config.js'
 
 const DEAD = new Set([520, 521, 522, 523, 524, 525, 526, 530])
@@ -62,13 +63,36 @@ export function createFailoverFetch(baseFetch, origin, mirrors = APP.mirrors, { 
   return f
 }
 
-/** Pasang di halaman (dipanggil sekali saat aplikasi mulai). */
+/**
+ * In a Capacitor WebView the UI is served from its bundled https://localhost origin, not the production Worker.
+ * Keep bundled /data files local, but send same-app API calls to the existing Worker endpoints.
+ */
+export function createNativeApiFetch(baseFetch, localOrigin, backendOrigin = APP.origin) {
+  return (input, init) => {
+    const isReq = typeof Request !== 'undefined' && input instanceof Request
+    let url
+    try {
+      url = new URL(isReq ? input.url : String(input), localOrigin)
+    } catch {
+      return baseFetch(input, init)
+    }
+    if (url.origin !== localOrigin || !url.pathname.startsWith('/api/')) return baseFetch(input, init)
+    const remote = new URL(url.pathname + url.search, backendOrigin).href
+    return baseFetch(isReq ? new Request(remote, input.clone()) : remote, init)
+  }
+}
+
+/** Install once; the PWA's same-origin behavior and mirror failover remain unchanged. */
 export function installFetchFailover() {
   if (typeof window === 'undefined' || window.__failover) return
-  const base = window.fetch.bind(window)
-  const f = createFailoverFetch(base, location.origin, APP.mirrors, {
+  const native = Capacitor.isNativePlatform()
+  const localOrigin = location.origin
+  const rawFetch = window.fetch.bind(window)
+  const base = native ? createNativeApiFetch(rawFetch, localOrigin) : rawFetch
+  const origin = native ? APP.origin : localOrigin
+  const f = createFailoverFetch(base, origin, APP.mirrors, {
     isOnline: () => navigator.onLine !== false,
-    onSwitch: (o) => document.documentElement.classList.toggle('using-mirror', o !== location.origin)
+    onSwitch: (o) => document.documentElement.classList.toggle('using-mirror', o !== origin)
   })
   window.__failover = f.state
   window.fetch = f

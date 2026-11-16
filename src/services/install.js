@@ -3,6 +3,7 @@
 import { openSheet } from '../components/modal.js'
 import { icon } from '../components/icons.js'
 import { isStandalone, copyText, toast } from '../utils/helpers.js'
+import { isNativePlatform } from './platform.js'
 
 const DISMISS_KEY = 'quranku:install-dismissed'
 const SITE = 'quran.cgs.my.id'
@@ -39,7 +40,7 @@ const GUIDES = {
 const WEAK = { mi: 'Mi Browser', uc: 'UC Browser', vendor: 'peramban bawaan ponsel', inapp: 'peramban di dalam aplikasi (WhatsApp, Facebook, Instagram, dll.)', other: 'peramban ini' }
 
 export const canPromptInstall = () => !!window.__installPrompt
-export const shouldOfferInstall = () => !isStandalone()
+export const shouldOfferInstall = () => !isNativePlatform() && !isStandalone()
 
 /** URL intent untuk membuka situs langsung di Chrome (Android). */
 export const chromeIntentUrl = () => `intent://${location.host || SITE}/#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent('https://play.google.com/store/apps/details?id=com.android.chrome')};end`
