@@ -6,7 +6,7 @@ Terakhir diperbarui: 14 November 2026.
 
 - `npm test` — **51 lulus, 0 gagal**; mencakup API/Worker, CORS origin eksplisit, perutean API Capacitor, fallback pengingat Android, pemetaan data lama, kalender, Al-Qur'an, doa, infaq, dan database.
 - `npm run cap:sync` — berhasil: build produksi Vite dan sinkronisasi ke `android/` selesai; Capacitor menemukan plugin App, Geolocation, Splash Screen, dan Status Bar. Font Arab ikut masuk ke `dist/fonts/`.
-- Gradle APK, uji instrumentasi Android, dan emulator belum dijalankan di sandbox ini; workflow Android yang baru belum berjalan. Smoke test Java untuk UI bersama sudah ditambahkan.
+- Workflow Android GitHub Actions lulus setelah PR #32: build APK debug, unit test Gradle, smoke test UI di emulator Android 16, build APK/AAB release, dan unggah artefak. [Run Android build](https://github.com/wnr-code/quran-cgs/actions/runs/43856243368). Sandbox lokal tetap tidak memiliki Java/Android SDK, jadi build Gradle tidak dijalankan secara lokal.
 - Uji migrasi yang lulus memeriksa pemetaan/validasi cache surah, bukan perpindahan end-to-end dari APK lama pada perangkat.
 - Web CI (`ci.yml`) menjalankan `npm test` dan `npm run build`; Android workflow menjalankan tes Gradle dan startup smoke test emulator.
 
@@ -34,11 +34,11 @@ Terakhir diperbarui: 14 November 2026.
 ## Belum teruji — mohon diuji setelah deploy
 | Hal | Catatan |
 |---|---|
-| Deploy Cloudflare (Workers), domain, proxy `/api/quran` | `npm run build` dan `npx --yes wrangler deploy --dry-run` (Wrangler 4.162.0) berhasil; dry-run membaca 177 aset dan tidak melakukan deploy. Namun check `Workers Builds: quran-cgs` pada PR #30 tetap gagal ([build `ca9dcb4c-8e2d-4697-95de-677cbd671fa2`](https://dash.cloudflare.com/880c5e424f64b605d1f118776956fd0b/workers/services/view/quran-cgs/production/builds/ca9dcb4c-8e2d-4697-95de-677cbd671fa2)). GitHub hanya menampilkan ID/script, tanpa anotasi atau alasan. PR tidak mengubah `worker/index.js` atau `wrangler.toml`; penyebab belum dapat dipastikan tanpa log Cloudflare. Deploy produksi/domain tetap belum diverifikasi. |
+| Cloudflare Workers, domain, proxy `/api/quran` | Build/deploy Worker produksi pada `main` setelah PR #32 berhasil ([build `10dfd674-f8f8-4da0-b995-66195485be0c`](https://dash.cloudflare.com/880c5e424f64b605d1f118776956fd0b/workers/services/view/quran-cgs/production/builds/10dfd674-f8f8-4da0-b995-66195485be0c), version `138dfdb7-303a-4c13-817e-a8976c426c9b`). Check Cloudflare pada branch PR sebelumnya gagal tanpa log terperinci, tetapi check produksi terbaru sukses. `wrangler deploy --dry-run` lokal juga berhasil. Permintaan langsung ke domain publik dan proxy `/api/quran` belum diuji dari sandbox ini. |
 | Infaq terhadap Trakteer & D1 sungguhan | Alur aplikasi, webhook, sinkronisasi Public API, dan klaim ID transaksi teruji secara lokal (SQLite + `wrangler dev`). Belum pernah dijalankan terhadap Trakteer atau D1 produksi. Mode QRIS langsung tidak resmi dan belum terverifikasi; lihat [INFAQ.md](INFAQ.md). |
 | Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
 | Notifikasi/adzan dan kompas berbasis sensor | PWA/Web Push perlu validasi pada peramban/perangkat sasaran. Android menampilkan pengingat sebagai toast saat aplikasi terbuka dan dapat memutar adzan foreground; tidak ada notifikasi sistem/alarm saat ditutup. Kiblat memakai bearing koordinat, tanpa sensor kompas. |
-| Android APK/AAB | Workflow Capacitor baru menjalankan Gradle build/unit tests dan uji startup pada emulator Android 16, tetapi belum berjalan untuk perubahan ini. `npm run cap:sync` berhasil; Gradle/emulator belum diuji di sandbox dan perangkat fisik belum diuji. Run Compose lama tidak memvalidasi APK Capacitor. Belum ada rilis Play. Lihat [ANDROID.md](ANDROID.md). |
+| Android APK/AAB | Workflow terbaru lulus: build APK debug, unit test Gradle, smoke test startup di emulator Android 16, build APK/AAB release, dan unggah artefak. Run: [Android build main](https://github.com/wnr-code/quran-cgs/actions/runs/43856243368). Karena secret signing tidak tersedia, AAB yang diunggah untuk validasi tidak bertanda tangan dan tidak bisa masuk Play Console; belum ada rilis Play. Perangkat fisik dan migrasi end-to-end dari instalasi Compose lama belum diuji. Build Gradle lokal tidak tersedia karena sandbox tidak memiliki Java/Android SDK. Lihat [ANDROID.md](ANDROID.md). |
 | Instalasi PWA di ponsel, Lighthouse, iOS Safari | Belum diuji. |
 
 ## Belum dikerjakan / berbeda dari spesifikasi
