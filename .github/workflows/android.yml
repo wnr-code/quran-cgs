@@ -13,6 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
     env:
       QURANKU_VERSION_CODE: ${{ github.run_number }}0
     defaults:
@@ -44,6 +45,11 @@ jobs:
         run: |
           run_gradle() { gradle "$@" --no-daemon --console=plain > "$RUNNER_TEMP/gradle.log" 2>&1 || { tail -n 60 "$RUNNER_TEMP/gradle.log"; echo "::error::$(grep -E -A12 'What went wrong|error:|ERROR' "$RUNNER_TEMP/gradle.log" | head -n 40 | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')"; exit 1; }; tail -n 5 "$RUNNER_TEMP/gradle.log"; }
           run_gradle :app:assembleDebug
+      - name: Aktifkan akselerasi KVM untuk emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
       - name: Uji awal aplikasi pada emulator Android 16
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -51,6 +57,7 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_2
+          emulator-boot-timeout: 600
           disable-animations: true
           script: cd android && gradle :app:connectedDebugAndroidTest --no-daemon --console=plain
       - name: Ambil logcat jika uji emulator gagal
