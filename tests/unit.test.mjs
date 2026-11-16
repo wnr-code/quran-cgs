@@ -458,6 +458,11 @@ test('beranda: ikon ucapan sesuai waktu & penyemangat berujukan ayat', async () 
     assert.ok(m.r.endsWith(': ' + m.a))
   }
   assert.ok(meta)
+  const home = readFileSync('src/pages/home.js', 'utf8')
+  const styles = readFileSync('src/styles/main.css', 'utf8')
+  assert.match(home, /class="salutation"[\s\S]*class="salam"/)
+  assert.match(home, /class="greet"[\s\S]*<strong>\$\{esc\(greeting\(now\)\)\}<\/strong>/)
+  assert.match(styles, /\.salam\s*\{[^}]*text-align:\s*center/)
 })
 
 test('bagikan: tautan Asmaul Husna memakai path', async () => {

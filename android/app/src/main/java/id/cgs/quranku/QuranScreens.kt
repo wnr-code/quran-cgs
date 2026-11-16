@@ -53,6 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -60,13 +61,22 @@ import kotlinx.coroutines.withContext
 
 @Composable
 internal fun QuranListScreen(context: Context, onOpenSurah: (Int) -> Unit) {
-    var surahs by remember { mutableStateOf(QuranRepository.metadataList(context)) }
+    var surahs by remember(context) { mutableStateOf(emptyList<SurahInfo>()) }
     var search by rememberSaveable { mutableStateOf("") }
     var loading by remember { mutableStateOf(true) }
+    var loadFailed by remember { mutableStateOf(false) }
     LaunchedEffect(context) {
         loading = true
-        surahs = withContext(Dispatchers.IO) { QuranRepository.surahList(context) }
-        loading = false
+        loadFailed = false
+        try {
+            surahs = withContext(Dispatchers.IO) { QuranRepository.surahList(context) }
+            loadFailed = surahs.isEmpty()
+        } catch (error: Exception) {
+            if (error is CancellationException) throw error
+            loadFailed = true
+        } finally {
+            loading = false
+        }
     }
     val filtered = remember(surahs, search) {
         val q = search.trim().lowercase()
@@ -76,7 +86,7 @@ internal fun QuranListScreen(context: Context, onOpenSurah: (Int) -> Unit) {
     }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        TabPageHeader("Al-Qur'an", "114 surah · 6.236 ayat")
+        NativeTabHeader("Al-Qur'an", "114 surah · 6.236 ayat", Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
         OutlinedTextField(
             value = search,
             onValueChange = { search = it },
@@ -95,23 +105,18 @@ internal fun QuranListScreen(context: Context, onOpenSurah: (Int) -> Unit) {
                 item { Box(Modifier.fillMaxWidth().padding(30.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Green) } }
             }
             if (!loading && filtered.isEmpty()) {
-                item { Text("Surah tidak ditemukan.", Modifier.padding(20.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                item {
+                    Text(
+                        if (loadFailed) "Daftar surah belum tersedia. Periksa koneksi lalu coba lagi." else "Surah tidak ditemukan.",
+                        Modifier.padding(20.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
             items(filtered, key = { it.number }) { surah ->
                 SurahRow(surah, onClick = { onOpenSurah(surah.number) })
             }
         }
-    }
-}
-
-@Composable
-private fun TabPageHeader(title: String, subtitle: String) {
-    Column(
-        Modifier.fillMaxWidth().background(Forest).padding(horizontal = 20.dp, vertical = 17.dp),
-        verticalArrangement = Arrangement.spacedBy(3.dp)
-    ) {
-        Text(title, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Text(subtitle, color = Color.White.copy(alpha = 0.72f), fontSize = 12.sp)
     }
 }
 
@@ -151,7 +156,9 @@ internal fun QuranReaderScreen(
     onBack: () -> Unit,
     onProgress: (Int, Int) -> Unit
 ) {
-    val localInfo = remember(surahNumber) { QuranRepository.metadataList(context).firstOrNull { it.number == surahNumber } }
+    val localInfo = remember(context, surahNumber) {
+        runCatching { QuranRepository.metadataList(context).firstOrNull { it.number == surahNumber } }.getOrNull()
+    }
     var chapter by remember(surahNumber) { mutableStateOf<QuranChapter?>(null) }
     var failure by remember(surahNumber) { mutableStateOf(false) }
     var loading by remember(surahNumber) { mutableStateOf(true) }
@@ -159,7 +166,8 @@ internal fun QuranReaderScreen(
     var arabicSize by rememberSaveable(surahNumber) { mutableIntStateOf(29) }
     var showMeaning by rememberSaveable(surahNumber) { mutableStateOf(true) }
     val headerItems = if (surahNumber != 1 && surahNumber != 9) 2 else 1
-    val firstVisibleIndex = if (initialAyah <= 1) 0 else headerItems + (initialAyah - 1)
+    val safeInitialAyah = initialAyah.coerceIn(1, (localInfo?.ayahs ?: 1).coerceAtLeast(1))
+    val firstVisibleIndex = if (safeInitialAyah <= 1) 0 else headerItems + (safeInitialAyah - 1)
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = firstVisibleIndex)
 
     LaunchedEffect(surahNumber, retryTick) {

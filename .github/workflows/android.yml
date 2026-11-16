@@ -31,7 +31,7 @@ jobs:
           "$SDKM" "platforms;android-36" "build-tools;36.0.0" > /dev/null
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.11.1'
+          gradle-version: '8.13'
       - name: Siapkan keystore (bila secrets tersedia)
         env:
           KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -44,6 +44,26 @@ jobs:
         run: |
           run_gradle() { gradle "$@" --no-daemon --console=plain > "$RUNNER_TEMP/gradle.log" 2>&1 || { tail -n 60 "$RUNNER_TEMP/gradle.log"; echo "::error::$(grep -E -A12 'What went wrong|error:|ERROR' "$RUNNER_TEMP/gradle.log" | head -n 40 | sed ':a;N;$!ba;s/%/%25/g;s/\n/%0A/g')"; exit 1; }; tail -n 5 "$RUNNER_TEMP/gradle.log"; }
           run_gradle :app:assembleDebug
+      - name: Uji awal aplikasi pada emulator Android 16
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: cd android && gradle :app:connectedDebugAndroidTest --no-daemon --console=plain
+      - name: Ambil logcat jika uji emulator gagal
+        if: failure()
+        run: |
+          adb logcat -d -v threadtime > "$RUNNER_TEMP/android-emulator-logcat.txt" 2>&1 || true
+          grep -E 'FATAL EXCEPTION|AndroidRuntime|Process: id.cgs.quranku' "$RUNNER_TEMP/android-emulator-logcat.txt" | tail -n 120 || true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: android-emulator-failure-log
+          path: ${{ runner.temp }}/android-emulator-logcat.txt
+          if-no-files-found: ignore
       - name: Build AAB + APK release
         env:
           QURANKU_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}

@@ -33,7 +33,7 @@ data class QuranChapter(
 
 object QuranRepository {
     suspend fun surahList(context: Context): List<SurahInfo> = withContext(Dispatchers.IO) {
-        val fallback = metadataList(context)
+        val fallback = runCatching { metadataList(context) }.getOrDefault(emptyList())
         try {
             val data = requestJson("$EQURAN_API/surat").getJSONArray("data")
             val results = (0 until data.length()).map { index ->
