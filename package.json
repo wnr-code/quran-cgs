@@ -1,7 +1,7 @@
 {
   "name": "quranku",
   "private": true,
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "QuranKu — Al-Qur'an digital (PWA + Capacitor Android)",
   "license": "MIT",
   "author": "WNR Code (https://github.com/wnr-code)",
