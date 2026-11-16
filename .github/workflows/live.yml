@@ -39,7 +39,7 @@ jobs:
           npx vite preview --port 4173 &
           sleep 3
           node tests/e2e/live.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: live-shots
