@@ -1,53 +1,42 @@
 plugins {
     id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
-// Konfigurasi TWA — ubah di sini bila domain/paket berganti.
-def twa = [
-    applicationId  : 'id.cgs.quranku',
-    hostName       : 'quran.cgs.my.id',
-    backupHost     : 'quran-cgs.appwnr.workers.dev', // alamat cadangan: tetap layar penuh bila dibuka di sini
-    launchUrl      : '/',
-    name           : 'QuranKu',
-    themeColor     : '#0B3D2E',
-    navigationColor: '#0B3D2E',
-    backgroundColor: '#0B3D2E',
-]
-
-// Kunci signing TIDAK disimpan di repository. Diisi lewat android/keystore.properties (di-.gitignore)
-// atau variabel lingkungan (CI): QURANKU_KEYSTORE_FILE, QURANKU_KEYSTORE_PASSWORD, QURANKU_KEY_ALIAS, QURANKU_KEY_PASSWORD
+// Kunci rilis tidak disimpan di repository; bisa diberikan lewat keystore.properties atau secrets CI.
 def ksProps = new Properties()
 def ksFile = rootProject.file('keystore.properties')
 if (ksFile.exists()) ksFile.withInputStream { ksProps.load(it) }
 def ks = { String prop, String env -> ksProps.getProperty(prop) ?: System.getenv(env) }
 def hasSigning = ks('storeFile', 'QURANKU_KEYSTORE_FILE') != null
+def generatedNativeAssets = layout.buildDirectory.dir('generated/nativeAssets').get().asFile
+
+tasks.register('copyNativeContent', Copy) {
+    from(rootProject.file('../src/data')) {
+        include 'doa-nu.json', 'dzikir.json', 'asmaul-husna.json'
+    }
+    into generatedNativeAssets
+}
 
 android {
     namespace 'id.cgs.quranku'
     compileSdk 36
 
     defaultConfig {
-        applicationId twa.applicationId
+        applicationId 'id.cgs.quranku'
         minSdk 23
-        targetSdk 36
-        // versionCode HARUS naik pada setiap APK baru — bila sama, Android menganggapnya versi yang sama dan
-        // ikon/isi lama tetap dipakai. CI mengisinya otomatis dari nomor run (QURANKU_VERSION_CODE).
+        targetSdk 35
         versionCode((System.getenv('QURANKU_VERSION_CODE') ?: '2') as Integer)
         versionName(System.getenv('QURANKU_VERSION_NAME') ?: new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version)
+    }
 
-        manifestPlaceholders = [
-            hostName       : twa.hostName,
-            backupHost     : twa.backupHost,
-            defaultUrl     : "https://${twa.hostName}${twa.launchUrl}",
-            launcherName   : twa.name
-        ]
-        resValue 'string', 'app_name', twa.name
-        resValue 'string', 'backup_origin', "https://${twa.backupHost}"
-        resValue 'color', 'colorPrimary', twa.themeColor
-        resValue 'color', 'navigationColor', twa.navigationColor
-        resValue 'color', 'backgroundColor', twa.backgroundColor
-        resValue 'string', 'asset_statements',
-            """[{ \\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], \\"target\\": { \\"namespace\\": \\"web\\", \\"site\\": \\"https://${twa.hostName}\\" } }, { \\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], \\"target\\": { \\"namespace\\": \\"web\\", \\"site\\": \\"https://${twa.backupHost}\\" } }]"""
+    sourceSets {
+        main.assets.srcDir generatedNativeAssets
+    }
+
+    buildFeatures {
+        compose true
     }
 
     signingConfigs {
@@ -71,12 +60,29 @@ android {
     }
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 }
 
+tasks.named('preBuild').configure { dependsOn('copyNativeContent') }
+
 dependencies {
-    // Pustaka resmi Google untuk Trusted Web Activity (sama dengan yang dipakai Bubblewrap).
-    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+    implementation platform('androidx.compose:compose-bom:2025.05.01')
+    implementation 'androidx.activity:activity-compose:1.10.1'
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material:material-icons-extended'
+    implementation 'androidx.core:core-ktx:1.15.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
+
+    debugImplementation 'androidx.compose.ui:ui-tooling'
 }

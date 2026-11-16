@@ -3,8 +3,8 @@
 [![Lisensi: MIT](https://img.shields.io/badge/Lisensi-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/wnr-code/quran-cgs/actions/workflows/ci.yml/badge.svg)](https://github.com/wnr-code/quran-cgs/actions/workflows/ci.yml)
 
-Aplikasi Al-Qur'an digital berbahasa Indonesia: **PWA** (web) + **Android TWA** dari satu basis kode.
-Gratis, tanpa iklan, tanpa akun, tanpa pelacak, dan **sumber terbuka (MIT)**. Seluruhnya berjalan di layanan free-tier (Cloudflare Workers + D1).
+Aplikasi Al-Qur'an digital berbahasa Indonesia dengan dua antarmuka: **PWA web** dan **aplikasi Android native** (Jetpack Compose). Aplikasi Android tidak membungkus situs dalam WebView/TWA; konten Android dibuat dengan komponen native dan memakai data pilihan yang sama.
+Gratis, tanpa iklan, tanpa akun, tanpa pelacak, dan **sumber terbuka (MIT)**. PWA memakai Cloudflare Workers + D1; versi Android dapat membaca sebagian data secara offline.
 
 **Buka aplikasi:** https://quran.cgs.my.id · cadangan: https://quran-cgs.appwnr.workers.dev
 
@@ -33,7 +33,15 @@ Service worker hanya aktif pada hasil build (`npm run build && npm run preview`,
 
 Konfigurasi: `INFAQ_USERNAME` dan `INFAQ_UNIT_PRICE` ada di `wrangler.toml`; secret (webhook/API pembayaran) diisi di dashboard Cloudflare → [docs/INFAQ.md](docs/INFAQ.md). Untuk `wrangler dev` lokal, tulis secret di `.dev.vars` (lihat `.env.example`).
 
-## Fitur
+## Fitur Android native (1.4.0)
+
+- Beranda Android dengan navigasi bawah native, ringkasan bacaan terakhir, pintasan, dan desain responsif terang/gelap.
+- Daftar 114 surah tersedia offline; teks Arab dan terjemahan Kemenag dimuat dari EQuran.id saat pertama kali membuka surah, lalu disimpan di perangkat. Ukuran huruf dan tampilan arti dapat diatur.
+- Doa Harian per kategori, Doa Wudhu, dan Usai Salat dari Quran NU Online; lafaz, Latin, arti, tombol tampil/sembunyi, dan bagikan. Data dibundel sehingga dapat dibaca offline.
+- Jadwal salat hasil hitung astronomis lokal setelah pengguna memilih kota; arah kiblat berdasarkan kota; Tasbih Digital; Asmaul Husna; halaman Sumber Data dan Tentang.
+- Bukan seluruh fitur versi web: murottal, tafsir, bookmark, kalender, infaq, sinkronisasi, dan notifikasi adzan masih tersedia pada versi web/PWA, belum dipindahkan ke Android native.
+
+## Fitur PWA / web
 
 - **Al-Qur'an**: 114 surah, 30 juz, 6236 ayat; teks Arab, transliterasi, terjemahan Indonesia; info juz/halaman; penanda sajdah; pencarian (nama/nomor surah, `2:255`, `juz 30`, `halaman 50`, kata terjemahan/Latin pada surah tersimpan).
 - **Mode membaca**: Mushaf (ayat mengalir), Halaman (lembar per halaman mushaf, digeser ke samping), dan Terjemahan (per ayat); mode imersif tanpa gangguan; preset Mushaf Klasik / Ivory Reading / Dark Reading / Night Comfort; ukuran font, tinggi baris, jarak, lebar, margin, warna; posisi bacaan tersimpan dan dipulihkan.
@@ -69,7 +77,7 @@ src/styles/           tema, komponen, reader, responsif
 functions/            handler API: proxy EQuran, infaq (buat/status/klaim), webhook, papan donatur, push adzan
 worker/               entry Cloudflare Worker (merutekan /api/* + aset statis)
 migrations/           skema D1 (papan donatur, langganan push)
-android/              proyek Android TWA (Gradle)
+android/              aplikasi Android native (Jetpack Compose, Gradle; tanpa WebView/TWA)
 store/                materi Google Play (deskripsi, grafis, screenshot, Data Safety)
 tests/                unit test + smoke test E2E
 docs/                 panduan deploy, Android, infaq, status fitur

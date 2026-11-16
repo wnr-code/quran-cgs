@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Alamat cadangan: bila aplikasi berpindah ke sini, tampilan tetap layar penuh (tanpa bilah alamat). -->
-    <string-array name="additional_trusted_origins">
-        <item>@string/backup_origin</item>
-    </string-array>
-</resources>

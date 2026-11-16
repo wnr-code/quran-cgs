@@ -1,73 +1,70 @@
-# Android (Trusted Web Activity) → Google Play
+# Android native (Jetpack Compose)
 
-Folder `android/` adalah proyek Gradle TWA yang memakai pustaka resmi `androidbrowserhelper` (sama dengan keluaran Bubblewrap). `android/twa-manifest.json` disertakan bila Anda lebih suka membuat ulang proyek dengan Bubblewrap.
+Sejak versi **1.4.0**, APK bukan lagi Trusted Web Activity (TWA) atau halaman situs di dalam WebView. Beranda, navigasi, daftar surah, pembaca, doa, jadwal, kiblat, tasbih, Asmaul Husna, dan halaman informasi dibuat dengan komponen Android native. Aplikasi tidak memuat `quran.cgs.my.id` sebagai antarmuka.
 
-> **Status (15 Nov 2026):** proyek berhasil di-build di GitHub Actions (workflow *Android build*, run 43659285280): APK debug, APK release, dan AAB release dihasilkan sebagai artefak `quranku-android`. Build itu **tanpa kunci signing** (secrets belum diisi), sehingga APK/AAB release belum bertanda tangan dan belum bisa diunggah ke Play. Belum ada APK yang dipasang atau diuji di perangkat, dan belum ada yang diajukan ke Google Play.
+## Isi dan batasan versi native
 
-- Package: `id.cgs.quranku` · minSdk 23 · **targetSdk 36** · compileSdk 36 · versi 1.0.0 (versionCode 1)
-- Izin: `INTERNET`, `POST_NOTIFICATIONS`. Lokasi tidak diminta di tingkat aplikasi; izin lokasi ditangani Chrome per situs saat pengguna menekan "Gunakan lokasi saya".
+- **Al-Qur'an:** metadata 114 surah tersedia offline. Teks Arab, transliterasi, dan terjemahan Kementerian Agama RI diambil langsung dari EQuran.id ketika surah dibuka pertama kali, lalu disimpan di perangkat. Bacaan yang sudah tersimpan dapat dibuka offline; surah yang belum pernah dimuat memerlukan internet.
+- **Doa:** data Doa Harian, Wudhu, dan Usai Salat dari `src/data/` disalin ke APK setiap build. Bacaan tetap tersedia offline; halaman bacaan punya kontrol Latin/arti dan Bagikan.
+- **Jadwal salat:** dihitung di perangkat dari kota yang dipilih pengguna (tidak meminta GPS). Koordinat kota merupakan perkiraan pusat kota. Perhitungan astronomis Kemenag 20°/18°, Asar Syafi'i, ihtiyat dua menit; waktu dapat berbeda beberapa menit dari jadwal resmi. Cocokkan dengan jadwal Kemenag/otoritas setempat.
+- **Kiblat:** menampilkan bearing dari koordinat kota; bukan kompas sensor dan tidak menunjukkan arah relatif ke posisi ponsel.
+- Ada Tasbih Digital dan Asmaul Husna, serta dukungan mode terang/gelap sesuai sistem.
+- **Belum dipindahkan dari PWA/web:** murottal/audio, tafsir, bookmark, kalender dan catatan, target tilawah, notifikasi/adzan, infaq, ekspor-impor, serta fitur offline PWA. Fitur tersebut tetap tersedia di situs/PWA.
+- Izin Android aplikasi: `INTERNET`. Tidak meminta akun, izin lokasi, atau notifikasi.
+- Antarmuka baru ini sudah disusun untuk Android, tetapi belum diuji di perangkat fisik; ukuran layar, aksesibilitas, dan perilaku beberapa versi Android perlu diuji sebelum rilis publik.
 
-## 1. Buat kunci upload (sekali, simpan di luar repository)
+## Build tanpa Android Studio
+
+Workflow GitHub **Android build** berjalan otomatis saat berkas `android/` berubah. Bisa juga dijalankan manual dari **Actions → Android build → Run workflow**. Android Studio tidak diperlukan untuk mengambil hasil build.
+
+1. Buka run workflow yang selesai dengan status **success**.
+2. Di bagian **Artifacts**, unduh `QuranKu-APK-untuk-dipasang` dan ekstrak zip.
+3. Tanpa secret kunci rilis, nama APK berakhiran `-uji.apk`: itu APK debug, bertanda tangan kunci debug sementara. Versi rilis bertanda tangan, bila secret sudah disiapkan, berakhiran `.apk` tanpa `-uji`.
+4. `quranku-play-store-aab` hanya untuk Play Console dan bukan berkas yang diketuk untuk instalasi langsung.
+
+APK menggunakan package `id.cgs.quranku`, minSdk 23, targetSdk 35. Nama versinya mengikuti `package.json`; `versionCode` CI dinaikkan berdasarkan nomor build.
+
+### Play Protect dan pemasangan dari luar Play Store
+
+Play Protect dapat memperingatkan atau memblokir APK yang diunduh dari luar Google Play, terutama APK debug/berkunci pengembang yang belum dikenal. Peringatan itu **tidak membuktikan** APK aman maupun berbahaya; build CI hanya memeriksa format paket dan tanda tangan, bukan melakukan sertifikasi Google. Jangan mematikan Play Protect untuk mengatasi peringatan. Untuk distribusi umum, gunakan APK rilis dengan kunci tetap dan jalur distribusi resmi (misalnya Google Play); tetap ikuti hasil pemeriksaan Google.
+
+Kalau Android menyebut paket tidak valid, pastikan zip diekstrak dahulu dan pilih satu-satunya berkas `QuranKu-…apk`. Jika versi terpasang dibuat dari build debug lain, tanda tangan sementaranya mungkin berbeda: instalasi pembaruan dapat ditolak. Menghapus aplikasi lama lalu memasang yang baru dapat menghilangkan data lokal lama, termasuk cache bacaan dan hitungan tasbih.
+
+## Menyiapkan kunci rilis tetap
+
+Kunci harus dibuat dan disimpan oleh pemilik aplikasi. **Jangan kirim kunci, kata sandi, atau berkas keystore lewat chat; jangan commit ke repository.** Buat sekali di komputer yang memiliki JDK:
+
 ```bash
 keytool -genkeypair -v -keystore quranku-upload.jks -alias quranku -keyalg RSA -keysize 2048 -validity 10000
 ```
-Cadangkan berkas `.jks` dan sandinya di tempat aman. `.gitignore` sudah menolak `*.jks`, `*.keystore`, dan `keystore.properties`. **Jangan pernah meng-commit kunci.**
 
-## 2. Build
-### Cara A — GitHub Actions (tanpa memasang apa pun)
-1. Repository → Settings → Secrets and variables → Actions, tambahkan:
-   `ANDROID_KEYSTORE_BASE64` (`base64 -w0 quranku-upload.jks`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`quranku`), `ANDROID_KEY_PASSWORD`.
-2. Tab **Actions → Android build → Run workflow** (workflow juga berjalan otomatis setiap ada perubahan di `android/`).
-3. Unduh artefak `quranku-android`: `app-debug.apk` (uji), `app-release.apk`, `app-release.aab` (Play).
+Simpan `quranku-upload.jks` dan kata sandinya di tempat aman. Encode berkas untuk GitHub Actions, misalnya di Linux:
 
-### Cara B — Android Studio / Gradle lokal
-1. Buka folder `android/` di Android Studio (JDK 17, Android SDK 36).
-2. Salin `keystore.properties.example` → `keystore.properties`, isi.
-3. `gradle :app:assembleDebug` (APK uji) dan `gradle :app:bundleRelease` (AAB).
-
-### Cara C — Bubblewrap
 ```bash
-npm i -g @bubblewrap/cli
-cd android && bubblewrap update && bubblewrap build
+base64 -w0 quranku-upload.jks
 ```
 
-## 3. Digital Asset Links (menghilangkan bilah alamat)
-1. Ambil sidik jari SHA-256:
-   - Kunci upload: `keytool -list -v -keystore quranku-upload.jks -alias quranku`
-   - **Kunci Play App Signing** (yang dipakai pengguna Play Store): Play Console → Test and release → Setup → **App signing** → *SHA-256 certificate fingerprint*.
-2. Masukkan **keduanya** ke `public/.well-known/assetlinks.json` (array `sha256_cert_fingerprints`), menggantikan teks `GANTI_DENGAN_...`.
-3. Commit, tunggu deploy Cloudflare, lalu periksa `https://quran.cgs.my.id/.well-known/assetlinks.json`.
-4. Pasang ulang aplikasi. Bila bilah alamat masih muncul: hapus data Chrome, periksa sidik jari, dan uji di
-   `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://quran.cgs.my.id&relation=delegate_permission/common.handle_all_urls`.
+Di GitHub → **Settings → Secrets and variables → Actions**, simpan hasil dan informasi kunci sebagai Actions secrets berikut:
 
-## 4. Uji APK
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEYSTORE_PASSWORD`
+- `ANDROID_KEY_ALIAS` (misalnya `quranku`)
+- `ANDROID_KEY_PASSWORD`
+
+Jalankan kembali workflow. Bila keempat nilai valid, CI menandatangani APK dan AAB release dengan kunci yang sama. Simpan cadangan kunci: kehilangan kunci dapat mencegah pembaruan APK yang dipasang langsung. Google Play memakai Play App Signing jika aplikasi diterbitkan di Play; ikuti instruksi Play Console untuk kunci upload.
+
+## Build lokal (opsional)
+
+Perlu JDK 17, Android SDK 36, dan Gradle 8.11.1:
+
 ```bash
-adb install app-debug.apk
+cd android
+gradle :app:assembleDebug
+gradle :app:assembleRelease :app:bundleRelease
 ```
-Periksa: splash, tanpa bilah alamat (setelah asset links benar), tombol kembali, mode membaca, audio di latar, offline, notifikasi, pintasan ikon.
-Catatan: APK debug ditandatangani kunci debug, jadi bilah alamat akan tampil kecuali sidik jari kunci debug ikut dimasukkan sementara.
 
-## 5. Google Play Console
-1. Buat aplikasi: nama **QuranKu**, bahasa Indonesia, Aplikasi, Gratis; kategori **Buku & Referensi**.
-2. Isi listing dari `store/listing-id.md`; unggah `store/graphics/icon-512.png`, `store/graphics/feature-graphic-1024x500.png`, dan screenshot.
-3. App content: kebijakan privasi `https://quran.cgs.my.id/privacy.html`; Data Safety dan rating konten mengikuti `store/data-safety.md`; iklan: tidak ada.
-4. **Internal testing** → unggah AAB → tambahkan penguji → uji lewat tautan opt-in.
-5. **Closed testing**. Akun developer pribadi yang dibuat setelah 13 Nov 2023 wajib menjalankan closed test dengan minimal 12 penguji selama 14 hari berturut-turut sebelum boleh mengajukan produksi (periksa syarat terbaru di Play Console).
-6. **Production** → rilis bertahap.
+Tanpa kunci rilis yang sesuai, gunakan debug APK untuk tes saja. Contoh lokal ada di `android/keystore.properties.example`; `android/keystore.properties` diabaikan Git.
 
-Setiap rilis baru: naikkan `versionCode` (dan `versionName`) di `android/app/build.gradle`. Perubahan konten web tidak memerlukan rilis Android baru.
+## Pemasangan dan laporan masalah
 
-## Infaq dan kebijakan pembayaran Play
-Tombol infaq membuka Trakteer di peramban dan tidak membuka fitur atau konten apa pun di aplikasi. Kebijakan Pembayaran Google Play mengatur donasi secara ketat, dan penerimaannya bergantung pada peninjauan Google. Bila rilis ditolak karena hal ini, sembunyikan menu Infaq pada versi Android (deteksi `document.referrer` yang diawali `android-app://id.cgs.quranku`) dan pertahankan di versi web.
-
-## Mode layar penuh
-TWA dikonfigurasi `standalone` (bilah status tetap tampil, berwarna hijau tua). Mode membaca menyembunyikan navigasi aplikasi dan mencoba Fullscreen API bila diizinkan. Aplikasi tidak mengklaim layar penuh sistem saat UI sistem masih terlihat.
-
-## Ikon di layar utama tidak berganti?
-
-Ikon APK tertanam di dalam APK. Ikon baru hanya muncul setelah APK **hasil build baru** dipasang:
-1. Actions → "Android build" → Run workflow (atau otomatis saat `android/**` berubah), unduh artefak `quranku-android`.
-2. `versionCode` naik otomatis tiap build CI. APK debug ditandatangani kunci sementara runner, jadi **hapus dulu aplikasi lama** lalu pasang yang baru (APK rilis bertanda tangan tetap bisa menimpa).
-3. Bila ikon lama masih tampil, hapus pintasan dari layar utama lalu tambahkan lagi (launcher menyimpan cache ikon).
-
-PWA (dipasang dari Chrome): buka aplikasi sekali saat online agar versi baru aktif. Chrome Android memperbarui ikon WebAPK sendiri dalam ±1–3 hari; agar langsung berganti, copot pemasangan lalu "Pasang aplikasi" lagi.
+Untuk mencoba di perangkat sendiri, unduh artefak dari GitHub Actions, ekstrak, lalu pasang APK debug. Saat Android meminta izin memasang aplikasi dari sumber tersebut, putuskan sendiri apakah Anda memercayai sumber berkasnya. Jika gagal, kirim tangkapan layar pesan lengkap, nama APK, model perangkat, dan versi Android. Jangan kirim keystore atau kata sandi.
