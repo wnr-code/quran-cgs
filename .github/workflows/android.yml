@@ -62,22 +62,26 @@ jobs:
           disable-animations: true
           script: |
             cd android
-            set -euxo pipefail
+            set -euo pipefail
             adb wait-for-device
             adb shell settings put global window_animation_scale 0
             adb shell settings put global transition_animation_scale 0
             adb shell settings put global animator_duration_scale 0
-            gradle :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace
-      - name: Ambil logcat jika uji emulator gagal
+            set +e
+            gradle :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace 2>&1 | tee "$RUNNER_TEMP/android-connected-tests.log"
+            test_status=${PIPESTATUS[0]}
+            adb logcat -d -v threadtime > "$RUNNER_TEMP/android-emulator-logcat.txt" 2>&1 || true
+            exit "$test_status"
+      - name: Upload log uji emulator jika gagal
         if: failure()
-        run: |
-          adb logcat -d -v threadtime > "$RUNNER_TEMP/android-emulator-logcat.txt" 2>&1 || true
-          grep -E 'FATAL EXCEPTION|AndroidRuntime|Process: id.cgs.quranku' "$RUNNER_TEMP/android-emulator-logcat.txt" | tail -n 120 || true
-      - uses: actions/upload-artifact@v4
-        if: failure()
+        uses: actions/upload-artifact@v4
         with:
           name: android-emulator-failure-log
-          path: ${{ runner.temp }}/android-emulator-logcat.txt
+          path: |
+            ${{ runner.temp }}/android-connected-tests.log
+            ${{ runner.temp }}/android-emulator-logcat.txt
+            android/app/build/outputs/androidTest-results/connected/debug/**
+            android/app/build/reports/androidTests/connected/debug/**
           if-no-files-found: ignore
       - name: Build AAB + APK release
         env:
