@@ -11,10 +11,10 @@ import { rerender } from '../router.js'
 let lastTab = 'surah'
 
 export default async function quran(root) {
-  root.innerHTML = `<div class="page">
-    ${pageHeader("Al-Qur'an", { back: false, actions: `<a class="icon-btn" href="#/cari" aria-label="Pencarian lengkap">${icon('search')}</a>` })}
+  root.innerHTML = `<div class="page quran-page">
+    ${pageHeader("Al-Qur'an", { back: false, subtitle: '114 surah · 30 juz · Mushaf Madinah', actions: `<a class="icon-btn" href="#/cari" aria-label="Pencarian lengkap">${icon('search')}</a>` })}
     <div class="search-box">${icon('search')}<input type="search" placeholder="Cari nama atau nomor surah…" aria-label="Cari surah" autocomplete="off" /></div>
-    <div class="tabs" role="tablist"><button role="tab" data-tab="surah">Surah</button><button role="tab" data-tab="juz">Juz</button></div>
+    <div class="tabs" role="tablist"><button role="tab" data-tab="surah">Surah <small class="tab-count">114</small></button><button role="tab" data-tab="juz">Juz <small class="tab-count">30</small></button></div>
     <div data-list>${skeleton(10)}</div>
   </div>`
   const listEl = $('[data-list]', root)

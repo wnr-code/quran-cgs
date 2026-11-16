@@ -1,11 +1,12 @@
 /* ===== QURANKU READING MODE ===== */
 .reader {
-  --rd-bg: #faf6ea;
-  --rd-text: #1f2a24;
-  --rd-accent: #9a7a2c;
-  --rd-muted: #6c7a71;
-  --rd-line: rgba(31, 42, 36, 0.1);
-  --rd-bar: rgba(250, 246, 234, 0.94);
+  /* The default reader palette follows the shared app theme; named presets remain opt-in overrides. */
+  --rd-bg: var(--bg);
+  --rd-text: var(--text);
+  --rd-accent: var(--accent);
+  --rd-muted: var(--muted);
+  --rd-line: var(--border);
+  --rd-bar: color-mix(in srgb, var(--surface) 94%, transparent);
   --rd-font: 28px;
   --rd-lh: 2.1;
   --rd-gap: 18px;
@@ -17,6 +18,22 @@
   color: var(--rd-text);
   min-height: 100dvh;
   transition: background 0.25s, color 0.25s;
+}
+.reader[data-preset='theme'] {
+  --rd-bg: var(--bg);
+  --rd-text: var(--text);
+  --rd-accent: var(--accent);
+  --rd-muted: var(--muted);
+  --rd-line: var(--border);
+  --rd-bar: color-mix(in srgb, var(--surface) 94%, transparent);
+}
+.reader[data-preset='ivory'] {
+  --rd-bg: #faf6ea;
+  --rd-text: #1f2a24;
+  --rd-accent: #9a7a2c;
+  --rd-muted: #6c7a71;
+  --rd-line: rgba(31, 42, 36, 0.1);
+  --rd-bar: rgba(250, 246, 234, 0.94);
 }
 .reader[data-preset='classic'] {
   --rd-bg: #f1e4bf;

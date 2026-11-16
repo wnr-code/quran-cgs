@@ -9,7 +9,7 @@ const THEME_VARS_KEY = 'quranku:theme-vars'
 
 export const READER_DEFAULTS = {
   mode: 'continuous', // 'continuous' (mushaf mengalir) | 'focus' (per ayat + terjemahan) | 'page' (per halaman, geser ke samping)
-  preset: 'ivory', // 'classic' | 'ivory' | 'dark' | 'night'
+  preset: 'theme', // 'theme' follows the app palette; also 'classic' | 'ivory' | 'dark' | 'night'
   fontSize: 28,
   lineHeight: 2.1,
   gap: 18, // jarak antar blok/ayat (px)

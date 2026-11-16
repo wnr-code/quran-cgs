@@ -549,6 +549,29 @@ test('tema kustom: variabel turunan sah, terbaca, dan tahan masukan rusak', asyn
   assert.deepEqual(normalizeCustom(undefined), CUSTOM_DEFAULT)
 })
 
+test('preset pembaca mengikuti tema global tanpa menghapus preset mushaf', async () => {
+  const { READER_DEFAULTS } = await import('../src/services/storage.js')
+  const { PRESETS, applyReaderStyle } = await import('../src/components/reading-toolbar.js')
+  assert.equal(READER_DEFAULTS.preset, 'theme')
+  assert.equal(PRESETS.theme, 'Ikuti tema aplikasi')
+  assert.ok(PRESETS.classic && PRESETS.ivory && PRESETS.dark && PRESETS.night)
+
+  const vars = new Map()
+  const el = {
+    dataset: {},
+    classList: { toggle() {} },
+    style: {
+      setProperty: (name, value) => vars.set(name, value),
+      removeProperty: (name) => vars.delete(name)
+    }
+  }
+  applyReaderStyle(el)
+  assert.equal(el.dataset.preset, 'theme')
+  assert.equal(vars.get('--rd-font'), `${READER_DEFAULTS.fontSize}px`)
+  const css = readFileSync('src/styles/reader.css', 'utf8')
+  assert.match(css, /\.reader\[data-preset='theme'\][^{]*\{[^}]*--rd-bg:\s*var\(--bg\)/)
+})
+
 test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache', () => {
   const html = readFileSync('index.html', 'utf8')
   assert.match(html, /<div id="splash"/)
