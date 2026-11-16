@@ -1,4 +1,4 @@
-# Build the shared PWA UI into an Android APK/AAB through Capacitor and smoke-test it on Android 16.
+# Build the shared PWA UI into an Android APK/AAB through Capacitor and smoke-test it on Android 12 and Android 16.
 # Optional release-signing secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
 # ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD. Never put signing values in repository files.
 name: Android build
@@ -79,6 +79,17 @@ jobs:
         timeout-minutes: 15
         with:
           api-level: 36
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          emulator-boot-timeout: 600
+          disable-animations: true
+          script: cd android && ./gradlew --no-daemon --stacktrace :app:connectedDebugAndroidTest
+      - name: Smoke-test the bundled UI on Android 12
+        uses: reactivecircus/android-emulator-runner@v2
+        timeout-minutes: 15
+        with:
+          api-level: 31
           target: google_apis
           arch: x86_64
           profile: pixel_2

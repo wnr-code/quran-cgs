@@ -55,7 +55,7 @@ Untuk memeriksa web/PWA secara terpisah, jalankan `npm test` dan `npm run build`
 
 ## Android CI dan artefak
 
-Workflow **Android build** (`.github/workflows/android.yml`) berjalan untuk perubahan Android/aplikasi pada push atau pull request, dan bisa dijalankan manual dari **Actions → Android build → Run workflow**. Ia memasang JDK 21 dan SDK 36, membuat ikon/splash, membangun UI bersama, menjalankan unit test Gradle, menguji APK di emulator Android 16 (API 36), lalu membangun APK/AAB release. Workflow web utama (`ci.yml`) menjalankan `npm test` dan `npm run build`.
+Workflow **Android build** (`.github/workflows/android.yml`) berjalan untuk perubahan Android/aplikasi pada push atau pull request, dan bisa dijalankan manual dari **Actions → Android build → Run workflow**. Ia memasang JDK 21 dan SDK 36, membuat ikon/splash, membangun UI bersama, menjalankan unit test Gradle, menguji APK di emulator Android 12 (API 31) dan Android 16 (API 36), lalu membangun APK/AAB release. Workflow web utama (`ci.yml`) menjalankan `npm test` dan `npm run build`.
 
 - `QuranKu-APK-untuk-dipasang`: APK debug untuk uji; bila signing secret tersedia, juga menyertakan APK release bertanda tangan.
 - `quranku-play-store-aab`: dibuat hanya jika seluruh secret signing tersedia; AAB untuk Play Console.
