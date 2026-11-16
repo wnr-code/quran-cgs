@@ -94,6 +94,14 @@ export const SOURCES = [
         host: 'github.com/batoulapps/adhan-js'
       },
       {
+        name: 'OpenStreetMap Nominatim',
+        use: 'Mencari nama kota, kecamatan, atau wilayah dari koordinat GPS saat pengguna menekan “Gunakan lokasi saya”.',
+        note: 'Koordinat dikirim langsung dari perangkat ke Nominatim, bukan ke server QuranKu. Atribusi data: © OpenStreetMap contributors.',
+        license: 'Data OpenStreetMap: ODbL 1.0',
+        url: 'https://nominatim.openstreetmap.org',
+        host: 'nominatim.openstreetmap.org'
+      },
+      {
         name: 'Kalender Umm al-Qura (Intl)',
         use: 'Tanggal Hijriah dari kalender bawaan peramban/perangkat, dengan koreksi manual ±2 hari.',
         note: 'Awal bulan dapat berbeda dari ketetapan pemerintah RI.'

@@ -8,6 +8,8 @@ import { getDonors } from '../api/donors-api.js'
 import { openSheet } from '../components/modal.js'
 import { $, esc, toast } from '../utils/helpers.js'
 import { formatRupiah, formatDateTime } from '../utils/format.js'
+import { Capacitor } from '@capacitor/core'
+import { APP } from '../config.js'
 
 const PERIODS = { daily: 'Hari ini', weekly: 'Minggu ini', monthly: 'Bulan ini', all: 'Semua' }
 
@@ -30,6 +32,12 @@ export function embedUrl(tipUrl, ref = '') {
   const path = u.pathname.replace(/^\/v1(?=\/)/, '').replace(/\/+$/, '')
   return `${u.origin}/v1${path}/embed/modal?embedId=0&ref=${ref}`
 }
+
+/** Use the registered public site as Trakteer's embed ref inside the Capacitor WebView. */
+export function embedRef(isNative, origin, pathname = '/') {
+  return new URL(pathname || '/', isNative ? APP.origin : origin).href
+}
+
 const TICKER = 'Jika pembayaran blank atau tidak muncul: kembali lalu pilih QRIS atau transfer bank/virtual account. GoPay & ShopeePay tidak dapat berjalan di jendela ini — ketuk tulisan ini untuk membuka halaman pembayaran.'
 const TRAKTEER_ORIGIN = new URL(TRBTN.url).origin
 
@@ -110,7 +118,8 @@ export default function infaq(root) {
       setTimeout(say, 400) // halaman sematan baru memasang pendengar pesan setelah skripnya berjalan
       setTimeout(say, 1200)
     })
-    frame.src = embedUrl(TRBTN.url, location.origin + location.pathname)
+    const ref = embedRef(Capacitor.isNativePlatform(), location.origin, location.pathname)
+    frame.src = embedUrl(TRBTN.url, ref)
     document.body.appendChild(el)
     document.body.classList.add('sheet-open')
     requestAnimationFrame(() => el.classList.add('open'))

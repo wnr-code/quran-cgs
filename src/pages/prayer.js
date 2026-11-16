@@ -6,6 +6,7 @@ import { getSettings, saveSettings } from '../services/storage.js'
 import { notifPermission } from '../services/notification.js'
 import { ADZAN_VOICES, PRAYERS, IMSAK_BEFORE, TARHIM_BEFORE, enableAdzan, disableAdzan, playAdzan, stopAdzan, adzanPlaying, pushSupported, isRamadan } from '../services/adzan.js'
 import { formatClock, formatGregorian } from '../utils/format.js'
+import { formatCoordinates } from '../utils/location.js'
 import { isNativePlatform } from '../services/platform.js'
 import { formatHijri } from '../utils/hijri.js'
 import { $, esc, toast, on } from '../utils/helpers.js'
@@ -62,13 +63,24 @@ export default function prayer(root) {
         const mins = Math.max(0, Math.round((next.time - now) / 60000))
         countdown = `<p class="np-sub">${next.name} dalam ${Math.floor(mins / 60) ? Math.floor(mins / 60) + ' jam ' : ''}${mins % 60} menit</p>`
       }
+      const imsak = times.find((p) => p.key === 'imsak')
+      const magrib = times.find((p) => p.key === 'magrib')
+      const fastingSchedule = `<section class="card fasting-schedule" data-fasting-schedule aria-label="Jadwal imsak dan buka puasa">
+          <div class="fasting-schedule-head"><span class="fasting-icon">${icon('moon')}</span><div><p class="eyebrow">Jadwal Puasa${isRamadan(date, s.hijriAdjust) ? ' · Ramadan' : ''}</p><h2>Imsak &amp; Buka Puasa</h2></div></div>
+          <div class="fasting-times">
+            <div class="fasting-time"><span>Imsak</span><b>${formatClock(imsak.time)}</b><small>${IMSAK_BEFORE} menit sebelum Subuh</small></div>
+            <div class="fasting-time"><span>Buka puasa</span><b>${formatClock(magrib.time)}</b><small>Waktu Magrib</small></div>
+          </div>
+          <p class="hint">${dayOffset === 0 ? 'Hari ini' : esc(formatGregorian(date))} · Imsak dihitung ${IMSAK_BEFORE} menit sebelum Subuh; waktu berbuka mengikuti Magrib.</p></section>`
       table = `<section class="card prayer-card ornament"><p class="eyebrow">${esc(loc.name || 'Lokasi')}</p>
+          <p class="prayer-coordinates">${icon('pin')}<span>${esc(formatCoordinates(loc))}</span></p>
           <div class="hero-date-line" role="group" aria-label="Tanggal Masehi dan Hijriah">
             <span class="hero-date-item">${icon('calendar')}<span class="hero-date-text">${esc(formatGregorian(date))}</span></span>
             <span class="hero-date-separator" aria-hidden="true">·</span>
             <span class="hero-date-item">${icon('moon')}<span class="hero-date-text">${esc(formatHijri(date, s.hijriAdjust))}</span></span>
           </div>${countdown}
           <div class="day-nav"><button class="icon-btn on-dark" data-day="-1" aria-label="Hari sebelumnya">${icon('back')}</button><button class="btn sm on-dark" data-day="0">Hari ini</button><button class="icon-btn on-dark" data-day="1" aria-label="Hari berikutnya">${icon('forward')}</button></div></section>
+        ${fastingSchedule}
         <section class="card"><ul class="prayer-list">${times.map((p) => `<li class="${p.key === nextKey ? 'next' : ''} ${p.minor ? 'minor' : ''}"><span>${p.name}</span><b>${formatClock(p.time)}</b></li>`).join('')}</ul>
           <p class="hint">Waktu ditampilkan dalam zona waktu perangkat. Hasil hisab dapat berbeda 1–2 menit dari jadwal resmi Kemenag RI/otoritas setempat; Imsak = Subuh − 10 menit.</p></section>`
     }

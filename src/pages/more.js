@@ -7,7 +7,7 @@ import { isNativePlatform } from '../services/platform.js'
 
 const GROUPS = [
   ['Ibadah', [
-    ['/salat', 'clock', 'Jadwal Salat', 'Waktu salat & imsak'],
+    ['/salat', 'clock', 'Jadwal Salat', 'Salat, imsak & buka puasa'],
     ['/kiblat', 'compass', 'Arah Kiblat', 'Kompas ke Ka’bah'],
     ['/kalender', 'calendar', 'Kalender Hijriah', 'Tanggal & hari besar'],
     ['/doa', 'hands', 'Doa Harian', 'Arab, Latin, arti'],
