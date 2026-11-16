@@ -21,7 +21,18 @@ function parse(body) {
   const lng = Number(body.lng)
   if (!(lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180)) return null
   const p = body.prefs || {}
-  const prefs = { prayers: Object.fromEntries(PRAYER_KEYS.map((key) => [key, !(p.prayers && p.prayers[key] === false)])), imsak: p.imsak !== false, tarhim: p.tarhim !== false }
+  const reminderPrefs = p.reminders || {}
+  const leadMinutes = Math.max(1, Math.min(60, Math.round(Number(reminderPrefs.leadMinutes) || 10)))
+  const prefs = {
+    prayers: Object.fromEntries(PRAYER_KEYS.map((key) => [key, !(p.prayers && p.prayers[key] === false)])),
+    imsak: p.imsak !== false,
+    tarhim: p.tarhim !== false,
+    reminders: {
+      enabled: reminderPrefs.enabled === true,
+      leadMinutes,
+      prayers: Object.fromEntries(PRAYER_KEYS.map((key) => [key, !(reminderPrefs.prayers && reminderPrefs.prayers[key] === false)]))
+    }
+  }
   let tz = cleanText(body.tz, 60)
   try {
     new Intl.DateTimeFormat('en', { timeZone: tz })

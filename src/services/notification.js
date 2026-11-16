@@ -1,21 +1,45 @@
-// Web notifications are used by the PWA. Capacitor Android has no native notification plugin,
-// so the shared reminder loop falls back to in-app toasts while the app is open.
-import { isNativePlatform } from './platform.js'
+// Browser notifications stay in the PWA. Android requests the real POST_NOTIFICATIONS
+// permission through Capacitor Local Notifications; prayer alarms are delivered natively.
+import { LocalNotifications } from '@capacitor/local-notifications'
+import { isAndroidApp, isNativePlatform } from './platform.js'
 import { toast } from '../utils/helpers.js'
 import { getSettings } from './storage.js'
 import { todayProgress, goalPages } from './progress.js'
 import { dateKey, formatClock } from '../utils/format.js'
 import { takeDueReminders } from './calendar-notes.js'
 
+let androidPermission = 'prompt'
+
 export const notifSupported = () => isNativePlatform() || 'Notification' in globalThis
 export const notifPermission = () => {
-  if (isNativePlatform()) return 'foreground'
+  if (isAndroidApp()) return androidPermission
+  if (isNativePlatform()) return 'unsupported'
   return 'Notification' in globalThis ? Notification.permission : 'unsupported'
 }
 
-/** Ask only in a browser; the native shell deliberately uses foreground-only in-app messages. */
+export async function refreshNotificationPermission() {
+  if (!isAndroidApp()) return notifPermission()
+  try {
+    const result = await LocalNotifications.checkPermissions()
+    androidPermission = result.display || 'prompt'
+  } catch {
+    androidPermission = 'prompt'
+  }
+  return androidPermission
+}
+
+/** Ask the platform for permission only in response to a user action. */
 export async function requestNotifPermission() {
-  if (isNativePlatform()) return 'foreground'
+  if (isAndroidApp()) {
+    try {
+      const result = await LocalNotifications.requestPermissions()
+      androidPermission = result.display || 'prompt'
+    } catch {
+      await refreshNotificationPermission()
+    }
+    return androidPermission
+  }
+  if (isNativePlatform()) return 'unsupported'
   if (!notifSupported()) return 'unsupported'
   if (Notification.permission === 'default') return Notification.requestPermission()
   return Notification.permission
@@ -23,6 +47,7 @@ export async function requestNotifPermission() {
 
 export async function showNotification(title, body, tag) {
   if (isNativePlatform()) {
+    // Non-prayer foreground reminders remain lightweight in-app messages on Android.
     toast(`${title} · ${body}`, 6000)
     return true
   }

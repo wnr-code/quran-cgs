@@ -83,10 +83,37 @@ test('jadwal adzan server: lima waktu pada tanggal lokal pelanggan; imsak & tarh
   const rm = eventsFor(JKT, new Date('2027-02-20T05:00:00Z'))
   assert.deepEqual(rm.map((e) => e.key), ['tarhim', 'imsak', 'subuh', 'zuhur', 'asar', 'magrib', 'isya'])
   assert.equal(rm[2].time - rm[1].time, 10 * 60000)
+  assert.match(rm[1].body, /Waktu imsak telah tiba\s*\(/)
   assert.equal(rm[2].time - rm[0].time, 15 * 60000)
   // Pilihan pengguna dihormati.
   const off = eventsFor({ ...JKT, prefs: { prayers: { zuhur: false }, imsak: false, tarhim: false } }, new Date('2027-02-20T05:00:00Z'))
   assert.deepEqual(off.map((e) => e.key), ['subuh', 'asar', 'magrib', 'isya'])
+  const imsakOnly = {
+    ...JKT,
+    prefs: {
+      prayers: Object.fromEntries(['subuh', 'zuhur', 'asar', 'magrib', 'isya'].map((key) => [key, false])),
+      imsak: true,
+      tarhim: false
+    }
+  }
+  const imsakEvents = eventsFor(imsakOnly, new Date('2027-02-20T05:00:00Z'))
+  assert.deepEqual(imsakEvents.map((e) => e.key), ['imsak'], 'imsak dapat diaktifkan tanpa azan, tarhim, atau pengingat pra-salat')
+  assert.equal(imsakEvents[0].time.getTime(), rm.find((e) => e.key === 'imsak').time.getTime())
+  const reminderOnly = {
+    ...JKT,
+    prefs: {
+      prayers: Object.fromEntries(['subuh', 'zuhur', 'asar', 'magrib', 'isya'].map((key) => [key, false])),
+      imsak: false,
+      tarhim: false,
+      reminders: { enabled: true, leadMinutes: 10, prayers: { zuhur: false } }
+    }
+  }
+  const reminders = eventsFor(reminderOnly, new Date('2026-11-15T05:00:00Z'))
+  assert.deepEqual(reminders.map((e) => e.key), ['reminder_subuh', 'reminder_asar', 'reminder_magrib', 'reminder_isya'])
+  const beforeAsar = reminders.find((e) => e.key === 'reminder_asar')
+  const asarTime = eventsFor(JKT, new Date('2026-11-15T05:00:00Z')).find((e) => e.key === 'asar').time
+  assert.equal(asarTime - beforeAsar.time, 10 * 60000)
+  assert.deepEqual(dueEvents(reminderOnly, new Date(beforeAsar.time.getTime() + 20000)).map((e) => e.key), ['reminder_asar'])
   // Jatuh tempo hanya dalam jendela singkat setelah waktunya.
   const magrib = ev.find((e) => e.key === 'magrib').time
   assert.deepEqual(dueEvents(JKT, new Date(magrib.getTime() + 20000)).map((e) => e.key), ['magrib'])
@@ -113,6 +140,17 @@ test('langganan push & cron: simpan, kirim sekali per waktu salat, hapus langgan
   assert.equal(row[0].tz, 'Asia/Jakarta')
   assert.equal(row[0].place, 'Jakartascript')
   assert.equal(JSON.parse(row[0].prefs).prayers.asar, false)
+  assert.equal(JSON.parse(row[0].prefs).reminders.enabled, false)
+  await onSubscribe(req({ ...body, prefs: { prayers: { asar: false }, reminders: { enabled: true, leadMinutes: 120, prayers: { zuhur: false } } } }))
+  const savedReminderPrefs = JSON.parse(env.DB._db.prepare('SELECT prefs FROM push_subs').get().prefs).reminders
+  assert.equal(savedReminderPrefs.enabled, true)
+  assert.equal(savedReminderPrefs.leadMinutes, 60, 'lead time dibatasi agar payload jadwal aman')
+  assert.equal(savedReminderPrefs.prayers.zuhur, false)
+  await onSubscribe(req({ ...body, prefs: { prayers: Object.fromEntries(['subuh', 'zuhur', 'asar', 'magrib', 'isya'].map((key) => [key, false])), imsak: true, tarhim: false } }))
+  const savedRamadanPrefs = JSON.parse(env.DB._db.prepare('SELECT prefs FROM push_subs').get().prefs)
+  assert.equal(savedRamadanPrefs.imsak, true, 'imsak tersimpan mandiri dari pilihan azan')
+  assert.equal(savedRamadanPrefs.tarhim, false)
+  await onSubscribe(req({ ...body, prefs: { prayers: { asar: false }, reminders: { enabled: true, leadMinutes: 60, prayers: { zuhur: false } } } }))
 
   const magrib = eventsFor(JKT, new Date('2026-11-15T05:00:00Z')).find((e) => e.key === 'magrib').time
   const sent = []
