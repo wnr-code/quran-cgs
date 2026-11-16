@@ -7,6 +7,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(LegacyMigrationPlugin.class);
+        registerPlugin(PrayerNotificationsPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

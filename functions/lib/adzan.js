@@ -53,7 +53,22 @@ export function eventsFor(sub, now = new Date()) {
     }
     if (prefs.imsak !== false) {
       const t = new Date(fajr.getTime() - IMSAK_BEFORE * 60000)
-      out.push({ key: 'imsak', time: t, id: `${dateKey}|imsak`, title: 'Imsak', body: `Waktu imsak (${clock(t, sub.tz)}). Subuh pukul ${clock(fajr, sub.tz)}.` })
+      out.push({ key: 'imsak', time: t, id: `${dateKey}|imsak`, title: 'Imsak', body: `Waktu imsak telah tiba (${clock(t, sub.tz)}). Subuh pukul ${clock(fajr, sub.tz)}.` })
+    }
+  }
+  const reminders = prefs.reminders || {}
+  if (reminders.enabled) {
+    const leadMinutes = Math.max(1, Math.min(60, Number(reminders.leadMinutes) || 10))
+    for (const prayer of times) {
+      if (!PRAYER_KEYS.includes(prayer.key) || (reminders.prayers && reminders.prayers[prayer.key] === false)) continue
+      const t = new Date(prayer.time.getTime() - leadMinutes * 60000)
+      out.push({
+        key: `reminder_${prayer.key}`,
+        time: t,
+        id: `${dateKey}|reminder_${prayer.key}`,
+        title: `Pengingat salat ${NAMES[prayer.key]}`,
+        body: `${leadMinutes} menit lagi masuk waktu salat ${NAMES[prayer.key]} (${clock(prayer.time, sub.tz)}).`
+      })
     }
   }
   return out.sort((a, b) => a.time - b.time)

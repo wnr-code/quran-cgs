@@ -43,7 +43,7 @@ export default async function goal(root) {
         <label class="switch-row"><span>Pengingat tilawah harian</span><input type="checkbox" data-rem="tilawah" ${s.reminders.tilawah ? 'checked' : ''}/></label>
         <label class="field inline"><span>Jam pengingat</span><input type="time" data-time value="${esc(s.reminders.tilawahTime)}" /></label>
         <label class="switch-row"><span>Ingatkan bila target belum tercapai (20.30)</span><input type="checkbox" data-rem="goal" ${s.reminders.goal ? 'checked' : ''}/></label>
-        <p class="hint">${native ? 'Di aplikasi Android, pengingat muncul sebagai pesan di dalam aplikasi selama QuranKu terbuka; notifikasi sistem saat aplikasi ditutup belum tersedia.' : 'Tanpa server push, pengingat hanya muncul selama QuranKu terbuka atau masih berjalan di latar belakang.'}</p></section>`
+        <p class="hint">${native ? 'Di aplikasi Android, pengingat muncul sebagai pesan di dalam aplikasi selama QuranKu terbuka; alarm native terjadwal hanya untuk waktu salat.' : 'Pengingat lokal berjalan selama browser/PWA aktif; notifikasi di background bergantung pada dukungan dan pengaturan browser.'}</p></section>`
   }
 
   body.addEventListener('change', async (e) => {
@@ -63,7 +63,7 @@ export default async function goal(root) {
           t.checked = false
           return toast('Perangkat/browser ini tidak mendukung notifikasi.')
         }
-        const p = await requestNotifPermission()
+        const p = isNativePlatform() ? 'foreground' : await requestNotifPermission()
         if (p !== 'granted' && p !== 'foreground') {
           t.checked = false
           return toast('Izin notifikasi tidak diberikan.')

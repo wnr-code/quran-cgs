@@ -33,8 +33,10 @@ export const DEFAULTS = {
   audio: { qari: '05', autoPlay: true, repeat: 'none', rate: 1, volume: 1 },
   goal: { type: 'p2', pages: 2 },
   reminders: { tilawah: false, tilawahTime: '18:30', goal: false, prayer: false },
-  // Adzan otomatis: suara adzan saat aplikasi terbuka + pemberitahuan push saat tertutup. Imsak & tarhim hanya Ramadan.
-  adzan: { enabled: false, sound: true, voice: 'a9', subuh: true, zuhur: true, asar: true, magrib: true, isya: true, imsak: true, tarhim: true },
+  // Jadwal native Android/Web Push; nada notifikasi dan audio azan panjang adalah pengaturan terpisah.
+  adzan: { enabled: false, sound: true, voice: 'a9', volume: 1, notificationSound: 'default', vibration: true, subuh: true, zuhur: true, asar: true, magrib: true, isya: true, imsak: true, imsakSound: 'default', tarhim: true, tarhimSound: 'default' },
+  prayerReminders: { enabled: false, leadMinutes: 10, prayers: { subuh: true, zuhur: true, asar: true, magrib: true, isya: true }, sound: 'default', vibration: true },
+  ramadanReminders: { imsakEnabled: false, imsakSound: 'default', vibration: true },
   location: null, // { lat, lng, name }
   prayerMethod: 'kemenag'
 }
@@ -55,7 +57,11 @@ function load() {
     }
   } catch {}
   const s = { ...DEFAULTS, ...saved }
-  for (const k of ['reader', 'audio', 'goal', 'reminders', 'adzan']) s[k] = { ...DEFAULTS[k], ...(saved[k] || {}) }
+  for (const k of ['reader', 'audio', 'goal', 'reminders', 'adzan', 'prayerReminders', 'ramadanReminders']) s[k] = { ...DEFAULTS[k], ...(saved[k] || {}) }
+  s.prayerReminders.prayers = { ...DEFAULTS.prayerReminders.prayers, ...((saved.prayerReminders && saved.prayerReminders.prayers) || {}) }
+  if (!saved.ramadanReminders || !Object.prototype.hasOwnProperty.call(saved.ramadanReminders, 'imsakEnabled')) {
+    s.ramadanReminders.imsakEnabled = !!(saved.adzan && saved.adzan.enabled && saved.adzan.imsak !== false)
+  }
   s.customTheme = normalizeCustom(saved.customTheme)
   if (!['auto', 'light', 'dark', 'ramadan', 'custom'].includes(s.theme)) s.theme = 'auto'
   // 1.3.2: bawaan lama (30px / 2,4) terasa renggang — pindahkan ke bawaan baru bila belum pernah diubah pengguna.
@@ -71,8 +77,10 @@ export function getSettings() {
 
 export function saveSettings(patch) {
   for (const [k, v] of Object.entries(patch)) {
-    if (v && typeof v === 'object' && !Array.isArray(v) && settings[k] && typeof settings[k] === 'object') settings[k] = { ...settings[k], ...v }
-    else settings[k] = v
+    if (v && typeof v === 'object' && !Array.isArray(v) && settings[k] && typeof settings[k] === 'object') {
+      settings[k] = { ...settings[k], ...v }
+      if (k === 'prayerReminders' && v.prayers) settings[k].prayers = { ...settings[k].prayers, ...v.prayers }
+    } else settings[k] = v
   }
   try {
     localStorage.setItem(KEY, JSON.stringify(settings))

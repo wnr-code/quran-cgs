@@ -413,16 +413,47 @@ test('Capacitor API routing: API same-app goes to Worker, bundled data and third
   assert.equal(await calls[3].input.text(), '{"quantity":1}')
 })
 
-test('notifikasi Android memakai pesan foreground tanpa meminta izin sistem', async () => {
+test('notifikasi Android memakai status izin sistem dan menyediakan permintaan runtime', async () => {
   const { notifSupported, notifPermission, requestNotifPermission } = await import('../src/services/notification.js')
   globalThis.androidBridge = {}
   try {
     assert.equal(notifSupported(), true)
-    assert.equal(notifPermission(), 'foreground')
-    assert.equal(await requestNotifPermission(), 'foreground')
+    assert.equal(notifPermission(), 'prompt')
+    assert.equal(await requestNotifPermission(), 'prompt')
   } finally {
     delete globalThis.androidBridge
   }
+})
+
+test('payload jadwal native mencakup lokasi, metode, zona waktu, azan, dan pengingat terpisah', async () => {
+  const { nativePrayerSettings } = await import('../src/services/prayer-notifications.js')
+  const payload = nativePrayerSettings({
+    location: { lat: -6.9764, lng: 108.4836, name: 'Kuningan' },
+    prayerMethod: 'mwl',
+    hijriAdjust: 1,
+    adzan: { enabled: false, sound: true, voice: 'a1', volume: 0.65, imsak: true, asar: false, notificationSound: 'alarm' },
+    prayerReminders: { enabled: true, leadMinutes: 15, prayers: { subuh: false, zuhur: true }, sound: 'silent' }
+  })
+  assert.equal(payload.enabled, true, 'pengingat dapat aktif tanpa azan otomatis')
+  assert.deepEqual(payload.location, { lat: -6.9764, lng: 108.4836, name: 'Kuningan' })
+  assert.equal(payload.method, 'mwl')
+  assert.equal(payload.hijriAdjust, 1)
+  assert.equal(payload.adzan.enabled, false)
+  assert.equal(payload.adzan.asar, false)
+  assert.equal(payload.adzan.notificationSound, 'alarm')
+  assert.equal(payload.prayerReminders.leadMinutes, 15)
+  assert.equal(payload.prayerReminders.prayers.subuh, false)
+  assert.equal(payload.prayerReminders.sound, 'silent')
+  assert.equal(payload.ramadanReminders.imsakEnabled, false)
+  const imsakOnly = nativePrayerSettings({
+    location: { lat: -6.2, lng: 106.8, name: 'Jakarta' },
+    adzan: { enabled: false },
+    prayerReminders: { enabled: false },
+    ramadanReminders: { imsakEnabled: true, imsakSound: 'alarm' }
+  })
+  assert.equal(imsakOnly.enabled, true, 'imsak dapat dijadwalkan tanpa azan atau pengingat pra-salat')
+  assert.equal(imsakOnly.ramadanReminders.imsakSound, 'alarm')
+  assert.ok(payload.timezone)
 })
 
 test('worker: CORS hanya untuk alamat resmi + preflight', async () => {
@@ -564,6 +595,8 @@ test('kebijakan privasi menjelaskan pelacak, lokasi, Web Push, dan data papan do
   const about = readFileSync('src/pages/about.js', 'utf8')
   assert.match(policy, /tidak memasang pelacak iklan atau analitik/)
   assert.match(policy, /Nominatim dapat memproses alamat IP/)
+  assert.match(policy, /jendela bergulir 14 hari/)
+  assert.match(policy, /Web Push tidak menjanjikan alarm yang presisi/)
   assert.match(policy, /pesan\/ucapan bila dikirim/)
   assert.match(policy, /Catatan endpoint lama/)
   assert.match(policy, /WhatsApp, Telegram, Facebook, dan X \(Twitter\)/)

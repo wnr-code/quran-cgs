@@ -5,6 +5,7 @@ import { openSheet } from '../components/modal.js'
 import { getSettings } from '../services/storage.js'
 import { dayKey, notesOf, noteDays, saveNote, deleteNote } from '../services/calendar-notes.js'
 import { requestNotifPermission, notifPermission, notifSupported } from '../services/notification.js'
+import { isNativePlatform } from '../services/platform.js'
 import { toHijri, HIJRI_MONTHS, islamicDayOf, dayNotes, formatHijri, nextRamadan } from '../utils/hijri.js'
 import { weton, pasaranOf } from '../utils/javanese.js'
 import { holidayOf, hasOfficial } from '../data/libur-nasional.js'
@@ -168,13 +169,12 @@ export default function calendar(root) {
         remind.addEventListener('change', async () => {
           time.disabled = !remind.checked
           if (!remind.checked) return (hint.textContent = 'Catatan hanya tersimpan di perangkat ini.')
+          if (isNativePlatform()) return (hint.textContent = 'Di Android, pengingat catatan muncul sebagai pesan dalam aplikasi saat QuranKu terbuka; alarm native hanya menjadwalkan waktu salat.')
           if (!notifSupported()) return (hint.textContent = 'Peramban ini tidak mendukung notifikasi; pengingat hanya tampil sebagai tanda di kalender.')
           const p = notifPermission() === 'granted' ? 'granted' : await requestNotifPermission()
-          hint.textContent = p === 'foreground'
-            ? 'Di aplikasi Android, pengingat tampil sebagai pesan di dalam aplikasi selama QuranKu terbuka; notifikasi sistem saat aplikasi ditutup belum tersedia.'
-            : p === 'granted'
-              ? 'Pengingat muncul sebagai notifikasi selama QuranKu terbuka atau berjalan di latar; bila aplikasi tertutup, ia muncul saat dibuka pada hari itu.'
-              : 'Izin notifikasi belum diberikan. Catatan tetap tersimpan, tetapi notifikasi tidak akan muncul.'
+          hint.textContent = p === 'granted'
+            ? 'Pengingat muncul sebagai notifikasi selama QuranKu terbuka atau berjalan di latar; jika browser tertutup, ia dapat muncul saat dibuka kembali.'
+            : 'Izin notifikasi belum diberikan. Catatan tetap tersimpan, tetapi notifikasi tidak akan muncul.'
         })
         $('[data-form]', el).addEventListener('submit', (e) => {
           e.preventDefault()
