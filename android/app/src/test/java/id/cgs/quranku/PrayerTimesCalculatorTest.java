@@ -27,6 +27,17 @@ public final class PrayerTimesCalculatorTest {
     }
 
     @Test
+    public void highLatitudeFallbackUsesHalfNightInSecondsConvertedToMillis() {
+        Calendar oslo = Calendar.getInstance(TimeZone.getTimeZone("Europe/Oslo"), Locale.US);
+        oslo.clear();
+        oslo.set(2026, Calendar.JUNE, 21, 12, 0, 0);
+        Map<String, Long> times = PrayerTimesCalculator.calculate(oslo, 59.9139, 10.7522, "kemenag");
+
+        assertNear("subuh fallback", times.get("subuh"), utc(2026, Calendar.JUNE, 20, 23, 21));
+        assertNear("isha fallback", times.get("isya"), utc(2026, Calendar.JUNE, 21, 23, 21));
+    }
+
+    @Test
     public void methodPresetsProduceOrderedPrayerTimes() {
         Calendar day = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"), Locale.US);
         day.clear();

@@ -28,6 +28,12 @@ const SHORTCUTS = [
   ['/kalender', 'calendar', 'Kalender']
 ]
 
+const CIGATAS_MOTTOS = [
+  'Hayu ngaji unggal poé.',
+  'Saeutik-saeutik, nu penting istiqamah.',
+  'Ngaji ayeuna, haté leuwih caang.'
+]
+
 export default async function home(root) {
   const s = getSettings()
   const now = new Date()
@@ -68,10 +74,10 @@ export default async function home(root) {
       <div class="skeleton sk-line"></div><div class="skeleton sk-line"></div>
     </section>
 
-    <footer class="cigatas-signature" aria-label="Identitas Cigatas">
-      <span class="cigatas-signature-label">Identitas</span>
-      <a class="cigatas-signature-link" href="#/tentang" aria-label="Lihat identitas Cigatas di Tentang">
-        <img src="/cigatas-identity.png" width="1212" height="512" loading="lazy" decoding="async" alt="Cigatas — #TongEureunNgaji" />
+    <footer class="cigatas-signature" aria-label="Ajakan mengaji dari Cigatas">
+      <a class="cigatas-signature-link" href="#/tentang" aria-label="#TongEureunNgaji — lihat halaman Tentang">
+        <span class="cigatas-signature-hashtag">#TongEureunNgaji</span>
+        <span class="cigatas-signature-motto" data-cigatas-motto aria-hidden="true">Hayu ngaji unggal poé.</span>
       </a>
     </footer>
   </div>`
@@ -81,6 +87,25 @@ export default async function home(root) {
   const mu = root.querySelector('[data-mutiara]')
   mu.href = `#/surah/${m.s}/${m.a}`
   mu.innerHTML = `<i class="fi fi-quote" aria-hidden="true"></i><span>${esc(m.t)} <small>${esc(m.r)}</small></span>`
+
+  const cigatasMotto = $('[data-cigatas-motto]', root)
+  let cigatasMottoIndex = 0
+  let cigatasMottoTimer = null
+  let cigatasMottoSwap = null
+  if (cigatasMotto && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    cigatasMottoTimer = setInterval(() => {
+      if (!cigatasMotto.isConnected) return
+      cigatasMotto.classList.add('is-changing')
+      clearTimeout(cigatasMottoSwap)
+      cigatasMottoSwap = setTimeout(() => {
+        if (!cigatasMotto.isConnected) return
+        cigatasMottoIndex = (cigatasMottoIndex + 1) % CIGATAS_MOTTOS.length
+        cigatasMotto.textContent = CIGATAS_MOTTOS[cigatasMottoIndex]
+        cigatasMotto.classList.remove('is-changing')
+      }, 220)
+    }, 4200)
+  }
+
   // Ajakan memasang aplikasi (semua peramban; disembunyikan bila sudah terpasang atau ditutup pengguna).
   if (shouldOfferInstall() && !installDismissed()) {
     $('.home-hero', root).insertAdjacentHTML(
@@ -191,6 +216,8 @@ export default async function home(root) {
   return () => {
     offProgress()
     offLastRead()
+    clearInterval(cigatasMottoTimer)
+    clearTimeout(cigatasMottoSwap)
     document.removeEventListener('visibilitychange', onVisible)
   }
 }

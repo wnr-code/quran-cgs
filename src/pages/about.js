@@ -40,7 +40,6 @@ export default function about(root) {
       <div class="btn-row about-privacy-actions"><a class="btn" href="/privacy.html" target="_blank" rel="noopener noreferrer">${icon('shield')}Kebijakan Privasi</a><a class="btn" href="#/infaq">${icon('heart')}Donasi</a></div></section>
 
     <section class="card about-identity-card">
-      <p class="eyebrow">Identitas</p>
       <figure>
         <img src="/cigatas-identity.png" width="1212" height="512" loading="lazy" decoding="async" alt="Cigatas — #TongEureunNgaji" />
         <figcaption>Cigatas · #TongEureunNgaji</figcaption>

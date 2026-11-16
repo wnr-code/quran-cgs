@@ -566,16 +566,26 @@ test('beranda: ikon ucapan sesuai waktu & penyemangat berujukan ayat', async () 
   assert.match(styles, /\.salam\s*\{[^}]*text-align:\s*center/)
 })
 
-test('identitas Cigatas: label PNG transparan ada di bawah Beranda dan halaman Tentang', () => {
+test('Beranda menampilkan teks Cigatas beranimasi tanpa gambar; logo tetap di Tentang', () => {
   const logo = readFileSync('public/cigatas-identity.png')
   assert.deepEqual([...logo.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10], 'PNG yang sah')
   assert.equal(logo[25], 6, 'PNG RGBA dengan kanal transparansi')
   const home = readFileSync('src/pages/home.js', 'utf8')
   const about = readFileSync('src/pages/about.js', 'utf8')
-  assert.match(home, /class="cigatas-signature"[\s\S]*src="\/cigatas-identity\.png"/)
+  const styles = readFileSync('src/styles/redesign.css', 'utf8')
+  const homeFooter = home.match(/<footer class="cigatas-signature"[\s\S]*?<\/footer>/)?.[0] || ''
+  assert.ok(homeFooter, 'footer ajakan mengaji ada di Beranda')
+  assert.match(homeFooter, /class="cigatas-signature-hashtag">#TongEureunNgaji</)
+  assert.match(homeFooter, /data-cigatas-motto/)
+  assert.doesNotMatch(homeFooter, /cigatas-identity\.png/)
+  assert.match(home, /const CIGATAS_MOTTOS = \[/)
+  assert.match(home, /clearInterval\(cigatasMottoTimer\)/, 'timer dibersihkan saat meninggalkan Beranda')
+  assert.match(styles, /@keyframes cigatas-tagline-glow/)
+  assert.match(styles, /\.cigatas-signature-motto\.is-changing/)
+  assert.match(styles, /prefers-reduced-motion:\s*reduce[\s\S]*?\.cigatas-signature-hashtag/)
   assert.match(about, /class="card about-identity-card"[\s\S]*src="\/cigatas-identity\.png"/)
   assert.match(about, /Cigatas · #TongEureunNgaji/)
-  assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'cigatas-identity\.png'/, 'ikut precache untuk pemakaian offline')
+  assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'cigatas-identity\.png'/, 'ikut precache untuk pemakaian offline di Tentang')
 })
 
 test('header Lainnya: identitas QuranKu, slogan berganti tanpa pengulangan langsung', async () => {
