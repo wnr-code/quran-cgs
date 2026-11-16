@@ -175,7 +175,7 @@ internal fun QuranReaderScreen(
     LaunchedEffect(chapter, listState) {
         val current = chapter ?: return@LaunchedEffect
         snapshotFlow { listState.firstVisibleItemIndex }.distinctUntilChanged().collect { index ->
-            val verseIndex = index - 1
+            val verseIndex = index - headerItems
             if (verseIndex in current.verses.indices) onProgress(surahNumber, current.verses[verseIndex].number)
         }
     }
