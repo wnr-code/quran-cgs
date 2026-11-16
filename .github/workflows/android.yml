@@ -52,6 +52,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Uji awal aplikasi pada emulator Android 16
         uses: reactivecircus/android-emulator-runner@v2
+        timeout-minutes: 12
         with:
           api-level: 36
           target: google_apis
@@ -59,7 +60,14 @@ jobs:
           profile: pixel_2
           emulator-boot-timeout: 600
           disable-animations: true
-          script: cd android && gradle :app:connectedDebugAndroidTest --no-daemon --console=plain
+          script: |
+            cd android
+            set -euxo pipefail
+            adb wait-for-device
+            adb shell settings put global window_animation_scale 0
+            adb shell settings put global transition_animation_scale 0
+            adb shell settings put global animator_duration_scale 0
+            gradle :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace
       - name: Ambil logcat jika uji emulator gagal
         if: failure()
         run: |
