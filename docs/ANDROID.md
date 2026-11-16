@@ -57,14 +57,20 @@ Untuk memeriksa web/PWA secara terpisah, jalankan `npm test` dan `npm run build`
 
 Workflow **Android build** (`.github/workflows/android.yml`) berjalan untuk perubahan Android/aplikasi pada push atau pull request, dan bisa dijalankan manual dari **Actions → Android build → Run workflow**. Ia memasang JDK 21 dan SDK 36, membuat ikon/splash, membangun UI bersama, menjalankan unit test Gradle, menguji APK di emulator Android 12 (API 31) dan Android 16 (API 36), lalu membangun APK/AAB release. Workflow web utama (`ci.yml`) menjalankan `npm test` dan `npm run build`.
 
-- `QuranKu-APK-untuk-dipasang`: APK debug untuk uji; bila signing secret tersedia, juga menyertakan APK release bertanda tangan.
-- `quranku-play-store-aab`: dibuat hanya jika seluruh secret signing tersedia; AAB untuk Play Console.
+- `QuranKu-APK-untuk-dipasang`: APK debug untuk uji; bila secret upload key tersedia, juga menyertakan APK release bertanda tangan.
+- `quranku-play-store-aab`: dibuat hanya jika seluruh secret upload key tersedia; AAB ini ditandatangani untuk diunggah ke Play Console saat aplikasi memakai Play App Signing.
 - `quranku-aab-unsigned-build`: AAB tanpa tanda tangan untuk validasi build saja—**tidak dapat diunggah ke Play Console**.
 - Uji instrumentasi membuka Activity dan memastikan beranda bersama serta salam awal dirender. Ini bukan uji semua fitur dan bukan pengganti uji ponsel fisik, pemeriksaan aksesibilitas, atau Play Console Pre-launch report.
 
 Package `id.cgs.quranku`, `minSdk 24`, `compileSdk 36`, dan `targetSdk 36`. Nama versi mengikuti `package.json`. CI mengambil `versionCode` dari nomor run workflow; build lokal memakai 320 sebagai nilai awal, di atas kode CI Compose lama 310. Untuk rilis Play, pastikan versi kode lebih besar dari versi yang pernah diunggah.
 
 ## Penandatanganan release
+
+### Google Play App Signing (disarankan)
+
+Play App Signing perlu diaktifkan di Play Console—pengaturan ini tidak dapat dinyalakan oleh Gradle atau repositori. Untuk aplikasi baru, pilih agar Google membuat dan menyimpan **app-signing key**. Google memakai kunci itu untuk menandatangani APK yang diterima pengguna. Namun AAB yang diunggah tetap harus ditandatangani dengan **upload key**. Keystore pada bagian ini adalah upload key untuk Play, bukan app-signing key milik Google.
+
+Buat/upload key sekali untuk aplikasi baru dan daftarkan sertifikatnya saat mengikuti proses Play Console. Jika aplikasi sudah pernah diunggah, jangan membuat kunci baru sembarangan: gunakan upload key yang terdaftar atau minta reset upload key di Play Console. Jika upload key hilang, upload key dapat direset; app-signing key yang dikelola Google tetap digunakan untuk pembaruan aplikasi.
 
 Jangan commit keystore atau password. Contoh konfigurasi ada di `android/keystore.properties.example`; salin menjadi `android/keystore.properties` (diabaikan Git) dan isi nilai milik pemilik aplikasi. `storeFile` yang relatif dihitung dari direktori `android/`. Alternatifnya, berikan variabel lingkungan berikut saat menjalankan Gradle:
 
@@ -73,7 +79,7 @@ Jangan commit keystore atau password. Contoh konfigurasi ada di `android/keystor
 - `QURANKU_KEY_ALIAS`
 - `QURANKU_KEY_PASSWORD`
 
-Untuk CI GitHub Actions, simpan empat secret berikut pada repository: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Workflow memakai keystore yang sama untuk APK dan AAB release. Tanpa keempat nilai, hasil release tidak ditandatangani. Simpan salinan kunci secara aman; kehilangan kunci dapat mencegah pembaruan APK yang didistribusikan langsung. Untuk Google Play, ikuti konfigurasi Play App Signing dan kunci upload di Play Console.
+Agar tidak perlu memilih JKS secara manual setiap rilis, simpan upload keystore yang sudah terdaftar dan nilainya sebagai GitHub Actions Secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Workflow memakai key tersebut untuk menandatangani APK/AAB release dan mengunggah AAB bertanda tangan sebagai artefak `quranku-play-store-aab`. Tanpa semua secret, ia mengunggah hanya AAB tanpa tanda tangan untuk validasi—Play Console akan menolaknya. Simpan juga salinan terenkripsi keystore secara aman; jangan bagikan password atau isi keystore di chat/repository.
 
 ## API dan CORS Android
 
@@ -81,4 +87,4 @@ Di Capacitor, origin aplikasi adalah `https://localhost`. Pemanggilan same-app `
 
 ## Izin dan privasi
 
-Manifest Android meminta `INTERNET` dan `ACCESS_COARSE_LOCATION`. Lokasi hanya diminta atas tindakan pengguna; APK tidak meminta `POST_NOTIFICATIONS`, tidak menggunakan lokasi latar, dan tidak mendaftarkan push. Preferensi, posisi baca, bookmark, dan cache lokal tetap berada di perangkat. Jika pengguna mengirim infaq, data transaksi yang diperlukan dikirim ke layanan QuranKu/Trakteer seperti dijelaskan di [kebijakan privasi](../public/privacy.html) dan [panduan Data Safety](../store/data-safety.md).
+Manifest Android meminta `INTERNET`, `ACCESS_COARSE_LOCATION`, dan izin notifikasi/alarm yang diperlukan. Lokasi hanya diminta atas tindakan pengguna; APK tidak menggunakan lokasi latar atau Web Push. Alarm salat/imsak native dihitung di perangkat dalam jendela bergulir 14 hari, tetapi ketepatan dan pengirimannya bergantung pada izin notifikasi/alarm, Doze, dan kebijakan perangkat. Pengingat kalender dan target tilawah tetap hanya berjalan saat aplikasi terbuka. Preferensi, posisi baca, bookmark, dan cache lokal tetap berada di perangkat. Jika pengguna mengirim infaq, data transaksi yang diperlukan dikirim ke layanan QuranKu/Trakteer seperti dijelaskan di [kebijakan privasi](../public/privacy.html) dan [panduan Data Safety](../store/data-safety.md).

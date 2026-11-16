@@ -40,7 +40,8 @@ Konfigurasi: `INFAQ_USERNAME` dan `INFAQ_UNIT_PRICE` ada di `wrangler.toml`; sec
 - APK memuat `dist/` hasil build aplikasi yang sama dengan PWA: halaman, navigasi, komponen, tema, penyimpanan lokal, adapter API, dan fallback offline tidak diduplikasi dalam proyek Android.
 - Android menambahkan cangkang Capacitor, status bar/splash, tombol kembali, lokasi perkiraan saat diminta, serta satu jembatan migrasi untuk memindahkan posisi baca, kota, tasbih, dan cache surah dari APK Compose lama.
 - Data Al-Qur'an dan fitur yang tersedia di PWA menggunakan UI serta API yang sama. Teks yang pernah dibaca tetap tersimpan di IndexedDB dan data cadangan lokal dapat dibaca tanpa koneksi.
-- Adzan dan pengingat di APK berjalan hanya saat aplikasi terbuka sebagai pesan dalam aplikasi; Web Push/alarm/notifikasi sistem saat APK ditutup belum tersedia. Izin lokasi perkiraan Android diminta hanya setelah pengguna memilih **Gunakan lokasi saya**; APK tidak meminta izin notifikasi sistem.
+- APK Android menjadwalkan azan, imsak Ramadan, dan pengingat pra-salat melalui alarm/notifikasi native bergulir 14 hari; jadwal dipulihkan setelah reboot dan perubahan waktu sistem. Pengingat kalender/target tetap hanya muncul saat aplikasi terbuka. Web Push hanya digunakan PWA; izin notifikasi dan alarm tepat mengikuti pengaturan Android. Izin lokasi perkiraan diminta hanya setelah pengguna memilih **Gunakan lokasi saya**.
+- Penggunaan pertama menampilkan pengenalan tiga langkah tentang bacaan, jadwal salat, dan fitur ibadah; bisa dilewati, dengan animasi yang menghormati pengaturan kurangi gerakan.
 - Target Android 16 (API 36). CI membangun APK/AAB dan menjalankan uji startup di emulator; uji perangkat fisik tetap diperlukan sebelum rilis.
 
 Perintah `npm run cap:sync` menjalankan build web lalu menyalin aset yang sama ke Android. Lihat [docs/ANDROID.md](docs/ANDROID.md) untuk APK, AAB, signing, migrasi data, dan keterbatasan native.

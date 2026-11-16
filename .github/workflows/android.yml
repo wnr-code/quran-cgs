@@ -1,6 +1,6 @@
 # Build the shared PWA UI into an Android APK/AAB through Capacitor and smoke-test it on Android 12 and Android 16.
-# Optional release-signing secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
-# ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD. Never put signing values in repository files.
+# Optional Play upload-key signing secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+# ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD. Google Play App Signing keeps the app-signing key in Play Console.
 name: Android build
 on:
   workflow_dispatch:
@@ -96,7 +96,7 @@ jobs:
           emulator-boot-timeout: 600
           disable-animations: true
           script: cd android && ./gradlew --no-daemon --stacktrace :app:connectedDebugAndroidTest
-      - name: Prepare optional release signing
+      - name: Prepare optional Play upload-key signing
         id: release_signing
         env:
           KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -106,7 +106,7 @@ jobs:
         run: |
           if [ -n "$KS" ]; then
             if [ -z "$KS_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
-              echo '::error::Keystore is configured, but a password or alias secret is missing.'
+              echo '::error::Upload keystore is configured, but a password or alias secret is missing.'
               exit 1
             fi
             echo "$KS" | base64 -d > "$RUNNER_TEMP/quranku.jks"

@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-// Release keys come from an ignored local properties file or CI secrets; never commit a real key.
+// The optional upload/release key comes from an ignored local properties file or CI secrets; never commit it.
 def releaseProperties = new Properties()
 def releasePropertiesFile = rootProject.file('keystore.properties')
 if (releasePropertiesFile.exists()) releasePropertiesFile.withInputStream { releaseProperties.load(it) }

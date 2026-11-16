@@ -15,6 +15,7 @@ function serviceWorkerPlugin() {
     p === 'manifest.webmanifest' ||
     p === 'theme-init.js' ||
     p === 'splash.js' ||
+    p === 'cigatas-identity.png' ||
     /^assets\/.+\.(js|css)$/.test(p) ||
     /^fonts\/.+\.woff2$/.test(p) ||
     /^icons\/(icon-192-v2\.png|icon-512-v2\.png|favicon-48-v2\.png|apple-touch-icon-v2\.png|badge-96-v2\.png)$/.test(p)
