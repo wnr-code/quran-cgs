@@ -38,7 +38,7 @@ Terakhir diperbarui: 15 November 2026.
 | Infaq terhadap Trakteer & D1 sungguhan | Alur aplikasi, webhook, sinkronisasi Public API, dan klaim ID transaksi teruji secara lokal (SQLite + `wrangler dev`). Belum pernah dijalankan terhadap Trakteer atau D1 produksi. Mode QRIS langsung tidak resmi dan belum terverifikasi; lihat [INFAQ.md](INFAQ.md). |
 | Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
 | Notifikasi dan kompas kiblat | Memerlukan perangkat fisik. |
-| Android APK/AAB | Build CI Jetpack Compose berhasil (workflow run [43782832877](https://github.com/wnr-code/quran-cgs/actions/runs/43782832877)); menghasilkan APK uji 1.4.0, bertanda tangan debug sementara. **Belum dipasang/diuji di perangkat** dan belum diajukan ke Play. Lihat [ANDROID.md](ANDROID.md). |
+| Android APK/AAB | Build CI Jetpack Compose berhasil (workflow run [43783371276](https://github.com/wnr-code/quran-cgs/actions/runs/43783371276)); menghasilkan APK uji 1.4.0, bertanda tangan debug sementara. **Belum dipasang/diuji di perangkat** dan belum diajukan ke Play. Lihat [ANDROID.md](ANDROID.md). |
 | Instalasi PWA di ponsel, Lighthouse, iOS Safari | Belum diuji. |
 
 ## Belum dikerjakan / berbeda dari spesifikasi
