@@ -25,7 +25,7 @@ const customPanel = (c) => `<div class="theme-custom">
       ${[['primary', 'Utama', 'tombol & tautan'], ['accent', 'Aksen', 'hiasan & label'], ['bg', 'Latar', 'terang atau gelap']].map(([k, l, d]) => `<label><input type="color" data-color="${k}" value="${c[k]}" aria-label="Warna ${l}" /><span><strong>${l}</strong><small>${d}</small></span></label>`).join('')}
     </div>
     <div class="theme-preview" aria-hidden="true"><div class="tp-hero"><strong>QuranKu</strong><small>Pratinjau tema</small></div><div class="tp-body"><span class="tp-chip">Label</span><p>Teks contoh di atas latar pilihan Anda.</p><span class="btn btn-primary sm">Tombol</span></div></div>
-    <p class="hint">Latar gelap atau terang dikenali otomatis dari warna latar. Bila warna utama terlalu mirip latar, aplikasi menggesernya sedikit agar tulisan tetap terbaca. Warna halaman baca Al-Qur'an diatur terpisah lewat tombol “Aa”.</p>
+    <p class="hint">Latar gelap atau terang dikenali otomatis dari warna latar. Bila warna utama terlalu mirip latar, aplikasi menyesuaikannya agar tetap terbaca. Halaman baca mengikuti palet ini saat preset “Ikuti tema aplikasi” dipilih; preset dan warna khusus tetap tersedia.</p>
   </div>`
 
 export default function settings(root) {

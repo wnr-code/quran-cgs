@@ -7,6 +7,7 @@ import { juzStart, pageStart, TOTAL_PAGES, juzOf, pageOf } from '../utils/quran-
 import { clamp } from '../utils/helpers.js'
 
 export const PRESETS = {
+  theme: 'Ikuti tema aplikasi',
   classic: 'Mushaf Klasik',
   ivory: 'Ivory Reading',
   dark: 'Dark Reading',
@@ -16,7 +17,7 @@ export const PRESETS = {
 /** Terapkan pengaturan baca sebagai CSS custom properties pada elemen pembaca. */
 export function applyReaderStyle(el) {
   const r = getSettings().reader
-  el.dataset.preset = PRESETS[r.preset] ? r.preset : 'ivory'
+  el.dataset.preset = PRESETS[r.preset] ? r.preset : 'theme'
   el.dataset.mode = r.mode
   el.classList.toggle('hide-translation', !r.showTranslation)
   el.classList.toggle('hide-latin', !r.showLatin)
@@ -70,7 +71,7 @@ export function openReaderSettings(onChange) {
           <label>Teks <input type="color" name="customText" value="${r.customText || '#1f2a24'}" /></label>
           <button class="btn sm" data-clear-colors>Pakai warna preset</button>
         </div></div>
-      <p class="hint">Kecerahan diatur lewat preset (mis. Night Comfort) — QuranKu tidak mengubah kecerahan layar sistem.</p>
+      <p class="hint">“Ikuti tema aplikasi” menyamakan halaman baca dengan tema global; preset dan warna kustom menjadi pilihan khusus pembaca. Kecerahan layar tidak diubah oleh QuranKu.</p>
       <div class="btn-row"><button class="btn" data-reset>Kembalikan ke bawaan</button></div>`,
     onOpen(body, close) {
       const commit = (patch) => {

@@ -52,7 +52,7 @@ export default async function home(root) {
 
     <section class="card goal-card" data-goal></section>
 
-    <section aria-label="Pintasan"><div class="shortcut-grid">
+    <section class="home-shortcuts" aria-label="Pintasan"><p class="section-title">Akses cepat</p><div class="shortcut-grid">
       ${SHORTCUTS.map(([p, i, l]) => `<a class="shortcut" href="#${p}"><span class="shortcut-ic">${icon(i)}</span><span>${l}</span></a>`).join('')}
     </div></section>
 
@@ -103,7 +103,7 @@ export default async function home(root) {
         ${last.surahNameAr ? `<span class="continue-ar" lang="ar" dir="rtl">${esc(last.surahNameAr)}</span>` : ''}
       </div>
       <div class="bar"><i style="width:${pct}%"></i></div>
-      <a class="btn btn-primary btn-block" href="#/surah/${last.surah}?resume=1">${icon('book')}LANJUTKAN MEMBACA</a>`
+      <a class="btn btn-primary btn-block" href="#/surah/${last.surah}?resume=1">${icon('book')}Lanjutkan membaca</a>`
   }
 
   const renderGoal = async () => {
