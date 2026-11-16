@@ -51,13 +51,17 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      # v4 runs on Node 24; v3 targeted the deprecated Node 20 runtime.
+      - uses: android-actions/setup-android@v4.0.4
       - name: Install Android SDK 36
         run: |
           SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKM" --licenses > /dev/null || true
           "$SDKM" "platforms;android-36" "build-tools;36.0.0" > /dev/null
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          # Use GitHub Actions cache instead of the optional commercial Gradle cache provider.
+          cache-provider: basic
       - name: Generate PWA and Android icons/splash assets
         run: npm run gen:icons
       - name: Build shared web UI and sync Capacitor Android assets
@@ -130,28 +134,28 @@ jobs:
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
           cp android/app/build/outputs/bundle/release/*.aab "$RUNNER_TEMP/aab/"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: QuranKu-APK-untuk-dipasang
           path: ${{ runner.temp }}/apk/*.apk
           if-no-files-found: error
       - name: Upload signed AAB for Play Console
         if: steps.release_signing.outputs.enabled == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: quranku-play-store-aab
           path: ${{ runner.temp }}/aab/*.aab
           if-no-files-found: error
       - name: Upload unsigned AAB for build validation only
         if: steps.release_signing.outputs.enabled != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: quranku-aab-unsigned-build
           path: ${{ runner.temp }}/aab/*.aab
           if-no-files-found: error
       - name: Upload Android diagnostics on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-build-diagnostics
           path: |
