@@ -75,6 +75,7 @@ jobs:
             ls -l "$APK" | awk '{print "ukuran: " $5 " byte"}'
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=APK::$(basename "$APK") | $JENIS | $("$BT/aapt2" dump badging "$APK" | grep -E '^package:') | $(grep -ci 'SHA-256' "$RUNNER_TEMP/sig.txt") tanda tangan | $(stat -c %s "$APK") byte"
       - uses: actions/upload-artifact@v4
         with:
           name: QuranKu-APK-untuk-dipasang
