@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-// The optional upload/release key comes from an ignored local properties file or CI secrets; never commit it.
+// The existing upload/release key comes from an ignored local properties file or CI-injected environment variables; never commit it.
 def releaseProperties = new Properties()
 def releasePropertiesFile = rootProject.file('keystore.properties')
 if (releasePropertiesFile.exists()) releasePropertiesFile.withInputStream { releaseProperties.load(it) }
@@ -11,6 +11,16 @@ def releaseKeyAlias = releaseValue('keyAlias', 'QURANKU_KEY_ALIAS')
 def releaseKeyPassword = releaseValue('keyPassword', 'QURANKU_KEY_PASSWORD')
 def canSignRelease = [releaseStorePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword].every { it != null && !it.isBlank() }
 def packageVersion = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version
+
+gradle.taskGraph.whenReady { graph ->
+    def releaseArtifactTasks = ['assembleRelease', 'bundleRelease', 'packageRelease', 'signReleaseBundle']
+    def requestsReleaseArtifact = graph.allTasks.any { task ->
+        task.project == project && releaseArtifactTasks.contains(task.name)
+    }
+    if (requestsReleaseArtifact && !canSignRelease) {
+        throw new GradleException('Release signing is required. Configure the existing upload key using android/keystore.properties or the QURANKU_KEYSTORE_* environment variables.')
+    }
+}
 
 android {
     namespace = 'id.cgs.quranku'

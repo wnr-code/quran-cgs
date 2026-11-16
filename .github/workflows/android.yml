@@ -1,6 +1,7 @@
 # Build the shared PWA UI into an Android APK/AAB through Capacitor and smoke-test it on Android 12 and Android 16.
-# Optional Play upload-key signing secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
-# ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD. Google Play App Signing keeps the app-signing key in Play Console.
+# Release artifacts are produced only when all four GitHub Actions upload-key secrets are configured;
+# the AAB is verified and uploaded as a GitHub artifact only, never published to Google Play by this workflow.
+# Google Play App Signing keeps the app-signing key in Play Console; this keystore is the upload key.
 name: Android build
 on:
   workflow_dispatch:
@@ -117,7 +118,7 @@ jobs:
           emulator-boot-timeout: 600
           disable-animations: true
           script: cd android && ./gradlew --no-daemon --stacktrace :app:connectedDebugAndroidTest
-      - name: Prepare optional Play upload-key signing
+      - name: Prepare Play upload-key signing
         id: release_signing
         env:
           KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -125,64 +126,119 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          if [ -n "$KS" ]; then
-            if [ -z "$KS_PASSWORD" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
-              echo '::error::Upload keystore is configured, but a password or alias secret is missing.'
-              exit 1
-            fi
-            echo "$KS" | base64 -d > "$RUNNER_TEMP/quranku.jks"
-            echo "QURANKU_KEYSTORE_FILE=$RUNNER_TEMP/quranku.jks" >> "$GITHUB_ENV"
-            echo "QURANKU_KEYSTORE_PASSWORD=$KS_PASSWORD" >> "$GITHUB_ENV"
-            echo "QURANKU_KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
-            echo "QURANKU_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
-            echo 'enabled=true' >> "$GITHUB_OUTPUT"
-          else
+          set -euo pipefail
+          configured=0
+          for value in "$KS" "$KS_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD"; do
+            if [ -n "$value" ]; then configured=$((configured + 1)); fi
+          done
+
+          if [ "$configured" -eq 0 ]; then
             echo 'enabled=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::Release signing secrets are not configured; debug tests will run, but release APK/AAB outputs will be skipped.'
+            {
+              echo '### Android release signing'
+              echo 'Skipped: add all four upload-key secrets to enable signed release outputs. No unsigned AAB is created or uploaded.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
           fi
+
+          if [ "$configured" -ne 4 ]; then
+            echo '::error::Release signing is partially configured. Set all four upload-key secrets before building a release.'
+            exit 1
+          fi
+
+          KEYSTORE_PATH="$RUNNER_TEMP/quranku-upload.jks"
+          umask 077
+          if ! printf '%s' "$KS" | base64 --decode > "$KEYSTORE_PATH"; then
+            echo '::error::ANDROID_KEYSTORE_BASE64 is not valid base64.'
+            exit 1
+          fi
+          if [ ! -s "$KEYSTORE_PATH" ]; then
+            echo '::error::The decoded upload keystore is empty.'
+            exit 1
+          fi
+          chmod 600 "$KEYSTORE_PATH"
+          if ! keytool -list -keystore "$KEYSTORE_PATH" -storepass "$KS_PASSWORD" -alias "$KEY_ALIAS" >/dev/null 2>&1; then
+            echo '::error::The upload keystore could not be opened with the configured password and alias. Check the GitHub secrets; values are not printed.'
+            exit 1
+          fi
+
+          echo "QURANKU_KEYSTORE_FILE=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+          echo "QURANKU_KEYSTORE_PASSWORD=$KS_PASSWORD" >> "$GITHUB_ENV"
+          echo "QURANKU_KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "QURANKU_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+          echo 'enabled=true' >> "$GITHUB_OUTPUT"
       - name: Build release APK and AAB
+        if: steps.release_signing.outputs.enabled == 'true'
         working-directory: android
         run: ./gradlew --no-daemon --stacktrace :app:assembleRelease :app:bundleRelease
       - name: Verify APK and prepare install artifacts
         env:
           SIGNED: ${{ steps.release_signing.outputs.enabled }}
         run: |
+          set -euo pipefail
           VER=$(node -p "require('./package.json').version")
           BT="$ANDROID_HOME/build-tools/36.0.0"
+          DEBUG_APK="android/app/build/outputs/apk/debug/app-debug.apk"
           mkdir -p "$RUNNER_TEMP/apk" "$RUNNER_TEMP/aab"
-          cp android/app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/apk/QuranKu-$VER-uji.apk"
+          cp "$DEBUG_APK" "$RUNNER_TEMP/apk/QuranKu-$VER-uji.apk"
+          "$BT/apksigner" verify --print-certs "$DEBUG_APK" > "$RUNNER_TEMP/debug-signature.txt"
+
           if [ "$SIGNED" = true ]; then
-            cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/apk/QuranKu-$VER.apk"
-            APK="$RUNNER_TEMP/apk/QuranKu-$VER.apk"
+            RELEASE_APK="android/app/build/outputs/apk/release/app-release.apk"
+            AAB=$(find android/app/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' -print -quit)
+            if [ ! -f "$RELEASE_APK" ] || [ -z "$AAB" ]; then
+              echo '::error::The signed release APK or AAB was not produced.'
+              exit 1
+            fi
+
+            cp "$RELEASE_APK" "$RUNNER_TEMP/apk/QuranKu-$VER.apk"
+            "$BT/apksigner" verify --print-certs "$RELEASE_APK" > "$RUNNER_TEMP/release-signature.txt"
+            jar tf "$AAB" > "$RUNNER_TEMP/aab-entries.txt"
+            if ! grep -Eiq '^META-INF/[^/]+\.(SF|RSA|DSA|EC)$' "$RUNNER_TEMP/aab-entries.txt"; then
+              echo '::error::The release AAB does not contain a signature block.'
+              exit 1
+            fi
+            if ! jarsigner -verify "$AAB" > "$RUNNER_TEMP/aab-signature-check.txt" 2>&1 || ! grep -Eiq 'jar verified' "$RUNNER_TEMP/aab-signature-check.txt"; then
+              echo '::error::The release AAB signature could not be verified.'
+              exit 1
+            fi
+            cp "$AAB" "$RUNNER_TEMP/aab/"
+            echo 'Release APK and AAB signatures verified. The AAB is available as a GitHub artifact only; this workflow does not publish it to Google Play.' >> "$GITHUB_STEP_SUMMARY"
           else
-            APK="$RUNNER_TEMP/apk/QuranKu-$VER-uji.apk"
+            echo 'Release outputs skipped because upload-key secrets are not configured; only the debug test APK is available.' >> "$GITHUB_STEP_SUMMARY"
           fi
-          "$BT/apksigner" verify --print-certs "$APK" > "$RUNNER_TEMP/signature.txt"
+
           {
-            echo "### Android APK: $(basename "$APK")"
+            echo "### Android APK for testing: QuranKu-$VER-uji.apk"
             echo '```'
-            "$BT/aapt2" dump badging "$APK" | grep -E "^package:|^sdkVersion|^targetSdkVersion|^application-label:"
-            grep -i 'SHA-256' "$RUNNER_TEMP/signature.txt"
-            ls -lh "$APK" | awk '{print "size: " $5}'
+            "$BT/aapt2" dump badging "$DEBUG_APK" | grep -E "^package:|^sdkVersion|^targetSdkVersion|^application-label:"
+            ls -lh "$RUNNER_TEMP/apk/QuranKu-$VER-uji.apk" | awk '{print "size: " $5}'
             echo '```'
-          } | tee -a "$GITHUB_STEP_SUMMARY"
-          cp android/app/build/outputs/bundle/release/*.aab "$RUNNER_TEMP/aab/"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$SIGNED" = true ]; then
+            {
+              echo "### Signed release APK: QuranKu-$VER.apk"
+              echo '```'
+              "$BT/aapt2" dump badging "$RELEASE_APK" | grep -E "^package:|^sdkVersion|^targetSdkVersion|^application-label:"
+              ls -lh "$RUNNER_TEMP/apk/QuranKu-$VER.apk" | awk '{print "size: " $5}'
+              echo 'AAB signature verification: passed'
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Remove temporary upload keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/quranku-upload.jks"
       - uses: actions/upload-artifact@v7
         with:
           name: QuranKu-APK-untuk-dipasang
           path: ${{ runner.temp }}/apk/*.apk
           if-no-files-found: error
-      - name: Upload signed AAB for Play Console
+      - name: Upload signed AAB artifact (GitHub only)
         if: steps.release_signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: quranku-play-store-aab
-          path: ${{ runner.temp }}/aab/*.aab
-          if-no-files-found: error
-      - name: Upload unsigned AAB for build validation only
-        if: steps.release_signing.outputs.enabled != 'true'
-        uses: actions/upload-artifact@v7
-        with:
-          name: quranku-aab-unsigned-build
+          name: quranku-play-store-aab-signed
           path: ${{ runner.temp }}/aab/*.aab
           if-no-files-found: error
       - name: Upload Android diagnostics on failure
