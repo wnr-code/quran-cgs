@@ -1054,7 +1054,8 @@ body.reading-mode .reader.mode-page .rd-wrap {
   line-height: 1.2;
 }
 .more-hero .more-arabic {
-  justify-self: start;
+  justify-self: end;
+  text-align: start;
   margin-top: 2px;
   color: color-mix(in srgb, var(--accent) 88%, white);
   font-size: 1.25rem;
