@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core'
+
 export const $ = (sel, root = document) => root.querySelector(sel)
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel))
 
@@ -122,5 +124,6 @@ export function downloadFile(filename, content, type = 'application/json') {
 }
 
 export const isStandalone = () =>
+  Capacitor.isNativePlatform() ||
   (typeof matchMedia === 'function' && (matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches)) ||
   navigator.standalone === true

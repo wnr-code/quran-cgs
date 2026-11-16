@@ -57,8 +57,8 @@ const app = {
   }
 }
 
-// Alamat resmi aplikasi (utama & cadangan) boleh saling memanggil API: dipakai saat salah satunya mati.
-const ALLOWED_ORIGINS = new Set(['https://quran.cgs.my.id', 'https://quran-cgs.appwnr.workers.dev'])
+// Situs utama/cadangan serta Capacitor's fixed https://localhost WebView origin may call the public app APIs.
+const ALLOWED_ORIGINS = new Set(['https://quran.cgs.my.id', 'https://quran-cgs.appwnr.workers.dev', 'https://localhost'])
 export const corsHeaders = (origin) =>
   ALLOWED_ORIGINS.has(origin) ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400', Vary: 'Origin' } : null
 

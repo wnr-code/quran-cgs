@@ -1,4 +1,4 @@
-import { pageHeader, emptyState } from '../components/navbar.js'
+import { pageHeader, emptyState } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { locationPickerHtml, bindLocationPicker } from '../components/location-picker.js'
 import { getPrayerTimes, METHODS } from '../api/prayer-api.js'
@@ -6,15 +6,19 @@ import { getSettings, saveSettings } from '../services/storage.js'
 import { notifPermission } from '../services/notification.js'
 import { ADZAN_VOICES, PRAYERS, IMSAK_BEFORE, TARHIM_BEFORE, enableAdzan, disableAdzan, playAdzan, stopAdzan, adzanPlaying, pushSupported, isRamadan } from '../services/adzan.js'
 import { formatClock, formatGregorian } from '../utils/format.js'
+import { isNativePlatform } from '../services/platform.js'
 import { formatHijri } from '../utils/hijri.js'
 import { $, esc, toast, on } from '../utils/helpers.js'
 
 function adzanCard(s) {
   const a = s.adzan
   const perm = notifPermission()
+  const native = isNativePlatform()
   const status = !a.enabled
     ? ''
-    : perm !== 'granted'
+    : native
+      ? `<p class="adzan-status warn">${icon('info')}Pada aplikasi Android, adzan otomatis berjalan selama QuranKu terbuka. Pengingat saat aplikasi ditutup belum tersedia.</p>`
+      : perm !== 'granted'
       ? `<p class="adzan-status warn">${icon('info')}Izin notifikasi belum diberikan — adzan hanya berbunyi selama aplikasi terbuka.</p>`
       : pushSupported()
         ? `<p class="adzan-status ok">${icon('check')}Pemberitahuan tetap dikirim saat aplikasi ditutup.</p>`
@@ -25,14 +29,14 @@ function adzanCard(s) {
     ${status}
     <div class="adzan-body" ${a.enabled ? '' : 'hidden'}>
       <div class="adzan-chips" role="group" aria-label="Waktu salat yang berbunyi">${PRAYERS.map(([k, l]) => `<label class="chip-toggle"><input type="checkbox" data-adzan="${k}" ${a[k] !== false ? 'checked' : ''} /><span>${l}</span></label>`).join('')}</div>
-      <label class="switch-row"><span>Putar suara adzan<small>Saat aplikasi terbuka atau aktif di latar belakang</small></span><input type="checkbox" data-adzan="sound" ${a.sound ? 'checked' : ''} /></label>
+      <label class="switch-row"><span>Putar suara adzan<small>${native ? 'Selama aplikasi terbuka' : 'Saat aplikasi terbuka atau aktif di latar belakang'}</small></span><input type="checkbox" data-adzan="sound" ${a.sound ? 'checked' : ''} /></label>
       <label class="field"><span>Suara adzan</span>
         <div class="input-row"><select data-adzan-voice>${Object.entries(ADZAN_VOICES).map(([k, l]) => `<option value="${k}" ${k === a.voice ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>
         <button class="btn" data-adzan-test>${icon('play')}<span>Coba</span></button></div></label>
       <p class="eyebrow adzan-sub">Bulan Ramadan${isRamadan() ? ' · sedang berlangsung' : ''}</p>
       <label class="switch-row"><span>Pengingat Imsak<small>${IMSAK_BEFORE} menit sebelum Subuh</small></span><input type="checkbox" data-adzan="imsak" ${a.imsak ? 'checked' : ''} /></label>
       <label class="switch-row"><span>Pengingat Tarhim<small>${TARHIM_BEFORE} menit sebelum Subuh</small></span><input type="checkbox" data-adzan="tarhim" ${a.tarhim ? 'checked' : ''} /></label>
-      <p class="hint">Saat aplikasi ditutup, yang muncul adalah pemberitahuan dengan nada notifikasi perangkat — ketuk untuk memutar adzan. Imsak & tarhim berupa pemberitahuan dan hanya aktif pada bulan Ramadan. Suara adzan: aladhan.com.</p>
+      <p class="hint">${native ? 'Di Android, suara adzan dan pengingat tampil sebagai pesan di dalam aplikasi selama QuranKu terbuka; tidak ada notifikasi sistem atau alarm saat aplikasi ditutup. ' : 'Saat aplikasi ditutup, pemberitahuan memakai nada perangkat — ketuk untuk memutar adzan. '}${native ? 'Imsak dan tarhim juga hanya tampil saat aplikasi terbuka' : 'Imsak & tarhim berupa pemberitahuan'} dan hanya aktif pada bulan Ramadan. Suara adzan: aladhan.com.</p>
     </div></section>`
 }
 

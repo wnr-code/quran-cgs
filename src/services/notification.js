@@ -1,22 +1,31 @@
-// Pengingat lokal (tanpa server push). KETERBATASAN: browser/Android hanya dapat menampilkan
-// pengingat ini selama QuranKu terbuka atau masih berjalan di latar belakang. Tidak ada jaminan
-// notifikasi muncul ketika aplikasi ditutup sepenuhnya.
+// Web notifications are used by the PWA. Capacitor Android has no native notification plugin,
+// so the shared reminder loop falls back to in-app toasts while the app is open.
+import { isNativePlatform } from './platform.js'
+import { toast } from '../utils/helpers.js'
 import { getSettings } from './storage.js'
 import { todayProgress, goalPages } from './progress.js'
 import { dateKey, formatClock } from '../utils/format.js'
 import { takeDueReminders } from './calendar-notes.js'
 
-export const notifSupported = () => 'Notification' in globalThis
-export const notifPermission = () => (notifSupported() ? Notification.permission : 'unsupported')
+export const notifSupported = () => isNativePlatform() || 'Notification' in globalThis
+export const notifPermission = () => {
+  if (isNativePlatform()) return 'foreground'
+  return 'Notification' in globalThis ? Notification.permission : 'unsupported'
+}
 
-/** Dipanggil HANYA setelah pengguna mengaktifkan fitur pengingat. */
+/** Ask only in a browser; the native shell deliberately uses foreground-only in-app messages. */
 export async function requestNotifPermission() {
+  if (isNativePlatform()) return 'foreground'
   if (!notifSupported()) return 'unsupported'
   if (Notification.permission === 'default') return Notification.requestPermission()
   return Notification.permission
 }
 
 export async function showNotification(title, body, tag) {
+  if (isNativePlatform()) {
+    toast(`${title} · ${body}`, 6000)
+    return true
+  }
   if (notifPermission() !== 'granted') return false
   const opts = { body, tag, icon: '/icons/icon-192-v2.png', badge: '/icons/badge-96-v2.png', lang: 'id' }
   try {
@@ -43,9 +52,9 @@ const fireOnce = (key, title, body) => {
 async function tick() {
   const s = getSettings()
   const r = s.reminders
-  if (notifPermission() !== 'granted') return
+  if (!isNativePlatform() && notifPermission() !== 'granted') return
   const now = new Date()
-  // Pengingat catatan kalender: tampil saat jamnya tiba (atau begitu aplikasi dibuka sesudahnya pada hari yang sama).
+  // Calendar reminders and reading goals surface as in-app toasts on Android while it is open.
   for (const n of takeDueReminders(now)) showNotification('Pengingat kalender', n.text, 'kal-' + n.id)
   if (!r.tilawah && !r.goal) return
   const hm = formatClock(now)

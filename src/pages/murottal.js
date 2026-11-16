@@ -1,6 +1,6 @@
 import { getSurahList, getSurah, friendlyError } from '../api/api-adapter.js'
 import { QARI, QARI_AYAH, QARI_SURAH } from '../config.js'
-import { pageHeader, skeleton, errorState } from '../components/navbar.js'
+import { pageHeader, skeleton, errorState } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { openSheet } from '../components/modal.js'
 import * as audio from '../services/audio.js'

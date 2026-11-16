@@ -1,4 +1,4 @@
-import { pageHeader, skeleton } from '../components/navbar.js'
+import { pageHeader, skeleton } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { DOA_QURAN } from '../data/ayat-pilihan.js'
 import { getSurah, friendlyError } from '../api/api-adapter.js'

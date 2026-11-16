@@ -3,7 +3,7 @@
 import { getSurahList } from '../api/api-adapter.js'
 import { surahRepo } from '../database/repositories.js'
 import { surahRow } from '../components/surah-card.js'
-import { pageHeader, emptyState } from '../components/navbar.js'
+import { pageHeader, emptyState } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { $, esc, debounce } from '../utils/helpers.js'
 import { toLatinDigits } from '../utils/arabic-numbers.js'

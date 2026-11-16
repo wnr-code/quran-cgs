@@ -1,16 +1,16 @@
 # Status fitur — teruji, belum teruji, dan batasan
 
-Terakhir diperbarui: 16 November 2026.
+Terakhir diperbarui: 14 November 2026.
 
-## Cara pengujian
-- `npm test` — 48 test lulus, 0 gagal (16 November 2026; mencakup worker/API, kalender, Al-Qur'an, doa, Asmaul Husna, dan webhook → SQLite sungguhan → papan donatur).
-- `npm run build` — berhasil tanpa error.
-- `tests/e2e/smoke.mjs` — 14 langkah di Chromium headless terhadap build produksi dengan API tiruan, semuanya lulus.
-- `tests/e2e/fallback.mjs` — semua API pihak ketiga dimatikan; surah terbuka dari data lokal.
-- **Workflow GitHub Actions "Live API test"** — menguji **API sungguhan** (EQuran.id, Al Quran Cloud) dari runner GitHub: `tests/live/api.mjs` (kontrak data) dan `tests/e2e/live.mjs` (alur di Chrome tanpa mock). Jalankan ulang kapan saja dari tab Actions.
-- **Workflow "Android build"** — membangun APK/AAB.
+## Pengujian implementasi Capacitor
 
-## Teruji terhadap API sungguhan (15 Nov 2026)
+- `npm test` — **51 lulus, 0 gagal**; mencakup API/Worker, CORS origin eksplisit, perutean API Capacitor, fallback pengingat Android, pemetaan data lama, kalender, Al-Qur'an, doa, infaq, dan database.
+- `npm run cap:sync` — berhasil: build produksi Vite dan sinkronisasi ke `android/` selesai; Capacitor menemukan plugin App, Geolocation, Splash Screen, dan Status Bar. Font Arab ikut masuk ke `dist/fonts/`.
+- Gradle APK, uji instrumentasi Android, dan emulator belum dijalankan di sandbox ini; workflow Android yang baru belum berjalan. Smoke test Java untuk UI bersama sudah ditambahkan.
+- Uji migrasi yang lulus memeriksa pemetaan/validasi cache surah, bukan perpindahan end-to-end dari APK lama pada perangkat.
+- Web CI (`ci.yml`) menjalankan `npm test` dan `npm run build`; Android workflow menjalankan tes Gradle dan startup smoke test emulator.
+
+## Teruji terhadap API sungguhan
 - EQuran.id: daftar 114 surah; **seluruh 114 surah diunduh dan lolos validasi, total 6236 ayat**; basmalah tidak menempel pada ayat 1; tafsir; header CORS `*`.
 - Audio EQuran: tersedia untuk 6 qari, per ayat dan per surah, mendukung Range.
 - Qari tambahan (surah penuh, mp3quran.net): 25 qari dari `wnr-code/qori-alquran-json`. Tiap rekaman dicocokkan dengan API resmi mp3quran (riwayat Hafs, 114 surah; berkas 001 dan 114 berukuran sama persis dengan alamat resmi), berkas 001/002/114 terjangkau dengan ukuran wajar, mendukung Range dan CORS. Pemutaran di Chrome sungguhan diuji untuk satu qari (Mahir al-Mu'aiqly, surah 114). 27 qari lain di sumber tidak dipakai: surah tidak lengkap, alamat archive.org yang tidak tetap, riwayat tidak dapat dipastikan, atau sudah tersedia dari EQuran. Rincian: `scripts/gen-qari.mjs`, `tests/live/qari.mjs`.
@@ -37,18 +37,18 @@ Terakhir diperbarui: 16 November 2026.
 | Deploy Cloudflare (Workers), domain, proxy `/api/quran` | `npm run build` dan `npx --yes wrangler deploy --dry-run` (Wrangler 4.162.0) berhasil; dry-run membaca 177 aset dan tidak melakukan deploy. Namun check `Workers Builds: quran-cgs` pada PR #30 tetap gagal ([build `ca9dcb4c-8e2d-4697-95de-677cbd671fa2`](https://dash.cloudflare.com/880c5e424f64b605d1f118776956fd0b/workers/services/view/quran-cgs/production/builds/ca9dcb4c-8e2d-4697-95de-677cbd671fa2)). GitHub hanya menampilkan ID/script, tanpa anotasi atau alasan. PR tidak mengubah `worker/index.js` atau `wrangler.toml`; penyebab belum dapat dipastikan tanpa log Cloudflare. Deploy produksi/domain tetap belum diverifikasi. |
 | Infaq terhadap Trakteer & D1 sungguhan | Alur aplikasi, webhook, sinkronisasi Public API, dan klaim ID transaksi teruji secara lokal (SQLite + `wrangler dev`). Belum pernah dijalankan terhadap Trakteer atau D1 produksi. Mode QRIS langsung tidak resmi dan belum terverifikasi; lihat [INFAQ.md](INFAQ.md). |
 | Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
-| Notifikasi/adzan dan kompas berbasis sensor | Fitur PWA perlu validasi perangkat fisik. Android native belum menyediakan notifikasi/adzan atau sensor kompas; arah kiblatnya hanya bearing koordinat kota. |
-| Android APK/AAB | 1.4.1 berhasil dibangun dan lolos uji instrumentasi startup/data offline pada emulator Android 16 (API 36) di [workflow run 43796748819](https://github.com/wnr-code/quran-cgs/actions/runs/43796748819). Artefak APK debug `QuranKu-1.4.1-uji.apk` (versionCode 310) dan `quranku-aab-unsigned-build` tersedia di Actions; AAB tanpa kunci hanya untuk validasi build, bukan untuk diunggah ke Play. **Belum diuji di HP fisik atau diajukan ke Play.** Lihat [ANDROID.md](ANDROID.md). |
+| Notifikasi/adzan dan kompas berbasis sensor | PWA/Web Push perlu validasi pada peramban/perangkat sasaran. Android menampilkan pengingat sebagai toast saat aplikasi terbuka dan dapat memutar adzan foreground; tidak ada notifikasi sistem/alarm saat ditutup. Kiblat memakai bearing koordinat, tanpa sensor kompas. |
+| Android APK/AAB | Workflow Capacitor baru menjalankan Gradle build/unit tests dan uji startup pada emulator Android 16, tetapi belum berjalan untuk perubahan ini. `npm run cap:sync` berhasil; Gradle/emulator belum diuji di sandbox dan perangkat fisik belum diuji. Run Compose lama tidak memvalidasi APK Capacitor. Belum ada rilis Play. Lihat [ANDROID.md](ANDROID.md). |
 | Instalasi PWA di ponsel, Lighthouse, iOS Safari | Belum diuji. |
 
 ## Belum dikerjakan / berbeda dari spesifikasi
-- **Data lokal cadangan terakhir** (`/data/`, dari paket `quran-json`) hanya berisi **teks Arab** — tanpa terjemahan, transliterasi, audio, dan tafsir (terjemahan paket itu tidak dipublikasikan karena hak redistribusinya tidak jelas). Berkas ini disajikan dari domain aplikasi, jadi tetap memerlukan koneksi ke situs; untuk pemakaian tanpa internet gunakan *Kelola Offline → Unduh semua teks*.
-- **Android native 1.4.1 belum memiliki pengingat/adzan atau notifikasi.** PWA memiliki notifikasi adzan berbasis Web Push setelah izin diberikan; bila PWA tertutup, notifikasi memakai nada sistem dan adzan baru diputar setelah diketuk. Perilaku nyata tetap perlu diuji pada perangkat/peramban sasaran.
+- **Data lokal cadangan terakhir** (`/data/`, dari paket `quran-json`) hanya berisi **teks Arab** — tanpa terjemahan, transliterasi, audio, dan tafsir (terjemahan paket itu tidak dipublikasikan karena hak redistribusinya tidak jelas). Berkas tersedia dari aset aplikasi; APK membundelnya, sedangkan PWA mengandalkan cache Service Worker untuk akses offline.
+- **Notifikasi:** PWA dapat memakai Web Push setelah izin diberikan; saat tertutup bunyi mengikuti nada sistem dan adzan diputar setelah pemberitahuan diketuk. Android Capacitor tidak meminta izin notifikasi sistem atau menjalankan alarm saat ditutup; pengingat muncul sebagai toast dalam aplikasi dan adzan foreground hanya saat QuranKu terbuka.
 - **Hari besar Islam pada kalender** dihitung dari kalender Umm al-Qura dan dapat berbeda 1–2 hari dari ketetapan pemerintah RI; tersedia koreksi ±2 hari di pengaturan.
-- **Jadwal salat:** web/PWA menghitung hisab lokal (Subuh 20°, Isya 18°, ihtiyat 2 menit) dan menampilkan waktu dalam zona perangkat; Android native memakai zona kota terpilih (WIB/WITA/WIT atau waktu Saudi). Keduanya memakai koordinat perkiraan pusat kota dan dapat berbeda beberapa menit dari jadwal resmi Kemenag; cocokkan dengan otoritas setempat.
+- **Jadwal salat:** PWA dan APK memakai kalkulasi JavaScript lokal yang sama dan zona waktu perangkat. Keduanya memakai koordinat kota perkiraan dan dapat berbeda beberapa menit dari jadwal resmi Kemenag; cocokkan dengan otoritas setempat.
 - **Nomor halaman** mengikuti mushaf Madinah 604 halaman dari metadata `quran-meta`, bukan dari API. Navigasi per halaman melompat ke ayat pertama halaman; tata letak baris demi baris seperti mushaf cetak tidak tersedia.
 - **Pencarian kata** hanya mencakup surah yang sudah tersimpan di perangkat.
-- **PWA web:** layar penuh sistem hanya bila peramban mengizinkan Fullscreen API. APK native menampilkan antarmuka Android sendiri dan tidak memakai TWA/WebView.
+- **Mode imersif:** PWA tab mencoba Fullscreen API bila didukung; PWA terpasang dan APK Capacitor menyembunyikan UI browser melalui mode standalone tetapi tidak meminta immersive Android khusus.
 - **Audio unduhan** disimpan sebagai respons *opaque* karena server audio EQuran tidak mengirim header CORS. Pemutaran offline berfungsi, tetapi ukuran berkas tidak dapat dibaca aplikasi dan peramban menghitung kuota penyimpanan lebih besar daripada ukuran asli.
 - Beranda memiliki dua pintasan tambahan di luar enam yang diminta: Arah Kiblat dan Infaq.
 - **Screenshot di `store/screenshots/`** dibuat dari API tiruan (edisi teks `quran-json`). Ambil ulang dari situs produksi sebelum diunggah ke Play Store.

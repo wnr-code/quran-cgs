@@ -1,5 +1,5 @@
 // Kalender Hijriah: ketuk tanggal → keterangan hari (hari besar, amalan puasa) + catatan & pengingat pribadi.
-import { pageHeader, emptyState } from '../components/navbar.js'
+import { pageHeader, emptyState } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { openSheet } from '../components/modal.js'
 import { getSettings } from '../services/storage.js'
@@ -155,7 +155,11 @@ export default function calendar(root) {
           if (!remind.checked) return (hint.textContent = 'Catatan hanya tersimpan di perangkat ini.')
           if (!notifSupported()) return (hint.textContent = 'Peramban ini tidak mendukung notifikasi; pengingat hanya tampil sebagai tanda di kalender.')
           const p = notifPermission() === 'granted' ? 'granted' : await requestNotifPermission()
-          hint.textContent = p === 'granted' ? 'Pengingat muncul sebagai notifikasi selama QuranKu terbuka atau berjalan di latar; bila aplikasi tertutup, ia muncul saat dibuka pada hari itu.' : 'Izin notifikasi belum diberikan. Catatan tetap tersimpan, tetapi notifikasi tidak akan muncul.'
+          hint.textContent = p === 'foreground'
+            ? 'Di aplikasi Android, pengingat tampil sebagai pesan di dalam aplikasi selama QuranKu terbuka; notifikasi sistem saat aplikasi ditutup belum tersedia.'
+            : p === 'granted'
+              ? 'Pengingat muncul sebagai notifikasi selama QuranKu terbuka atau berjalan di latar; bila aplikasi tertutup, ia muncul saat dibuka pada hari itu.'
+              : 'Izin notifikasi belum diberikan. Catatan tetap tersimpan, tetapi notifikasi tidak akan muncul.'
         })
         $('[data-form]', el).addEventListener('submit', (e) => {
           e.preventDefault()

@@ -1,6 +1,6 @@
 import { icon } from './icons.js'
 
-// Navigasi bawah mengambang: empat menu + tombol tengah (FAB) untuk membaca Al-Qur'an.
+// Floating bottom navigation for the shared PWA / Capacitor interface.
 const ITEMS = [
   { path: '/', label: 'Beranda', icon: 'home' },
   { path: '/murottal', label: 'Murottal', icon: 'headphones' },
@@ -10,10 +10,10 @@ const ITEMS = [
 ]
 
 export function renderNavbar(el) {
-  el.innerHTML = ITEMS.map((i) =>
-    i.fab
-      ? `<a href="#${i.path}" data-path="${i.path}" class="nav-item nav-fab" aria-label="Baca Al-Qur'an"><span class="fab-disc">${icon(i.icon)}</span><span>${i.label}</span></a>`
-      : `<a href="#${i.path}" data-path="${i.path}" class="nav-item">${icon(i.icon)}<span>${i.label}</span></a>`
+  el.innerHTML = ITEMS.map((item) =>
+    item.fab
+      ? `<a href="#${item.path}" data-path="${item.path}" class="nav-item nav-fab" aria-label="Baca Al-Qur'an"><span class="fab-disc">${icon(item.icon)}</span><span>${item.label}</span></a>`
+      : `<a href="#${item.path}" data-path="${item.path}" class="nav-item">${icon(item.icon)}<span>${item.label}</span></a>`
   ).join('')
 }
 
@@ -23,29 +23,13 @@ export function setActiveNav(el, path) {
   if (path === '/') active = '/'
   else if (path.startsWith('/surah') || path.startsWith('/tafsir') || path.startsWith('/cari')) active = '/quran'
   else {
-    const m = main.find((p) => path.startsWith(p))
-    if (m) active = m
+    const match = main.find((candidate) => path.startsWith(candidate))
+    if (match) active = match
   }
-  for (const a of el.querySelectorAll('.nav-item')) {
-    const on = a.dataset.path === active
-    a.classList.toggle('active', on)
-    if (on) a.setAttribute('aria-current', 'page')
-    else a.removeAttribute('aria-current')
+  for (const anchor of el.querySelectorAll('.nav-item')) {
+    const selected = anchor.dataset.path === active
+    anchor.classList.toggle('active', selected)
+    if (selected) anchor.setAttribute('aria-current', 'page')
+    else anchor.removeAttribute('aria-current')
   }
 }
-
-export function pageHeader(title, { back = true, actions = '', subtitle = '' } = {}) {
-  return `<header class="page-head">
-    ${back ? `<button class="icon-btn" data-back aria-label="Kembali">${icon('back')}</button>` : ''}
-    <div class="page-title"><h1>${title}</h1>${subtitle ? `<p>${subtitle}</p>` : ''}</div>
-    <div class="page-actions">${actions}</div>
-  </header>`
-}
-
-export const skeleton = (n = 6, cls = '') => `<div class="skeleton-list">${Array.from({ length: n }, () => `<div class="skeleton ${cls}"></div>`).join('')}</div>`
-
-export const emptyState = (iconName, title, text = '', action = '') =>
-  `<div class="state">${icon(iconName, 'state-icon')}<h3>${title}</h3>${text ? `<p>${text}</p>` : ''}${action}</div>`
-
-export const errorState = (text, retryAttr = 'data-retry') =>
-  `<div class="state state-error">${icon('cloudOff', 'state-icon')}<h3>Tidak dapat memuat data</h3><p>${text}</p><button class="btn btn-primary" ${retryAttr}>${icon('refresh')}Coba lagi</button></div>`

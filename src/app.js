@@ -1,3 +1,4 @@
+import './styles/tokens.css'
 import './styles/theme.css'
 import './styles/main.css'
 import './styles/reader.css'
@@ -12,10 +13,14 @@ import { startReminderLoop } from './services/notification.js'
 import { initAdzan, adzanTick } from './services/adzan.js'
 import { getSurahList } from './api/api-adapter.js'
 import { installFetchFailover } from './services/failover.js'
+import { initializeNativeShell, hideNativeSplash } from './services/native-shell.js'
+import { prepareLegacyNativeData, importLegacyNativeSurahs } from './services/legacy-migration.js'
+import { isStandalone } from './utils/helpers.js'
 
 installFetchFailover()
 
 initSettings()
+initializeNativeShell()
 
 // Lazy loading + code splitting: setiap halaman dimuat saat dibutuhkan.
 addRoute('/', () => import('./pages/home.js'))
@@ -60,12 +65,18 @@ startRouter(document.getElementById('view'), (path, meta) => {
   hideSplash()
 })
 
+// Restore legacy preferences without blocking the first route, then import any cached Quran chapters in the background.
+void prepareLegacyNativeData()
+  .then((migration) => migration && importLegacyNativeSurahs(migration))
+  .catch((error) => console.warn('[migration] data Android lama tidak dapat dipindahkan', error))
+
 /** Tutup layar pembuka setelah halaman pertama siap. Di aplikasi terpasang ditahan sebentar agar salam sempat terbaca. */
 function hideSplash() {
   const el = document.getElementById('splash')
   if (!el || el.dataset.closing) return
   el.dataset.closing = '1'
-  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true
+  void hideNativeSplash()
+  const standalone = isStandalone()
   const wait = Math.max(0, (standalone ? 1400 : 500) - (Date.now() - (window.__splashAt || 0)))
   setTimeout(() => {
     el.classList.add('hide')

@@ -174,9 +174,11 @@ export default async function home(root) {
   renderGoal()
   renderPrayer()
   renderAyah()
-  const off = on('progress:changed', renderGoal)
+  const offProgress = on('progress:changed', renderGoal)
+  const offLastRead = on('lastread:changed', renderContinue)
   return () => {
-    off()
+    offProgress()
+    offLastRead()
     document.removeEventListener('visibilitychange', onVisible)
   }
 }

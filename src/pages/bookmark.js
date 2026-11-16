@@ -1,7 +1,7 @@
 import { bookmarkRepo, noteRepo, historyRepo, exportBackup, importBackup } from '../database/repositories.js'
 import { getLastRead } from '../services/reading-position.js'
 import { getSettings, replaceSettings } from '../services/storage.js'
-import { pageHeader, emptyState } from '../components/navbar.js'
+import { pageHeader, emptyState } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { confirmDialog } from '../components/modal.js'
 import { $, esc, toast, downloadFile } from '../utils/helpers.js'

@@ -3,8 +3,8 @@
 [![Lisensi: MIT](https://img.shields.io/badge/Lisensi-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/wnr-code/quran-cgs/actions/workflows/ci.yml/badge.svg)](https://github.com/wnr-code/quran-cgs/actions/workflows/ci.yml)
 
-Aplikasi Al-Qur'an digital berbahasa Indonesia dengan dua antarmuka: **PWA web** dan **aplikasi Android native** (Jetpack Compose). Aplikasi Android tidak membungkus situs dalam WebView/TWA; konten Android dibuat dengan komponen native dan memakai data pilihan yang sama.
-Gratis, tanpa iklan, tanpa akun, tanpa pelacak, dan **sumber terbuka (MIT)**. PWA memakai Cloudflare Workers + D1; versi Android dapat membaca sebagian data secara offline.
+Aplikasi Al-Qur'an digital berbahasa Indonesia dengan **satu antarmuka bersama** untuk PWA web dan APK Android. Keduanya memakai HTML, CSS, JavaScript, halaman, dan API yang sama; Capacitor menyediakan cangkang Android tipis, bukan UI Compose terpisah.
+Gratis, tanpa iklan, tanpa akun, tanpa pelacak, dan **sumber terbuka (MIT)**. PWA memakai Cloudflare Workers + D1; Android membundel antarmuka dan data cadangan untuk penggunaan offline.
 
 **Buka aplikasi:** https://quran.cgs.my.id · cadangan: https://quran-cgs.appwnr.workers.dev
 
@@ -15,7 +15,7 @@ Gratis, tanpa iklan, tanpa akun, tanpa pelacak, dan **sumber terbuka (MIT)**. PW
 | Alamat utama | https://quran.cgs.my.id |
 | Alamat cadangan | https://quran-cgs.appwnr.workers.dev (dipakai otomatis bila alamat utama tidak terjangkau) |
 | Hosting | Cloudflare Workers + aset statis + D1 (`npx wrangler deploy`; build otomatis, output `dist`) |
-| Teknologi | HTML, CSS, JavaScript ES Modules, Vite, IndexedDB, Service Worker, Cache API, Web Push |
+| Teknologi | HTML, CSS, JavaScript ES Modules, Vite, IndexedDB, Service Worker, Cache API, Web Push (PWA), Capacitor 8 (Android) |
 | Lisensi | [MIT](LICENSE) |
 
 ## Menjalankan
@@ -27,20 +27,23 @@ npm test           # unit test
 npm run build      # hasil di dist/ (termasuk dist/sw.js)
 npm run preview    # menyajikan dist/ di http://localhost:4173
 npx wrangler dev   # aplikasi + API (/api/*) + D1 lokal, http://localhost:8787
+npm run cap:sync   # build PWA yang sama dan sinkronkan aset Android Capacitor
+npm run cap:open   # buka proyek android/ di Android Studio
 ```
 
 Service worker hanya aktif pada hasil build (`npm run build && npm run preview`, atau `npx wrangler dev`), tidak pada `npm run dev`.
 
 Konfigurasi: `INFAQ_USERNAME` dan `INFAQ_UNIT_PRICE` ada di `wrangler.toml`; secret (webhook/API pembayaran) diisi di dashboard Cloudflare → [docs/INFAQ.md](docs/INFAQ.md). Untuk `wrangler dev` lokal, tulis secret di `.dev.vars` (lihat `.env.example`).
 
-## Fitur Android native (1.4.1)
+## Android APK (Capacitor)
 
-- Beranda Android dengan navigasi bawah native, ringkasan bacaan terakhir, pintasan, dan desain responsif terang/gelap; salam Arab, sapaan waktu, dan tanggal ditata terpisah agar mudah dibaca.
-- Splash screen sistem Android dengan ikon buku QuranKu khusus; startup data offline memakai fallback aman. Target Android 16 (API 36), dengan uji launch emulator di CI.
-- Daftar 114 surah tersedia offline; teks Arab dan terjemahan Kemenag dimuat dari EQuran.id saat pertama kali membuka surah, lalu disimpan di perangkat. Ukuran huruf dan tampilan arti dapat diatur.
-- Doa Harian per kategori, Doa Wudhu, dan Usai Salat dari Quran NU Online; lafaz, Latin, arti, tombol tampil/sembunyi, dan bagikan. Data dibundel sehingga dapat dibaca offline.
-- Jadwal salat hasil hitung astronomis lokal setelah pengguna memilih kota; arah kiblat berdasarkan kota; Tasbih Digital; Asmaul Husna; halaman Sumber Data dan Tentang.
-- Bukan seluruh fitur versi web: murottal, tafsir, bookmark, kalender, infaq, sinkronisasi, dan notifikasi adzan masih tersedia pada versi web/PWA, belum dipindahkan ke Android native.
+- APK memuat `dist/` hasil build aplikasi yang sama dengan PWA: halaman, navigasi, komponen, tema, penyimpanan lokal, adapter API, dan fallback offline tidak diduplikasi dalam proyek Android.
+- Android menambahkan cangkang Capacitor, status bar/splash, tombol kembali, lokasi perkiraan saat diminta, serta satu jembatan migrasi untuk memindahkan posisi baca, kota, tasbih, dan cache surah dari APK Compose lama.
+- Data Al-Qur'an dan fitur yang tersedia di PWA menggunakan UI serta API yang sama. Teks yang pernah dibaca tetap tersimpan di IndexedDB dan data cadangan lokal dapat dibaca tanpa koneksi.
+- Adzan dan pengingat di APK berjalan hanya saat aplikasi terbuka sebagai pesan dalam aplikasi; Web Push/alarm/notifikasi sistem saat APK ditutup belum tersedia. Izin lokasi perkiraan Android diminta hanya setelah pengguna memilih **Gunakan lokasi saya**; APK tidak meminta izin notifikasi sistem.
+- Target Android 16 (API 36). CI membangun APK/AAB dan menjalankan uji startup di emulator; uji perangkat fisik tetap diperlukan sebelum rilis.
+
+Perintah `npm run cap:sync` menjalankan build web lalu menyalin aset yang sama ke Android. Lihat [docs/ANDROID.md](docs/ANDROID.md) untuk APK, AAB, signing, migrasi data, dan keterbatasan native.
 
 ## Fitur PWA / web
 
@@ -74,11 +77,12 @@ src/pages/            satu berkas per halaman (dimuat lazy)
 src/components/       navbar, modal, kartu ayat, toolbar baca, pemutar audio
 src/utils/            angka Arab-Indic, metadata juz/halaman, Hijriah, validasi
 src/data/             metadata Quran (hasil scripts/gen-meta.mjs), Asmaul Husna, dzikir, qari, kota, daftar sumber
-src/styles/           tema, komponen, reader, responsif
-functions/            handler API: proxy EQuran, infaq (buat/status/klaim), webhook, papan donatur, push adzan
+src/styles/           design tokens, tema, komponen, reader, responsif
+functions/            handler API: proxy EQuran, infaq (buat/status/klaim), webhook, papan donatur, push PWA
 worker/               entry Cloudflare Worker (merutekan /api/* + aset statis)
 migrations/           skema D1 (papan donatur, langganan push)
-android/              aplikasi Android native (Jetpack Compose, Gradle; tanpa WebView/TWA)
+capacitor.config.json konfigurasi Capacitor untuk app yang sama
+android/              cangkang Android Capacitor + migrasi data lokal Compose lama
 store/                materi Google Play (deskripsi, grafis, screenshot, Data Safety)
 tests/                unit test + smoke test E2E
 docs/                 panduan deploy, Android, infaq, status fitur

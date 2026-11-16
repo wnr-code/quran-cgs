@@ -1,7 +1,7 @@
 // QURANKU READING MODE — halaman baca surah (Mushaf Continuous & Ayah Focus) + mode imersif layar penuh.
 import { getSurah, getSurahList, friendlyError } from '../api/api-adapter.js'
 import { icon } from '../components/icons.js'
-import { skeleton, errorState } from '../components/navbar.js'
+import { skeleton, errorState } from '../components/page-layout.js'
 import { flowHtml, focusHtml, pagesHtml, openAyahSheet, ayahShareText } from '../components/ayah-card.js'
 import { applyReaderStyle, openReaderSettings, openJumpSheet } from '../components/reading-toolbar.js'
 import { openSheet } from '../components/modal.js'
@@ -277,7 +277,7 @@ export default async function reader(root, { params, query, initial }) {
     $$('[data-act="immersive"]', readerEl).forEach((b) => b.classList.contains('icon-btn') && (b.innerHTML = icon(v ? 'shrink' : 'expand')))
     if (v) {
       let fs = false
-      // Di PWA/TWA (standalone) tampilan sudah tanpa UI browser; Fullscreen API hanya dicoba di tab browser.
+      // PWA terpasang dan Capacitor sudah tampil tanpa UI browser; Fullscreen API hanya dicoba di tab browser.
       if (!isStandalone() && document.documentElement.requestFullscreen) {
         try {
           await document.documentElement.requestFullscreen({ navigationUI: 'hide' })

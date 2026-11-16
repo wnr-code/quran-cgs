@@ -1,4 +1,4 @@
-import { pageHeader, emptyState } from '../components/navbar.js'
+import { pageHeader, emptyState } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { locationPickerHtml, bindLocationPicker } from '../components/location-picker.js'
 import { qiblaBearing, distanceToKaaba, startCompass } from '../services/qibla.js'

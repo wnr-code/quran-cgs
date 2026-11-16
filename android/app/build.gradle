@@ -1,97 +1,78 @@
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id 'org.jetbrains.kotlin.plugin.compose'
-}
+apply plugin: 'com.android.application'
 
-// Kunci rilis tidak disimpan di repository; bisa diberikan lewat keystore.properties atau secrets CI.
-def ksProps = new Properties()
-def ksFile = rootProject.file('keystore.properties')
-if (ksFile.exists()) ksFile.withInputStream { ksProps.load(it) }
-def ks = { String prop, String env -> ksProps.getProperty(prop) ?: System.getenv(env) }
-def hasSigning = ks('storeFile', 'QURANKU_KEYSTORE_FILE') != null
-def generatedNativeAssets = layout.buildDirectory.dir('generated/nativeAssets').get().asFile
-
-tasks.register('copyNativeContent', Copy) {
-    from(rootProject.file('../src/data')) {
-        include 'doa-nu.json', 'dzikir.json', 'asmaul-husna.json'
-    }
-    into generatedNativeAssets
-}
+// Release keys come from an ignored local properties file or CI secrets; never commit a real key.
+def releaseProperties = new Properties()
+def releasePropertiesFile = rootProject.file('keystore.properties')
+if (releasePropertiesFile.exists()) releasePropertiesFile.withInputStream { releaseProperties.load(it) }
+def releaseValue = { String property, String environment -> releaseProperties.getProperty(property) ?: System.getenv(environment) }
+def releaseStorePath = releaseValue('storeFile', 'QURANKU_KEYSTORE_FILE')
+def releaseStorePassword = releaseValue('storePassword', 'QURANKU_KEYSTORE_PASSWORD')
+def releaseKeyAlias = releaseValue('keyAlias', 'QURANKU_KEY_ALIAS')
+def releaseKeyPassword = releaseValue('keyPassword', 'QURANKU_KEY_PASSWORD')
+def canSignRelease = [releaseStorePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword].every { it != null && !it.isBlank() }
+def packageVersion = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version
 
 android {
-    namespace 'id.cgs.quranku'
-    compileSdk 36
+    namespace = 'id.cgs.quranku'
+    compileSdk = rootProject.ext.compileSdkVersion
 
     defaultConfig {
         applicationId 'id.cgs.quranku'
-        minSdk 23
-        targetSdk 36
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        // Keep local debug upgrades above the last published Compose-era CI code (310).
+        versionCode((System.getenv('QURANKU_VERSION_CODE') ?: '320') as Integer)
+        versionName(System.getenv('QURANKU_VERSION_NAME') ?: packageVersion)
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        versionCode((System.getenv('QURANKU_VERSION_CODE') ?: '2') as Integer)
-        versionName(System.getenv('QURANKU_VERSION_NAME') ?: new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version)
-    }
-
-    sourceSets {
-        main.assets.srcDir generatedNativeAssets
-    }
-
-    buildFeatures {
-        compose true
-        buildConfig true
+        aaptOptions {
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
     }
 
     signingConfigs {
         release {
-            if (hasSigning) {
-                storeFile file(ks('storeFile', 'QURANKU_KEYSTORE_FILE'))
-                storePassword ks('storePassword', 'QURANKU_KEYSTORE_PASSWORD')
-                keyAlias ks('keyAlias', 'QURANKU_KEY_ALIAS')
-                keyPassword ks('keyPassword', 'QURANKU_KEY_PASSWORD')
+            if (canSignRelease) {
+                def keyFile = new File(releaseStorePath)
+                storeFile = keyFile.isAbsolute() ? keyFile : rootProject.file(releaseStorePath)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
-            if (hasSigning) signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (canSignRelease) signingConfig signingConfigs.release
         }
-    }
-
-    compileOptions {
-        coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = '17'
     }
 }
 
-tasks.named('preBuild').configure { dependsOn('copyNativeContent') }
+repositories {
+    flatDir {
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
 
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
-    implementation platform('androidx.compose:compose-bom:2025.05.01')
-    implementation 'androidx.activity:activity-compose:1.10.1'
-    implementation 'androidx.compose.ui:ui'
-    implementation 'androidx.compose.ui:ui-graphics'
-    implementation 'androidx.compose.ui:ui-tooling-preview'
-    implementation 'androidx.compose.material3:material3'
-    implementation 'androidx.compose.material:material-icons-extended'
-    implementation 'androidx.core:core-ktx:1.15.0'
-    implementation 'androidx.core:core-splashscreen:1.2.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    implementation project(':capacitor-cordova-android-plugins')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+}
 
-    androidTestImplementation platform('androidx.compose:compose-bom:2025.05.01')
-    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
-    androidTestImplementation 'androidx.test.ext:junit:1.3.0'
-    androidTestImplementation 'androidx.test:runner:1.7.0'
+apply from: 'capacitor.build.gradle'
 
-    debugImplementation 'androidx.compose.ui:ui-tooling'
-    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) apply plugin: 'com.google.gms.google-services'
+} catch (Exception ignored) {
+    logger.info('google-services.json not found; Google services plugin not applied')
 }

@@ -1,4 +1,4 @@
-import { pageHeader } from '../components/navbar.js'
+import { pageHeader } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { confirmDialog } from '../components/modal.js'
 import { getSettings, saveSettings, replaceSettings } from '../services/storage.js'
@@ -10,6 +10,7 @@ import { $, toast } from '../utils/helpers.js'
 import { toArabicIndic } from '../utils/arabic-numbers.js'
 import { formatHijri } from '../utils/hijri.js'
 import { APP, BASMALAH } from '../config.js'
+import { clearLegacyNativeData } from '../services/legacy-migration.js'
 import { THEME_PRESETS, deriveTheme } from '../utils/theme.js'
 
 const seg = (key, opts, cur) => `<div class="seg" data-seg="${key}">${opts.map(([v, l]) => `<button data-v="${v}" class="${String(cur) === String(v) ? 'on' : ''}">${l}</button>`).join('')}</div>`
@@ -79,12 +80,19 @@ export default function settings(root) {
       await clearAudio()
       await clearAppCache()
       clearMemory()
+      let legacyDataError = false
+      try {
+        await clearLegacyNativeData()
+      } catch (error) {
+        legacyDataError = true
+        console.warn('[migration] data Android lama belum sepenuhnya terhapus', error)
+      }
       try {
         localStorage.clear()
         sessionStorage.clear()
       } catch {}
       replaceSettings({})
-      toast('Semua data telah dihapus')
+      toast(legacyDataError ? 'Data lokal dihapus; sebagian cache Android lama belum dapat dihapus' : 'Semua data telah dihapus')
       render()
     }
   })

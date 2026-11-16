@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
-    <shortcut android:shortcutId="lanjut" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_lanjut">
-        <intent android:action="android.intent.action.VIEW" android:targetPackage="id.cgs.quranku" android:targetClass="id.cgs.quranku.MainActivity" android:data="quranku://resume" />
-    </shortcut>
-    <shortcut android:shortcutId="quran" android:enabled="true" android:icon="@mipmap/ic_launcher" android:shortcutShortLabel="@string/sc_quran">
-        <intent android:action="android.intent.action.VIEW" android:targetPackage="id.cgs.quranku" android:targetClass="id.cgs.quranku.MainActivity" android:data="quranku://quran" />
-    </shortcut>
-</shortcuts>

@@ -4,6 +4,7 @@ import { CITIES } from '../data/cities.js'
 import { getSettings, saveSettings } from '../services/storage.js'
 import { getCurrentPosition } from '../api/prayer-api.js'
 import { parseCoord } from '../utils/validation.js'
+import { isNativePlatform } from '../services/platform.js'
 import { esc, toast } from '../utils/helpers.js'
 
 export function locationPickerHtml() {
@@ -14,7 +15,7 @@ export function locationPickerHtml() {
     <label class="field"><span>Atau pilih kota</span><select data-loc-city><option value="">— pilih kota —</option>${CITIES.map((c, i) => `<option value="${i}" ${loc && loc.name === c.name ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>
     <details><summary>Input koordinat manual</summary>
       <form data-loc-manual class="input-row"><input name="lat" placeholder="Lintang, mis. -6.9764" inputmode="decimal" required /><input name="lng" placeholder="Bujur, mis. 108.4836" inputmode="decimal" required /><button class="btn">Simpan</button></form></details>
-    <p class="hint">Lokasi hanya disimpan di perangkat ini dan dipakai untuk perhitungan lokal. Tidak dikirim ke server.</p></section>`
+    <p class="hint">${isNativePlatform() ? 'Lokasi disimpan di perangkat dan dipakai untuk perhitungan lokal; Android tidak mengirimnya ke server QuranKu.' : 'Lokasi dipakai untuk perhitungan lokal. Jika Anda menyalakan Adzan otomatis berbasis Web Push, koordinat dibulatkan ±1 km dan disimpan di server agar jadwal pemberitahuan dapat dihitung.'}</p></section>`
 }
 
 export function bindLocationPicker(root, onChange) {

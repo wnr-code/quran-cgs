@@ -146,7 +146,7 @@ export const SOURCES = [
       { name: 'Vite', use: 'Alat build aplikasi web.', license: 'MIT', url: 'https://vite.dev', host: 'vite.dev' },
       { name: 'qrcode-generator (Kazuhiko Arase)', use: 'Menggambar kode QR pembayaran di halaman infaq, langsung di perangkat.', license: 'MIT', url: 'https://github.com/kazuhikoarase/qrcode-generator', host: 'github.com/kazuhikoarase/qrcode-generator' },
       { name: 'Fontsource', use: 'Paket berkas font Amiri Quran dan Scheherazade New yang disalin ke aplikasi saat build.', url: 'https://fontsource.org', host: 'fontsource.org' },
-      { name: 'Android Browser Helper (Google)', use: 'Pembungkus Trusted Web Activity untuk aplikasi Android.', license: 'Apache 2.0', url: 'https://github.com/GoogleChrome/android-browser-helper', host: 'github.com/GoogleChrome/android-browser-helper' }
+      { name: 'Capacitor 8 (Ionic)', use: 'Cangkang Android tipis untuk menjalankan UI web bersama dan mengakses tombol kembali, status bar, splash screen, serta lokasi opsional.', license: 'MIT', url: 'https://github.com/ionic-team/capacitor', host: 'github.com/ionic-team/capacitor' }
     ]
   },
   {
@@ -162,8 +162,8 @@ export const SOURCES = [
       },
       {
         name: 'Web Push (layanan pemberitahuan peramban)',
-        use: 'Pemberitahuan adzan, imsak, dan tarhim saat aplikasi tertutup dikirim lewat layanan push milik peramban Anda (mis. Google FCM, Mozilla, Apple).',
-        note: 'Hanya dipakai bila Anda menyalakan Adzan otomatis. Yang disimpan di server: alamat langganan push, koordinat lokasi salat (dibulatkan ±1 km), dan pilihan waktu.'
+        use: 'Pada PWA/peramban yang mendukung, pemberitahuan adzan, imsak, dan tarhim saat aplikasi tertutup dikirim lewat layanan push peramban Anda (mis. Google FCM, Mozilla, Apple).',
+        note: 'Hanya dipakai bila Anda menyalakan Adzan otomatis berbasis Web Push. Yang disimpan di server: alamat langganan push, koordinat lokasi salat (dibulatkan ±1 km), dan pilihan waktu. APK Android Capacitor tidak mendaftar Web Push.'
       },
       {
         name: 'Trakteer',

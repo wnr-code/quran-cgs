@@ -12,8 +12,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
-  font-size: 16px;
-  line-height: 1.55;
+  font-size: var(--text-base);
+  line-height: var(--line-height-body);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
@@ -117,9 +117,9 @@ html {
   outline: none;
 }
 .page {
-  max-width: 760px;
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: calc(12px + var(--safe-t)) 16px calc(var(--nav-h) + var(--player-h) + var(--safe-b) + 28px);
+  padding: calc(var(--space-3) + var(--safe-t)) var(--space-4) calc(var(--nav-h) + var(--player-h) + var(--safe-b) + 28px);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -139,7 +139,7 @@ html {
 .page-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   min-height: 48px;
   position: sticky;
   top: 0;
@@ -154,7 +154,7 @@ html {
   min-width: 0;
 }
 .page-title h1 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -162,7 +162,7 @@ html {
   text-overflow: ellipsis;
 }
 .page-title p {
-  font-size: 0.8rem;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 .page-actions {
@@ -248,15 +248,15 @@ html {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 16px;
-  border-radius: 999px;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
   border: 1px solid var(--border);
   background: var(--surface);
   font-weight: 600;
-  font-size: 0.92rem;
-  transition: transform 0.1s, background 0.15s;
+  font-size: var(--text-sm);
+  transition: transform var(--motion-fast), background var(--motion-normal);
 }
 .btn .icon {
   width: 18px;
@@ -308,7 +308,7 @@ html {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 16px;
+  padding: var(--space-4);
   box-shadow: var(--shadow);
   display: block;
 }
@@ -890,8 +890,8 @@ html {
 }
 input[type='text'], input[type='number'], input[type='time'], input:not([type]), select, textarea {
   width: 100%;
-  min-height: 44px;
-  padding: 8px 12px;
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg);

@@ -100,6 +100,19 @@ test('pemetaan respons EQuran v2', () => {
   assert.equal(mapSummary({ nomor: '2', jumlahAyat: '286' }).jumlahAyat, 286)
 })
 
+test('migrasi cache Compose: hanya surah lama yang lolos validasi masuk format shared app', async () => {
+  const { mapLegacyChapter } = await import('../src/services/legacy-migration.js')
+  const legacy = {
+    nomor: 1, nama: 'الفاتحة', namaLatin: 'Al-Fatihah', jumlahAyat: 7, tempatTurun: 'Mekah', arti: 'Pembukaan', deskripsi: '',
+    ayat: Array.from({ length: 7 }, (_, index) => ({ nomorAyat: index + 1, teksArab: 'ا', teksLatin: '', teksIndonesia: '' }))
+  }
+  const mapped = mapLegacyChapter(JSON.stringify(legacy), 1)
+  assert.ok(validateSurahDetail(mapped, 1))
+  assert.equal(mapped.source, 'equran')
+  assert.equal(mapLegacyChapter(legacy, 2), null, 'surah yang tidak sesuai dengan nama berkas ditolak')
+  assert.equal(mapLegacyChapter('{broken json', 1), null)
+})
+
 test('basmalah pada edisi cadangan dipisahkan dengan benar', () => {
   const b = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ'
   assert.equal(stripBasmalah(`${b} الٓمٓ`, 2, 1), 'الٓمٓ')
@@ -368,13 +381,53 @@ test('failover: alamat utama mati → data diambil dari alamat cadangan', async 
   assert.equal((await f3('/api/x')).status, 404)
 })
 
+test('Capacitor API routing: API same-app goes to Worker, bundled data and third-party APIs stay local', async () => {
+  const { createNativeApiFetch } = await import('../src/services/failover.js')
+  const calls = []
+  const routed = createNativeApiFetch(async (input, init) => {
+    calls.push({ input, init })
+    return new Response('ok')
+  }, 'https://localhost', 'https://quran.cgs.my.id')
+
+  await routed('/api/infaq/config?source=android')
+  assert.equal(calls[0].input, 'https://quran.cgs.my.id/api/infaq/config?source=android')
+  await routed('/data/surah/1.json')
+  assert.equal(calls[1].input, '/data/surah/1.json', 'bundled Quran data remains on the app origin')
+  await routed('https://equran.id/api/v2/surat')
+  assert.equal(calls[2].input, 'https://equran.id/api/v2/surat', 'third-party API URLs are unchanged')
+
+  const request = new Request('https://localhost/api/infaq/create', { method: 'POST', body: '{"quantity":1}' })
+  await routed(request)
+  assert.equal(calls[3].input.url, 'https://quran.cgs.my.id/api/infaq/create')
+  assert.equal(calls[3].input.method, 'POST')
+  assert.equal(await calls[3].input.text(), '{"quantity":1}')
+})
+
+test('notifikasi Android memakai pesan foreground tanpa meminta izin sistem', async () => {
+  const { notifSupported, notifPermission, requestNotifPermission } = await import('../src/services/notification.js')
+  globalThis.androidBridge = {}
+  try {
+    assert.equal(notifSupported(), true)
+    assert.equal(notifPermission(), 'foreground')
+    assert.equal(await requestNotifPermission(), 'foreground')
+  } finally {
+    delete globalThis.androidBridge
+  }
+})
+
 test('worker: CORS hanya untuk alamat resmi + preflight', async () => {
   const { default: worker, corsHeaders } = await import('../worker/index.js')
   assert.equal(corsHeaders('https://evil.example'), null)
+  assert.equal(corsHeaders('http://localhost'), null)
+  assert.equal(corsHeaders('https://localhost:8443'), null)
+  assert.ok(corsHeaders('https://localhost'), 'Capacitor Android WebView origin is allowed')
   const env = { ASSETS: { fetch: async () => new Response('aset') } }
   const pre = await worker.fetch(new Request('https://quran-cgs.appwnr.workers.dev/api/infaq/create', { method: 'OPTIONS', headers: { Origin: 'https://quran.cgs.my.id' } }), env, { waitUntil() {} })
   assert.equal(pre.status, 204)
   assert.equal(pre.headers.get('Access-Control-Allow-Origin'), 'https://quran.cgs.my.id')
+  const nativePreflight = await worker.fetch(new Request('https://quran.cgs.my.id/api/infaq/create', { method: 'OPTIONS', headers: { Origin: 'https://localhost' } }), env, { waitUntil() {} })
+  assert.equal(nativePreflight.status, 204)
+  assert.equal(nativePreflight.headers.get('Access-Control-Allow-Origin'), 'https://localhost')
   const nf = await worker.fetch(new Request('https://quran-cgs.appwnr.workers.dev/api/tidak-ada', { headers: { Origin: 'https://quran.cgs.my.id' } }), env, { waitUntil() {} })
   assert.equal(nf.status, 404)
   assert.equal(nf.headers.get('Access-Control-Allow-Origin'), 'https://quran.cgs.my.id')

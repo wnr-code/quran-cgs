@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">QuranKu</string>
-    <string name="sc_lanjut">Lanjutkan membaca</string>
-    <string name="sc_quran">Baca Al-Qur’an</string>
+    <string name="title_activity_main">QuranKu</string>
+    <string name="package_name">id.cgs.quranku</string>
+    <string name="custom_url_scheme">id.cgs.quranku</string>
 </resources>

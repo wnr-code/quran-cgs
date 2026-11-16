@@ -1,9 +1,11 @@
-import { pageHeader } from '../components/navbar.js'
+import { pageHeader } from '../components/page-layout.js'
 import { LOGO_SVG, icon } from '../components/icons.js'
 import { APP } from '../config.js'
 import { esc } from '../utils/helpers.js'
+import { isNativePlatform } from '../services/platform.js'
 
 export default function about(root) {
+  const native = isNativePlatform()
   root.innerHTML = `<div class="page">${pageHeader('Tentang QuranKu')}
     <section class="card about-hero">${LOGO_SVG}<h2>${APP.name}</h2><p class="muted">Versi <span data-version>${esc(APP.versionLabel)}</span><br />${APP.packageId}</p>
       <p>Aplikasi Al-Qur'an digital berbahasa Indonesia: gratis, tanpa iklan, tanpa akun, dan sumber terbuka.</p>
@@ -30,7 +32,7 @@ export default function about(root) {
       <div class="btn-row"><a class="btn" href="${APP.repo}" target="_blank" rel="noopener noreferrer">${icon('grid')}Kode sumber</a><a class="btn" href="${APP.repo}/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">${icon('shield')}Teks lisensi MIT</a></div></section>
 
     <section class="card"><p class="eyebrow">Privasi</p>
-      <p>Tidak ada akun, iklan, atau pelacakan. Bookmark, catatan, tanda, riwayat, dan pengaturan hanya tersimpan di perangkat Anda. Bila Adzan otomatis dinyalakan, alamat langganan pemberitahuan dan koordinat lokasi salat (dibulatkan ±1 km) disimpan di server agar pemberitahuan dapat dikirim; mematikannya menghapus langganan tersebut.</p>
+      <p>${native ? 'Tidak ada akun, iklan, atau pelacakan. Bookmark, catatan, tanda, riwayat, pengaturan, dan lokasi tersimpan di perangkat. APK Android tidak memakai Web Push atau notifikasi sistem; adzan dan pengingat hanya tampil di dalam aplikasi saat QuranKu terbuka.' : 'Tidak ada akun, iklan, atau pelacakan. Bookmark, catatan, tanda, riwayat, dan pengaturan tersimpan di perangkat. Jika Adzan otomatis berbasis Web Push diaktifkan, langganan pemberitahuan dan koordinat lokasi yang dibulatkan ±1 km disimpan di server agar pemberitahuan dapat dikirim; mematikannya menghapus langganan tersebut.'}</p>
       <div class="btn-row"><a class="btn" href="/privacy.html" target="_blank" rel="noopener">${icon('shield')}Kebijakan Privasi</a><a class="btn" href="#/infaq">${icon('heart')}Infaq pengembang</a></div></section>
   </div>`
 }
