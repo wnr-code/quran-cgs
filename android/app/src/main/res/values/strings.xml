@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">QuranKu</string>
     <string name="sc_lanjut">Lanjutkan membaca</string>
-    <string name="sc_murottal">Murottal</string>
+    <string name="sc_quran">Baca Al-Qur’an</string>
 </resources>

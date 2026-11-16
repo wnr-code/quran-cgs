@@ -38,7 +38,7 @@ Terakhir diperbarui: 15 November 2026.
 | Infaq terhadap Trakteer & D1 sungguhan | Alur aplikasi, webhook, sinkronisasi Public API, dan klaim ID transaksi teruji secara lokal (SQLite + `wrangler dev`). Belum pernah dijalankan terhadap Trakteer atau D1 produksi. Mode QRIS langsung tidak resmi dan belum terverifikasi; lihat [INFAQ.md](INFAQ.md). |
 | Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
 | Notifikasi dan kompas kiblat | Memerlukan perangkat fisik. |
-| Android APK/AAB | Build di GitHub Actions berhasil (tanpa signing). **Belum dipasang/diuji di perangkat**, belum ditandatangani, belum diajukan ke Play. Lihat [ANDROID.md](ANDROID.md). |
+| Android APK/AAB | Build CI Jetpack Compose berhasil (workflow run [43783371276](https://github.com/wnr-code/quran-cgs/actions/runs/43783371276)); menghasilkan APK uji 1.4.0, bertanda tangan debug sementara. **Belum dipasang/diuji di perangkat** dan belum diajukan ke Play. Lihat [ANDROID.md](ANDROID.md). |
 | Instalasi PWA di ponsel, Lighthouse, iOS Safari | Belum diuji. |
 
 ## Belum dikerjakan / berbeda dari spesifikasi
@@ -48,7 +48,7 @@ Terakhir diperbarui: 15 November 2026.
 - **Jadwal salat** adalah hisab lokal (Subuh 20°, Isya 18°, ihtiyat 2 menit) dan dapat berbeda 1–2 menit dari jadwal resmi Kemenag. Waktu ditampilkan dalam zona waktu perangkat.
 - **Nomor halaman** mengikuti mushaf Madinah 604 halaman dari metadata `quran-meta`, bukan dari API. Navigasi per halaman melompat ke ayat pertama halaman; tata letak baris demi baris seperti mushaf cetak tidak tersedia.
 - **Pencarian kata** hanya mencakup surah yang sudah tersimpan di perangkat.
-- **Layar penuh sistem** hanya bila peramban mengizinkan Fullscreen API; di TWA bilah status tetap tampil.
+- **PWA web:** layar penuh sistem hanya bila peramban mengizinkan Fullscreen API. APK native menampilkan antarmuka Android sendiri dan tidak memakai TWA/WebView.
 - **Audio unduhan** disimpan sebagai respons *opaque* karena server audio EQuran tidak mengirim header CORS. Pemutaran offline berfungsi, tetapi ukuran berkas tidak dapat dibaca aplikasi dan peramban menghitung kuota penyimpanan lebih besar daripada ukuran asli.
 - Beranda memiliki dua pintasan tambahan di luar enam yang diminta: Arah Kiblat dan Infaq.
 - **Screenshot di `store/screenshots/`** dibuat dari API tiruan (edisi teks `quran-json`). Ambil ulang dari situs produksi sebelum diunggah ke Play Store.
@@ -70,7 +70,7 @@ Terakhir diperbarui: 15 November 2026.
 - **Adzan otomatis** (Jadwal Salat → kartu "Adzan otomatis", bisa On/Off, per waktu salat, pilihan muazin, tombol Coba).
   - Aplikasi terbuka/aktif di latar belakang: suara adzan diputar otomatis tepat waktunya (`src/services/adzan.js`).
   - Aplikasi ditutup: Worker (cron tiap menit) menghitung jadwal tiap pelanggan dan mengirim **Web Push** (`functions/lib/adzan.js`, `functions/lib/webpush.js`, `functions/api/push.js`, tabel D1 `push_subs`). Kunci VAPID dibuat otomatis dan disimpan di D1 (atau isi secret `VAPID_PUBLIC_KEY` + `VAPID_PRIVATE_JWK`).
-  - **Batasan platform web:** saat aplikasi tertutup, yang berbunyi adalah nada notifikasi perangkat, bukan rekaman adzan; adzan diputar setelah pemberitahuan diketuk. Adzan bersuara penuh saat tertutup hanya mungkin dengan aplikasi Android native (AlarmManager), bukan PWA/TWA.
+  - **Batasan platform web:** saat PWA tertutup, yang berbunyi adalah nada notifikasi perangkat, bukan rekaman adzan; adzan diputar setelah pemberitahuan diketuk. Fitur adzan belum tersedia pada antarmuka Android native 1.4.0.
   - **Imsak** (Subuh − 10 mnt) dan **Tarhim** (Subuh − 15 mnt): pemberitahuan, hanya bulan Ramadan (kalender Umm al-Qura + koreksi hari pengguna). Belum ada rekaman tarhim dari sumber tepercaya, jadi tanpa audio.
   - Suara adzan: `cdn.aladhan.com` (6 rekaman yang tercantum di aladhan.com/play), diperiksa oleh `tests/live/adzan.mjs`.
 - **Kompas kiblat** baru: piringan SVG berderajat, penanda Ka'bah, pusat derajat, cahaya & getar saat tepat kiblat, kartu statistik.
@@ -79,7 +79,7 @@ Terakhir diperbarui: 15 November 2026.
 ## Pembaruan 1.3.0 — Navigasi mengambang, baca tanpa gangguan, Murottal & Asmaul Husna baru
 
 - **Versi & pembaruan PWA terpasang.** Build menulis `version.json` (tidak pernah di-cache). Aplikasi membandingkannya saat dibuka / kembali ke layar dan memasang versi baru sendiri (`checkForUpdate` di `src/services/offline.js`). Di **Lainnya** ada kartu versi + tombol **Periksa**.
-  - Catatan: angka "versi" di *Info aplikasi* Android untuk PWA yang dipasang lewat Chrome (WebAPK) dibuat oleh Chrome, **bukan** versi QuranKu, dan tidak bisa diatur dari situs. Versi yang benar adalah yang tertulis di Lainnya/Tentang. APK (TWA) memakai versi `package.json`.
+  - Catatan: angka "versi" di *Info aplikasi* Android untuk PWA yang dipasang lewat Chrome (WebAPK) dibuat oleh Chrome, **bukan** versi QuranKu, dan tidak bisa diatur dari situs. Versi web ada di Lainnya/Tentang; APK native memakai versi `package.json`.
   - `version.yml`: bila PR sudah menaikkan versi sendiri, angka itu dipakai apa adanya; selain itu patch +1.
 - **Navigasi bawah mengambang** dengan tombol tengah bulat terangkat (Quran). Di ponsel, halaman baca tampil tanpa navigasi bawah.
 - **Baca tanpa gangguan**: pada mode Mushaf & Halaman, menyentuh teks ayat tidak membuka apa pun; terjemahan & aksi dibuka dengan menyentuh **nomor ayat**.
@@ -107,7 +107,7 @@ Terakhir diperbarui: 15 November 2026.
 ## 1.3.4
 
 - **Alamat cadangan otomatis**: utama `https://quran.cgs.my.id`, cadangan `https://quran-cgs.appwnr.workers.dev` (Worker yang sama). Bila alamat yang sedang dipakai mati (gagal jaringan/DNS/SSL atau galat Cloudflare 52x/530), permintaan `/api`, `/data`, `/version.json` diulang ke alamat lain (`src/services/failover.js`), dan Service Worker mengambil berkas yang belum tersimpan dari alamat lain (`sw.js`). Setelah beralih, cadangan dipakai 3 menit lalu utama dicoba lagi. Worker memberi CORS hanya untuk dua alamat resmi; berkas statis publik `Access-Control-Allow-Origin: *`.
-- Android (TWA): alamat cadangan dijadikan origin tepercaya + tautan aplikasi, jadi tetap layar penuh bila dibuka di sana.
+- Android TWA lama (hingga 1.3.x): alamat cadangan dijadikan origin tepercaya + tautan aplikasi. Mulai 1.4.0 APK tidak lagi memakai TWA; lihat bagian Android native.
 - **Batas**: perangkat yang BELUM PERNAH membuka aplikasi tidak bisa dialihkan otomatis saat domain utama mati (tidak ada kode yang sempat berjalan) — harus membuka alamat cadangan langsung; data lokal (bookmark, pengaturan) terpisah per alamat. APK tetap membuka alamat utama; saat mati ia memakai tampilan tersimpan + data dari cadangan.
 - Belum diuji terhadap domain yang benar-benar mati (hanya uji unit); `workers_dev = true` ditetapkan di `wrangler.toml`.
 
@@ -251,3 +251,13 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Rute baru `#/sumber` (`src/pages/sources.js`): ucapan terima kasih kepada seluruh sumber, lalu daftar sumber. Alamat sumber ditulis sebagai teks dengan tombol **Salin** (bukan tautan aktif); hanya alamat `github.com` yang tetap tautan aktif.
 - Halaman Tentang tidak lagi memuat daftar sumber, hanya ringkasan + tombol ke Sumber Data. Menu Lainnya dan Pengaturan punya entri "Sumber Data" sendiri.
 - Nama sumber di footer halaman doa dan Asmaul Husna kini menuju `#/sumber`, tidak lagi membuka situs sumber.
+
+## 1.4.0 — Antarmuka Android native
+
+- APK Android dialihkan dari TWA ke aplikasi **Jetpack Compose**: tidak memuat situs dalam WebView dan tidak bergantung pada Chrome Custom Tabs. Beranda, tab bawah, Qur'an, doa, jadwal, kiblat, tasbih, Asmaul Husna, Tentang, dan Sumber Data memiliki tampilan Android tersendiri.
+- Daftar surah (114/6236) dibundel dari metadata `quran-meta` (MIT). Teks Arab, Latin, dan terjemahan Kemenag dimuat dari EQuran.id dan dicache lokal per surah; bacaan yang belum pernah dibuka memerlukan internet.
+- Data doa Quran NU Online, dzikir Wudhu/Usai Salat, dan Asmaul Husna disalin dari `src/data/` saat Gradle membangun APK; bisa dibaca offline.
+- Jadwal salat dihitung lokal dengan model astronomis Kemenag 20°/18°, ihtiyat 2 menit, Asar Syafi'i; koordinat pusat kota bersifat perkiraan. Tampilkan catatan agar pengguna mencocokkan jadwal resmi.
+- Kiblat menunjukkan bearing dari kota, **tanpa sensor kompas**. Tidak meminta GPS. Tasbih disimpan di preferensi lokal.
+- **Belum dipindahkan ke APK native:** murottal/audio, tafsir, bookmark, kalender/catatan, target, adzan/pengingat, infaq, dan fitur offline PWA. Tetap ada di versi web/PWA.
+- Belum diuji pada perangkat fisik. Workflow berhasil membangun `QuranKu-1.4.0-uji.apk` (debug, satu tanda tangan sementara); APK release belum ditandatangani dengan kunci pemilik aplikasi.
