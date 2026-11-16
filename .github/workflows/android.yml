@@ -69,6 +69,27 @@ jobs:
       - name: Assemble debug APK and host-side tests
         working-directory: android
         run: ./gradlew --no-daemon --stacktrace :app:assembleDebug :app:testDebugUnitTest
+      - name: Report Android unit-test failure details
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import glob
+          import xml.etree.ElementTree as ET
+
+          found = False
+          for path in glob.glob('android/app/build/test-results/testDebugUnitTest/TEST-*.xml'):
+              root = ET.parse(path).getroot()
+              for case in root.findall('testcase'):
+                  for failure in case.findall('failure'):
+                      details = failure.get('message') or failure.text or 'No failure message in JUnit report.'
+                      details = ' '.join(details.split())
+                      title = f"{case.get('classname', 'Android unit test')}.{case.get('name', 'failure')}"
+                      safe = details.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                      print(f'::error title={title}::{safe}')
+                      found = True
+          if not found:
+              print('::notice title=Android test diagnostics::No failed JUnit test report was found.')
+          PY
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -171,6 +192,7 @@ jobs:
           name: android-build-diagnostics
           path: |
             android/app/build/reports/**
+            android/app/build/test-results/**
             android/app/build/outputs/androidTest-results/**
             ${{ runner.temp }}/gradle-debug.log
           if-no-files-found: ignore
