@@ -58,14 +58,15 @@ internal fun PrayerScreen(
     onSelectCity: (City?) -> Unit
 ) {
     var showPicker by rememberSaveable { mutableStateOf(city == null) }
-    val times = remember(city, now.toLocalDate(), now.zone) {
-        city?.let { PrayerCalculator.times(it, now.toLocalDate(), now.zone) }.orEmpty()
+    val cityNow = remember(city, now) { city?.let { now.withZoneSameInstant(it.zone) } ?: now }
+    val times = remember(city, cityNow.toLocalDate()) {
+        city?.let { PrayerCalculator.times(it, cityNow.toLocalDate(), it.zone) }.orEmpty()
     }
-    val next = remember(city, now) { city?.let { PrayerCalculator.next(it, now) } }
-    val date = now.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale("id", "ID")))
+    val next = remember(city, cityNow) { city?.let { PrayerCalculator.next(it, cityNow) } }
+    val date = cityNow.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", Locale.forLanguageTag("id-ID")))
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        NativePageHeader("Jadwal Salat", city?.name ?: "Pilih lokasi", onBack)
+        NativePageHeader("Jadwal Salat", city?.let { "${it.name} · ${it.timeZoneLabel}" } ?: "Pilih lokasi", onBack)
         if (city == null) {
             Column(Modifier.fillMaxSize().padding(26.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 Surface(shape = CircleShape, color = MintLight, modifier = Modifier.size(66.dp)) {
@@ -88,9 +89,9 @@ internal fun PrayerScreen(
                         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Icon(Icons.Outlined.LocationOn, null, tint = Gold, modifier = Modifier.size(16.dp))
-                                Text(city.name.uppercase(Locale("id", "ID")), color = Color.White.copy(alpha = 0.78f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp)
+                                Text(city.name.uppercase(Locale.forLanguageTag("id-ID")), color = Color.White.copy(alpha = 0.78f), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.7.sp)
                             }
-                            Text(date.replaceFirstChar { it.uppercase(Locale("id", "ID")) }, color = Color.White.copy(alpha = 0.76f), fontSize = 12.sp)
+                            Text(date.replaceFirstChar { it.uppercase(Locale.forLanguageTag("id-ID")) }, color = Color.White.copy(alpha = 0.76f), fontSize = 12.sp)
                             if (next != null) {
                                 Spacer(Modifier.height(8.dp))
                                 Text("SALAT BERIKUTNYA", color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp)
@@ -98,8 +99,8 @@ internal fun PrayerScreen(
                                     Text(next.name, color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Bold)
                                     Text(next.time.format(DateTimeFormatter.ofPattern("HH:mm")), color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(bottom = 3.dp))
                                 }
-                                val target = now.withHour(next.time.hour).withMinute(next.time.minute).withSecond(0).withNano(0).let { if (it.isAfter(now)) it else it.plusDays(1) }
-                                val gap = Duration.between(now, target)
+                                val target = cityNow.withHour(next.time.hour).withMinute(next.time.minute).withSecond(0).withNano(0).let { if (it.isAfter(cityNow)) it else it.plusDays(1) }
+                                val gap = Duration.between(cityNow, target)
                                 Text("${gap.toHours()} jam ${gap.toMinutes() % 60} menit lagi", color = Color.White.copy(alpha = 0.76f), fontSize = 11.sp)
                             }
                         }
@@ -109,7 +110,7 @@ internal fun PrayerScreen(
                     Row(Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 1.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("Waktu hari ini", color = MaterialTheme.colorScheme.onBackground, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                            Text("Metode Kemenag RI · Asar Syafi'i", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
+                            Text("Kemenag RI · Asar Syafi'i · ${city.timeZoneLabel}", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                         }
                         TextButton(onClick = { showPicker = true }) { Text("Ganti kota", color = Green, fontSize = 11.sp) }
                     }
@@ -180,7 +181,10 @@ private fun CityPickerDialog(cities: List<City>, selected: City?, onDismiss: () 
                             shape = RoundedCornerShape(13.dp)
                         ) {
                             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(city.name, Modifier.weight(1f), color = if (selected?.name == city.name) Green else MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = if (selected?.name == city.name) FontWeight.Bold else FontWeight.Medium)
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text(city.name, color = if (selected?.name == city.name) Green else MaterialTheme.colorScheme.onSurface, fontSize = 13.sp, fontWeight = if (selected?.name == city.name) FontWeight.Bold else FontWeight.Medium)
+                                    Text(city.timeZoneLabel, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+                                }
                                 if (selected?.name == city.name) Text("Terpilih", color = Green, fontSize = 10.sp)
                             }
                         }

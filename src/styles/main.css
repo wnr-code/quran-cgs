@@ -4594,24 +4594,51 @@ button.cal-cell:focus-visible {
   }
 }
 
-/* Beranda */
+/* Beranda: pisahkan salam Arab, sapaan waktu, dan tanggal agar hierarki terbaca di semua lebar. */
+.salutation {
+  margin-top: 18px;
+  text-align: center;
+  animation: rise-in 0.5s 0.05s ease both;
+}
+.salutation-label {
+  display: inline-block;
+  color: #f2cf7a;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
 .salam {
   font-family: var(--font-ar);
-  font-size: 2rem;
+  font-size: clamp(1.75rem, 7vw, 2.25rem);
   font-weight: 400;
-  line-height: 1.9;
+  line-height: 1.7;
   letter-spacing: 0;
-  text-align: left;
-  margin-top: 12px;
+  text-align: center;
+  margin: 1px 0 0;
   color: #f4e3b5;
-  animation: rise-in 0.5s 0.05s ease both;
 }
 .greet {
   display: flex;
   align-items: center;
-  gap: 9px;
-  opacity: 0.92;
+  gap: 10px;
+  margin-top: 10px;
+  opacity: 0.96;
   animation: rise-in 0.5s 0.14s ease both;
+}
+.greet > span {
+  display: grid;
+  gap: 2px;
+}
+.greet strong {
+  color: #fff;
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+.greet small {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 .greet-ic {
   flex: none;
@@ -4629,6 +4656,9 @@ button.cal-cell:focus-visible {
   color: #cfdcff;
 }
 .home-hero .dates {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
   animation: rise-in 0.5s 0.22s ease both;
 }
 .mutiara {

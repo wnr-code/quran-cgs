@@ -1,9 +1,9 @@
 # Status fitur — teruji, belum teruji, dan batasan
 
-Terakhir diperbarui: 15 November 2026.
+Terakhir diperbarui: 16 November 2026.
 
 ## Cara pengujian
-- `npm test` — 13 unit/integrasi test, semuanya lulus (termasuk webhook → SQL sungguhan → papan donatur).
+- `npm test` — 48 test lulus, 0 gagal (16 November 2026; mencakup worker/API, kalender, Al-Qur'an, doa, Asmaul Husna, dan webhook → SQLite sungguhan → papan donatur).
 - `npm run build` — berhasil tanpa error.
 - `tests/e2e/smoke.mjs` — 14 langkah di Chromium headless terhadap build produksi dengan API tiruan, semuanya lulus.
 - `tests/e2e/fallback.mjs` — semua API pihak ketiga dimatikan; surah terbuka dari data lokal.
@@ -34,18 +34,18 @@ Terakhir diperbarui: 15 November 2026.
 ## Belum teruji — mohon diuji setelah deploy
 | Hal | Catatan |
 |---|---|
-| Deploy Cloudflare (Workers), domain, proxy `/api/quran` | Konfigurasi lolos `wrangler deploy --dry-run`; deploy sungguhan dijalankan oleh Cloudflare saat push ke `main` dan belum saya lihat hasilnya. |
+| Deploy Cloudflare (Workers), domain, proxy `/api/quran` | `npm run build` dan `npx --yes wrangler deploy --dry-run` (Wrangler 4.162.0) berhasil; dry-run membaca 177 aset dan tidak melakukan deploy. Namun check `Workers Builds: quran-cgs` pada PR #30 tetap gagal ([build `ca9dcb4c-8e2d-4697-95de-677cbd671fa2`](https://dash.cloudflare.com/880c5e424f64b605d1f118776956fd0b/workers/services/view/quran-cgs/production/builds/ca9dcb4c-8e2d-4697-95de-677cbd671fa2)). GitHub hanya menampilkan ID/script, tanpa anotasi atau alasan. PR tidak mengubah `worker/index.js` atau `wrangler.toml`; penyebab belum dapat dipastikan tanpa log Cloudflare. Deploy produksi/domain tetap belum diverifikasi. |
 | Infaq terhadap Trakteer & D1 sungguhan | Alur aplikasi, webhook, sinkronisasi Public API, dan klaim ID transaksi teruji secara lokal (SQLite + `wrangler dev`). Belum pernah dijalankan terhadap Trakteer atau D1 produksi. Mode QRIS langsung tidak resmi dan belum terverifikasi; lihat [INFAQ.md](INFAQ.md). |
 | Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
-| Notifikasi dan kompas kiblat | Memerlukan perangkat fisik. |
-| Android APK/AAB | Build CI Jetpack Compose berhasil (workflow run [43783371276](https://github.com/wnr-code/quran-cgs/actions/runs/43783371276)); menghasilkan APK uji 1.4.0, bertanda tangan debug sementara. **Belum dipasang/diuji di perangkat** dan belum diajukan ke Play. Lihat [ANDROID.md](ANDROID.md). |
+| Notifikasi/adzan dan kompas berbasis sensor | Fitur PWA perlu validasi perangkat fisik. Android native belum menyediakan notifikasi/adzan atau sensor kompas; arah kiblatnya hanya bearing koordinat kota. |
+| Android APK/AAB | 1.4.1 berhasil dibangun dan lolos uji instrumentasi startup/data offline pada emulator Android 16 (API 36) di [workflow run 43796748819](https://github.com/wnr-code/quran-cgs/actions/runs/43796748819). Artefak APK debug `QuranKu-1.4.1-uji.apk` (versionCode 310) dan `quranku-aab-unsigned-build` tersedia di Actions; AAB tanpa kunci hanya untuk validasi build, bukan untuk diunggah ke Play. **Belum diuji di HP fisik atau diajukan ke Play.** Lihat [ANDROID.md](ANDROID.md). |
 | Instalasi PWA di ponsel, Lighthouse, iOS Safari | Belum diuji. |
 
 ## Belum dikerjakan / berbeda dari spesifikasi
 - **Data lokal cadangan terakhir** (`/data/`, dari paket `quran-json`) hanya berisi **teks Arab** — tanpa terjemahan, transliterasi, audio, dan tafsir (terjemahan paket itu tidak dipublikasikan karena hak redistribusinya tidak jelas). Berkas ini disajikan dari domain aplikasi, jadi tetap memerlukan koneksi ke situs; untuk pemakaian tanpa internet gunakan *Kelola Offline → Unduh semua teks*.
-- **Pengingat hanya berjalan selama aplikasi terbuka atau masih hidup di latar.** Tidak ada server push (akan memerlukan layanan tambahan). Android dapat menghentikan aplikasi di latar, sehingga pengingat tidak dijamin tepat waktu.
+- **Android native 1.4.1 belum memiliki pengingat/adzan atau notifikasi.** PWA memiliki notifikasi adzan berbasis Web Push setelah izin diberikan; bila PWA tertutup, notifikasi memakai nada sistem dan adzan baru diputar setelah diketuk. Perilaku nyata tetap perlu diuji pada perangkat/peramban sasaran.
 - **Hari besar Islam pada kalender** dihitung dari kalender Umm al-Qura dan dapat berbeda 1–2 hari dari ketetapan pemerintah RI; tersedia koreksi ±2 hari di pengaturan.
-- **Jadwal salat** adalah hisab lokal (Subuh 20°, Isya 18°, ihtiyat 2 menit) dan dapat berbeda 1–2 menit dari jadwal resmi Kemenag. Waktu ditampilkan dalam zona waktu perangkat.
+- **Jadwal salat:** web/PWA menghitung hisab lokal (Subuh 20°, Isya 18°, ihtiyat 2 menit) dan menampilkan waktu dalam zona perangkat; Android native memakai zona kota terpilih (WIB/WITA/WIT atau waktu Saudi). Keduanya memakai koordinat perkiraan pusat kota dan dapat berbeda beberapa menit dari jadwal resmi Kemenag; cocokkan dengan otoritas setempat.
 - **Nomor halaman** mengikuti mushaf Madinah 604 halaman dari metadata `quran-meta`, bukan dari API. Navigasi per halaman melompat ke ayat pertama halaman; tata letak baris demi baris seperti mushaf cetak tidak tersedia.
 - **Pencarian kata** hanya mencakup surah yang sudah tersimpan di perangkat.
 - **PWA web:** layar penuh sistem hanya bila peramban mengizinkan Fullscreen API. APK native menampilkan antarmuka Android sendiri dan tidak memakai TWA/WebView.
@@ -260,4 +260,14 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Jadwal salat dihitung lokal dengan model astronomis Kemenag 20°/18°, ihtiyat 2 menit, Asar Syafi'i; koordinat pusat kota bersifat perkiraan. Tampilkan catatan agar pengguna mencocokkan jadwal resmi.
 - Kiblat menunjukkan bearing dari kota, **tanpa sensor kompas**. Tidak meminta GPS. Tasbih disimpan di preferensi lokal.
 - **Belum dipindahkan ke APK native:** murottal/audio, tafsir, bookmark, kalender/catatan, target, adzan/pengingat, infaq, dan fitur offline PWA. Tetap ada di versi web/PWA.
-- Belum diuji pada perangkat fisik. Workflow berhasil membangun `QuranKu-1.4.0-uji.apk` (debug, satu tanda tangan sementara); APK release belum ditandatangani dengan kunci pemilik aplikasi.
+- Build awal berhasil sebagai APK uji `QuranKu-1.4.0-uji.apk` (debug, satu tanda tangan sementara); APK release belum ditandatangani dengan kunci pemilik aplikasi.
+
+## 1.4.1 — Stabilitas startup, Android 16, dan UI header
+
+- Penanganan startup mengisolasi kegagalan pembacaan data offline agar aplikasi tetap menampilkan antarmuka dan memberi opsi coba lagi; preferensi lokal bertipe lama/rusak memakai nilai aman.
+- Splash screen APK memakai Jetpack SplashScreen API dengan ikon vektor buku QuranKu dan warna latar yang mengikuti mode terang/gelap.
+- Target SDK dan pengujian diarahkan ke Android 16 / API 36, sesuai batas pengiriman update Google Play yang berlaku sejak 31 Agustus 2026. CI menambahkan tes instrumentasi launch/asset pada emulator Android 16; ini belum menggantikan uji HP fisik atau Play Console Pre-launch report.
+- Header beranda web dan native memisahkan salam Arab, salam waktu, dan tanggal dengan hierarki serta jarak yang lebih rapi; header tab dan halaman native memakai pola gradien/ornamen yang konsisten.
+- Akar crash startup terkonfirmasi di emulator: Compose `painterResource()` diberi ikon peluncur adaptive XML (`R.mipmap.ic_launcher`), yang tidak didukung dan melempar `IllegalArgumentException`. Beranda dan Tentang kini memakai ikon buku `VectorDrawable` yang didukung.
+- Uji instrumentasi `freshLaunchRendersHomeGreeting` serta `bundledContentLoadsAndPrayerDoaTabOpens` lulus pada emulator Pixel Android 16 / API 36; workflow [43796748819](https://github.com/wnr-code/quran-cgs/actions/runs/43796748819) juga membangun APK debug dan AAB validasi tanpa tanda tangan (tidak untuk unggah Play).
+- Ini belum menggantikan uji HP fisik, Play Console Pre-launch report, penandatanganan dengan kunci upload pemilik, atau keputusan Google Play; belum ada klaim lulus Play Store.

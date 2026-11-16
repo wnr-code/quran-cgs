@@ -33,9 +33,10 @@ Service worker hanya aktif pada hasil build (`npm run build && npm run preview`,
 
 Konfigurasi: `INFAQ_USERNAME` dan `INFAQ_UNIT_PRICE` ada di `wrangler.toml`; secret (webhook/API pembayaran) diisi di dashboard Cloudflare → [docs/INFAQ.md](docs/INFAQ.md). Untuk `wrangler dev` lokal, tulis secret di `.dev.vars` (lihat `.env.example`).
 
-## Fitur Android native (1.4.0)
+## Fitur Android native (1.4.1)
 
-- Beranda Android dengan navigasi bawah native, ringkasan bacaan terakhir, pintasan, dan desain responsif terang/gelap.
+- Beranda Android dengan navigasi bawah native, ringkasan bacaan terakhir, pintasan, dan desain responsif terang/gelap; salam Arab, sapaan waktu, dan tanggal ditata terpisah agar mudah dibaca.
+- Splash screen sistem Android dengan ikon buku QuranKu khusus; startup data offline memakai fallback aman. Target Android 16 (API 36), dengan uji launch emulator di CI.
 - Daftar 114 surah tersedia offline; teks Arab dan terjemahan Kemenag dimuat dari EQuran.id saat pertama kali membuka surah, lalu disimpan di perangkat. Ukuran huruf dan tampilan arti dapat diatur.
 - Doa Harian per kategori, Doa Wudhu, dan Usai Salat dari Quran NU Online; lafaz, Latin, arti, tombol tampil/sembunyi, dan bagikan. Data dibundel sehingga dapat dibaca offline.
 - Jadwal salat hasil hitung astronomis lokal setelah pengguna memilih kota; arah kiblat berdasarkan kota; Tasbih Digital; Asmaul Husna; halaman Sumber Data dan Tentang.

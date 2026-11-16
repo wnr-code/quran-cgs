@@ -71,7 +71,7 @@ internal fun DoaHomeScreen(content: LocalContent?, onOpenGroup: (String) -> Unit
     var selected by rememberSaveable { mutableIntStateOf(0) }
     if (content == null) {
         Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-            DoaTabHeader()
+            NativeTabHeader("Doa & Dzikir", "Temukan bacaan untuk keseharianmu", Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
             LoadingOrError("Memuat bacaan…")
         }
         return
@@ -82,7 +82,7 @@ internal fun DoaHomeScreen(content: LocalContent?, onOpenGroup: (String) -> Unit
         contentPadding = PaddingValues(bottom = 22.dp),
         verticalArrangement = Arrangement.spacedBy(15.dp)
     ) {
-        item { DoaTabHeader() }
+        item { NativeTabHeader("Doa & Dzikir", "Temukan bacaan untuk keseharianmu", Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) }
         item {
             Row(Modifier.fillMaxWidth().padding(horizontal = 17.dp), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 CategoryTab("Doa Harian", selected == 0, Modifier.weight(1f)) { selected = 0 }
@@ -104,14 +104,6 @@ internal fun DoaHomeScreen(content: LocalContent?, onOpenGroup: (String) -> Unit
         item {
             Text("Sumber bacaan: Quran NU Online", Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 2.dp), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp, textAlign = TextAlign.Center)
         }
-    }
-}
-
-@Composable
-private fun DoaTabHeader() {
-    Column(Modifier.fillMaxWidth().background(Forest).padding(horizontal = 20.dp, vertical = 17.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Doa & Dzikir", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Text("Temukan bacaan untuk keseharianmu", color = Color.White.copy(alpha = 0.73f), fontSize = 12.sp)
     }
 }
 
@@ -302,8 +294,10 @@ internal fun AsmaulHusnaScreen(items: List<HusnaItem>, onBack: () -> Unit) {
 
 @Composable
 internal fun TasbihScreen(onBack: () -> Unit, preferences: android.content.SharedPreferences) {
-    var count by rememberSaveable { mutableIntStateOf(preferences.getInt("tasbih_count", 0)) }
-    var target by rememberSaveable { mutableIntStateOf(preferences.getInt("tasbih_target", 33)) }
+    var count by rememberSaveable { mutableIntStateOf(preferences.intOrDefault("tasbih_count", 0).coerceAtLeast(0)) }
+    var target by rememberSaveable {
+        mutableIntStateOf(preferences.intOrDefault("tasbih_target", 33).takeIf { it in setOf(33, 99, 100) } ?: 33)
+    }
     val haptics = LocalHapticFeedback.current
     LaunchedEffect(count) { preferences.edit().putInt("tasbih_count", count).apply() }
     LaunchedEffect(target) { preferences.edit().putInt("tasbih_target", target).apply() }

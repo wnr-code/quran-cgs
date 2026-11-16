@@ -36,8 +36,11 @@ export default async function home(root) {
       <div class="brand">${LOGO_SVG}<div><strong>QuranKu</strong><small>Al-Qur'an Digital</small></div>
         <a class="icon-btn on-dark" href="#/cari" aria-label="Cari">${icon('search')}</a>
         <a class="icon-btn on-dark" href="#/pengaturan" aria-label="Pengaturan">${icon('settings')}</a></div>
-      <p class="salam" lang="ar" dir="rtl" aria-label="Assalamu’alaikum">اَلسَّلَامُ عَلَيْكُمْ</p>
-      <p class="greet"><i class="fi fi-${greetingIcon(now)} greet-ic" aria-hidden="true"></i><span>${greeting(now)}, semoga harimu penuh berkah.</span></p>
+      <div class="salutation">
+        <span class="salutation-label">Assalamu’alaikum</span>
+        <p class="salam" lang="ar" dir="rtl" aria-label="Assalamu’alaikum">اَلسَّلَامُ عَلَيْكُمْ</p>
+      </div>
+      <p class="greet"><i class="fi fi-${greetingIcon(now)} greet-ic" aria-hidden="true"></i><span><strong>${esc(greeting(now))}</strong><small>Semoga harimu penuh berkah.</small></span></p>
       <div class="dates">${hijri ? `<span>${icon('moon')}${esc(hijri)}</span>` : ''}<span>${icon('calendar')}${esc(formatGregorian(now))}</span></div>
       <a class="mutiara" data-mutiara href="#"></a>
     </header>
