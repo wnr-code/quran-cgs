@@ -12,13 +12,9 @@ capture_logcat() {
 }
 trap capture_logcat EXIT
 
+echo "Starting API 36 connected tests from $(pwd); diagnostics: $diag_dir"
 adb wait-for-device
 adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
-
-set +e
-gradle :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace 2>&1 | tee "$diag_dir/android-connected-tests.log"
-test_status=${PIPESTATUS[0]}
-set -e
-exit "$test_status"
+gradle :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace

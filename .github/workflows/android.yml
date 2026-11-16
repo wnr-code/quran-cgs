@@ -60,7 +60,7 @@ jobs:
           profile: pixel_2
           emulator-boot-timeout: 600
           disable-animations: true
-          script: bash android/scripts/run-emulator-tests.sh
+          script: bash -o pipefail -c 'bash "$GITHUB_WORKSPACE/android/scripts/run-emulator-tests.sh" 2>&1 | tee "$RUNNER_TEMP/android-connected-tests.log"'
       - name: Upload log uji emulator jika gagal
         if: failure()
         uses: actions/upload-artifact@v4
