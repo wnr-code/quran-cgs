@@ -1,9 +1,23 @@
 import { pageHeader } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
-import { toast } from '../utils/helpers.js'
 import { APP } from '../config.js'
-import { checkForUpdate } from '../services/offline.js'
-import { isNativePlatform } from '../services/platform.js'
+import { installApp, shouldOfferInstall } from '../services/install.js'
+
+export const MORE_SLOGANS = Object.freeze([
+  'Menemani Hari, Mendekatkan Hati kepada Kalamullah.',
+  'Teman tilawah untuk hari-hari yang terus berjalan.',
+  'Satu ayat, satu langkah mendekat.',
+  'Temukan ruang tenang di antara kesibukan.'
+])
+
+let previousSlogan = -1
+export function nextMoreSlogan(random = Math.random) {
+  const sample = Number(random())
+  const index = Number.isFinite(sample) ? Math.max(0, Math.min(MORE_SLOGANS.length - 1, Math.floor(sample * MORE_SLOGANS.length))) : 0
+  const next = index === previousSlogan ? (index + 1) % MORE_SLOGANS.length : index
+  previousSlogan = next
+  return MORE_SLOGANS[next]
+}
 
 const GROUPS = [
   ['Ibadah', [
@@ -22,39 +36,28 @@ const GROUPS = [
     ['/offline', 'download', 'Kelola Offline', 'Unduhan & penyimpanan']
   ]],
   ['Aplikasi', [
-    ['/pengaturan', 'settings', 'Pengaturan', 'Tema, angka, cadangan'],
+    ['/pengaturan', 'settings', 'Pengaturan', 'Tema, cadangan, pembaruan'],
     ['/tentang', 'info', 'Tentang', 'Fitur, lisensi, privasi'],
     ['/sumber', 'book', 'Sumber Data', 'Asal data & terima kasih']
   ]]
 ]
-import { installApp, shouldOfferInstall } from '../services/install.js'
 
 export default function more(root) {
-  const native = isNativePlatform()
   root.innerHTML = `<div class="page more-page">${pageHeader('Lainnya', { back: false })}
-    <section class="more-hero"><img src="/icons/icon-192-v2.png" alt="" width="56" height="56" />
-      <div><h2>QuranKu</h2><p>Teman ibadah harian — gratis, tanpa iklan.</p><span class="more-chip">Versi ${APP.version}</span></div></section>
-    <button class="card install-card" data-install>${icon('download')}<span><strong>Pasang QuranKu</strong><small>Tambahkan ke layar utama agar terbuka layar penuh & bisa offline</small></span></button>
-    <a class="more-infaq" href="#/infaq"><span class="more-infaq-ic">${icon('heart')}</span><span><strong>Infaq Pengembang</strong><small>Dukung QuranKu & lihat papan donatur</small></span><span class="more-go" aria-hidden="true">›</span></a>
-    ${GROUPS.map(([g, items]) => `<h3 class="section-title">${g}</h3><div class="menu-grid tone-${g.toLowerCase()}">${items.map(([p, i, t, s]) => `<a class="menu-item" href="#${p}"><span class="shortcut-ic">${icon(i)}</span><span><strong>${t}</strong><small>${s}</small></span></a>`).join('')}</div>`).join('')}
-    <section class="card version-card">
-      <span class="shortcut-ic">${icon('refresh')}</span>
-      <span class="version-text"><strong>QuranKu ${APP.version}</strong><small data-version>${APP.versionLabel}</small><small data-update-note>${native ? 'Pembaruan tersedia melalui sumber pemasangan APK Anda.' : 'Versi yang berjalan di perangkat ini'}</small></span>
-      ${native ? '' : '<button class="btn btn-sm" data-update>Periksa</button>'}
+    <section class="more-hero" aria-labelledby="more-brand-title">
+      <img src="/icons/icon-192-v2.png" alt="" aria-hidden="true" width="56" height="56" />
+      <div class="more-brand-copy">
+        <div class="more-brand-title"><h2 id="more-brand-title">${APP.name}</h2><span class="more-chip">Versi ${APP.version}</span></div>
+        <p class="more-arabic" lang="ar" dir="rtl">كَلَامُ اللَّهِ</p>
+        <p class="more-slogan" data-more-slogan>${nextMoreSlogan()}</p>
+        <p class="more-promise" aria-label="Gratis, tanpa iklan atau analitik">Gratis <span aria-hidden="true">•</span> Tanpa Iklan <span aria-hidden="true">•</span> Tanpa Analitik</p>
+      </div>
     </section>
+    <button type="button" class="card install-card" data-install>${icon('download')}<span><strong>Pasang QuranKu</strong><small>Tambahkan ke layar utama agar terbuka layar penuh & bisa offline</small></span></button>
+    <a class="more-infaq" href="#/infaq"><span class="more-infaq-ic" aria-hidden="true">${icon('heart')}</span><span><strong>Infaq Pengembang</strong><small>Dukung QuranKu & lihat papan donatur</small></span><span class="more-go" aria-hidden="true">›</span></a>
+    ${GROUPS.map(([g, items], index) => `<h3 class="section-title" id="more-group-${index}">${g}</h3><div class="menu-grid tone-${g.toLowerCase()}" role="group" aria-labelledby="more-group-${index}">${items.map(([p, i, t, s]) => `<a class="menu-item" href="#${p}"><span class="shortcut-ic" aria-hidden="true">${icon(i)}</span><span><strong>${t}</strong><small>${s}</small></span></a>`).join('')}</div>`).join('')}
   </div>`
-  const note = root.querySelector('[data-update-note]')
-  const updateButton = root.querySelector('[data-update]')
-  if (updateButton) updateButton.onclick = async (e) => {
-    e.currentTarget.disabled = true
-    note.textContent = 'Memeriksa versi terbaru…'
-    const r = await checkForUpdate({ force: true })
-    if (r === 'updating') note.textContent = 'Versi baru ditemukan — sedang dipasang, aplikasi akan dimuat ulang…'
-    else {
-      note.textContent = r === 'offline' ? 'Tidak dapat memeriksa (offline).' : 'Sudah versi terbaru.'
-      e.currentTarget.disabled = false
-    }
-  }
+
   const card = root.querySelector('[data-install]')
   card.hidden = !shouldOfferInstall()
   card.onclick = async () => {

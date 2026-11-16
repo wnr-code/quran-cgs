@@ -5,12 +5,12 @@ import { SplashScreen } from '@capacitor/splash-screen'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { on } from '../utils/helpers.js'
 import { navigate, parseHash } from '../router.js'
-import { getSettings } from './storage.js'
 
 let initialized = false
 
 async function syncStatusBar() {
-  const style = getSettings().theme === 'dark' || document.documentElement.dataset.theme === 'dark' ? Style.Dark : Style.Light
+  const theme = document.documentElement.dataset.theme
+  const style = theme === 'dark' || theme === 'ramadan' ? Style.Dark : Style.Light
   await StatusBar.setStyle({ style }).catch(() => {})
 }
 

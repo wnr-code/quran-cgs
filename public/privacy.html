@@ -22,7 +22,7 @@
   <body>
     <header><div style="max-width:760px;margin:0 auto"><a href="/">← QuranKu</a><h1>Kebijakan Privasi QuranKu</h1><p style="opacity:.8;margin:4px 0 0">Berlaku sejak 14 November 2026 · Aplikasi: QuranKu (id.cgs.quranku) · Situs: quran.cgs.my.id</p></div></header>
     <main>
-      <p>QuranKu adalah aplikasi Al-Qur'an digital gratis. Kami merancangnya agar <strong>tidak memerlukan akun, tidak menampilkan iklan, dan tidak memakai pelacak analitik</strong>. Dokumen ini menjelaskan data apa yang diproses dan bagaimana caranya.</p>
+      <p>QuranKu adalah aplikasi Al-Qur'an digital gratis. Aplikasi <strong>tidak memerlukan akun, tidak menampilkan iklan, dan tidak memasang pelacak iklan atau analitik</strong>. Saat Anda memakai fitur daring, penyedia layanan yang diminta dapat menerima alamat IP dan informasi teknis permintaan sesuai kebijakan mereka; hal ini dijelaskan di bawah dan bukan pelacakan analitik oleh QuranKu.</p>
 
       <h2>1. Data yang disimpan di perangkat Anda</h2>
       <p>Data berikut biasanya disimpan <strong>hanya di perangkat Anda</strong> (IndexedDB, localStorage, Cache Storage). Pengecualian terbatas berlaku untuk Web Push Adzan di PWA/peramban dan untuk infaq yang Anda kirim; lihat bagian Notifikasi dan Infaq.</p>
@@ -35,29 +35,34 @@
       </ul>
 
       <h2>2. Lokasi</h2>
-      <p>Lokasi bersifat opsional. Izin lokasi hanya diminta ketika Anda menekan tombol “Gunakan lokasi saya”; APK Android hanya meminta lokasi perkiraan. Koordinat dipakai untuk menghitung jadwal salat dan arah kiblat langsung di perangkat. Untuk menampilkan nama kota/kecamatan/wilayah, koordinat GPS dikirim langsung dari perangkat ke OpenStreetMap Nominatim saat tombol tersebut ditekan; QuranKu tidak menerima koordinat dari permintaan itu, tetapi Nominatim dapat menerima alamat IP dan informasi teknis peramban sesuai kebijakannya. Di PWA/peramban, bila Anda menyalakan Adzan otomatis berbasis Web Push, koordinat yang dibulatkan sekitar ±1 km juga disimpan di server QuranKu untuk menghitung waktu pemberitahuan. Anda dapat memilih kota atau mengisi koordinat manual tanpa memakai GPS.</p>
+      <p>Lokasi bersifat opsional dan izin hanya diminta setelah Anda menekan “Gunakan lokasi saya”; APK Android meminta lokasi perkiraan. Koordinat digunakan untuk menghitung jadwal salat dan arah kiblat di perangkat. Untuk mencari nama wilayah, perangkat mengirim koordinat langsung ke OpenStreetMap Nominatim. QuranKu tidak menerima koordinat dari permintaan tersebut, tetapi Nominatim dapat memproses alamat IP dan informasi teknis permintaan sesuai kebijakannya. Jika Web Push Adzan diaktifkan di PWA/peramban, lokasi yang dibulatkan sekitar ±1 km juga dikirim ke server QuranKu agar waktu pemberitahuan dapat dihitung. Anda dapat memilih kota atau memasukkan koordinat manual tanpa menggunakan GPS.</p>
 
       <h2>3. Notifikasi</h2>
       <p>Di PWA/peramban, izin notifikasi hanya diminta setelah Anda mengaktifkan pengingat tilawah, target, catatan kalender, atau Adzan otomatis. Pengingat tersebut diproses secara lokal saat aplikasi/peramban berjalan; Web Push Adzan dapat bekerja ketika PWA tertutup. APK Android tidak meminta izin notifikasi sistem: pengingat tampil sebagai pesan di dalam aplikasi dan suara adzan diputar hanya selama QuranKu terbuka. Tidak ada alarm latar atau pemberitahuan Android setelah aplikasi ditutup.</p>
-      <p><strong>Web Push Adzan pada PWA.</strong> Agar pemberitahuan waktu salat sampai ketika PWA tertutup, aplikasi mendaftarkan <em>langganan push</em> ke server QuranKu. Yang disimpan hanyalah alamat langganan push dari peramban beserta kunci enkripsinya, koordinat lokasi yang <strong>dibulatkan ±1 km</strong>, nama lokasi, zona waktu, metode perhitungan, dan pilihan waktu. Data dipakai untuk menghitung jadwal dan mengirim pemberitahuan, tidak dibagikan kepada pihak lain, dan <strong>dihapus</strong> ketika Anda mematikan Adzan otomatis atau ketika langganan tidak lagi berlaku. Pemberitahuan dikirim melalui layanan push peramban Anda (mis. Google FCM, Mozilla, Apple) dalam keadaan terenkripsi. Suara adzan diputar langsung dari cdn.aladhan.com.</p>
+      <p><strong>Web Push Adzan pada PWA.</strong> Agar pemberitahuan waktu salat sampai ketika PWA tertutup, aplikasi mendaftarkan langganan push ke server QuranKu. Server menyimpan alamat langganan dan kunci enkripsinya, koordinat yang dibulatkan menjadi dua angka desimal (sekitar ±1 km), nama lokasi, zona waktu, metode perhitungan, koreksi tanggal Hijriah, serta pilihan waktu pemberitahuan. Data ini dipakai untuk menghitung jadwal dan mengirim pemberitahuan. Saat Anda mematikan fitur, aplikasi meminta server menghapus langganan; langganan yang sudah tidak berlaku juga dihapus. Pemberitahuan melewati layanan push peramban (mis. Google FCM, Mozilla, atau Apple) dengan muatan terenkripsi. Suara adzan diputar dari cdn.aladhan.com saat fitur digunakan.</p>
 
       <h2>4. Layanan pihak ketiga</h2>
-      <p>Untuk menampilkan konten, aplikasi mengambil data dari layanan berikut. Seperti permintaan internet pada umumnya, layanan tersebut dapat menerima alamat IP dan informasi teknis peramban Anda sesuai kebijakan masing-masing. Kami tidak mengirim catatan atau bookmark ke penyedia konten. Koordinat hanya dikirim langsung ke OpenStreetMap Nominatim ketika Anda meminta nama wilayah dari GPS, dan ke server QuranKu untuk Web Push Adzan PWA sebagaimana dijelaskan di atas.</p>
+      <p>Permintaan internet untuk konten dan fitur daring dapat mengungkap alamat IP serta informasi teknis peramban kepada penyedia terkait sesuai kebijakan masing-masing. QuranKu tidak mengirim bookmark, catatan, atau progres bacaan ke penyedia konten. Koordinat GPS hanya dikirim langsung ke OpenStreetMap Nominatim saat Anda meminta nama wilayah, dan ke server QuranKu bila Web Push Adzan PWA diaktifkan. Beberapa data doa dan font sudah disertakan di aplikasi sehingga tidak diminta dari penyedia saat digunakan.</p>
       <table>
         <tr><th>Layanan</th><th>Kegunaan</th></tr>
         <tr><td>OpenStreetMap Nominatim (nominatim.openstreetmap.org)</td><td>Mencari nama wilayah dari koordinat GPS yang Anda pilih. Permintaan dilakukan langsung dari perangkat; atribusi data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.</td></tr>
-        <tr><td>EQuran.id (equran.id)</td><td>Teks Al-Qur'an, terjemahan, transliterasi, tafsir, dan berkas audio murottal.</td></tr>
+        <tr><td>EQuran.id (equran.id)</td><td>Sumber utama teks Al-Qur'an, terjemahan, transliterasi, tafsir, dan audio murottal; kadang diakses lewat proxy QuranKu.</td></tr>
         <tr><td>Al Quran Cloud (alquran.cloud, cdn.islamic.network)</td><td>Sumber cadangan teks dan audio bila sumber utama tidak tersedia.</td></tr>
-        <tr><td>Cloudflare Workers</td><td>Hosting situs/aplikasi serta fungsi papan donatur.</td></tr>
-        <tr><td>Trakteer (trakteer.id)</td><td>Pemroses pembayaran, hanya bila Anda memilih berinfaq.</td></tr>
+        <tr><td>mp3quran.net dan cdn.mp3quran.net</td><td>Streaming murottal qari tambahan saat dipilih.</td></tr>
+        <tr><td>AlAdhan (cdn.aladhan.com)</td><td>Streaming rekaman adzan saat Anda mengaktifkan dan memutar suara adzan.</td></tr>
+        <tr><td>Cloudflare Workers &amp; D1</td><td>Menyajikan aplikasi dan proxy, papan donatur, webhook infaq, serta penjadwalan Web Push Adzan. Data yang disebutkan di bagian terkait disimpan di layanan ini.</td></tr>
+        <tr><td>Layanan push peramban (mis. Google FCM, Mozilla, Apple)</td><td>Meneruskan Web Push Adzan hanya bila Anda mengaktifkannya di PWA; payload pemberitahuan dienkripsi.</td></tr>
+        <tr><td>WhatsApp, Telegram, Facebook, dan X (Twitter)</td><td>Hanya saat Anda memilih fitur Bagikan: perangkat membuka layanan yang dipilih dengan teks doa dan/atau tautan QuranKu yang sudah disiapkan. Layanan tersebut memproses permintaan sesuai kebijakannya; Anda tetap menentukan apakah akan mengirim atau memublikasikannya.</td></tr>
+        <tr><td>Trakteer (trakteer.id) dan mitra pembayarannya</td><td>Gambar tombol infaq dimuat di halaman Infaq. Formulir pembayaran hanya dibuka setelah Anda menekan tombol INFAQ; Trakteer dan mitranya memproses data formulir dan pembayaran.</td></tr>
       </table>
 
       <h2>5. Audio</h2>
       <p>Murottal diputar secara streaming dari server sumber. Berkas audio hanya disimpan di perangkat bila Anda menekan tombol unduh, dan dapat dihapus kapan saja dari menu Kelola Offline. Aplikasi tidak merekam suara dan tidak mengakses mikrofon.</p>
 
       <h2>6. Infaq dan papan donatur</h2>
-      <p>Infaq bersifat sukarela. Saat Anda berinfaq, nama yang Anda isi, nominal, dan pesan dikirim ke server kami untuk membuat permintaan pembayaran. Pembayaran diproses oleh penyedia layanan pembayaran pihak ketiga, <strong>Trakteer</strong> (trakteer.id) beserta mitra pembayarannya; kami tidak pernah menerima atau menyimpan data rekening, kartu, atau dompet digital Anda.</p>
-      <p>Kami menyimpan: ID transaksi, <strong>nama tampilan yang Anda isi</strong>, jenis dan jumlah unit, nominal, serta waktu transaksi. Nama tampilan, nominal, dan waktu ditampilkan pada papan donatur. Untuk mencegah penyalahgunaan, alamat IP Anda disimpan dalam bentuk tersamar (hash) bersama permintaan infaq. Kami tidak menyimpan alamat email maupun pesan dukungan Anda. Agar tidak ditampilkan dengan nama asli, gunakan nama “Hamba Allah” atau nama samaran. Untuk meminta penghapusan nama dari papan donatur, hubungi kami.</p>
+      <p>Infaq bersifat sukarela. Pada versi aplikasi saat ini, setelah Anda membaca akad dan menekan tombol INFAQ, formulir Trakteer dibuka di dalam aplikasi. Trakteer beserta mitra pembayarannya memproses data formulir dan pembayaran; QuranKu tidak menerima atau menyimpan nomor rekening, kartu, atau dompet digital. Trakteer mengirim catatan transaksi ke server QuranKu agar status pembayaran dan papan donatur dapat diperbarui.</p>
+      <p>Server QuranKu menyimpan ID transaksi, nama tampilan, unit dan jumlah unit, nominal, jenis serta waktu transaksi, dan pesan/ucapan bila dikirim. Nama, nominal, waktu, dan pesan dapat ditampilkan secara publik pada papan donatur. Trakteer dapat menerima alamat IP dan data teknis permintaan ketika gambar atau formulirnya dimuat, sesuai kebijakannya; formulir pembayaran hanya dibuka setelah Anda menekan tombol INFAQ. Agar nama asli tidak tampil, gunakan “Hamba Allah” atau nama samaran. Untuk meminta penghapusan catatan papan donatur, hubungi kami melalui kontak di bawah.</p>
+      <p><strong>Catatan endpoint lama.</strong> API niat pembayaran QuranKu yang lama tidak dipakai oleh halaman Infaq versi saat ini. Jika endpoint tersebut dipanggil oleh klien lama, server dapat menyimpan nama, jumlah unit, nominal, mode/referensi pembayaran, dan hash berkunci dari alamat IP untuk pembatasan penyalahgunaan serta pencocokan pembayaran; alamat IP mentah tidak disimpan oleh endpoint itu.</p>
 
       <h2>7. Menghapus data Anda</h2>
       <ul>
@@ -67,7 +72,7 @@
       </ul>
 
       <h2>8. Cadangan</h2>
-      <p>Fitur ekspor membuat berkas cadangan JSON yang tersimpan di perangkat Anda. Berkas itu berisi bookmark dan catatan pribadi; simpanlah dengan aman. Kami tidak menerima salinannya.</p>
+      <p>Fitur ekspor membuat berkas JSON yang memuat pengaturan, bacaan terakhir, hitungan tasbih, bookmark, catatan, riwayat, dan progres tilawah. Berkas disimpan melalui peramban ke perangkat Anda; jaga dengan aman karena kami tidak menerima salinannya.</p>
 
       <h2>9. Anak-anak</h2>
       <p>QuranKu dapat digunakan semua umur dan tidak dengan sengaja mengumpulkan data pribadi dari anak-anak.</p>

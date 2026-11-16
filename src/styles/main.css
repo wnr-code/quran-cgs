@@ -1030,7 +1030,8 @@ details summary {
     0 10px 30px rgba(11, 61, 46, 0.18),
     0 2px 6px rgba(11, 61, 46, 0.08);
 }
-:root[data-theme='dark'] .navbar {
+:root[data-theme='dark'] .navbar,
+:root[data-theme='ramadan'] .navbar {
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.05) inset,
     0 10px 30px rgba(0, 0, 0, 0.55);
@@ -3211,13 +3212,13 @@ body.has-player {
   padding: 13px 36px;
   border: 0;
   border-radius: 9999px;
-  background: var(--trbtn, #1a6275);
-  color: #fff;
+  background: var(--primary);
+  color: var(--primary-ink);
   font-weight: 800;
   font-size: 1rem;
   letter-spacing: 0.06em;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(26, 98, 117, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 35%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--primary-ink) 18%, transparent);
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 .trbtn-infaq:active {
@@ -3311,6 +3312,9 @@ body.has-player {
 }
 [data-theme='dark'] .trk-wait h3 {
   color: #7fc6d8;
+}
+[data-theme='ramadan'] .trk-wait h3 {
+  color: var(--accent);
 }
 .trk-wait p {
   margin: 0;
@@ -3563,9 +3567,9 @@ body.has-player {
   margin: 0 0 6px;
   padding: 14px;
   border-radius: 18px;
-  color: #fff;
-  background: linear-gradient(135deg, #1a6275, #2a8a9f);
-  box-shadow: 0 10px 22px rgba(26, 98, 117, 0.28);
+  color: var(--primary-ink);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 88%, var(--hero-1)), var(--primary));
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--primary) 28%, transparent);
   transition: transform 0.15s ease;
 }
 .more-infaq:active {
@@ -3578,7 +3582,8 @@ body.has-player {
   display: grid;
   place-items: center;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--primary-ink) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-ink) 18%, transparent);
 }
 .more-infaq span:nth-child(2) {
   flex: 1;
@@ -3630,6 +3635,9 @@ body.has-player {
 [data-theme='dark'] .more-page .tone-ibadah { --tone: #5fd0a6; }
 [data-theme='dark'] .more-page .tone-tilawah { --tone: #e2c06c; }
 [data-theme='dark'] .more-page .tone-aplikasi { --tone: #7fc6d8; }
+[data-theme='ramadan'] .more-page .tone-ibadah { --tone: #77d7ac; }
+[data-theme='ramadan'] .more-page .tone-tilawah { --tone: #edca73; }
+[data-theme='ramadan'] .more-page .tone-aplikasi { --tone: #87cbe0; }
 @media (min-width: 720px) {
   .more-page .menu-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));

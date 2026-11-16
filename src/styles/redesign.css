@@ -935,3 +935,257 @@ body.reading-mode .reader.mode-page .rd-wrap {
     animation: none !important;
   }
 }
+/* Brand header, Ramadan mode, and page polish. */
+.ramadan-lanterns {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+:root[data-theme='ramadan'] .page-head {
+  isolation: isolate;
+}
+:root[data-theme='ramadan'] .page-head > :not(.ramadan-lanterns),
+:root[data-theme='ramadan'] .home-hero > :not(.ramadan-lanterns) {
+  position: relative;
+  z-index: 1;
+}
+:root[data-theme='ramadan'] .ramadan-lanterns {
+  display: block;
+}
+.home-hero .ramadan-lanterns {
+  z-index: 0;
+}
+.ramadan-lantern {
+  position: absolute;
+  top: 0;
+  right: 22px;
+  display: block;
+  width: 24px;
+  height: 44px;
+  transform-origin: 50% 0;
+  animation: ramadan-lantern-sway 4.4s ease-in-out infinite;
+}
+.ramadan-lantern--two {
+  top: -5px;
+  right: 64px;
+  --lantern-scale: 0.78;
+  animation-delay: -1.7s;
+}
+.ramadan-lantern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 14px;
+  background: color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.ramadan-lantern::after {
+  content: '';
+  position: absolute;
+  top: 11px;
+  left: 3px;
+  width: 18px;
+  height: 27px;
+  clip-path: polygon(17% 0, 83% 0, 100% 24%, 83% 78%, 62% 100%, 38% 100%, 17% 78%, 0 24%);
+  background: radial-gradient(ellipse at 50% 47%, color-mix(in srgb, var(--accent) 78%, #fff4c9) 0%, color-mix(in srgb, var(--accent) 55%, var(--hero-2)) 44%, color-mix(in srgb, var(--hero-2) 55%, transparent) 100%);
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--accent) 58%, transparent));
+}
+.ramadan-lantern i {
+  position: absolute;
+  z-index: 1;
+  top: 16px;
+  left: 10px;
+  width: 4px;
+  height: 10px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 85%, white);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 80%, transparent);
+  animation: ramadan-lantern-glow 2.8s ease-in-out infinite;
+}
+.ramadan-lantern--two i {
+  animation-delay: -1.2s;
+}
+@keyframes ramadan-lantern-sway {
+  0%, 100% { transform: scale(var(--lantern-scale, 1)) rotate(-3deg); }
+  50% { transform: scale(var(--lantern-scale, 1)) rotate(4deg); }
+}
+@keyframes ramadan-lantern-glow {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+
+.more-hero {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: clamp(16px, 4vw, 22px);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  background: var(--ornament, none), radial-gradient(28rem 14rem at 100% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 72%), linear-gradient(145deg, var(--hero-1), var(--hero-2));
+}
+.more-hero > img {
+  position: relative;
+  z-index: 1;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+}
+.more-brand-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  align-content: start;
+}
+.more-brand-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 9px;
+  min-width: 0;
+}
+.more-brand-title h2 {
+  font-size: clamp(1.15rem, 4vw, 1.3rem);
+  line-height: 1.2;
+}
+.more-hero .more-arabic {
+  justify-self: start;
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--accent) 88%, white);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.more-hero .more-slogan {
+  max-width: 36ch;
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  opacity: 0.96;
+  text-wrap: balance;
+}
+.more-hero .more-promise {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 6px;
+  margin: 4px 0 0;
+  color: color-mix(in srgb, var(--hero-ink) 84%, var(--accent));
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  line-height: 1.45;
+}
+.more-chip {
+  margin-top: 0;
+  padding: 3px 8px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+.more-infaq {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--primary-ink) 13%, transparent);
+  transition: transform var(--motion-fast) ease, box-shadow var(--motion-normal) ease, filter var(--motion-fast) ease;
+}
+.more-infaq span:nth-child(2) {
+  min-width: 0;
+}
+.more-infaq strong,
+.more-infaq small {
+  overflow-wrap: anywhere;
+}
+.more-infaq:focus-visible,
+.install-card:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (hover: hover) {
+  .more-infaq:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.04);
+  }
+}
+.more-page .menu-item > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.more-page .menu-item strong {
+  overflow-wrap: anywhere;
+}
+
+[data-seg='theme'] {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+[data-seg='theme'] button {
+  min-width: 0;
+  padding-inline: 5px;
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+.version-card {
+  min-width: 0;
+}
+.version-card .version-text small {
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.version-card [data-update] {
+  flex: none;
+}
+.btn.btn-sm {
+  min-height: 36px;
+  padding-inline: 12px;
+  font-size: 0.84rem;
+}
+.about-privacy-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.about-privacy-actions .btn:first-child {
+  margin-inline-end: auto;
+}
+.about-privacy-actions .btn:last-child {
+  margin-inline-start: auto;
+}
+.about-privacy-card .about-privacy-copy + .about-privacy-copy {
+  margin-top: 9px;
+}
+.source-logo {
+  display: block;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+.source-head b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:root[data-theme='ramadan'] .more-page .tone-ibadah { --tone: #77d7ac; }
+:root[data-theme='ramadan'] .more-page .tone-tilawah { --tone: #edca73; }
+:root[data-theme='ramadan'] .more-page .tone-aplikasi { --tone: #87cbe0; }
+
+@media (min-width: 440px) {
+  [data-seg='theme'] {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ramadan-lantern,
+  .ramadan-lantern i {
+    animation: none !important;
+  }
+  .more-infaq {
+    transition: none;
+  }
+}

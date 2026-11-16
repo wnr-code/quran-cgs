@@ -24,7 +24,7 @@ export const READER_DEFAULTS = {
 }
 
 export const DEFAULTS = {
-  theme: 'auto', // 'auto' | 'light' | 'dark' | 'custom'
+  theme: 'auto', // 'auto' | 'light' | 'dark' | 'ramadan' | 'custom'
   customTheme: { ...CUSTOM_DEFAULT }, // { primary, accent, bg } — dipakai bila theme === 'custom'
   numerals: 'arabic', // 'arabic' | 'latin'
   arabicFont: 'scheherazade', // Naskh-style local font; users can still choose 'amiri'.
@@ -57,7 +57,7 @@ function load() {
   const s = { ...DEFAULTS, ...saved }
   for (const k of ['reader', 'audio', 'goal', 'reminders', 'adzan']) s[k] = { ...DEFAULTS[k], ...(saved[k] || {}) }
   s.customTheme = normalizeCustom(saved.customTheme)
-  if (!['auto', 'light', 'dark', 'custom'].includes(s.theme)) s.theme = 'auto'
+  if (!['auto', 'light', 'dark', 'ramadan', 'custom'].includes(s.theme)) s.theme = 'auto'
   // 1.3.2: bawaan lama (30px / 2,4) terasa renggang — pindahkan ke bawaan baru bila belum pernah diubah pengguna.
   if (s.reader.fontSize === 30 && s.reader.lineHeight === 2.4) Object.assign(s.reader, { fontSize: 28, lineHeight: 2.1 })
   return s
@@ -114,7 +114,7 @@ export function applyGlobalSettings() {
     else localStorage.removeItem(THEME_VARS_KEY)
   } catch {}
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', custom ? custom.themeColor : theme === 'dark' ? '#0a0f0d' : '#0b3d2e')
+  if (meta) meta.setAttribute('content', custom ? custom.themeColor : theme === 'ramadan' ? '#091915' : theme === 'dark' ? '#0a0f0d' : '#0b3d2e')
 }
 
 export function initSettings() {

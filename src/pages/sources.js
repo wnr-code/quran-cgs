@@ -13,7 +13,7 @@ const linkRow = (s) => {
 }
 
 const sourceItem = (s) => `<li class="source-item">
-  <div class="source-head"><b>${esc(s.name)}</b>${s.role ? `<span class="chip">${esc(s.role)}</span>` : ''}${s.license ? `<span class="chip chip-soft">${esc(s.license)}</span>` : ''}</div>
+  <div class="source-head">${s.logo ? `<img class="source-logo" src="${esc(s.logo)}" alt="" aria-hidden="true" width="22" height="22" loading="lazy" decoding="async" />` : ''}<b>${esc(s.name)}</b>${s.role ? `<span class="chip">${esc(s.role)}</span>` : ''}${s.license ? `<span class="chip chip-soft">${esc(s.license)}</span>` : ''}</div>
   <p>${esc(s.use)}</p>
   ${s.note ? `<p class="muted">${esc(s.note)}</p>` : ''}
   ${linkRow(s)}

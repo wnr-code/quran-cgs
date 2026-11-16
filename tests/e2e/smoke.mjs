@@ -162,6 +162,18 @@ await step('Bookmark + posisi bacaan tersimpan & dipulihkan', async () => {
   assert.equal(await count('.row-link'), 1)
   await shot('08-bookmark')
 })
+await step('Tema Ramadan: pilihan tersimpan dan lentera beranimasi', async () => {
+  await go('/pengaturan')
+  await page.waitForSelector('[data-seg="theme"] [data-v="ramadan"]')
+  await page.click('[data-seg="theme"] [data-v="ramadan"]')
+  assert.equal(await page.$eval('[data-seg="theme"] [data-v="ramadan"]', (b) => b.getAttribute('aria-pressed')), 'true')
+  assert.equal(await page.$eval(':root', (e) => e.dataset.theme), 'ramadan')
+  const lamp = await page.$eval('.page-head .ramadan-lantern--one', (e) => ({ visible: getComputedStyle(e.parentElement).display !== 'none', animation: getComputedStyle(e).animationName }))
+  assert.equal(lamp.visible, true)
+  assert.equal(lamp.animation, 'ramadan-lantern-sway')
+  await page.click('[data-seg="theme"] [data-v="auto"]')
+  await page.waitForFunction(() => document.documentElement.dataset.theme !== 'ramadan')
+})
 await step('Angka Latin opsional; referensi internal tetap Latin', async () => {
   await go('/pengaturan')
   await page.click('[data-seg="numerals"] [data-v="latin"]')
@@ -212,6 +224,26 @@ await step('Halaman fitur lain terbuka tanpa error', async () => {
   assert.equal(await text('[data-count]'), '١')
   await go('/infaq')
   await shot('10-infaq')
+})
+await step('Tentang: tombol privasi berseberangan dan tidak ada gulir mendatar di layar kecil', async () => {
+  await page.setViewport({ width: 320, height: 740, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
+  try {
+    await go('/tentang')
+    await page.waitForSelector('.about-privacy-actions .btn')
+    const edges = await page.$eval('.about-privacy-actions', (row) => {
+      const buttons = row.querySelectorAll('.btn')
+      const a = buttons[0].getBoundingClientRect()
+      const b = buttons[1].getBoundingClientRect()
+      const r = row.getBoundingClientRect()
+      return { left: a.left - r.left, right: r.right - b.right }
+    })
+    assert.ok(edges.left < 2, `tombol kiri sejajar tepi: ${edges.left}`)
+    assert.ok(edges.right < 2, `tombol kanan sejajar tepi: ${edges.right}`)
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true)
+    assert.match(await page.$eval('.about-privacy-actions a[target="_blank"]', (a) => a.rel), /noreferrer/)
+  } finally {
+    await page.setViewport({ width: 412, height: 915, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
+  }
 })
 await step('Service Worker aktif & aplikasi berjalan OFFLINE (API mati)', async () => {
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => true))
@@ -586,10 +618,14 @@ await step('Navigasi mengambang dengan tombol tengah (FAB)', async () => {
   assert.equal(await page.$eval('.nav-fab', (e) => e.classList.contains('active')), true)
   // Isi halaman paling bawah tidak tertutup navigasi.
   await go('/lainnya')
-  await page.waitForSelector('.version-card')
+  await page.waitForSelector('.more-page .more-hero')
+  assert.equal(await page.$('.more-page .version-card'), null, 'kartu cek versi tidak lagi di Lainnya')
+  await go('/pengaturan')
+  await page.waitForSelector('.version-card [data-version]')
+  assert.equal(await page.$eval('.version-card [data-update]', (button) => button.getAttribute('aria-label')), 'Periksa pembaruan QuranKu', 'tombol pembaruan PWA tersedia di Pengaturan')
   await page.evaluate(() => scrollTo(0, document.body.scrollHeight))
   const gap = await page.evaluate(() => document.querySelector('.navbar').getBoundingClientRect().top - document.querySelector('.fab-disc').getBoundingClientRect().height / 2 - document.querySelector('.version-card').getBoundingClientRect().bottom)
-  assert.ok(gap >= 0, 'kartu versi tidak tertutup navigasi, selisih ' + gap)
+  assert.ok(gap >= 0, 'kartu versi di Pengaturan tidak tertutup navigasi, selisih ' + gap)
   assert.match(await text('.version-card [data-version]'), /^\d+\.\d+\.\d+ \(build /)
   await shot('21-navigasi-mengambang')
 })
