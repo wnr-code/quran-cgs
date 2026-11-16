@@ -68,9 +68,8 @@ export default async function home(root) {
       <div class="skeleton sk-line"></div><div class="skeleton sk-line"></div>
     </section>
 
-    <footer class="cigatas-signature" aria-label="Identitas Cigatas">
-      <span class="cigatas-signature-label">Identitas</span>
-      <a class="cigatas-signature-link" href="#/tentang" aria-label="Lihat identitas Cigatas di Tentang">
+    <footer class="cigatas-signature" aria-label="Cigatas">
+      <a class="cigatas-signature-link" href="#/tentang" aria-label="Lihat Cigatas di halaman Tentang">
         <img src="/cigatas-identity.png" width="1212" height="512" loading="lazy" decoding="async" alt="Cigatas — #TongEureunNgaji" />
       </a>
     </footer>
