@@ -381,6 +381,16 @@ test('failover: alamat utama mati → data diambil dari alamat cadangan', async 
   assert.equal((await f3('/api/x')).status, 404)
 })
 
+test('Trakteer embed di APK memakai ref domain publik; PWA tetap memakai origin aktif', async () => {
+  const { embedRef, embedUrl, TRBTN } = await import('../src/pages/infaq.js')
+  const nativeRef = embedRef(true, 'https://localhost', '/')
+  const pwaRef = embedRef(false, 'https://quran.cgs.my.id', '/')
+  assert.equal(nativeRef, 'https://quran.cgs.my.id/')
+  assert.equal(pwaRef, 'https://quran.cgs.my.id/')
+  assert.ok(embedUrl(TRBTN.url, nativeRef).endsWith('&ref=https://quran.cgs.my.id/'))
+  assert.equal(embedRef(false, 'http://localhost:5173', '/'), 'http://localhost:5173/')
+})
+
 test('Capacitor API routing: API same-app goes to Worker, bundled data and third-party APIs stay local', async () => {
   const { createNativeApiFetch } = await import('../src/services/failover.js')
   const calls = []
