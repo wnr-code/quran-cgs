@@ -85,7 +85,7 @@ jobs:
         working-directory: android
         run: |
           if [ -f "$RUNNER_TEMP/gradle.log" ]; then
-            grep -E '^(e:|w:)|: error:|Unresolved reference|Type mismatch|Overload resolution ambiguity' "$RUNNER_TEMP/gradle.log" | tail -n 60 | while IFS= read -r line; do
+            grep -E '^(e:)|: error:|Unresolved reference|Type mismatch|Overload resolution ambiguity' "$RUNNER_TEMP/gradle.log" | tail -n 60 | while IFS= read -r line; do
               escaped=${line//'%'/'%25'}
               escaped=${escaped//$'\r'/'%0D'}
               printf '::error title=Android compiler::%s\n' "$escaped"

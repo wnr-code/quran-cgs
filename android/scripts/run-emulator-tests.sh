@@ -17,4 +17,26 @@ adb wait-for-device
 adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
-gradle :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace
+
+set +e
+gradle :app:connectedDebugAndroidTest --no-daemon --console=plain --stacktrace 2>&1 | tee "$diag_dir/android-connected-tests-gradle.log"
+test_status=${PIPESTATUS[0]}
+set -e
+if (( test_status != 0 )); then
+  matches=$(grep -E 'FAILURE:|What went wrong|Execution failed|AssertionError|No matching nodes|expected:|Caused by:|Exception' "$diag_dir/android-connected-tests-gradle.log" | tail -n 35 || true)
+  if [[ -n "$matches" ]]; then
+    {
+      echo '### Android 16 smoke-test failure details'
+      echo '```text'
+      printf '%s\n' "$matches"
+      echo '```'
+    } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+    while IFS= read -r line; do
+      line=${line//'%'/'%25'}
+      line=${line//$'\r'/'%0D'}
+      line=${line//$'\n'/'%0A'}
+      printf '::error title=Android 16 smoke test::%s\n' "$line"
+    done <<< "$matches"
+  fi
+fi
+exit "$test_status"
