@@ -166,6 +166,8 @@ await step('Halaman Lainnya: identitas, slogan, kartu bertema & menu tampil', as
   assert.ok((await page.$$('.more-page .menu-item')).length >= 12)
   assert.equal(await page.$eval('.more-hero h2', (e) => e.textContent), 'QuranKu')
   assert.equal(await page.$eval('.more-arabic', (e) => e.textContent), 'كَلَامُ اللَّهِ')
+  const arabicRightGap = await page.$eval('.more-arabic', (e) => Math.abs(e.getBoundingClientRect().right - e.parentElement.getBoundingClientRect().right))
+  assert.ok(arabicRightGap < 2, `teks Arab rata ke pinggir kanan: ${arabicRightGap}px`)
   assert.ok((await page.$eval('[data-more-slogan]', (e) => e.textContent.trim())).length > 10)
   assert.equal(await page.$eval('.more-promise', (e) => e.textContent.replace(/\s+/g, ' ').trim()), 'Gratis • Tanpa Iklan • Tanpa Analitik')
   assert.equal(await page.$('.more-page .version-card'), null, 'cek versi dipindah ke Pengaturan')

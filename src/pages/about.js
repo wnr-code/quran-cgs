@@ -37,6 +37,6 @@ export default function about(root) {
       <p class="about-privacy-copy">${native ? 'APK Android tidak mendaftar Web Push atau notifikasi sistem. Pengingat tampil sebagai pesan di dalam aplikasi dan adzan hanya berjalan saat QuranKu terbuka.' : 'Jika Web Push Adzan diaktifkan di PWA, langganan push, lokasi yang dibulatkan sekitar ±1 km, dan pilihan jadwal disimpan di server untuk mengirim pemberitahuan. Mematikan fitur menghapus langganan tersebut.'}</p>
       <p class="about-privacy-copy">Jika Anda membuka formulir infaq, Trakteer dan mitra pembayarannya menangani data formulir/pembayaran. Server QuranKu menerima data transaksi untuk papan donatur; nama tampilan dan ucapan yang Anda kirim dapat ditampilkan di sana.</p>
       <p class="about-privacy-copy">Jika Anda memakai fitur Bagikan, layanan yang dipilih menerima teks doa dan tautan QuranKu yang disiapkan untuk Anda.</p>
-      <div class="btn-row about-privacy-actions"><a class="btn" href="/privacy.html" target="_blank" rel="noopener noreferrer">${icon('shield')}Kebijakan Privasi</a><a class="btn" href="#/infaq">${icon('heart')}Infaq Pengembang</a></div></section>
+      <div class="btn-row about-privacy-actions"><a class="btn" href="/privacy.html" target="_blank" rel="noopener noreferrer">${icon('shield')}Kebijakan Privasi</a><a class="btn" href="#/infaq">${icon('heart')}Donasi</a></div></section>
   </div>`
 }
