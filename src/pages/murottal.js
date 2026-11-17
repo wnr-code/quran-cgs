@@ -1,4 +1,4 @@
-import { getSurahList, getSurah, friendlyError } from '../api/api-adapter.js'
+import { getSurahList, friendlyError } from '../api/api-adapter.js'
 import { QARI, QARI_AYAH, QARI_SURAH, APP } from '../config.js'
 import { pageHeader, skeleton, errorState } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
@@ -6,9 +6,10 @@ import { openSheet } from '../components/modal.js'
 import * as audio from '../services/audio.js'
 import { downloadAudio, isAudioDownloaded, deleteAudio } from '../services/offline.js'
 import { getSettings } from '../services/storage.js'
-import { $, esc, on, toast, debounce, shareText, reportShareResult } from '../utils/helpers.js'
+import { $, esc, on, toast, debounce } from '../utils/helpers.js'
 import { qnum } from '../utils/arabic-numbers.js'
 import { formatTime, formatBytes } from '../utils/format.js'
+import { openShare } from '../components/share-sheet.js'
 import { rerender } from '../router.js'
 
 // Piringan hias (bintang delapan/rub el hizb) yang berputar pelan selama audio diputar.
@@ -57,16 +58,24 @@ export default async function murottal(root) {
   $('[data-vol-out]', root).textContent = Math.round(a0.volume * 100) + '%'
   $('[data-auto]', root).checked = a0.autoPlay
 
-  /** Menandai baris surah yang sedang diputar (ikon berubah menjadi ekualiser bergerak). */
+  /** Menandai surah aktif, status putarnya, dan apakah audio surah sedang diulang. */
   const markRows = (s = audio.getAudioState()) => {
     const cur = s.mode && s.surah ? String(s.surah.nomor) : ''
+    const repeatingSurah = audio.audioSettings().repeat === 'surah'
     for (const row of listEl.querySelectorAll('.audio-row')) {
       const on = row.dataset.n === cur
       row.classList.toggle('is-current', on)
       row.classList.toggle('is-playing', on && !!s.playing)
+      const repeat = row.querySelector('[data-repeat-surah]')
+      if (repeat) {
+        const active = on && s.mode === 'surah' && repeatingSurah
+        repeat.classList.toggle('on', active)
+        repeat.setAttribute('aria-pressed', String(active))
+      }
     }
   }
   const renderNP = (s = audio.getAudioState()) => {
+    $('[data-repeat]', root).value = audio.audioSettings().repeat
     npCard.classList.toggle('is-playing', !!s.playing)
     npCard.classList.toggle('is-idle', !s.mode)
     markRows(s)
@@ -147,7 +156,7 @@ export default async function murottal(root) {
         <button class="icon-btn play-full" data-play aria-label="Putar surah ${esc(s.namaLatin)}">${icon('play')}<span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></button>
         <span class="surah-meta"><strong>${s.nomor}. ${esc(s.namaLatin)}</strong><small>${esc(s.arti || '')}${s.arti ? ' · ' : ''}<span class="qn">${qnum(s.jumlahAyat)}</span> ayat</small></span>
         <span class="surah-ar" lang="ar" dir="rtl">${esc(s.nama)}</span>
-        <button class="icon-btn sm" data-ayat aria-label="Putar per ayat">${icon('list')}</button>
+        <button class="icon-btn sm" data-repeat-surah aria-label="Ulangi surah ${esc(s.namaLatin)}" aria-pressed="false" title="Putar surah berulang">${icon('repeat')}</button>
         <button class="icon-btn sm" data-dl aria-label="Unduh audio surah untuk offline">${icon('download')}</button>
         <button class="icon-btn sm" data-share-audio title="Bagikan audio surah" aria-label="Bagikan audio surah">${icon('share')}</button>
       </div>`)
@@ -170,13 +179,17 @@ export default async function murottal(root) {
       if (st.mode === 'surah' && st.surah && st.surah.nomor === s.nomor) return audio.toggle()
       return audio.playSurah(s)
     }
-    if (e.target.closest('[data-ayat]')) {
-      toast('Memuat ayat…', 1200)
-      try {
-        audio.playAyah(await getSurah(s.nomor), 1)
-      } catch (err) {
-        toast(friendlyError(err))
+    if (e.target.closest('[data-repeat-surah]')) {
+      const current = audio.getAudioState()
+      const sameSurah = current.mode === 'surah' && current.surah && current.surah.nomor === s.nomor
+      const repeating = sameSurah && audio.audioSettings().repeat === 'surah'
+      if (repeating) {
+        audio.setRepeat('none')
+        return
       }
+      audio.setRepeat('surah')
+      if (!sameSurah) return audio.playSurah(s)
+      if (!current.playing) audio.resume()
       return
     }
     if (e.target.closest('[data-share-audio]')) {
@@ -185,7 +198,10 @@ export default async function murottal(root) {
       const qari = QARI[pick.qari] || 'Murottal'
       const title = `${s.namaLatin} — Murottal ${qari}`
       const text = `Dengarkan murottal Surah ${s.namaLatin} oleh ${qari}.\nTautan audio: ${pick.url}`
-      reportShareResult(await shareText(title, text, `${APP.origin}/#/murottal`))
+      openShare(
+        { title, text, url: `${APP.origin}/#/murottal` },
+        { title: 'Bagikan audio', what: 'audio', hint: 'Bagikan tautan audio langsung dan halaman Murottal melalui media sosial atau aplikasi lain.' }
+      )
       return
     }
     const dl = e.target.closest('[data-dl]')
