@@ -41,14 +41,20 @@ export function doImport(after) {
 export default async function bookmark(root) {
   root.innerHTML = `<div class="page">
     ${pageHeader('Bookmark & Riwayat', { back: false, actions: `<button class="icon-btn" data-export aria-label="Ekspor cadangan">${icon('download')}</button><button class="icon-btn" data-import aria-label="Impor cadangan">${icon('upload')}</button>` })}
-    <div class="tabs" role="tablist"><button data-tab="bookmark">Bookmark</button><button data-tab="notes">Catatan</button><button data-tab="history">Riwayat</button></div>
-    <div data-body></div></div>`
+    <div class="tabs" role="tablist" aria-label="Bookmark, catatan, dan riwayat"><button type="button" id="bookmark-tab-bookmark" role="tab" aria-controls="bookmark-panel" data-tab="bookmark">Bookmark</button><button type="button" id="bookmark-tab-notes" role="tab" aria-controls="bookmark-panel" data-tab="notes">Catatan</button><button type="button" id="bookmark-tab-history" role="tab" aria-controls="bookmark-panel" data-tab="history">Riwayat</button></div>
+    <div id="bookmark-panel" data-body role="tabpanel" tabindex="0"></div></div>`
   const body = $('[data-body]', root)
 
   const item = (href, title, sub, extra, del) => `<div class="row-link with-del"><a href="${href}"><span><strong>${title}</strong><small>${sub}</small>${extra || ''}</span></a>${del ? `<button class="icon-btn sm" ${del} aria-label="Hapus">${icon('trash')}</button>` : ''}</div>`
 
   async function render() {
-    root.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab))
+    root.querySelectorAll('[data-tab]').forEach((b) => {
+      const selected = b.dataset.tab === tab
+      b.classList.toggle('active', selected)
+      b.setAttribute('aria-selected', String(selected))
+      b.tabIndex = selected ? 0 : -1
+    })
+    body.setAttribute('aria-labelledby', `bookmark-tab-${tab}`)
     if (tab === 'bookmark') {
       const all = await bookmarkRepo.all()
       const cats = Array.from(new Set(all.map((b) => b.category)))
@@ -107,6 +113,17 @@ export default async function bookmark(root) {
     }
     if (e.target.closest('[data-export]')) return doExport()
     if (e.target.closest('[data-import]')) return doImport(render)
+  })
+  root.querySelector('.tabs').addEventListener('keydown', (e) => {
+    const current = e.target.closest('[role="tab"]')
+    if (!current) return
+    const tabs = [...root.querySelectorAll('[role="tab"]')]
+    const index = tabs.indexOf(current)
+    const next = e.key === 'ArrowRight' ? tabs[(index + 1) % tabs.length] : e.key === 'ArrowLeft' ? tabs[(index - 1 + tabs.length) % tabs.length] : e.key === 'Home' ? tabs[0] : e.key === 'End' ? tabs[tabs.length - 1] : null
+    if (!next) return
+    e.preventDefault()
+    next.focus()
+    next.click()
   })
   render()
 }

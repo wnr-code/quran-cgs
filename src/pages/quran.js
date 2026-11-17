@@ -14,8 +14,8 @@ export default async function quran(root) {
   root.innerHTML = `<div class="page quran-page">
     ${pageHeader("Al-Qur'an", { back: false, subtitle: '114 surah · 30 juz · Mushaf Madinah', actions: `<a class="icon-btn" href="#/cari" aria-label="Pencarian lengkap">${icon('search')}</a>` })}
     <div class="search-box">${icon('search')}<input type="search" placeholder="Cari nama atau nomor surah…" aria-label="Cari surah" autocomplete="off" /></div>
-    <div class="tabs" role="tablist"><button role="tab" data-tab="surah">Surah <small class="tab-count">114</small></button><button role="tab" data-tab="juz">Juz <small class="tab-count">30</small></button></div>
-    <div data-list>${skeleton(10)}</div>
+    <div class="tabs" role="tablist" aria-label="Tampilan daftar Al-Qur'an"><button type="button" id="quran-tab-surah" role="tab" aria-controls="quran-list-panel" data-tab="surah">Surah <small class="tab-count">114</small></button><button type="button" id="quran-tab-juz" role="tab" aria-controls="quran-list-panel" data-tab="juz">Juz <small class="tab-count">30</small></button></div>
+    <div id="quran-list-panel" data-list role="tabpanel" tabindex="0">${skeleton(10)}</div>
   </div>`
   const listEl = $('[data-list]', root)
   let list
@@ -51,14 +51,29 @@ export default async function quran(root) {
   const setTab = (t) => {
     lastTab = t
     root.querySelectorAll('[data-tab]').forEach((b) => {
-      b.classList.toggle('active', b.dataset.tab === t)
-      b.setAttribute('aria-selected', b.dataset.tab === t)
+      const selected = b.dataset.tab === t
+      b.classList.toggle('active', selected)
+      b.setAttribute('aria-selected', String(selected))
+      b.tabIndex = selected ? 0 : -1
     })
+    listEl.setAttribute('aria-labelledby', `quran-tab-${t}`)
     t === 'juz' ? renderJuz() : renderSurah()
   }
-  root.querySelector('.tabs').addEventListener('click', (e) => {
+  const tablist = root.querySelector('.tabs')
+  tablist.addEventListener('click', (e) => {
     const b = e.target.closest('[data-tab]')
     if (b) setTab(b.dataset.tab)
+  })
+  tablist.addEventListener('keydown', (e) => {
+    const current = e.target.closest('[role="tab"]')
+    if (!current) return
+    const tabs = [...tablist.querySelectorAll('[role="tab"]')]
+    const index = tabs.indexOf(current)
+    const next = e.key === 'ArrowRight' ? tabs[(index + 1) % tabs.length] : e.key === 'ArrowLeft' ? tabs[(index - 1 + tabs.length) % tabs.length] : e.key === 'Home' ? tabs[0] : e.key === 'End' ? tabs[tabs.length - 1] : null
+    if (!next) return
+    e.preventDefault()
+    next.focus()
+    next.click()
   })
   input.addEventListener('input', debounce(() => setTab('surah'), 120))
   setTab(lastTab)

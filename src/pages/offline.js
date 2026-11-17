@@ -97,7 +97,8 @@ export default async function offline(root) {
           msg.textContent = `${done}/${total} — ${list[n - 1] ? list[n - 1].namaLatin : 'Surah ' + n}${ok ? '' : ' (gagal)'}`
         }
       })
-      toast(`Selesai: ${r.done - r.failed} surah tersimpan${r.failed ? ', ' + r.failed + ' gagal' : ''}`)
+      const stopped = ctrl.signal.aborted
+      toast(`${stopped ? 'Unduhan dihentikan' : 'Selesai'}: ${r.done - r.failed} surah tersimpan${r.failed ? ', ' + r.failed + ' gagal' : ''}`)
       ctrl = null
       return render()
     }

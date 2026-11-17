@@ -52,12 +52,25 @@ const step = async (name, fn) => {
     await fn()
     console.log('✓', name)
   } catch (e) {
-    console.log('✗', name, '\n   ', e.message.split('\n')[0])
+    console.log('✗', name, '\n   ', e.stack || e.message)
     process.exitCode = 1
   }
 }
 
 await page.goto(BASE + '/', { waitUntil: 'networkidle0' })
+await step('Pengenalan pertama: navigasi, tombol kembali, dan lewati', async () => {
+  await page.waitForSelector('.onboarding-dialog')
+  assert.equal(await page.$eval('.onboarding-dialog', (e) => e.getAttribute('aria-modal')), 'true')
+  assert.match(await text('.onboarding-step'), /01\s*\/\s*03/)
+  await page.click('[data-onboarding-next]')
+  assert.match(await text('.onboarding-step'), /02\s*\/\s*03/)
+  assert.equal(await page.$eval('.onboarding-dialog', (e) => e.querySelector('#onboarding-title').textContent), 'Waktu salat sesuai lokasi.')
+  await page.click('[data-onboarding-back]')
+  assert.match(await text('.onboarding-step'), /01\s*\/\s*03/)
+  await page.click('[data-onboarding-finish]')
+  await page.waitForSelector('.onboarding-dialog', { hidden: true })
+  assert.equal(await page.evaluate(() => localStorage.getItem('quranku:onboarding:completed:v1')), '1')
+})
 await step('Beranda tampil', async () => {
   await page.waitForSelector('.home-hero')
   assert.match((await text('.salam')).normalize('NFC'), new RegExp('اَلسَّلَامُ عَلَيْكُمْ'.normalize('NFC')))
@@ -95,7 +108,10 @@ await step('Reader: Mushaf Continuous, basmalah, penanda ayat ﴿١﴾', async (
   assert.equal(await text('.ayah[data-a="286"] .ayah-num'), '\uFD3F٢٨٦\uFD3E')
   assert.equal(await count('.basmalah'), 1)
   assert.equal(await page.$eval('.mushaf-flow', (e) => getComputedStyle(e).direction), 'rtl')
-  assert.ok(await page.evaluate(() => document.fonts.check('30px "Amiri Quran"')), 'font Amiri Quran termuat')
+  assert.ok(await page.evaluate(async () => {
+    await document.fonts.load('30px "Amiri Quran"', 'بِسْمِ اللَّهِ')
+    return document.fonts.check('30px "Amiri Quran"', 'بِسْمِ اللَّهِ')
+  }), 'font Amiri Quran dapat dimuat saat dipilih')
   await shot('03-mushaf-continuous')
 })
 await step('At-Taubah tanpa basmalah; Al-Fatihah tanpa basmalah terpisah', async () => {
@@ -138,7 +154,7 @@ await step('Mode membaca imersif menyembunyikan navigasi', async () => {
   await shot('07-mode-membaca')
 })
 await step('Bookmark + posisi bacaan tersimpan & dipulihkan', async () => {
-  await page.evaluate(() => document.querySelector('.ayah[data-a="40"]').scrollIntoView({ block: 'start' }))
+  await page.evaluate(() => document.querySelector('.ayah[data-a="40"]').scrollIntoView({ block: 'start', behavior: 'instant' }))
   await page.evaluate(() => window.scrollBy(0, -80))
   await new Promise((r) => setTimeout(r, 1200))
   const cur = await page.evaluate(() => JSON.parse(localStorage.getItem('quranku:lastRead')))
@@ -269,12 +285,28 @@ await step('Service Worker aktif & aplikasi berjalan OFFLINE (API mati)', async 
   await p2.screenshot({ path: `${SHOTS}/11-offline.png` })
   await p2.close()
 })
-await step('Ayat pilihan: tombol ayat lain, putar & bagikan', async () => {
+await step('Ayat pilihan: Bagikan benar-benar membuka share; Salin adalah tindakan terpisah', async () => {
   await go('/')
   await page.waitForSelector('.ayah-day-ar')
   const before = await text('.ayah-day .link')
   assert.equal(await count('.ayah-day [data-ayah-play]'), 1)
   assert.equal(await count('.ayah-day [data-ayah-share]'), 1)
+  assert.equal(await page.$eval('.ayah-day [data-ayah-copy]', (b) => b.textContent.trim()), 'Salin')
+  await page.evaluate(() => {
+    window.__shareCalls = []
+    window.__copied = ''
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async (payload) => window.__shareCalls.push(payload) })
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (value) => { window.__copied = value } } })
+  })
+  await page.$eval('[data-ayah-share]', (b) => b.click())
+  await page.waitForFunction(() => window.__shareCalls.length === 1)
+  const shared = await page.evaluate(() => window.__shareCalls[0])
+  assert.ok(shared.title.startsWith('QS. '))
+  assert.ok(shared.url.includes('#/surah/'))
+  assert.equal(await page.evaluate(() => window.__copied), '', 'tombol Bagikan tidak menyalin diam-diam')
+  await page.$eval('[data-ayah-copy]', (b) => b.click())
+  await page.waitForFunction(() => window.__copied.length > 0)
+  assert.ok((await page.evaluate(() => window.__copied)).includes('quran.cgs.my.id/#/surah/'))
   await page.$eval('[data-ayah-next]', (b) => b.click())
   await page.waitForFunction((b) => document.querySelector('.ayah-day .link') && document.querySelector('.ayah-day .link').textContent.trim() !== b, {}, before)
 })
@@ -386,6 +418,12 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
   // Pilihan tersimpan: tetap berlaku setelah pindah tab & muat ulang.
   await page.reload({ waitUntil: 'networkidle2' })
   await page.waitForSelector('.dzikir .ayah-ar')
+  await page.evaluate(() => {
+    window.__shareCalls = []
+    window.__copied = ''
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async (payload) => window.__shareCalls.push(payload) })
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (value) => { window.__copied = value } } })
+  })
   assert.equal(await shown('.dzikir .ayah-id'), false)
   await shot('28-doa-lafaz-saja')
   for (const k of ['arti', 'latin']) await page.$eval(`[data-view="${k}"]`, (b) => b.click())
@@ -396,7 +434,7 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
   assert.equal(await page.evaluate(async () => { await document.fonts.load("900 16px 'QK Icons'", '\uf06e'); return document.fonts.check("900 16px 'QK Icons'", '\uf06e') }), true)
   await page.$eval('.dzikir[data-card="0"] [data-share]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open .share-grid')
-  const hrefs = await page.$$eval('.share-opt[data-net]', (a) => a.map((x) => x.href))
+  const hrefs = await page.$$eval('.sheet-wrap.open .share-opt[data-net]', (a) => a.map((x) => x.href))
   assert.equal(hrefs.length, 4)
   assert.match(hrefs[0], /^https:\/\/wa\.me\/\?text=Istighfar/)
   assert.match(decodeURIComponent(hrefs[0]), /Artinya: Aku memohon ampun[\s\S]*quran\.cgs\.my\.id\/#\/doa\/salat$/)
@@ -405,8 +443,28 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
   assert.match(hrefs[3], /twitter\.com\/intent\/tweet/)
   await new Promise((r) => setTimeout(r, 400))
   await shot('29-doa-bagikan')
-  await page.$eval('.sheet-head [data-close]', (b) => b.click())
-  await new Promise((r) => setTimeout(r, 300))
+  assert.equal(await page.$eval('.sheet-wrap.open [data-copyshare]', (b) => b.textContent.trim()), 'Salin teks')
+  await page.evaluate(() => {
+    window.__socialOpened = []
+    window.__copied = ''
+    window.open = (url, target, features) => { window.__socialOpened.push({ url, target, features }); return {} }
+  })
+  await page.$eval('.sheet-wrap.open .share-opt[data-net="fb"]', (b) => b.click())
+  await page.waitForFunction(() => window.__socialOpened.length === 1)
+  assert.ok((await page.evaluate(() => window.__socialOpened[0].url)).includes('facebook.com/sharer'))
+  assert.equal(await page.evaluate(() => window.__copied), '', 'Facebook membuka alur share, tidak otomatis menyalin')
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap.open'))
+  await page.$eval('.dzikir[data-card="0"] [data-share]', (b) => b.click())
+  await page.waitForSelector('.sheet-wrap.open .share-grid')
+  await page.$eval('.sheet-wrap.open .share-opt[data-native]', (b) => b.click())
+  await page.waitForFunction(() => window.__shareCalls.length === 1)
+  assert.match((await page.evaluate(() => window.__shareCalls[0].text)), /Istighfar/)
+  await page.$eval('.dzikir[data-card="0"] [data-share]', (b) => b.click())
+  await page.waitForSelector('.sheet-wrap.open .share-grid')
+  await page.$eval('.sheet-wrap.open .share-opt[data-copyshare]', (b) => b.click())
+  await page.waitForFunction(() => window.__copied.length > 0)
+  assert.match(await page.evaluate(() => window.__copied), /Istighfar/)
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap.open'))
 })
 await step('Doa harian per kategori (Quran NU Online), cari lintas kategori, tanpa duplikat', async () => {
   await go('/doa/harian')
@@ -433,7 +491,7 @@ await step('Doa harian per kategori (Quran NU Online), cari lintas kategori, tan
   assert.equal(await count('.doa-nu[open]'), 1)
   await page.$eval('.doa-nu[open] [data-share]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open .share-grid')
-  assert.match(decodeURIComponent(await page.$eval('.share-opt.wa', (a) => a.href)), /Doa Keluar Rumah[\s\S]*Quran NU Online[\s\S]*#\/doa\/harian$/)
+  assert.match(decodeURIComponent(await page.$eval('.sheet-wrap.open .share-opt.wa', (a) => a.href)), /Doa Keluar Rumah[\s\S]*Quran NU Online[\s\S]*#\/doa\/harian$/)
   await page.$eval('.sheet-head [data-close]', (b) => b.click())
   await new Promise((r) => setTimeout(r, 300))
   // Pindah kategori lewat chip, kembali ke daftar kategori.
@@ -464,8 +522,8 @@ await step('Asmaul Husna: bagikan ke media sosial', async () => {
   await new Promise((r) => setTimeout(r, 400))
   await shot('32-asmaul-detail')
   await page.$eval('.sheet-wrap.open [data-share]', (b) => b.click())
-  await page.waitForSelector('.share-grid')
-  const hrefs = await page.$$eval('.share-opt[data-net]', (a) => a.map((x) => x.href))
+  await page.waitForSelector('.sheet-wrap.open .share-grid')
+  const hrefs = await page.$$eval('.sheet-wrap.open .share-opt[data-net]', (a) => a.map((x) => x.href))
   assert.equal(hrefs.length, 4)
   assert.match(decodeURIComponent(hrefs[0]), /^https:\/\/wa\.me\/\?text=Asmaul Husna ke-1: [\s\S]*[\u0600-\u06FF][\s\S]*Artinya: [\s\S]*quran\.cgs\.my\.id\/#\/asmaul-husna$/)
   assert.match(hrefs[1], /^https:\/\/t\.me\/share\/url/)
@@ -629,9 +687,22 @@ await step('Navigasi mengambang dengan tombol tengah (FAB)', async () => {
   assert.match(await text('.version-card [data-version]'), /^\d+\.\d+\.\d+ \(build /)
   await shot('21-navigasi-mengambang')
 })
-await step('Murottal: pemutar beranimasi & baris aktif; Asmaul Husna: kartu & detail', async () => {
+await step('Murottal: bagikan audio tanpa memulai ulang; kontrol pemutar & baris aktif', async () => {
   await go('/murottal')
   await page.waitForSelector('.audio-row')
+  assert.equal(await count('.audio-row[data-n="36"] [data-share-audio]'), 1)
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'kontrol Bagikan audio tidak menimbulkan overflow')
+  await page.evaluate(() => {
+    window.__shareCalls = []
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async (payload) => window.__shareCalls.push(payload) })
+  })
+  const beforeAudio = await text('.now-playing h2')
+  await page.$eval('.audio-row[data-n="36"] [data-share-audio]', (b) => b.click())
+  await page.waitForFunction(() => window.__shareCalls.length === 1)
+  const audioShare = await page.evaluate(() => window.__shareCalls[0])
+  assert.ok(audioShare.text.includes('Tautan audio:'))
+  assert.ok(audioShare.url.endsWith('/#/murottal'))
+  assert.equal(await text('.now-playing h2'), beforeAudio, 'membagikan audio tidak menjalankan aksi play')
   assert.equal(await page.$eval('.now-playing', (e) => e.classList.contains('is-idle')), true)
   await page.$eval('.audio-row[data-n="36"] [data-play]', (b) => b.click())
   await page.waitForSelector('.audio-row[data-n="36"].is-current')

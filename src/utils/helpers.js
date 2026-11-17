@@ -1,4 +1,6 @@
 import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
+import { Share } from '@capacitor/share'
 
 export const $ = (sel, root = document) => root.querySelector(sel)
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel))
@@ -99,17 +101,48 @@ export async function copyText(text) {
   }
 }
 
+export const canShareText = () =>
+  Capacitor.isNativePlatform() || (typeof navigator !== 'undefined' && typeof navigator.share === 'function')
+
+/** Share pakai Android/iOS share sheet atau Web Share API; tidak pernah diam-diam menyalin teks. */
 export async function shareText(title, text, url) {
-  if (navigator.share) {
-    try {
-      await navigator.share({ title, text, url })
+  const options = { title, text, url }
+  try {
+    if (Capacitor.isNativePlatform()) {
+      const { value } = await Share.canShare()
+      if (!value) return 'unsupported'
+      await Share.share({ ...options, dialogTitle: title })
       return 'shared'
-    } catch (e) {
-      if (e && e.name === 'AbortError') return 'cancelled'
+    }
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      await navigator.share(options)
+      return 'shared'
+    }
+    return 'unsupported'
+  } catch (e) {
+    if (e && (e.name === 'AbortError' || /share canceled/i.test(e.message || ''))) return 'cancelled'
+    return 'failed'
+  }
+}
+
+/** Buka tujuan sosial lewat Custom Tab Capacitor di Android/iOS, tab baru pada web. */
+export async function openExternal(url) {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await Browser.open({ url, toolbarColor: '#0b3d2e' })
+      return true
+    } catch {
+      return false
     }
   }
-  const ok = await copyText(url ? `${text}\n${url}` : text)
-  return ok ? 'copied' : 'failed'
+  window.open(url, '_blank', 'noopener,noreferrer')
+  return true
+}
+
+/** Laporkan kegagalan saja; dialog share native sendiri menampilkan hasil bagi. */
+export function reportShareResult(result) {
+  if (result === 'unsupported') toast('Fitur bagikan tidak didukung di perangkat ini; teks tidak disalin otomatis.')
+  else if (result === 'failed') toast('Gagal membagikan. Coba lagi.')
 }
 
 export function downloadFile(filename, content, type = 'application/json') {

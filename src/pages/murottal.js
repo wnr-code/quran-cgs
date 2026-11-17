@@ -1,12 +1,12 @@
 import { getSurahList, getSurah, friendlyError } from '../api/api-adapter.js'
-import { QARI, QARI_AYAH, QARI_SURAH } from '../config.js'
+import { QARI, QARI_AYAH, QARI_SURAH, APP } from '../config.js'
 import { pageHeader, skeleton, errorState } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { openSheet } from '../components/modal.js'
 import * as audio from '../services/audio.js'
 import { downloadAudio, isAudioDownloaded, deleteAudio } from '../services/offline.js'
 import { getSettings } from '../services/storage.js'
-import { $, esc, on, toast, debounce } from '../utils/helpers.js'
+import { $, esc, on, toast, debounce, shareText, reportShareResult } from '../utils/helpers.js'
 import { qnum } from '../utils/arabic-numbers.js'
 import { formatTime, formatBytes } from '../utils/format.js'
 import { rerender } from '../router.js'
@@ -149,6 +149,7 @@ export default async function murottal(root) {
         <span class="surah-ar" lang="ar" dir="rtl">${esc(s.nama)}</span>
         <button class="icon-btn sm" data-ayat aria-label="Putar per ayat">${icon('list')}</button>
         <button class="icon-btn sm" data-dl aria-label="Unduh audio surah untuk offline">${icon('download')}</button>
+        <button class="icon-btn sm" data-share-audio title="Bagikan audio surah" aria-label="Bagikan audio surah">${icon('share')}</button>
       </div>`)
       .join('')}</div>`
     markRows()
@@ -176,6 +177,15 @@ export default async function murottal(root) {
       } catch (err) {
         toast(friendlyError(err))
       }
+      return
+    }
+    if (e.target.closest('[data-share-audio]')) {
+      const pick = audio.pickSurahAudio(s)
+      if (!pick) return toast('Audio surah tidak tersedia untuk dibagikan.')
+      const qari = QARI[pick.qari] || 'Murottal'
+      const title = `${s.namaLatin} — Murottal ${qari}`
+      const text = `Dengarkan murottal Surah ${s.namaLatin} oleh ${qari}.\nTautan audio: ${pick.url}`
+      reportShareResult(await shareText(title, text, `${APP.origin}/#/murottal`))
       return
     }
     const dl = e.target.closest('[data-dl]')

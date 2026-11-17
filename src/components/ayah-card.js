@@ -1,7 +1,7 @@
 // Markup ayat (mode mushaf & mode fokus) serta lembar aksi ayat.
 import { icon } from './icons.js'
 import { openSheet } from './modal.js'
-import { esc, toast, copyText, shareText } from '../utils/helpers.js'
+import { esc, toast, copyText, shareText, reportShareResult } from '../utils/helpers.js'
 import { ayahMarker, ayahRef, qnum } from '../utils/arabic-numbers.js'
 import { isSajda, isPageStart, pageOf, juzOf } from '../utils/quran-meta.js'
 import { bookmarkRepo, noteRepo } from '../database/repositories.js'
@@ -148,8 +148,7 @@ export async function openAyahSheet(surah, ayahNo, { onChange, onMarkLast } = {}
           toast((await copyText(ayahShareText(surah, a))) ? 'Ayat disalin' : 'Gagal menyalin')
         } else if (act === 'share') {
           const r = await shareText(`QS. ${surah.namaLatin} ${ref}`, ayahShareText(surah, a), `${APP.origin}/#/surah/${n}/${ayahNo}`)
-          if (r === 'copied') toast('Teks & tautan disalin (fitur bagikan tidak tersedia)')
-          else if (r === 'failed') toast('Gagal membagikan')
+          reportShareResult(r)
         } else if (act === 'last') {
           onMarkLast && onMarkLast(ayahNo)
           toast('Ditandai sebagai bacaan terakhir')

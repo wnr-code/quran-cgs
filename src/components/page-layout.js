@@ -18,7 +18,7 @@ export const skeleton = (count = 6, className = '') =>
   `<div class="skeleton-list">${Array.from({ length: count }, () => `<div class="skeleton ${className}"></div>`).join('')}</div>`
 
 export const emptyState = (iconName, title, text = '', action = '') =>
-  `<div class="state">${icon(iconName, 'state-icon')}<h3>${title}</h3>${text ? `<p>${text}</p>` : ''}${action}</div>`
+  `<div class="state">${icon(iconName, 'state-icon')}<h2>${title}</h2>${text ? `<p>${text}</p>` : ''}${action}</div>`
 
 export const errorState = (text, retryAttr = 'data-retry') =>
   `<div class="state state-error">${icon('cloudOff', 'state-icon')}<h3>Tidak dapat memuat data</h3><p>${text}</p><button class="btn btn-primary" ${retryAttr}>${icon('refresh')}Coba lagi</button></div>`
