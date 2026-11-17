@@ -13,12 +13,14 @@ export default function about(root) {
 
     <section class="card"><p class="eyebrow">Fitur</p>
       <ul class="about-list">
-        <li>Al-Qur'an 114 surah: mode Mushaf, Halaman, dan Terjemahan; tafsir; pencarian</li>
-        <li>Tandai teks, bookmark, catatan, dan posisi bacaan terakhir</li>
-        <li>Murottal per ayat dan per surah dengan banyak qari</li>
-        <li>Jadwal salat, imsak &amp; buka puasa, adzan otomatis, arah kiblat, kalender Hijriah</li>
-        <li>Doa harian per kategori, doa wudhu, wirid &amp; doa usai salat, Asmaul Husna, tasbih digital</li>
-        <li>Target tilawah dan statistik; bisa dipasang dan dipakai offline</li>
+        <li>Al-Qur'an 114 surah: mode Terjemahan, Mushaf, dan Halaman; transliterasi, terjemahan, tafsir, dan pencarian</li>
+        <li>Murottal per ayat dan surah dari banyak qari; tandai teks, bookmark, catatan, riwayat, dan cadangan bacaan</li>
+        <li>Jadwal salat, notifikasi azan, pengingat sebelum salat, serta imsak dan tarhim Ramadan</li>
+        <li>Arah kiblat, kalender Hijriah dengan catatan/pengingat pribadi, dan tasbih digital</li>
+        <li>Doa harian, doa wudhu, wirid &amp; doa usai salat, Tahlil &amp; Doa Arwah Lengkap (28 langkah), dan Asmaul Husna (99 nama)</li>
+        <li>Target tilawah, statistik, pengingat; unduh teks, tafsir, dan audio pilihan untuk offline</li>
+        <li>Kotak masuk lokal untuk pengumuman, pembaruan aplikasi, dan riwayat pengingat; PWA dapat dipasang</li>
+        <li>Infaq sukarela tersedia di aplikasi; tidak ada fitur atau konten berbayar</li>
       </ul></section>
 
     <section class="card"><p class="eyebrow">Sumber data</p>

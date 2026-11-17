@@ -5,6 +5,7 @@ import './styles/reader.css'
 import './styles/responsive.css'
 import './styles/redesign.css'
 import './styles/onboarding.css'
+import { App } from '@capacitor/app'
 import { initSettings } from './services/storage.js'
 import { addRoute, startRouter, navigate } from './router.js'
 import { getLastRead } from './services/reading-position.js'
@@ -14,10 +15,12 @@ import { registerServiceWorker, watchConnectivity } from './services/offline.js'
 import { startReminderLoop } from './services/notification.js'
 import { initAdzan, adzanTick } from './services/adzan.js'
 import { getSurahList } from './api/api-adapter.js'
+import { appLinkRoute } from './services/app-links.js'
 import { installFetchFailover } from './services/failover.js'
 import { initializeNativeShell, hideNativeSplash } from './services/native-shell.js'
 import { prepareLegacyNativeData, importLegacyNativeSurahs } from './services/legacy-migration.js'
 import { isStandalone } from './utils/helpers.js'
+import { isAndroidApp } from './services/platform.js'
 import { showFirstRunOnboarding } from './services/onboarding.js'
 import { initInbox } from './services/inbox.js'
 
@@ -75,6 +78,17 @@ startRouter(document.getElementById('view'), (path, meta) => {
     showFirstRunOnboarding()
   }
 })
+
+// App links from the public site use the router's hash URL (/#/surah/...).
+function handleAppLink({ url } = {}) {
+  const route = appLinkRoute(url)
+  if (route) navigate(route, { replace: true })
+}
+
+if (isAndroidApp()) {
+  void App.addListener('appUrlOpen', handleAppLink).catch(() => {})
+  void App.getLaunchUrl().then(handleAppLink).catch(() => {})
+}
 
 // Restore legacy preferences without blocking the first route, then import any cached Quran chapters in the background.
 void prepareLegacyNativeData()

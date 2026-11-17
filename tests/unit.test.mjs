@@ -437,6 +437,25 @@ test('Capacitor API routing: API same-app goes to Worker, bundled data and third
   assert.equal(await calls[3].input.text(), '{"quantity":1}')
 })
 
+test('App Links Android memakai domain, sertifikat, dan rute hash resmi QuranKu', async () => {
+  const { appLinkRoute } = await import('../src/services/app-links.js')
+  assert.equal(appLinkRoute('https://quran.cgs.my.id/#/surah/2/255'), '/surah/2/255')
+  assert.equal(appLinkRoute('https://quran.cgs.my.id/'), '/')
+  assert.equal(appLinkRoute('https://quran.cgs.my.id/privacy.html'), null, 'halaman web statis tidak dialihkan ke router APK')
+  assert.equal(appLinkRoute('https://evil.example/#/surah/2/255'), null, 'tautan dari domain lain ditolak')
+
+  const statement = JSON.parse(readFileSync(new URL('../public/.well-known/assetlinks.json', import.meta.url), 'utf8'))
+  assert.deepEqual(statement[0].relation, ['delegate_permission/common.handle_all_urls'])
+  assert.equal(statement[0].target.namespace, 'android_app')
+  assert.equal(statement[0].target.package_name, 'id.cgs.quranku')
+  assert.deepEqual(statement[0].target.sha256_cert_fingerprints, [
+    '56:45:F6:54:3C:D6:9E:43:30:B3:92:1C:91:C4:03:9C:50:3E:9A:5F:F9:23:CE:DF:43:BE:08:51:1B:DE:03:66'
+  ])
+  const manifest = readFileSync(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8')
+  assert.match(manifest, /android:autoVerify="true"/)
+  assert.match(manifest, /android:scheme="https" android:host="quran\.cgs\.my\.id" android:path="\/"/)
+})
+
 test('notifikasi Android memakai status izin sistem dan menyediakan permintaan runtime', async () => {
   const { notifSupported, notifPermission, requestNotifPermission } = await import('../src/services/notification.js')
   globalThis.androidBridge = {}

@@ -3,58 +3,49 @@
 **Nama aplikasi (maks. 30):** QuranKu - Al-Quran Digital
 
 **Deskripsi singkat (maks. 80):**
-Al-Qur'an, terjemahan, tafsir, murottal, dan jadwal salat. Gratis tanpa iklan.
+Al-Qur'an, murottal, doa, Tahlil & jadwal salat. Gratis tanpa iklan.
 
 **Deskripsi lengkap (maks. 4000):**
 
-QuranKu adalah aplikasi Al-Qur'an digital yang ringan, tenang, dan nyaman dibaca. Gratis, tanpa iklan, tanpa akun.
+QuranKu adalah aplikasi Al-Qur'an digital berbahasa Indonesia: gratis, tanpa iklan, tanpa akun, dan kode aplikasinya sumber terbuka. Baca, dengarkan murottal, dan kelola ibadah harian dalam satu aplikasi.
 
-MEMBACA DENGAN NYAMAN
-• 114 surah, 30 juz, lengkap dengan teks Arab rasm Utsmani, transliterasi, dan terjemahan bahasa Indonesia
-• Mode Mushaf: ayat mengalir seperti mushaf
-• Mode Ayat: satu ayat beserta terjemahannya
-• Mode membaca tanpa gangguan
-• Atur ukuran huruf, jarak baris, lebar bacaan, dan warna
-• Tema Mushaf Klasik, Ivory, Gelap, dan Malam
-• Nomor ayat dengan angka Arab
-• Lanjutkan tepat di ayat terakhir yang dibaca
+BACA AL-QUR'AN
+• 114 surah dan 30 juz, dengan teks Arab, transliterasi Latin, serta terjemahan bahasa Indonesia.
+• Pilih mode Terjemahan per ayat, Mushaf mengalir, atau Halaman mengikuti Mushaf Madinah.
+• Atur ukuran huruf, jarak baris, lebar bacaan, warna, tema, dan tampilan angka Arab/Latin.
+• Lanjutkan dari posisi bacaan terakhir; tandai kata, simpan bookmark dan catatan, lihat riwayat, serta ekspor/pulihkan cadangan.
+• Buka tafsir per ayat dan cari surah, ayat (misalnya 2:255), juz, halaman, atau kata dalam terjemahan.
 
 MUROTTAL
-• 31 pilihan qari (6 dengan audio per ayat)
-• Putar per ayat atau satu surah penuh
-• Ulangi ayat atau surah, atur kecepatan
-• Unduh audio surah pilihan untuk didengar tanpa internet
-
-TAFSIR DAN PENCARIAN
-• Tafsir per ayat
-• Cari surah, ayat (contoh 2:255), juz, halaman, atau kata dalam terjemahan
-
-CATATAN PRIBADI
-• Bookmark ayat dengan kategori
-• Catatan pada ayat
-• Riwayat bacaan
-• Cadangkan dan pulihkan data
+• 31 pilihan qari; 6 qari menyediakan audio per ayat.
+• Putar per ayat atau satu surah, ulangi bacaan, dan atur kecepatan.
+• Unduh audio surah pilihan untuk didengarkan offline.
 
 TARGET TILAWAH
-• Target harian: halaman, juz, atau khatam 30 hari
-• Statistik harian, mingguan, bulanan
-• Pengingat tilawah
+• Atur target harian berdasarkan halaman, juz, khatam 30 hari, atau target kustom.
+• Lihat progres dan statistik harian, mingguan, bulanan, serta hari beruntun.
+• Aktifkan pengingat tilawah dan pengingat saat target belum tercapai.
 
-FITUR LAIN
-• Jadwal salat dan imsak sesuai lokasi
-• Kalender Hijriah
-• Arah kiblat
-• Asmaul Husna
-• Doa harian
-• Tasbih digital
+JADWAL SALAT & IBADAH
+• Jadwal salat berdasarkan lokasi yang Anda pilih, dengan notifikasi azan dan pengingat sebelum salat.
+• Jadwal imsak dan buka puasa; notifikasi imsak dan tarhim tersedia pada Ramadan.
+• Arah kiblat dan kalender Hijriah, termasuk hari besar, catatan, serta pengingat pribadi pada tanggal pilihan.
+• Tasbih digital.
 
-BISA OFFLINE
-Surah yang pernah dibuka tersimpan di perangkat. Anda juga dapat mengunduh seluruh teks Al-Qur'an untuk dibaca tanpa internet.
+DOA & ZIKIR
+• Doa harian berdasarkan kategori, doa wudhu, serta wirid dan doa usai salat.
+• Tahlil & Doa Arwah versi Lengkap dalam 28 langkah.
+• Asmaul Husna: 99 nama beserta arti, makna, faedah, dan rujukan ayat.
 
-MENJAGA PRIVASI
-Tanpa iklan dan tanpa pelacakan. Bookmark, catatan, dan lokasi hanya tersimpan di perangkat Anda.
+OFFLINE & NOTIFIKASI
+Surah yang dibuka tersimpan di perangkat. Dari Kelola Offline, pilih surah atau unduh teks seluruh 114 surah; tafsir dan audio pilihan juga dapat disimpan. Unduhan pertama memerlukan internet. Kotak masuk lokal menyimpan pengumuman, pembaruan aplikasi, dan riwayat pengingat.
 
-Sumber data: EQuran.id (teks, terjemahan, dan tafsir Kemenag RI), Al Quran Cloud, dan Quran NU Online (doa dan wirid).
+PRIVASI
+Tanpa akun, iklan, pelacak iklan, atau analitik. Bookmark, catatan, progres, dan pengaturan tersimpan di perangkat. Jika Anda memilih Gunakan lokasi saya untuk mencari nama wilayah, koordinat dikirim langsung ke OpenStreetMap Nominatim, bukan ke server QuranKu. Infaq bersifat sukarela; formulir/pembayaran ditangani Trakteer dan mitranya. Catatan transaksi yang diterima server QuranKu dapat menampilkan nama, nominal, dan ucapan di papan donatur. Lihat kebijakan privasi untuk rinciannya.
+
+Di Android, alarm dan pengingat dijadwalkan di perangkat. Notifikasi memerlukan izin; akses alarm tepat khusus Android 12 ke atas dapat diminta. Penghemat baterai, force-stop, atau kebijakan perangkat dapat menunda pengiriman. Streaming murottal dan rekaman azan memerlukan internet; audio hanya tersedia offline setelah diunduh.
+
+Sumber data: EQuran.id dan Al Quran Cloud (teks, terjemahan, tafsir, dan audio); Quran NU Online (doa, wirid, dan Tahlil); mp3quran.net (murottal tambahan).
 
 **Kategori:** Buku & Referensi
 **Tag:** Al-Qur'an, Islam, Murottal, Jadwal Salat
@@ -65,5 +56,5 @@ Sumber data: EQuran.id (teks, terjemahan, dan tafsir Kemenag RI), Al Quran Cloud
 | Aset | Berkas |
 |---|---|
 | Ikon 512×512 | `store/graphics/icon-512.png` |
-| Feature graphic 1024×500 | `store/graphics/feature-graphic-1024x500.png` |
+| Feature graphic 1024×500 | `store/quranku-playstore-feature-graphic-1024x500.png` |
 | Screenshot ponsel | `store/screenshots/*.png` — **ambil ulang dari situs produksi sebelum diunggah** (lihat docs/STATUS.md). Play meminta 2–8 screenshot, sisi 320–3840 px, rasio maksimum 2:1; periksa ukuran berkas terhadap ketentuan terbaru. |
