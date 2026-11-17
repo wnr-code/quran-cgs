@@ -4,7 +4,9 @@
     "target": {
       "namespace": "android_app",
       "package_name": "id.cgs.quranku",
-      "sha256_cert_fingerprints": ["GANTI_DENGAN_SHA256_FINGERPRINT_KUNCI_SIGNING"]
+      "sha256_cert_fingerprints": [
+        "56:45:F6:54:3C:D6:9E:43:30:B3:92:1C:91:C4:03:9C:50:3E:9A:5F:F9:23:CE:DF:43:BE:08:51:1B:DE:03:66"
+      ]
     }
   }
 ]
