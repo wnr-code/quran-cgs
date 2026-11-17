@@ -3,7 +3,8 @@ import { icon } from '../components/icons.js'
 import { getSettings, saveSettings } from '../services/storage.js'
 import { GOAL_TYPES, goalPages, todayProgress, lastDays, streak } from '../services/progress.js'
 import { requestNotifPermission, notifSupported } from '../services/notification.js'
-import { isNativePlatform } from '../services/platform.js'
+import { requestAndroidReminderPermissions } from '../services/prayer-notifications.js'
+import { isAndroidApp, isNativePlatform } from '../services/platform.js'
 import { $, esc, toast } from '../utils/helpers.js'
 
 export default async function goal(root) {
@@ -13,6 +14,7 @@ export default async function goal(root) {
   async function render() {
     const s = getSettings()
     const native = isNativePlatform()
+    const android = isAndroidApp()
     const target = goalPages(s.goal)
     const [today, days30] = await Promise.all([todayProgress(), lastDays(30)])
     const week = days30.slice(-7)
@@ -43,7 +45,7 @@ export default async function goal(root) {
         <label class="switch-row"><span>Pengingat tilawah harian</span><input type="checkbox" data-rem="tilawah" ${s.reminders.tilawah ? 'checked' : ''}/></label>
         <label class="field inline"><span>Jam pengingat</span><input type="time" data-time value="${esc(s.reminders.tilawahTime)}" /></label>
         <label class="switch-row"><span>Ingatkan bila target belum tercapai (20.30)</span><input type="checkbox" data-rem="goal" ${s.reminders.goal ? 'checked' : ''}/></label>
-        <p class="hint">${native ? 'Di aplikasi Android, pengingat muncul sebagai pesan di dalam aplikasi selama QuranKu terbuka; alarm native terjadwal hanya untuk waktu salat.' : 'Pengingat lokal berjalan selama browser/PWA aktif; notifikasi di background bergantung pada dukungan dan pengaturan browser.'}</p></section>`
+        <p class="hint">${android ? 'Di Android, pengingat tilawah dan target dijadwalkan sebagai notifikasi sistem, termasuk saat QuranKu tertutup. Izin notifikasi wajib; tanpa akses alarm tepat, Android dapat menunda pengiriman.' : native ? 'Pengingat lokal tampil sebagai pesan saat QuranKu terbuka.' : 'Pengingat lokal berjalan selama browser/PWA aktif; notifikasi di background bergantung pada dukungan dan pengaturan browser.'}</p></section>`
   }
 
   body.addEventListener('change', async (e) => {
@@ -63,7 +65,9 @@ export default async function goal(root) {
           t.checked = false
           return toast('Perangkat/browser ini tidak mendukung notifikasi.')
         }
-        const p = isNativePlatform() ? 'foreground' : await requestNotifPermission()
+        const p = isAndroidApp()
+          ? (await requestAndroidReminderPermissions()).notificationPermission
+          : isNativePlatform() ? 'foreground' : await requestNotifPermission()
         if (p !== 'granted' && p !== 'foreground') {
           t.checked = false
           return toast('Izin notifikasi tidak diberikan.')

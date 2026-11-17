@@ -58,7 +58,8 @@ Perintah `npm run cap:sync` menjalankan build web lalu menyalin aset yang sama k
 - **Target tilawah** dan statistik harian/mingguan/bulanan, pengingat.
 - **Jadwal salat** (hisab lokal) dan **adzan otomatis**: suara adzan saat aplikasi terbuka, pemberitahuan push saat tertutup; imsak & tarhim khusus Ramadan; tiap waktu bisa dinyalakan/dimatikan.
 - **Arah kiblat** (kompas), **kalender Hijriah**, **tasbih digital**.
-- **Doa harian per kategori** (Keseharian, Rezeki, Tolak Bala, Kesehatan, Perjalanan, Ilmu), **doa wudhu**, **wirid & doa usai salat** — Arab, Latin, arti dari Quran NU Online, tersimpan di aplikasi (offline); arti/Latin bisa disembunyikan, bagikan ke media sosial. **Asmaul Husna** (99 nama dengan makna, faedah, rujukan ayat, dan tombol bagikan).
+- **Doa harian per kategori** (Keseharian, Rezeki, Tolak Bala, Kesehatan, Perjalanan, Ilmu), **doa wudhu**, **wirid & doa usai salat** — Arab, Latin, arti dari Quran NU Online, tersimpan di aplikasi (offline); arti/Latin bisa disembunyikan, bagikan ke media sosial. **Tahlil & Doa Arwah Lengkap** (28 langkah) tersedia di tab terpisah; bacaan Tahlil ringkas usai salat tetap berada pada wirid. **Asmaul Husna** (99 nama dengan makna, faedah, rujukan ayat, dan tombol bagikan).
+- **Kotak masuk notifikasi**: lonceng dan badge hanya di Lainnya; pengumuman konten, versi aplikasi, dan pengingat tersimpan lokal, dapat ditandai sudah dibaca.
 - **PWA**: dapat dipasang dari peramban apa pun (panduan per peramban), pembaruan versi otomatis, app shell + font + daftar surah tersedia offline; surah tersimpan saat dibuka; halaman Kelola Offline.
 - **Alamat cadangan otomatis**: bila alamat utama mati, data diambil dari alamat cadangan tanpa tindakan pengguna.
 - **Infaq pengembang** di dalam aplikasi (nominal mulai Rp1.000 → halaman pembayaran/QRIS → menunggu → terima kasih), papan donatur Harian / Mingguan / Bulanan / Sepanjang waktu → [docs/INFAQ.md](docs/INFAQ.md).
@@ -96,9 +97,10 @@ docs/                 panduan deploy, Android, infaq, status fitur
 | Teks Arab, terjemahan & tafsir Kemenag RI, transliterasi, audio 6 qari | [EQuran.id API v2](https://equran.id/apidev/v2) (utama) | ketentuan EQuran.id |
 | Murottal tambahan (25 qari, surah penuh) | [mp3quran.net](https://mp3quran.net), daftar dari [wnr-code/qori-alquran-json](https://github.com/wnr-code/qori-alquran-json) | ketentuan mp3quran.net |
 | Cadangan teks, terjemahan, tafsir Jalalayn, audio | [Al Quran Cloud API](https://alquran.cloud/api) (`quran-uthmani`, `id.indonesian`, `en.transliteration`, `id.jalalayn`) | ketentuan alquran.cloud |
-| Cadangan terakhir (teks Arab saja) | paket [`quran-json`](https://github.com/risan/quran-json), disalin ke `public/data/` saat build | CC BY 4.0 |
+| Cadangan terakhir (teks Arab saja) | paket [`quran-json`](https://github.com/risan/quran-json), disalin ke `public/data/` saat build | CC BY-SA 4.0* |
 | Juz, halaman mushaf (Madinah 604 hlm.), sajdah | paket [`quran-meta`](https://github.com/quran-center/quran-meta) (riwayat Hafs) | MIT |
 | Doa harian (6 kategori, 62 doa), doa wudhu, wirid & doa usai salat | [Quran NU Online](https://quran.nu.or.id/doa), disalin apa adanya ke `src/data/doa-nu.json` dan `src/data/dzikir.json` | ketentuan NU Online |
+| Tahlil & Doa Arwah (versi Lengkap, 28 langkah) | [Quran NU Online — Tahlil](https://quran.nu.or.id/tahlil), salinan `src/data/tahlil.json` | ketentuan NU Online; sejumlah terjemahan diringkas dan dicatat di aplikasi |
 | Doa dari Al-Qur'an, ayat pilihan, penyemangat beranda | daftar rujukan surah:ayat disusun untuk aplikasi; teks ayat dari sumber Al-Qur'an di atas | — |
 | Asmaul Husna (data v2) | [wnr-code/asmaul_husna](https://github.com/wnr-code/asmaul_husna) | MIT |
 | Suara adzan | [AlAdhan.com](https://aladhan.com/play) (diputar dari `cdn.aladhan.com`) | ketentuan aladhan.com |
@@ -107,6 +109,8 @@ docs/                 panduan deploy, Android, infaq, status fitur
 | Font Arab | Amiri Quran, Scheherazade New, disajikan sendiri | SIL OFL 1.1 |
 | Ikon font | [Font Awesome Free 6.7.2](https://fontawesome.com) (subset, disajikan sendiri) | ikon CC BY 4.0, font SIL OFL 1.1 |
 | Pembayaran infaq | [Trakteer](https://trakteer.id) | — |
+
+\* Berkas `LICENSE.txt` pada repositori quran-json menyatakan CC BY-SA 4.0, sementara metadata paket npm menyebut CC BY 4.0; QuranKu memilih label yang lebih ketat. Paket tersebut sudah ditandai deprecated dan tidak terawat; QuranKu hanya membundel teks Arab, bukan terjemahan atau transliterasinya.
 
 Daftar lengkap beserta keterangan pemakaian tampil di aplikasi: **Lainnya → Sumber Data** (`src/data/sources.js`).
 

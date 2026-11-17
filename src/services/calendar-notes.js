@@ -1,5 +1,7 @@
 // Catatan & pengingat pada kalender. Disimpan HANYA di perangkat ini (localStorage), tidak dikirim ke server.
 // Bentuk: { 'YYYY-MM-DD': [{ id, text, remind, time: 'HH:MM', fired }] }
+import { emit } from '../utils/helpers.js'
+
 const KEY = 'quranku:kalender'
 const MAX_TEXT = 300
 const MAX_PER_DAY = 20
@@ -25,6 +27,17 @@ function save(all) {
 const validTime = (t) => (/^([01]\d|2[0-3]):[0-5]\d$/.test(t || '') ? t : '07:00')
 
 export const notesOf = (key) => (load()[key] || []).slice()
+
+/** Semua pengingat tersimpan, untuk dijadwalkan oleh AlarmManager di Android. */
+export const reminderEntries = () => {
+  const all = load()
+  return Object.entries(all).flatMap(([date, notes]) =>
+    /^\d{4}-\d{2}-\d{2}$/.test(date) && Array.isArray(notes)
+      ? notes.filter((n) => n && n.remind && typeof n.id === 'string' && n.id && String(n.text || '').trim()).map((n) => ({ id: n.id, date, time: validTime(n.time), text: String(n.text || '').trim().slice(0, MAX_TEXT) }))
+      : []
+  )
+}
+
 /** Kumpulan kunci tanggal yang memiliki catatan, untuk menandai sel kalender. */
 export const noteDays = () => {
   const all = load()
@@ -48,7 +61,9 @@ export function saveNote(key, { id, text, remind = false, time = '07:00' }) {
   const t = validTime(time)
   if (note.time !== t || !remind) delete note.fired // jam diubah → pengingat boleh berbunyi lagi
   Object.assign(note, { text: clean, remind: !!remind, time: t })
-  return save(all) ? { ...note } : null
+  if (!save(all)) return null
+  emit('calendar:changed')
+  return { ...note }
 }
 
 export function deleteNote(key, id) {
@@ -56,7 +71,7 @@ export function deleteNote(key, id) {
   if (!all[key]) return
   all[key] = all[key].filter((n) => n.id !== id)
   if (!all[key].length) delete all[key]
-  save(all)
+  if (save(all)) emit('calendar:changed')
 }
 
 /** Pengingat hari ini yang jamnya sudah tiba dan belum pernah ditampilkan. Menandainya sebagai sudah tampil. */

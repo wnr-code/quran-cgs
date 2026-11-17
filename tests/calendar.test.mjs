@@ -4,8 +4,9 @@ import assert from 'node:assert/strict'
 
 const store = new Map()
 globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k) }
-const { dayKey, notesOf, noteDays, saveNote, deleteNote, takeDueReminders } = await import('../src/services/calendar-notes.js')
+const { dayKey, notesOf, noteDays, saveNote, deleteNote, takeDueReminders, reminderEntries } = await import('../src/services/calendar-notes.js')
 const { ISLAMIC_DAYS, islamicDayOf, dayNotes, toHijri, nextRamadan } = await import('../src/utils/hijri.js')
+const { on } = await import('../src/utils/helpers.js')
 
 test('hari besar: semua punya keterangan; pencarian menurut tanggal Hijriah', () => {
   for (const d of ISLAMIC_DAYS) assert.ok(d.name && d.desc && d.desc.length > 40, d.name)
@@ -45,6 +46,7 @@ test('catatan: simpan, ubah, hapus, batas, dan pengingat sekali saja', () => {
   assert.equal(a.text, 'Kajian subuh')
   const b = saveNote(key, { text: 'Tanpa pengingat', time: '99:99' })
   assert.equal(b.time, '07:00')
+  assert.deepEqual(reminderEntries(), [{ id: a.id, date: key, time: '05:30', text: 'Kajian subuh' }])
   assert.deepEqual(noteDays()[key], { count: 2, remind: true })
   // belum waktunya → tidak ada; sudah lewat → muncul sekali
   assert.deepEqual(takeDueReminders(new Date(2026, 10, 16, 5, 29)), [])
@@ -54,12 +56,25 @@ test('catatan: simpan, ubah, hapus, batas, dan pengingat sekali saja', () => {
   // jam diubah → boleh mengingatkan lagi
   saveNote(key, { id: a.id, text: 'Kajian subuh', remind: true, time: '10:00' })
   assert.equal(takeDueReminders(new Date(2026, 10, 16, 10, 0)).length, 1)
+  assert.equal(reminderEntries()[0].time, '10:00')
   assert.equal(notesOf(key).length, 2)
   deleteNote(key, a.id)
   deleteNote(key, b.id)
   assert.equal(noteDays()[key], undefined)
+  assert.deepEqual(reminderEntries(), [])
   for (let i = 0; i < 20; i++) assert.ok(saveNote(key, { text: 'n' + i }))
   assert.equal(saveNote(key, { text: 'ke-21' }), null)
+})
+
+test('perubahan catatan kalender memberi tahu penjadwal native', () => {
+  let changes = 0
+  const off = on('calendar:changed', () => changes++)
+  const key = '2026-11-17'
+  const note = saveNote(key, { text: 'Pengajian', remind: true, time: '19:00' })
+  assert.ok(note)
+  deleteNote(key, note.id)
+  off()
+  assert.equal(changes, 2)
 })
 
 test('pasaran Jawa: cocok dengan tanggal-tanggal acuan', async () => {

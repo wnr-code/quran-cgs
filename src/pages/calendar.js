@@ -5,7 +5,8 @@ import { openSheet } from '../components/modal.js'
 import { getSettings } from '../services/storage.js'
 import { dayKey, notesOf, noteDays, saveNote, deleteNote } from '../services/calendar-notes.js'
 import { requestNotifPermission, notifPermission, notifSupported } from '../services/notification.js'
-import { isNativePlatform } from '../services/platform.js'
+import { requestAndroidReminderPermissions } from '../services/prayer-notifications.js'
+import { isAndroidApp, isNativePlatform } from '../services/platform.js'
 import { toHijri, HIJRI_MONTHS, islamicDayOf, dayNotes, formatHijri, nextRamadan } from '../utils/hijri.js'
 import { weton, pasaranOf } from '../utils/javanese.js'
 import { holidayOf, hasOfficial } from '../data/libur-nasional.js'
@@ -170,8 +171,17 @@ export default function calendar(root) {
         remind.addEventListener('change', async () => {
           time.disabled = !remind.checked
           if (!remind.checked) return (hint.textContent = 'Catatan hanya tersimpan di perangkat ini.')
-          if (isNativePlatform()) return (hint.textContent = 'Di Android, pengingat catatan muncul sebagai pesan dalam aplikasi saat QuranKu terbuka; alarm native hanya menjadwalkan waktu salat.')
           if (!notifSupported()) return (hint.textContent = 'Peramban ini tidak mendukung notifikasi; pengingat hanya tampil sebagai tanda di kalender.')
+          if (isAndroidApp()) {
+            const access = await requestAndroidReminderPermissions()
+            hint.textContent = access.notificationPermission !== 'granted'
+              ? 'Izin notifikasi Android belum diberikan. Catatan tersimpan, tetapi pemberitahuan sistem tidak akan muncul.'
+              : access.exactAlarmPermission === 'granted'
+                ? 'Pengingat dijadwalkan oleh Android dan dapat muncul saat QuranKu tertutup.'
+                : 'Pengingat dijadwalkan oleh Android. Tanpa akses alarm tepat, pemberitahuan dapat tertunda.'
+            return
+          }
+          if (isNativePlatform()) return (hint.textContent = 'Pengingat lokal tampil sebagai pesan saat QuranKu terbuka.')
           const p = notifPermission() === 'granted' ? 'granted' : await requestNotifPermission()
           hint.textContent = p === 'granted'
             ? 'Pengingat muncul sebagai notifikasi selama QuranKu terbuka atau berjalan di latar; jika browser tertutup, ia dapat muncul saat dibuka kembali.'

@@ -19,6 +19,7 @@ import { initializeNativeShell, hideNativeSplash } from './services/native-shell
 import { prepareLegacyNativeData, importLegacyNativeSurahs } from './services/legacy-migration.js'
 import { isStandalone } from './utils/helpers.js'
 import { showFirstRunOnboarding } from './services/onboarding.js'
+import { initInbox } from './services/inbox.js'
 
 installFetchFailover()
 
@@ -49,6 +50,7 @@ addRoute('/infaq', () => import('./pages/infaq.js'))
 addRoute('/pengaturan', () => import('./pages/settings.js'))
 addRoute('/tentang', () => import('./pages/about.js'))
 addRoute('/sumber', () => import('./pages/sources.js'))
+addRoute('/notifikasi', () => import('./pages/notifications.js'))
 // Pintasan PWA "Lanjutkan membaca"
 addRoute('/lanjut', async () => ({
   default: async () => {
@@ -61,6 +63,7 @@ const nav = document.getElementById('navbar')
 renderNavbar(nav)
 initMiniPlayer(document.getElementById('mini-player'))
 watchConnectivity()
+initInbox()
 
 let firstRoute = true
 startRouter(document.getElementById('view'), (path, meta) => {

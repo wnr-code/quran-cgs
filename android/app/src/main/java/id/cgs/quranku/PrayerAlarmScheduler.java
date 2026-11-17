@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.icu.util.IslamicCalendar;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ final class PrayerAlarmScheduler {
     static final String SETTINGS_KEY = "settings_json";
     static final String EVENT_IDS_KEY = "scheduled_event_ids";
     static final String FIRED_IDS_KEY = "fired_event_ids";
+    static final String UNREAD_NOTIFICATIONS_KEY = "unread_notifications_json";
     static final String ACTION_FIRE = "id.cgs.quranku.action.PRAYER_ALARM";
     static final String ACTION_REFRESH = "id.cgs.quranku.action.PRAYER_REFRESH";
     static final int WINDOW_DAYS = 14;
@@ -56,18 +58,15 @@ final class PrayerAlarmScheduler {
         JSONObject location = settings.optJSONObject("location");
         JSONObject adzan = settings.optJSONObject("adzan");
         boolean enabled = settings.optBoolean("enabled", adzan != null && adzan.optBoolean("enabled", false));
-        if (!enabled || location == null || !location.has("lat") || !location.has("lng")) {
+        if (!enabled) {
             saveEventIds(context, new LinkedHashSet<>());
             return status(context, 0, 0L);
         }
 
-        double latitude = location.optDouble("lat", Double.NaN);
-        double longitude = location.optDouble("lng", Double.NaN);
-        if (!Double.isFinite(latitude) || !Double.isFinite(longitude)
-            || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-            saveEventIds(context, new LinkedHashSet<>());
-            return status(context, 0, 0L);
-        }
+        double latitude = location == null ? Double.NaN : location.optDouble("lat", Double.NaN);
+        double longitude = location == null ? Double.NaN : location.optDouble("lng", Double.NaN);
+        boolean hasLocation = Double.isFinite(latitude) && Double.isFinite(longitude)
+            && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
 
         String timezone = settings.optString("timezone", TimeZone.getDefault().getID());
         TimeZone zone = safeTimeZone(timezone);
@@ -87,12 +86,14 @@ final class PrayerAlarmScheduler {
         Set<String> scheduled = new LinkedHashSet<>();
         for (int offset = 0; offset < WINDOW_DAYS; offset++) {
             if (offset > 0) day.add(Calendar.DAY_OF_MONTH, 1);
-            Map<String, Long> prayerTimes = PrayerTimesCalculator.calculate(day, latitude, longitude, method);
+            Map<String, Long> prayerTimes = hasLocation
+                ? PrayerTimesCalculator.calculate(day, latitude, longitude, method)
+                : java.util.Collections.emptyMap();
             String dateId = dateId(day);
             boolean ramadan = isRamadan(day, hijriAdjust, zone);
             long fajr = value(prayerTimes, "subuh");
 
-            if (enabled && azanEnabled) {
+            if (enabled && hasLocation && azanEnabled) {
                 for (int i = 0; i < PRAYER_KEYS.length; i++) {
                     String key = PRAYER_KEYS[i];
                     long at = value(prayerTimes, key);
@@ -111,7 +112,7 @@ final class PrayerAlarmScheduler {
                 }
             }
 
-            if (enabled && ramadan && ramadanReminders != null
+            if (enabled && hasLocation && ramadan && ramadanReminders != null
                 && ramadanReminders.optBoolean("imsakEnabled", false) && fajr > 0) {
                 long at = fajr - 10L * 60_000L;
                 if (at > now) {
@@ -123,7 +124,7 @@ final class PrayerAlarmScheduler {
                 }
             }
 
-            if (enabled && azanEnabled && ramadan && adzan.optBoolean("tarhim", true) && fajr > 0) {
+            if (enabled && hasLocation && azanEnabled && ramadan && adzan.optBoolean("tarhim", true) && fajr > 0) {
                 long at = fajr - 15L * 60_000L;
                 if (at > now) {
                     Event event = new Event(dateId + "|tarhim", "tarhim", "tarhim", "Tarhim", at,
@@ -134,7 +135,7 @@ final class PrayerAlarmScheduler {
                 }
             }
 
-            if (reminders != null && reminders.optBoolean("enabled", false)) {
+            if (hasLocation && reminders != null && reminders.optBoolean("enabled", false)) {
                 int leadMinutes = Math.max(1, Math.min(60, reminders.optInt("leadMinutes", 10)));
                 JSONObject selected = reminders.optJSONObject("prayers");
                 for (int i = 0; i < PRAYER_KEYS.length; i++) {
@@ -152,13 +153,130 @@ final class PrayerAlarmScheduler {
                     schedule(context, alarms, event, now, scheduled);
                 }
             }
+
+            scheduleReadingReminders(context, alarms, day, dateId, now, settings.optJSONObject("readingReminders"), scheduled);
         }
 
-        long horizon = day.getTimeInMillis();
+        Calendar horizonDay = (Calendar) day.clone();
+        horizonDay.add(Calendar.DAY_OF_MONTH, 1);
+        horizonDay.set(Calendar.HOUR_OF_DAY, 0);
+        horizonDay.set(Calendar.MINUTE, 0);
+        horizonDay.set(Calendar.SECOND, 0);
+        horizonDay.set(Calendar.MILLISECOND, 0);
+        long horizon = horizonDay.getTimeInMillis();
+        scheduleCalendarReminders(context, alarms, settings.optJSONArray("calendarReminders"), zone, now, horizon, scheduled);
         scheduleRefresh(context, alarms, now + REFRESH_AFTER_MS);
         saveEventIds(context, scheduled);
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong("horizon_end", horizon).commit();
         return status(context, scheduled.size(), horizon);
+    }
+
+    private static void scheduleReadingReminders(Context context, AlarmManager alarms, Calendar day, String dateId,
+            long now, JSONObject reminders, Set<String> scheduled) {
+        if (reminders == null) return;
+        if (readingReminderEnabled(reminders, "tilawah", dateId)) {
+            long at = timeAt(day, reminders.optString("tilawahTime", "18:30"));
+            if (at > now) {
+                Event event = new Event(dateId + "|tilawah", "tilawah", dateId, "Tilawah", at,
+                    "Waktunya tilawah", "Luangkan waktu sejenak untuk membaca Al-Qur’an hari ini.",
+                    "default", true, false, "a9", 1.0);
+                schedule(context, alarms, event, now, scheduled);
+            }
+        }
+        if (readingReminderEnabled(reminders, "goal", dateId)) {
+            int target = Math.max(1, Math.min(604, reminders.optInt("targetPages", 2)));
+            int pages = dateId.equals(reminders.optString("currentProgressDate", ""))
+                ? Math.max(0, reminders.optInt("currentProgressPages", 0)) : 0;
+            long at = timeAt(day, reminders.optString("goalTime", "20:30"));
+            if (at > now) {
+                String body = "Target " + target + " halaman belum tercapai (" + pages + "/" + target + "). Yuk lanjutkan bacaan.";
+                Event event = new Event(dateId + "|goal", "goal", dateId, "Target tilawah", at,
+                    "Target tilawah hari ini", body, "default", true, false, "a9", 1.0);
+                schedule(context, alarms, event, now, scheduled);
+            }
+        }
+    }
+
+    private static void scheduleCalendarReminders(Context context, AlarmManager alarms, JSONArray reminders,
+            TimeZone zone, long now, long horizon, Set<String> scheduled) {
+        if (reminders == null) return;
+        for (int i = 0; i < reminders.length(); i++) {
+            JSONObject reminder = reminders.optJSONObject(i);
+            if (reminder == null) continue;
+            String id = reminder.optString("id", "").trim();
+            String date = reminder.optString("date", "").trim();
+            String time = reminder.optString("time", "").trim();
+            String body = reminder.optString("text", "").trim();
+            long at = parseDateTime(date, time, zone);
+            if (id.isEmpty() || body.isEmpty() || at <= now || at > horizon) continue;
+            String key = date + "|" + id;
+            Event event = new Event(date + "|calendar|" + id + "|" + time, "calendar", key, "Pengingat kalender", at,
+                "Pengingat kalender", body, "default", true, false, "a9", 1.0);
+            schedule(context, alarms, event, now, scheduled);
+        }
+    }
+
+    static long timeAt(Calendar day, String value) {
+        if (day == null || value == null) return Long.MIN_VALUE;
+        String[] pieces = value.split(":", -1);
+        if (pieces.length != 2) return Long.MIN_VALUE;
+        try {
+            int hour = Integer.parseInt(pieces[0]);
+            int minute = Integer.parseInt(pieces[1]);
+            if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return Long.MIN_VALUE;
+            Calendar event = (Calendar) day.clone();
+            event.set(Calendar.HOUR_OF_DAY, hour);
+            event.set(Calendar.MINUTE, minute);
+            event.set(Calendar.SECOND, 0);
+            event.set(Calendar.MILLISECOND, 0);
+            return event.getTimeInMillis();
+        } catch (RuntimeException ignored) {
+            return Long.MIN_VALUE;
+        }
+    }
+
+    static long parseDateTime(String date, String time, TimeZone zone) {
+        if (date == null || time == null || zone == null) return Long.MIN_VALUE;
+        String[] dateParts = date.split("-", -1);
+        String[] timeParts = time.split(":", -1);
+        if (dateParts.length != 3 || timeParts.length != 2) return Long.MIN_VALUE;
+        try {
+            int year = Integer.parseInt(dateParts[0]);
+            int month = Integer.parseInt(dateParts[1]);
+            int day = Integer.parseInt(dateParts[2]);
+            int hour = Integer.parseInt(timeParts[0]);
+            int minute = Integer.parseInt(timeParts[1]);
+            Calendar event = Calendar.getInstance(zone, Locale.US);
+            event.clear();
+            event.setLenient(false);
+            event.set(year, month - 1, day, hour, minute, 0);
+            return event.getTimeInMillis();
+        } catch (RuntimeException ignored) {
+            return Long.MIN_VALUE;
+        }
+    }
+
+    static boolean readingReminderEnabled(JSONObject reminders, String kind, String date) {
+        if (reminders == null) return false;
+        if ("tilawah".equals(kind)) return reminders.optBoolean("tilawahEnabled", false);
+        if (!"goal".equals(kind) || !reminders.optBoolean("goalEnabled", false)) return false;
+        int target = Math.max(1, Math.min(604, reminders.optInt("targetPages", 2)));
+        int pages = date != null && date.equals(reminders.optString("currentProgressDate", ""))
+            ? Math.max(0, reminders.optInt("currentProgressPages", 0)) : 0;
+        return pages < target;
+    }
+
+    static boolean calendarReminderEnabled(JSONArray reminders, String key) {
+        if (reminders == null || key == null || key.isEmpty()) return false;
+        for (int i = 0; i < reminders.length(); i++) {
+            JSONObject reminder = reminders.optJSONObject(i);
+            if (reminder == null) continue;
+            String id = reminder.optString("id", "").trim();
+            String date = reminder.optString("date", "").trim();
+            String text = reminder.optString("text", "").trim();
+            if (!id.isEmpty() && !text.isEmpty() && (date + "|" + id).equals(key)) return true;
+        }
+        return false;
     }
 
     static JSONObject status(Context context, int count, long horizon) throws JSONException {
@@ -190,16 +308,91 @@ final class PrayerAlarmScheduler {
         return true;
     }
 
+    static JSONArray notifications(Context context) {
+        String raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(UNREAD_NOTIFICATIONS_KEY, "[]");
+        try { return new JSONArray(raw); } catch (JSONException ignored) { return new JSONArray(); }
+    }
+
+    static JSONArray unreadNotifications(Context context) {
+        JSONArray previous = notifications(context);
+        JSONArray unread = new JSONArray();
+        for (int i = 0; i < previous.length(); i++) {
+            JSONObject item = previous.optJSONObject(i);
+            // Legacy records did not store a read flag, so they remain unread after upgrade.
+            if (item != null && !item.optBoolean("read", false)) unread.put(item);
+        }
+        return unread;
+    }
+
+    static void recordNotification(Context context, String eventId, String kind, String key, String title, String body, long at) {
+        if (eventId == null || eventId.isEmpty()) return;
+        JSONArray previous = notifications(context);
+        JSONArray saved = new JSONArray();
+        for (int i = 0; i < previous.length(); i++) {
+            JSONObject item = previous.optJSONObject(i);
+            if (item != null && !eventId.equals(item.optString("eventId", ""))) saved.put(item);
+        }
+        JSONObject item = new JSONObject();
+        try {
+            item.put("eventId", eventId);
+            item.put("kind", kind == null ? "reminder" : kind);
+            item.put("key", key == null ? "" : key);
+            item.put("title", title == null ? "Pengingat QuranKu" : title);
+            item.put("body", body == null ? "" : body);
+            item.put("at", at);
+            item.put("read", false);
+            saved.put(item);
+            while (saved.length() > 100) saved.remove(0);
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit().putString(UNREAD_NOTIFICATIONS_KEY, saved.toString()).commit();
+        } catch (JSONException ignored) {}
+    }
+
+    static boolean markNotificationRead(Context context, String eventId) {
+        if (eventId == null || eventId.isEmpty()) return false;
+        JSONArray previous = notifications(context);
+        JSONArray saved = new JSONArray();
+        boolean changed = false;
+        for (int i = 0; i < previous.length(); i++) {
+            JSONObject item = previous.optJSONObject(i);
+            if (item == null) continue;
+            if (eventId.equals(item.optString("eventId", "")) && !item.optBoolean("read", false)) {
+                try { item.put("read", true); } catch (JSONException ignored) {}
+                changed = true;
+            }
+            saved.put(item);
+        }
+        if (changed) context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(UNREAD_NOTIFICATIONS_KEY, saved.toString()).commit();
+        return changed;
+    }
+
+    static void markAllNotificationsRead(Context context) {
+        JSONArray previous = notifications(context);
+        for (int i = 0; i < previous.length(); i++) {
+            JSONObject item = previous.optJSONObject(i);
+            if (item != null) {
+                try { item.put("read", true); } catch (JSONException ignored) {}
+            }
+        }
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(UNREAD_NOTIFICATIONS_KEY, previous.toString()).commit();
+    }
+
     static boolean isEventEnabled(Context context, String kind, String key) {
         JSONObject settings = getSettings(context);
         JSONObject adzan = settings.optJSONObject("adzan");
         JSONObject reminders = settings.optJSONObject("prayerReminders");
         JSONObject ramadan = settings.optJSONObject("ramadanReminders");
+        JSONObject reading = settings.optJSONObject("readingReminders");
+        boolean enabled = settings.optBoolean("enabled", adzan != null && adzan.optBoolean("enabled", false));
         if ("pre_reminder".equals(kind)) {
             return reminders != null && reminders.optBoolean("enabled", false)
                 && (reminders.optJSONObject("prayers") == null || reminders.optJSONObject("prayers").optBoolean(key, true));
         }
-        if (!settings.optBoolean("enabled", adzan != null && adzan.optBoolean("enabled", false))) return false;
+        if (!enabled) return false;
+        if ("calendar".equals(kind)) return calendarReminderEnabled(settings.optJSONArray("calendarReminders"), key);
+        if ("tilawah".equals(kind) || "goal".equals(kind)) return readingReminderEnabled(reading, kind, key);
         if ("imsak".equals(kind)) return ramadan != null && ramadan.optBoolean("imsakEnabled", false);
         if (adzan == null || !adzan.optBoolean("enabled", false)) return false;
         if ("prayer".equals(kind)) return adzan.optBoolean(key, true);

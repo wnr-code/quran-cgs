@@ -5,6 +5,7 @@ import { emit, toast } from '../utils/helpers.js'
 import { getAudioState } from './audio.js'
 import { APP } from '../config.js'
 import { isNativePlatform } from './platform.js'
+import { isRemoteBuildNewer, recordAvailableUpdate } from './inbox.js'
 
 export const AUDIO_CACHE = 'quranku-audio-v1'
 
@@ -62,6 +63,9 @@ export async function checkForUpdate({ force = false } = {}) {
     if (reg) reg.update().catch(() => {})
     return 'latest'
   }
+  // Jangan memasang manifest lama dari edge cache atau deployment yang mundur versinya.
+  if (!isRemoteBuildNewer(remote)) return 'latest'
+  recordAvailableUpdate(remote)
   // Paling banyak satu kali muat ulang per build, supaya tidak pernah terjadi lingkaran muat ulang.
   const mark = 'qk-update:' + remote.version + ':' + remote.number
   if (!reg) {

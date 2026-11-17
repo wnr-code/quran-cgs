@@ -6,11 +6,13 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,6 +41,42 @@ public final class PrayerNotificationsPlugin extends Plugin {
         } catch (JSONException error) {
             call.reject("Status notifikasi tidak dapat dibaca", error);
         }
+    }
+
+    @PluginMethod
+    public void getNotifications(PluginCall call) {
+        JSONArray stored = PrayerAlarmScheduler.notifications(getContext());
+        JSArray items = new JSArray();
+        for (int i = 0; i < stored.length(); i++) {
+            JSONObject item = stored.optJSONObject(i);
+            if (item == null) continue;
+            try { items.put(new JSObject(item.toString())); } catch (JSONException ignored) {}
+        }
+        call.resolve(new JSObject().put("items", items));
+    }
+
+    @PluginMethod
+    public void getUnreadNotifications(PluginCall call) {
+        JSONArray stored = PrayerAlarmScheduler.unreadNotifications(getContext());
+        JSArray items = new JSArray();
+        for (int i = 0; i < stored.length(); i++) {
+            JSONObject item = stored.optJSONObject(i);
+            if (item == null) continue;
+            try { items.put(new JSObject(item.toString())); } catch (JSONException ignored) {}
+        }
+        call.resolve(new JSObject().put("items", items));
+    }
+
+    @PluginMethod
+    public void markNotificationRead(PluginCall call) {
+        String eventId = call.getString("eventId", "");
+        call.resolve(new JSObject().put("marked", PrayerAlarmScheduler.markNotificationRead(getContext(), eventId)));
+    }
+
+    @PluginMethod
+    public void markAllNotificationsRead(PluginCall call) {
+        PrayerAlarmScheduler.markAllNotificationsRead(getContext());
+        call.resolve();
     }
 
     @PluginMethod

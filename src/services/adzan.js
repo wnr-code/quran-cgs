@@ -353,22 +353,34 @@ export function initAdzan() {
   // Migrate the former generic prayer reminder switch without losing the user's existing preference.
   if (s.reminders.prayer && !s.adzan.enabled) saveSettings({ adzan: { enabled: true, sound: false }, reminders: { prayer: false } })
   if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => handleSwMessage(e.data))
-  let last = ''
-  const snapshot = () => {
-    const x = getSettings()
+  const prayerSnapshot = (x) => {
     let tz = 'Asia/Jakarta'
     try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || tz } catch {}
     return JSON.stringify([x.adzan, x.prayerReminders, x.ramadanReminders, x.location, x.prayerMethod, x.hijriAdjust, tz])
   }
-  last = snapshot()
+  const readingSnapshot = (x) => JSON.stringify([x.reminders, x.goal])
+  let lastPrayer = prayerSnapshot(getSettings())
+  let lastReading = readingSnapshot(getSettings())
   const syncPlatformSchedule = () => isAndroidApp() ? syncAndroidPrayerNotifications() : syncPush()
+  const queueAndroidScheduleSync = () => {
+    if (!isAndroidApp()) return
+    clearTimeout(syncTimer)
+    syncTimer = setTimeout(syncAndroidPrayerNotifications, 750)
+  }
   on('settings:changed', () => {
-    const now = snapshot()
-    if (now === last) return
-    last = now
+    const current = getSettings()
+    const prayer = prayerSnapshot(current)
+    const reading = readingSnapshot(current)
+    const prayerChanged = prayer !== lastPrayer
+    const readingChanged = reading !== lastReading
+    lastPrayer = prayer
+    lastReading = reading
+    if (!prayerChanged && (!isAndroidApp() || !readingChanged)) return
     clearTimeout(syncTimer)
     syncTimer = setTimeout(syncPlatformSchedule, 1000)
   })
+  on('progress:changed', queueAndroidScheduleSync)
+  on('calendar:changed', queueAndroidScheduleSync)
   if (isAndroidApp()) {
     syncAndroidPrayerNotifications()
     refreshNotificationPermission()
