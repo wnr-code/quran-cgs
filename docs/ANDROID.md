@@ -55,12 +55,14 @@ Untuk memeriksa web/PWA secara terpisah, jalankan `npm test` dan `npm run build`
 
 ## Android CI dan artefak
 
-Workflow **Android build** (`.github/workflows/android.yml`) berjalan untuk perubahan Android/aplikasi pada push atau pull request, dan bisa dijalankan manual dari **Actions → Android build → Run workflow**. Ia memasang JDK 21 dan SDK 36, membuat ikon/splash, membangun UI bersama, menjalankan unit test Gradle, menguji APK di emulator Android 12 (API 31) dan Android 16 (API 36), lalu membangun APK/AAB release. Workflow web utama (`ci.yml`) menjalankan `npm test` dan `npm run build`.
+Workflow **Android build** (`.github/workflows/android.yml`) berjalan untuk perubahan Android/aplikasi pada push atau pull request, dan bisa dijalankan manual dari **Actions → Android build → Run workflow**. Ia memasang JDK 21 dan SDK 36, membuat ikon/splash, membangun UI bersama, menjalankan unit test Gradle, menguji APK di emulator Android 12 (API 31) dan Android 16 (API 36), lalu (bila signing diaktifkan) membangun dan memverifikasi APK/AAB release. Workflow web utama (`ci.yml`) menjalankan `npm test` dan `npm run build`.
 
-- `QuranKu-APK-untuk-dipasang`: selalu memuat APK debug untuk uji; bila seluruh secret upload key valid, juga memuat APK release bertanda tangan.
+- `QuranKu-APK-untuk-dipasang`: selalu memuat APK debug untuk uji; bila seluruh secret upload key terisi dan valid, artefak yang sama juga memuat APK release bertanda tangan.
 - `quranku-play-store-aab-signed`: AAB release **bertanda tangan** dengan upload key, hanya dibuat bila seluruh secret tersedia dan tanda tangannya lolos verifikasi. Dapat diunggah ke Play Console saat Play App Signing aktif; workflow hanya menyimpan artefak GitHub dan tidak menerbitkan ke Play.
-- Tanpa upload-key secrets workflow hanya menghasilkan APK debug. **AAB unsigned tidak dibuat**, karena Play tidak menerimanya.
+- Bila tidak ada upload-key secret yang dikonfigurasi, workflow hanya menghasilkan APK debug. **AAB unsigned tidak dibuat.** Bila konfigurasi hanya sebagian atau tidak valid, workflow gagal alih-alih mengunggah release yang tidak bertanda tangan.
 - Uji instrumentasi membuka Activity dan memastikan beranda bersama serta salam awal dirender. Ini bukan uji semua fitur dan bukan pengganti uji ponsel fisik, pemeriksaan aksesibilitas, atau Play Console Pre-launch report.
+
+**Hasil terbaru untuk kode aplikasi:** [Android build run 89](https://github.com/wnr-code/quran-cgs/actions/runs/44012564187) pada commit `092afa714a1ea65b9b4255611c61060bb35d7b6e` berhasil menjalankan tes Gradle, smoke test emulator API 31 dan 36, serta build/verifikasi tanda tangan APK dan AAB release. Run tersebut mengunggah kedua artefak di atas ke GitHub Actions; artefak hanya tersedia dari halaman run dan tidak disertakan di repository. Validasi jarak jauh ini terpisah dari validasi lokal; mesin lokal tanpa JDK/Android SDK tidak menjalankan Gradle.
 
 Package `id.cgs.quranku`, `minSdk 24`, `compileSdk 36`, dan `targetSdk 36`. Nama versi mengikuti `package.json`. CI mengambil `versionCode` dari nomor run workflow; build lokal memakai 320 sebagai nilai awal, di atas kode CI Compose lama 310. Untuk rilis Play, pastikan versi kode lebih besar dari versi yang pernah diunggah.
 
