@@ -115,9 +115,14 @@ await step('114 surah tampil + nomor Arab-Indic', async () => {
   await page.waitForSelector('.surah-row')
   assert.equal(await count('.surah-row'), 114)
   assert.equal(await text('.surah-row:nth-child(114) .num-star'), '١١٤')
+  assert.equal(await count('.popular-surah-card'), 5)
+  const popularIds = await page.$$eval('.popular-surah-card', (cards) => cards.map((card) => Number(card.dataset.surah)))
+  assert.equal(new Set(popularIds).size, 5)
+  for (const id of [36, 56, 67]) assert.ok(popularIds.includes(id), `surah populer ${id} tersedia`)
   await shot('02-daftar-surah')
   await page.click('[data-tab="juz"]')
   assert.equal(await count('.surah-row'), 30)
+  assert.equal(await page.$eval('[data-popular]', (el) => el.hidden), true)
 })
 await step('Jumlah ayat tiap surah benar (114 surah, 6236 ayat) lewat adapter', async () => {
   let total = 0
