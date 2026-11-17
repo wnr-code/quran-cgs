@@ -81,10 +81,8 @@ export default async function reader(root, { params, query, initial }) {
   let barsHidden = false
   let fabOpen = false
   let autoHideTimer = 0
-  let fitFrame = 0
-  let fitIdle = 0
-  let fitTimer = 0
-  let fitGeneration = 0
+  let settingsRestoreTimer = 0
+  let audioDockHidden = false
   let pageMode = false
   const pageScrollPositions = new WeakMap()
   let ayahEls = []
@@ -118,20 +116,22 @@ export default async function reader(root, { params, query, initial }) {
       </nav>
       <p class="edition-note">Teks: ${esc(surah.edition ? surah.edition.text : '-')}<br/>Terjemahan: ${esc(surah.edition ? surah.edition.translation : '-')}<br/>Juz & halaman: Mushaf Madinah (604 hlm).</p>
     </div>
-    <footer class="rd-bottom rd-bar">
-      <button class="icon-btn" data-act="prev" aria-label="Ayat sebelumnya">${icon('up')}</button>
-      <button class="icon-btn" data-act="next" aria-label="Ayat berikutnya">${icon('down')}</button>
-      <button class="icon-btn rd-play" data-act="play" aria-label="Putar audio ayat">${icon('play')}</button>
-      <button class="icon-btn" data-act="bookmark" aria-label="Bookmark ayat ini">${icon('bookmark')}</button>
-      <button class="icon-btn" data-act="more" aria-label="Terjemahan, tafsir, salin, bagikan, catatan">${icon('more')}</button>
-    </footer>
+    <div class="reader-audio-float" role="group" aria-label="Pemutar audio ayat">
+      <div class="reader-audio-dock" id="reader-audio-dock">
+        <button class="reader-audio-step" data-act="prev" aria-label="Ayat sebelumnya">${icon('prev')}</button>
+        <button class="icon-btn rd-play reader-audio-play" data-act="play" aria-label="Putar audio ayat">${icon('play')}</button>
+        <span class="reader-audio-current" data-audio-current aria-live="polite">Ayat ${qnum(current)}</span>
+        <button class="reader-audio-step" data-act="next" aria-label="Ayat berikutnya">${icon('next')}</button>
+      </div>
+      <button class="reader-audio-toggle" data-act="audio-toggle" aria-controls="reader-audio-dock" aria-expanded="true" aria-label="Sembunyikan pemutar audio">${icon('close')}</button>
+    </div>
     <nav class="reader-float" aria-label="Kontrol baca">
       <div class="reader-fab-panel" id="reader-fab-panel" hidden>
         <span class="reader-fab-caption">Tampilan &amp; fitur baca</span>
         <div class="rd-tabs" role="tablist" aria-label="Mode baca">
           <button type="button" id="reader-mode-focus" role="tab" aria-controls="reader-mode-panel" data-mode="focus">${icon('list')}<span>Terjemahan</span></button>
           <button type="button" id="reader-mode-continuous" role="tab" aria-controls="reader-mode-panel" data-mode="continuous">${icon('flow')}<span>Mushaf</span></button>
-          <button type="button" id="reader-mode-page" role="tab" aria-controls="reader-mode-panel" data-mode="page">${icon('book')}<span>15 Baris</span></button>
+          <button type="button" id="reader-mode-page" role="tab" aria-controls="reader-mode-panel" data-mode="page">${icon('book')}<span>Halaman</span></button>
         </div>
         <div class="reader-fab-grid">
           <button class="reader-fab-action" data-act="back">${icon('back')}<span>Kembali ke daftar surah</span></button>
@@ -163,6 +163,10 @@ export default async function reader(root, { params, query, initial }) {
   const tablist = $('.rd-tabs', readerEl)
   const fabPanel = $('.reader-fab-panel', readerEl)
   const fabToggle = $('[data-act="fab-toggle"]', readerEl)
+  const audioDock = $('.reader-audio-dock', readerEl)
+  const audioToggle = $('[data-act="audio-toggle"]', readerEl)
+  const audioPlayButton = $('.reader-audio-play', readerEl)
+  const elAudioCurrent = $('[data-audio-current]', readerEl)
   const elProgress = $('[data-progress]', readerEl)
   const elFabJuz = $('[data-fab-juz]', readerEl)
   const elTajweedToggle = $('[data-act="tajweed"]', readerEl)
@@ -222,7 +226,6 @@ export default async function reader(root, { params, query, initial }) {
     document.body.classList.toggle('reader-bars-hidden', hidden)
     if (hidden) setFabMenu(false)
     else if (!fabOpen) scheduleBarsHide()
-    if (pageMode) schedulePageFit()
   }
 
   function setFabMenu(open) {
@@ -239,146 +242,22 @@ export default async function reader(root, { params, query, initial }) {
         barsHidden = false
         readerEl.classList.remove('bars-hidden')
         document.body.classList.remove('reader-bars-hidden')
-        if (pageMode) schedulePageFit()
       }
     } else scheduleBarsHide()
   }
 
-  function countElementLines(element) {
-    const range = document.createRange()
-    range.selectNodeContents(element)
-    const rects = [...range.getClientRects()].filter((rect) => rect.width >= 0.5 && rect.height >= 0.5)
-    if (!rects.length) return 0
-    const lineHeight = parseFloat(getComputedStyle(element).lineHeight) || Math.max(...rects.map((rect) => rect.height))
-    const firstTop = Math.min(...rects.map((rect) => rect.top))
-    // Quantize fragment tops to line-height bands: Arabic diacritics/ayah markers have different glyph boxes.
-    return new Set(rects.map((rect) => Math.round((rect.top - firstTop) / lineHeight))).size
-  }
-
-  function countPageLines(body) {
-    const elements = body.querySelectorAll('.mpage-title span, .mpage-title small, .basmalah, .mpage-text')
-    return [...elements].reduce((total, element) => total + countElementLines(element), 0)
-  }
-
-  function pageFitSignature(body) {
-    const text = $('.mpage-text', body)
-    const font = text ? getComputedStyle(text).fontFamily : ''
-    const reader = getSettings().reader
-    return `${window.innerWidth}x${window.innerHeight}:${body.clientWidth}x${body.clientHeight}:${font}:${reader.fontSize}:${document.documentElement.dataset.arabicFont || ''}`
-  }
-
-  function fitPageLines(page) {
-    const body = $('.mpage-body', page)
-    if (!body || page.hasAttribute('data-end') || !body.clientWidth || !body.clientHeight) return
-    const signature = pageFitSignature(body)
-    if (page.dataset.fitSignature === signature) return
-    const reader = getSettings().reader
-    const target = 15
-    const minSize = 12
-    const maxSize = 72
-    const desktopPageMode = window.matchMedia('(min-width: 960px)').matches
-    const lineHeights = desktopPageMode ? [1.15] : [1.45, 1.25, 1.05]
-    const bodyStyle = getComputedStyle(body)
-    const availableWidth = Math.max(1, body.clientWidth - parseFloat(bodyStyle.paddingLeft) - parseFloat(bodyStyle.paddingRight))
-    const minWidth = Math.min(availableWidth, Math.max(320, availableWidth * 0.45))
-    const widthStep = Math.max(3, Math.round(availableWidth * 0.02))
-    const preferred = Math.max(minSize, Math.min(maxSize, reader.fontSize || 28))
-    let best = null
-
-    // Keep at least a readable column width; if needed, trade some line spacing for 15 rows before narrowing further.
-    for (let width = availableWidth; width >= minWidth; width = Math.max(minWidth, width - widthStep)) {
-      page.style.setProperty('--mpage-text-width', `${width.toFixed(2)}px`)
-      for (const lineHeight of lineHeights) {
-        page.style.setProperty('--mpage-lh', String(lineHeight))
-        let low = minSize
-        let high = maxSize
-        let localBest = null
-        const trySize = (size) => {
-          page.style.setProperty('--mpage-font', `${size.toFixed(2)}px`)
-          const lines = countPageLines(body)
-          const overflow = body.scrollHeight > body.clientHeight + 1
-          const distance = Math.abs(target - lines)
-          if (!overflow && (!localBest || distance < localBest.distance || (distance === localBest.distance && lines <= target && localBest.lines > target))) {
-            localBest = { size, lines, distance, width, lineHeight }
-          }
-          if (overflow || lines > target) high = size
-          else low = size
-        }
-        trySize(preferred)
-        for (let i = 0; i < 10 && (!localBest || localBest.distance > 0) && high - low > 0.05; i++) trySize((low + high) / 2)
-        if (localBest && (!best || localBest.distance < best.distance || (localBest.distance === best.distance && localBest.width > best.width))) best = localBest
-        if (localBest?.lines === target) break
-      }
-      if (best?.lines === target) break
-      if (width === minWidth) break
-    }
-
-    if (!best) {
-      const lineHeight = lineHeights.at(-1)
-      page.style.setProperty('--mpage-text-width', `${minWidth.toFixed(2)}px`)
-      page.style.setProperty('--mpage-lh', String(lineHeight))
-      page.style.setProperty('--mpage-font', `${minSize}px`)
-      best = { size: minSize, lines: countPageLines(body), width: minWidth, lineHeight }
-    }
-    page.dataset.lineCount = String(best.lines)
-    page.style.setProperty('--mpage-font', `${best.size.toFixed(2)}px`)
-    page.style.setProperty('--mpage-text-width', `${best.width.toFixed(2)}px`)
-    page.style.setProperty('--mpage-lh', String(best.lineHeight))
-    page.dataset.fitOverflow = String(body.scrollHeight > body.clientHeight + 1)
-    page.dataset.fitSignature = signature
-    page.dataset.fitViewport = `${window.innerWidth}x${window.innerHeight}`
-  }
-
-  function scheduleIdleFit(callback) {
-    if (typeof window.requestIdleCallback === 'function') {
-      fitIdle = window.requestIdleCallback(() => {
-        fitIdle = 0
-        callback()
-      }, { timeout: 250 })
-    } else {
-      fitTimer = window.setTimeout(() => {
-        fitTimer = 0
-        callback()
-      }, 24)
-    }
-  }
-
-  function fitMushafPages() {
-    fitFrame = 0
-    if (!pageMode || destroyed) return
-    fitGeneration++
-    const generation = fitGeneration
-    if (fitIdle) window.cancelIdleCallback?.(fitIdle)
-    clearTimeout(fitTimer)
-    fitIdle = 0
-    fitTimer = 0
-
-    const activeIndex = pageIdx()
-    if (pageEls[activeIndex]) fitPageLines(pageEls[activeIndex])
-    const queue = [...pageEls.slice(activeIndex + 1), ...pageEls.slice(0, activeIndex).reverse()]
-    let next = 0
-    const pump = () => {
-      if (!pageMode || destroyed || generation !== fitGeneration) return
-      while (next < queue.length) {
-        const page = queue[next++]
-        const body = $('.mpage-body', page)
-        if (!body || page.dataset.fitSignature === pageFitSignature(body)) continue
-        fitPageLines(page)
-        break
-      }
-      if (next < queue.length) scheduleIdleFit(pump)
-    }
-    if (queue.length) scheduleIdleFit(pump)
-  }
-
-  function schedulePageFit() {
-    if (!pageMode || fitFrame) return
-    fitFrame = requestAnimationFrame(() => {
-      fitFrame = requestAnimationFrame(fitMushafPages)
-    })
+  function setAudioDockHidden(hidden) {
+    audioDockHidden = hidden
+    readerEl.classList.toggle('audio-dock-hidden', hidden)
+    audioDock.setAttribute('aria-hidden', String(hidden))
+    audioDock.inert = hidden
+    audioToggle.setAttribute('aria-expanded', String(!hidden))
+    audioToggle.setAttribute('aria-label', hidden ? 'Tampilkan pemutar audio' : 'Sembunyikan pemutar audio')
+    audioToggle.innerHTML = icon(hidden ? 'headphones' : 'close')
   }
 
   function renderContent() {
+    const wasPageMode = pageMode
     const mode = modeNow()
     pageMode = mode === 'page'
     applyReaderStyle(readerEl)
@@ -404,29 +283,8 @@ export default async function reader(root, { params, query, initial }) {
       b.tabIndex = selected ? 0 : -1
     })
     content.setAttribute('aria-labelledby', `reader-mode-${mode}`)
-    // Mode Halaman: tombol bawah berpindah halaman (halaman berikutnya ada di sebelah kiri, seperti mushaf).
-    const bottom = $('.rd-bottom', readerEl)
-    const prevBtn = $('[data-act="prev"]', bottom)
-    const nextBtn = $('[data-act="next"]', bottom)
-    prevBtn.innerHTML = icon(pageMode ? 'forward' : 'up')
-    nextBtn.innerHTML = icon(pageMode ? 'back' : 'down')
-    prevBtn.setAttribute('aria-label', pageMode ? 'Halaman sebelumnya' : 'Ayat sebelumnya')
-    nextBtn.setAttribute('aria-label', pageMode ? 'Halaman berikutnya' : 'Ayat berikutnya')
-    if (pageMode) {
-      bottom.insertBefore(nextBtn, prevBtn)
-      window.scrollTo(0, 0)
-    } else bottom.insertBefore(prevBtn, nextBtn)
+    if (pageMode && !wasPageMode) window.scrollTo({ top: 0, behavior: 'instant' })
     updateFloatingControls()
-    if (pageMode) {
-      schedulePageFit()
-      if (document.fonts?.status === 'loading') {
-        document.fonts.ready.then(() => {
-          if (destroyed || !pageMode) return
-          pageEls.forEach((page) => { delete page.dataset.fitSignature })
-          schedulePageFit()
-        })
-      }
-    }
     highlightPlaying()
   }
 
@@ -437,10 +295,9 @@ export default async function reader(root, { params, query, initial }) {
     elPage.textContent = qnum(pageOf(n, current))
     rdTitle.setAttribute('aria-label', `${surah.namaLatin} Juz ${elJuz.textContent} · Hal ${elPage.textContent} · Ayat ${elCur.textContent}. Pilih untuk pergi ke ayat, juz, atau halaman`)
     elProgress.style.width = `${Math.max(2, Math.round((current / total) * 100))}%`
+    const audioState = getAudioState()
+    elAudioCurrent.textContent = `Ayat ${qnum(audioState.mode === 'ayah' && audioState.surah?.nomor === n && audioState.playing ? audioState.ayah : current)}`
     const bookmarked = marks.bookmarks.has(current)
-    const bm = $('[data-act="bookmark"]', $('.rd-bottom', readerEl))
-    bm.classList.toggle('on', bookmarked)
-    bm.setAttribute('aria-pressed', String(bookmarked))
     elFabBookmark.classList.toggle('is-on', bookmarked)
     elFabBookmark.setAttribute('aria-pressed', String(bookmarked))
     $('span', elFabBookmark).textContent = bookmarked ? 'Hapus bookmark ayat' : 'Simpan ayat ini'
@@ -513,7 +370,7 @@ export default async function reader(root, { params, query, initial }) {
     if (destroyed || !ready) return
     const y = window.scrollY
     const target = e && e.target
-    if (!document.body.classList.contains('sheet-open')) {
+    if (!document.body.classList.contains('sheet-open') && !fabOpen) {
       if (pageMode && target && target.classList && target.classList.contains('mpage-body')) {
         const previous = pageScrollPositions.get(target) || 0
         if (target.scrollTop > previous + 3) setBars(true)
@@ -522,10 +379,6 @@ export default async function reader(root, { params, query, initial }) {
       } else if (pageMode && target === content) scheduleBarsHide()
       else if (y > lastY + 12 && y > 120) setBars(true)
       else if (y < lastY - 12) setBars(false)
-    }
-    if (pageMode && !document.body.classList.contains('sheet-open')) {
-      const visible = pageEls[pageIdx()]
-      if (visible) fitPageLines(visible)
     }
     lastY = y
     const c = findCurrent()
@@ -577,9 +430,14 @@ export default async function reader(root, { params, query, initial }) {
   function highlightPlaying() {
     const s = getAudioState()
     $$('.ayah.playing', content).forEach((e) => e.classList.remove('playing'))
-    const playingHere = s.mode === 'ayah' && s.surah && s.surah.nomor === n
+    const playingHere = s.mode === 'ayah' && s.surah?.nomor === n
+    const active = playingHere && s.playing
     if (playingHere && elOf(s.ayah)) elOf(s.ayah).classList.add('playing')
-    $('.rd-play', readerEl).innerHTML = icon(playingHere && s.playing ? 'pause' : 'play')
+    audioPlayButton.innerHTML = icon(active ? 'pause' : 'play')
+    audioPlayButton.setAttribute('aria-label', active ? `Jeda audio ayat ${qnum(s.ayah)}` : `Putar audio ayat ${qnum(current)}`)
+    const panelPlay = $('.reader-fab-panel [data-act="play"]', readerEl)
+    panelPlay.innerHTML = `${icon(active ? 'pause' : 'play')}<span>${active ? 'Jeda audio ayat' : 'Putar ayat ini'}</span>`
+    elAudioCurrent.textContent = `Ayat ${qnum(active ? s.ayah : current)}`
   }
 
   async function refreshMarks() {
@@ -604,7 +462,7 @@ export default async function reader(root, { params, query, initial }) {
     if (s === n) {
       current = a
       lastMarked = a
-      scrollToAyah(a, { flash: true })
+      scrollToAyah(a, { smooth: true, flash: true })
       updateInfo()
       persist()
     } else navigate(`/surah/${s}/${a}`)
@@ -620,18 +478,17 @@ export default async function reader(root, { params, query, initial }) {
     }
   }
 
-  const MODE_LABEL = { focus: 'Terjemahan per ayat', continuous: 'Mushaf (gulir ke bawah)', page: 'Mushaf 15 baris — geser untuk pindah halaman' }
+  const MODE_LABEL = { focus: 'Terjemahan per ayat', continuous: 'Mushaf (gulir ke bawah)', page: 'Mushaf per halaman — geser untuk pindah halaman' }
   function setMode(mode) {
     if (mode === modeNow()) return
     const keep = current
     saveSettings({ reader: { mode } })
     renderContent()
-    scrollToAyah(keep)
+    scrollToAyah(keep, { smooth: true })
     toast(MODE_LABEL[mode])
     persist()
   }
   const goPage = (d) => scrollToPage(pageIdx() + d, true)
-  const onResize = throttle(() => schedulePageFit(), 120)
 
   const actions = {
     back: () => navigate('/quran'),
@@ -648,13 +505,18 @@ export default async function reader(root, { params, query, initial }) {
           }
         }
         const keep = current
-        if (patch && ('mode' in patch || 'tajweed' in patch)) renderContent()
-        else {
+        clearTimeout(settingsRestoreTimer)
+        if (patch && ('mode' in patch || 'tajweed' in patch)) {
+          renderContent()
+          scrollToAyah(keep)
+        } else {
           applyReaderStyle(readerEl)
           updateFloatingControls()
-          schedulePageFit()
+          settingsRestoreTimer = setTimeout(() => {
+            settingsRestoreTimer = 0
+            if (!destroyed) scrollToAyah(keep)
+          }, 80)
         }
-        scrollToAyah(keep)
       }),
     immersive: () => {
       setFabMenu(false)
@@ -693,11 +555,13 @@ export default async function reader(root, { params, query, initial }) {
       setFabMenu(true)
     },
     'fab-toggle': () => setFabMenu(!fabOpen),
+    'audio-toggle': () => setAudioDockHidden(!audioDockHidden),
     prev: () => (pageMode ? goPage(-1) : current > 1 && goTo(n, current - 1)),
     next: () => (pageMode ? goPage(1) : current < total && goTo(n, current + 1)),
     play: () => {
       const s = getAudioState()
-      if (s.mode === 'ayah' && s.surah && s.surah.nomor === n) toggleAudio()
+      const playingHere = s.mode === 'ayah' && s.surah?.nomor === n
+      if (playingHere && (s.playing || s.ayah === current)) toggleAudio()
       else playAyah(surah, current)
     },
     bookmark: () => toggleBookmark(current),
@@ -706,6 +570,12 @@ export default async function reader(root, { params, query, initial }) {
 
   const onClick = (e) => {
     if (fabOpen && !e.target.closest('.reader-float')) setFabMenu(false)
+    const tajweedEl = e.target.closest('[data-rule-label]')
+    if (tajweedEl && readerEl.contains(tajweedEl)) {
+      e.preventDefault()
+      toast(tajweedEl.dataset.ruleLabel)
+      return
+    }
     const tabEl = e.target.closest('.rd-tabs [data-mode]')
     if (tabEl) {
       setFabMenu(false)
@@ -744,7 +614,7 @@ export default async function reader(root, { params, query, initial }) {
       openAyahSheet(surah, +num.closest('.ayah').dataset.a, sheetOpts)
       return
     }
-    // Sentuh area kosong untuk memunculkan atau merapikan kembali bilah kontrol.
+    // Sentuh area kosong untuk menampilkan atau menyembunyikan bilah atas.
     setBars(!barsHidden)
   }
   const onTabKeydown = (e) => {
@@ -775,7 +645,6 @@ export default async function reader(root, { params, query, initial }) {
   document.addEventListener('keydown', onKey)
   window.addEventListener('scroll', onScroll, { passive: true })
   content.addEventListener('scroll', onScroll, { passive: true, capture: true })
-  window.addEventListener('resize', onResize, { passive: true })
   document.addEventListener('fullscreenchange', onFsChange)
   const onHide = () => persist()
   window.addEventListener('pagehide', onHide)
@@ -815,16 +684,12 @@ export default async function reader(root, { params, query, initial }) {
     persist()
     destroyed = true
     clearTimeout(autoHideTimer)
-    fitGeneration++
-    if (fitFrame) cancelAnimationFrame(fitFrame)
-    if (fitIdle) window.cancelIdleCallback?.(fitIdle)
-    clearTimeout(fitTimer)
+    clearTimeout(settingsRestoreTimer)
     readerEl.removeEventListener('click', onClick)
     tablist.removeEventListener('keydown', onTabKeydown)
     document.removeEventListener('keydown', onKey)
     window.removeEventListener('scroll', onScroll)
     content.removeEventListener('scroll', onScroll, true)
-    window.removeEventListener('resize', onResize)
     document.removeEventListener('fullscreenchange', onFsChange)
     window.removeEventListener('pagehide', onHide)
     offAudio.forEach((f) => f())

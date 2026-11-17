@@ -5,18 +5,19 @@ import { deriveTheme, normalizeCustom, CUSTOM_DEFAULT } from '../utils/theme.js'
 
 const KEY = 'quranku:settings'
 const ARABIC_FONT_MIGRATION_KEY = 'quranku:migration:readable-quran-font-v1'
+const READER_TYPOGRAPHY_MIGRATION_KEY = 'quranku:migration:reader-typography-v2'
 /** Variabel tema kustom yang sudah dihitung, dibaca public/theme-init.js sebelum render pertama. */
 const THEME_VARS_KEY = 'quranku:theme-vars'
 
 export const READER_DEFAULTS = {
   mode: 'continuous', // 'continuous' (mushaf mengalir) | 'focus' (per ayat + terjemahan) | 'page' (per halaman, geser ke samping)
   preset: 'theme', // 'theme' follows the app palette; also 'classic' | 'ivory' | 'dark' | 'night'
-  fontSize: 28,
+  fontSize: 32,
   lineHeight: 2.1,
   gap: 18, // jarak antar blok/ayat (px)
   width: 760, // lebar area bacaan (px)
   margin: 20, // margin kiri-kanan (px)
-  translationSize: 16,
+  translationSize: 18,
   showTranslation: true,
   showLatin: true,
   tajweed: false,
@@ -68,6 +69,22 @@ function load() {
   if (!['auto', 'light', 'dark', 'ramadan', 'custom'].includes(s.theme)) s.theme = 'auto'
   // 1.3.2: bawaan lama (30px / 2,4) terasa renggang — pindahkan ke bawaan baru bila belum pernah diubah pengguna.
   if (s.reader.fontSize === 30 && s.reader.lineHeight === 2.4) Object.assign(s.reader, { fontSize: 28, lineHeight: 2.1 })
+  // Perbesar bawaan lama agar bacaan tetap nyaman pada layar ponsel; pilihan khusus pengguna dipertahankan.
+  try {
+    if (localStorage.getItem(READER_TYPOGRAPHY_MIGRATION_KEY) !== '1') {
+      let changed = false
+      if (s.reader.fontSize === 28 && s.reader.lineHeight === 2.1) {
+        s.reader.fontSize = 32
+        changed = true
+      }
+      if (s.reader.translationSize === 16) {
+        s.reader.translationSize = 18
+        changed = true
+      }
+      if (changed) localStorage.setItem(KEY, JSON.stringify({ ...saved, reader: { ...(saved.reader || {}), ...s.reader } }))
+      localStorage.setItem(READER_TYPOGRAPHY_MIGRATION_KEY, '1')
+    }
+  } catch {}
   return s
 }
 

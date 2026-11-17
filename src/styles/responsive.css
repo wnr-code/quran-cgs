@@ -123,11 +123,8 @@
   .rd-bar {
     left: var(--rail);
   }
-  .rd-bottom {
-    bottom: 0;
-  }
   .rd-wrap {
-    padding-bottom: calc(var(--bar-h) + 56px);
+    padding-bottom: calc(84px + var(--safe-b));
   }
   body.reading-mode #view {
     margin-left: 0;
