@@ -66,17 +66,17 @@ export const SOURCES = [
       },
       {
         name: 'Quran NU Online (quran.nu.or.id)',
-        role: 'Doa harian, wudhu, wirid & doa usai salat',
-        use: 'Teks Arab, Latin, dan arti untuk enam kategori doa harian yang telah dihimpun di QuranKu, doa wudhu, serta bacaan usai salat fardu. Konten disimpan di aplikasi agar dapat dibuka offline.',
-        note: 'Katalog Quran NU Online memuat 16 kategori doa. QuranKu saat ini mencakup enam kategori harian, doa wudhu, dan bacaan usai salat; kategori lainnya belum diintegrasikan. Judul dan pemisahan bagian tertentu disusun QuranKu agar mudah dibaca.',
+        role: 'Doa harian, katalog kategori, wudhu, dan doa usai salat',
+        use: 'Teks Arab, Latin, dan arti enam kategori doa harian, doa wudhu, serta bacaan usai salat dihimpun dalam QuranKu dan dapat dibuka offline. Delapan kategori tambahan ditampilkan sebagai katalog judul yang menaut ke halaman resmi; teks lengkap kategori tersebut tidak disalin ke aplikasi.',
+        note: 'Katalog Quran NU Online memuat 16 kategori. QuranKu menghindari duplikasi Wudhu dan Shalat dengan menempatkan keduanya pada rangkaian dzikir tersendiri. Delapan kategori tambahan menampilkan jumlah bacaan serta tautan ke sumber resmi, bukan teks offline.',
         url: 'https://quran.nu.or.id/doa',
         host: 'quran.nu.or.id'
       },
       {
         name: 'Quran NU Online — Tahlil & Doa Arwah',
         role: 'Rangkaian versi lengkap',
-        use: 'Bacaan Tahlil dan Doa Arwah Arab, Latin, dan terjemah dari halaman khusus Quran NU Online; ditampilkan di aplikasi dan tersedia offline.',
-        note: 'Halaman sumber menyediakan pilihan Ringkas dan Lengkap. QuranKu menggunakan susunan Lengkap; judul dan pemenggalan bacaan disusun agar nyaman dibaca, dan sebagian terjemahan diringkas. Silakan cocokkan dengan halaman sumber bila ingin meninjau detail.',
+        use: '28 bacaan Tahlil dan Doa Arwah Arab, Latin, dan terjemah dari halaman khusus Quran NU Online; ditampilkan di aplikasi dan tersedia offline. QuranKu menambahkan kartu Surah Yasin yang teks ayatnya dimuat dari sumber mushaf aplikasi.',
+        note: 'Halaman sumber menyediakan pilihan Ringkas dan Lengkap. QuranKu menggunakan susunan Lengkap dan menambahkan Surah Yasin setelah rangkaian Tahlil, sebelum doa penutup; Yasin bukan bagian dari 28 langkah pada halaman Quran NU Online. Judul, pemenggalan, dan sebagian terjemahan disusun agar mudah dibaca.',
         url: 'https://quran.nu.or.id/tahlil',
         host: 'quran.nu.or.id/tahlil'
       },

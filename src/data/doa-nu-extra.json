@@ -1,0 +1,533 @@
+{
+  "source": {
+    "name": "Quran NU Online",
+    "url": "https://quran.nu.or.id/doa",
+    "note": "Delapan kategori tambahan ditampilkan sebagai katalog judul dan tautan kategori resmi. Teks Arab, Latin, dan terjemah belum disalin atau diverifikasi untuk penggunaan offline."
+  },
+  "categories": [
+    {
+      "slug": "doa-waktu-tertentu",
+      "name": "Waktu Tertentu",
+      "icon": "moon",
+      "desc": "Doa untuk momen Hijriah dan waktu khusus",
+      "count": 12,
+      "items": [
+        {
+          "id": "doa-akhir-tahun",
+          "title": "Doa Akhir Tahun",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-awal-tahun",
+          "title": "Doa Awal Tahun",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-10-muharram-asyura",
+          "title": "Doa 10 Muharram (Asyura)",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-bulan-safar",
+          "title": "Doa Bulan Safar",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-malam-1-rajab-sayyidina-ali",
+          "title": "Doa Malam 1 Rajab Sayyidina Ali",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-malam-1-rajab-syekh-abdul-qadir",
+          "title": "Doa Malam 1 Rajab Syekh Abdul Qadir",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-bulan-rajab",
+          "title": "Doa Bulan Rajab",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-malam-27-rajab",
+          "title": "Doa Malam 27 Rajab",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-jumat-terakhir-rajab",
+          "title": "Doa Jumat Terakhir Rajab",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-nisfu-syaban",
+          "title": "Doa Nisfu Sya’ban",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-awal-bulan-ramadhan",
+          "title": "Doa Awal Bulan Ramadhan",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        },
+        {
+          "id": "doa-malam-idul-fitri-atau-idul-adha",
+          "title": "Doa Malam Idul Fitri atau Idul Adha",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu"
+        }
+      ],
+      "sourceUrl": "https://quran.nu.or.id/doa/doa-waktu-tertentu",
+      "sourceOnly": true
+    },
+    {
+      "slug": "doa-kualitas-diri",
+      "name": "Kualitas Diri",
+      "icon": "shield",
+      "desc": "Akhlak, keteguhan hati, dan penyucian diri",
+      "count": 10,
+      "items": [
+        {
+          "id": "doa-dijauhkan-dari-maksiat",
+          "title": "Doa Dijauhkan dari Maksiat",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri"
+        },
+        {
+          "id": "doa-agar-giat-beribadah",
+          "title": "Doa agar Giat Beribadah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri"
+        },
+        {
+          "id": "doa-mohon-akhlak-mulia",
+          "title": "Doa Mohon Akhlak Mulia",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri"
+        },
+        {
+          "id": "doa-menghilangkan-malas",
+          "title": "Doa Menghilangkan Malas",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri"
+        },
+        {
+          "id": "doa-meredam-rasa-marah",
+          "title": "Doa Meredam Rasa Marah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri"
+        },
+        {
+          "id": "doa-mohon-istiqamah",
+          "title": "Doa Mohon Istiqamah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri"
+        },
+        {
+          "id": "doa-untuk-orang-iri-dengki",
+          "title": "Doa untuk Orang Iri atau Dengki",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri"
+        },
+        {
+          "id": "doa-saat-dihinggapi-rasa-sombong",
+          "title": "Doa saat Dihinggapi Rasa Sombong",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri"
+        },
+        {
+          "id": "doa-mohon-umur-berkah",
+          "title": "Doa Mohon Umur Berkah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri"
+        },
+        {
+          "id": "doa-husnul-khatimah",
+          "title": "Doa Husnul Khatimah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri"
+        }
+      ],
+      "sourceUrl": "https://quran.nu.or.id/doa/doa-kualitas-diri",
+      "sourceOnly": true
+    },
+    {
+      "slug": "doa-pernikahan-rumah-tangga",
+      "name": "Pernikahan & Rumah Tangga",
+      "icon": "house",
+      "desc": "Doa dan bacaan untuk keluarga dan rumah tangga",
+      "count": 10,
+      "items": [
+        {
+          "id": "doa-mendekatkan-jodoh",
+          "title": "Doa Mendekatkan Jodoh",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga"
+        },
+        {
+          "id": "contoh-khutbah-lamaran",
+          "title": "Contoh Khutbah Lamaran",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga"
+        },
+        {
+          "id": "contoh-khutbah-nikah",
+          "title": "Contoh Khutbah Nikah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga"
+        },
+        {
+          "id": "mendoakan-pengantin-baru",
+          "title": "Mendoakan Pengantin Baru",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga"
+        },
+        {
+          "id": "doa-mohon-keluarga-berkah",
+          "title": "Doa Mohon Keluarga Berkah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga"
+        },
+        {
+          "id": "doa-terhindar-rumah-tangga-toksik",
+          "title": "Doa Terhindar dari Rumah Tangga Toksik",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga"
+        },
+        {
+          "id": "doa-konflik-rumah-tangga",
+          "title": "Saat Terjadi Konflik Rumah Tangga",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga"
+        },
+        {
+          "id": "doa-keturunan-saleh",
+          "title": "Doa Dikaruniai Keturunan Saleh(ah)",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga"
+        },
+        {
+          "id": "lafal-ijab-qabul-nikah",
+          "title": "Lafal Ijab Qabul Nikah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga"
+        },
+        {
+          "id": "doa-menempati-rumah-baru",
+          "title": "Amalan Menempati Rumah Baru",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga"
+        }
+      ],
+      "sourceUrl": "https://quran.nu.or.id/doa/doa-pernikahan-rumah-tangga",
+      "sourceOnly": true
+    },
+    {
+      "slug": "doa-hamil-dan-persalinan",
+      "name": "Hamil & Persalinan",
+      "icon": "heart-pulse",
+      "desc": "Doa memohon keturunan, perlindungan, dan kelancaran persalinan",
+      "count": 7,
+      "items": [
+        {
+          "id": "doa-mohon-keturunan-hamil",
+          "title": "Doa Mohon Keturunan",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-hamil-dan-persalinan"
+        },
+        {
+          "id": "doa-bayi-dalam-kandungan",
+          "title": "Doa Selama Bayi dalam Kandungan",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-hamil-dan-persalinan"
+        },
+        {
+          "id": "doa-usia-kandungan-4-bulan",
+          "title": "Doa Usia Kandungan 4 Bulan",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-hamil-dan-persalinan"
+        },
+        {
+          "id": "doa-usia-kandungan-7-bulan",
+          "title": "Doa Usia Kandungan 7 Bulan",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-hamil-dan-persalinan"
+        },
+        {
+          "id": "doa-saat-proses-persalinan",
+          "title": "Doa saat Proses Persalinan",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-hamil-dan-persalinan"
+        },
+        {
+          "id": "doa-saat-bayi-baru-lahir",
+          "title": "Doa saat Bayi Baru Lahir",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-hamil-dan-persalinan"
+        },
+        {
+          "id": "doa-agar-diberi-anak-laki-laki",
+          "title": "Doa agar Diberi Anak Laki-laki",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-hamil-dan-persalinan"
+        }
+      ],
+      "sourceUrl": "https://quran.nu.or.id/doa/doa-hamil-dan-persalinan",
+      "sourceOnly": true
+    },
+    {
+      "slug": "doa-para-nabi-di-al-quran",
+      "name": "Para Nabi di Al-Qur’an",
+      "icon": "book-open",
+      "desc": "Doa-doa para nabi yang terekam dalam Al-Qur’an",
+      "count": 14,
+      "items": [
+        {
+          "id": "doa-nabi-adam",
+          "title": "Doa Nabi Adam",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-nuh",
+          "title": "Doa Nabi Nuh",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-hud",
+          "title": "Doa Nabi Hud",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-ibrahim",
+          "title": "Doa Nabi Ibrahim",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-luth",
+          "title": "Doa Nabi Luth (dua permohonan)",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran/doa-nabi-luth"
+        },
+        {
+          "id": "doa-nabi-yusuf",
+          "title": "Doa Nabi Yusuf",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-ayub",
+          "title": "Doa Nabi Ayub",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-syuaib",
+          "title": "Doa Nabi Syu’aib",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-musa",
+          "title": "Doa Nabi Musa",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-sulaiman",
+          "title": "Doa Nabi Sulaiman",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-yunus",
+          "title": "Doa Nabi Yunus",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-zakaria",
+          "title": "Doa Nabi Zakaria",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-isa",
+          "title": "Doa Nabi Isa",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        },
+        {
+          "id": "doa-nabi-muhammad",
+          "title": "Doa Nabi Muhammad",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran"
+        }
+      ],
+      "sourceUrl": "https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran",
+      "sourceOnly": true
+    },
+    {
+      "slug": "doa-baca-al-quran",
+      "name": "Baca Al-Qur’an",
+      "icon": "quran",
+      "desc": "Doa khatam, belajar, dan setelah membaca surah pilihan",
+      "count": 7,
+      "items": [
+        {
+          "id": "doa-khataman-al-quran",
+          "title": "Doa Khataman Al-Qur’an",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-baca-al-quran"
+        },
+        {
+          "id": "qasidah-belajar-al-quran",
+          "title": "Qasidah Belajar Al-Qur’an",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-baca-al-quran"
+        },
+        {
+          "id": "doa-usai-baca-ayat-kursi",
+          "title": "Doa Usai Baca Ayat Kursi",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-baca-al-quran"
+        },
+        {
+          "id": "doa-usai-baca-surat-al-kahfi",
+          "title": "Doa Usai Baca Surat Al-Kahfi",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-baca-al-quran"
+        },
+        {
+          "id": "doa-usai-baca-surat-yasin",
+          "title": "Doa Usai Baca Surat Yasin",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-baca-al-quran"
+        },
+        {
+          "id": "doa-usai-baca-surat-al-waqiah",
+          "title": "Doa Usai Baca Surat Al-Waqi’ah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-baca-al-quran"
+        },
+        {
+          "id": "doa-usai-baca-surat-al-mulk",
+          "title": "Doa Usai Baca Surat Al-Mulk",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-baca-al-quran"
+        }
+      ],
+      "sourceUrl": "https://quran.nu.or.id/doa/doa-baca-al-quran",
+      "sourceOnly": true
+    },
+    {
+      "slug": "doa-haji-umrah",
+      "name": "Haji & Umrah",
+      "icon": "route",
+      "desc": "Doa, niat, dan talbiyah dalam perjalanan haji dan umrah",
+      "count": 21,
+      "items": [
+        {
+          "id": "doa-berangkat-dari-rumah-haji",
+          "title": "Doa Berangkat dari Rumah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "niat-umrah-dan-haji",
+          "title": "Niat Umrah dan Haji",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-setelah-duduk-dalam-kendaraan-haji",
+          "title": "Doa Setelah Duduk dalam Kendaraan",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-kendaraan-mulai-bergerak-haji",
+          "title": "Doa ketika Kendaraan Mulai Bergerak",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-tiba-di-tempat-tujuan-haji",
+          "title": "Doa ketika Tiba di Tempat Tujuan",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-selesai-berihram",
+          "title": "Doa Selesai Berihram",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "lafal-talbiyah",
+          "title": "Lafal Talbiyah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-memasuki-kota-makkah",
+          "title": "Doa Memasuki Kota Makkah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-masuk-masjidil-haram",
+          "title": "Doa Masuk Masjidil Haram",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-melihat-kabah",
+          "title": "Doa ketika Melihat Ka’bah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-tawaf",
+          "title": "Doa Tawaf",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-sai",
+          "title": "Doa Sa’i",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-menggunting-rambut",
+          "title": "Doa Menggunting Rambut",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-masuk-arafah",
+          "title": "Doa ketika Masuk Arafah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-wukuf",
+          "title": "Doa Wukuf",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-sampai-muzdalifah",
+          "title": "Doa ketika Sampai di Muzdalifah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-sampai-mina",
+          "title": "Doa ketika Sampai di Mina",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-melontar-jamrah",
+          "title": "Doa Melontar Jamrah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-masuk-kota-madinah",
+          "title": "Doa Masuk Kota Madinah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-masuk-masjid-nabawi",
+          "title": "Doa Masuk Masjid Nabawi",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        },
+        {
+          "id": "doa-pulang-haji-umrah",
+          "title": "Doa ketika Pulang Haji/Umrah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah"
+        }
+      ],
+      "sourceUrl": "https://quran.nu.or.id/doa/doa-haji-umrah",
+      "sourceOnly": true
+    },
+    {
+      "slug": "doa-kematian",
+      "name": "Kematian",
+      "icon": "moon",
+      "desc": "Doa takziah, ziarah kubur, talqin, dan doa untuk jenazah",
+      "count": 6,
+      "items": [
+        {
+          "id": "doa-saat-takziah",
+          "title": "Doa saat Takziah",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kematian"
+        },
+        {
+          "id": "salam-saat-ziarah-kubur",
+          "title": "Salam saat Ziarah Kubur",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kematian"
+        },
+        {
+          "id": "talqin-mayit-di-kuburan",
+          "title": "Talqin Mayit di Kuburan",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kematian"
+        },
+        {
+          "id": "qasidah-di-makam-wali",
+          "title": "Qasidah di Makam Wali",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kematian"
+        },
+        {
+          "id": "doa-orang-mati-laki-laki",
+          "title": "Doa untuk Orang Mati (Laki-laki)",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kematian"
+        },
+        {
+          "id": "doa-orang-mati-perempuan",
+          "title": "Doa untuk Orang Mati (Perempuan)",
+          "sourceUrl": "https://quran.nu.or.id/doa/doa-kematian"
+        }
+      ],
+      "sourceUrl": "https://quran.nu.or.id/doa/doa-kematian",
+      "sourceOnly": true
+    }
+  ],
+  "note": "Delapan kategori tambahan dihimpun sebagai katalog judul dan tautan ke halaman sumber resmi. Teks Arab, Latin, dan terjemah tidak disalin ke data aplikasi; item katalog ini tidak ditampilkan sebagai teks bacaan offline."
+}
