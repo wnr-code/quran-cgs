@@ -1314,3 +1314,116 @@ body.reading-mode .reader-fab-panel .rd-tabs { display: flex; }
   .reader-fab-panel { padding: 10px; }
   .reader-fab-action { padding-inline: 7px; font-size: 0.72rem; }
 }
+
+/* Ayah study sheet: keep the reading actions close, and expand tafsir/notes only when needed. */
+.ayah-sheet-action-label {
+  margin: 14px 2px 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.ayah-sheet-actions {
+  margin-top: 8px;
+}
+.ayah-sheet-actions [aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border-soft));
+  color: var(--accent-ink, var(--accent));
+  background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+}
+.ayah-sheet-category {
+  margin-top: 14px;
+}
+.ayah-sheet-tafsir {
+  margin: 12px 0 14px;
+  padding: 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-2) 70%, var(--surface));
+}
+.ayah-sheet-tafsir[hidden] {
+  display: none;
+}
+.ayah-sheet-tafsir-source {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+.ayah-sheet-tafsir-source strong {
+  color: var(--accent-ink, var(--accent));
+  font-size: 0.8rem;
+}
+.ayah-sheet-tafsir-copy {
+  font-size: 0.91rem;
+  line-height: 1.72;
+}
+.ayah-sheet-full-tafsir {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  margin-top: 12px;
+  text-decoration: none;
+}
+.ayah-sheet-notes {
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--surface-2) 55%, var(--surface));
+}
+.ayah-sheet-notes > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 10px 13px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+.ayah-sheet-notes > summary::-webkit-details-marker {
+  display: none;
+}
+.ayah-sheet-notes > summary > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ayah-sheet-notes > summary > span .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--accent-ink, var(--accent));
+}
+.ayah-sheet-notes > summary > small {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 550;
+  text-align: end;
+}
+.ayah-sheet-notes > summary::after {
+  content: '+';
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.ayah-sheet-notes[open] > summary::after {
+  content: '−';
+}
+.ayah-sheet-note-body {
+  padding: 0 13px 13px;
+}
+.ayah-sheet-note-body .field {
+  margin-bottom: 0;
+}
+.ayah-sheet-note-body textarea {
+  width: 100%;
+}
