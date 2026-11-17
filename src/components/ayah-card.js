@@ -87,9 +87,9 @@ export function pagesHtml(surah, marks, { basmalah = '', tajweed = false, tajwee
         })
         .join('')
       return `<section class="mpage" data-p="${g.page}" data-first="${first}" data-last="${last}" aria-label="Halaman ${g.page}">
-        <header class="mpage-head" dir="ltr"><span>${esc(surah.namaLatin)}</span><span>Juz <span class="qn">${qnum(juzOf(n, first))}</span></span></header>
+        <header class="mpage-head" dir="ltr"><span>${esc(surah.namaLatin)}</span><span class="mpage-juz">Juz <span class="reader-juz-chip qn">${qnum(juzOf(n, first))}</span></span></header>
         <div class="mpage-body" dir="rtl" lang="ar">${head}<div class="mpage-text">${body}</div></div>
-        <footer class="mpage-foot" dir="ltr"><span class="mpage-hint">${i < groups.length - 1 ? icon('back') + 'geser' : ''}</span><span class="qn mpage-no">${qnum(g.page)}</span><span class="mpage-hint">${i + 1} / ${groups.length}</span></footer>
+        <footer class="mpage-foot" dir="ltr"><span class="mpage-hint">${i < groups.length - 1 ? icon('back') + 'geser' : ''}</span><span class="qn mpage-no"><span>${qnum(g.page)}</span></span><span class="mpage-hint">${i + 1} / ${groups.length}</span></footer>
       </section>`
     })
     .join('')

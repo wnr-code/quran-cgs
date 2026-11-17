@@ -95,7 +95,7 @@ export default async function reader(root, { params, query, initial }) {
       <button class="icon-btn" data-act="back" aria-label="Kembali ke daftar surah">${icon('back')}</button>
       <button class="rd-title" data-act="jump" aria-label="${esc(surah.namaLatin)} — Pergi ke ayat, juz, atau halaman">
         <strong>${esc(surah.namaLatin)}</strong>
-        <small>Juz <span class="qn" data-juz></span> · Hal <span class="qn" data-page></span> · Ayat <span class="qn" data-cur></span></small>
+        <small>Juz <span class="reader-juz-chip qn" data-juz></span> · Hal <span class="qn" data-page></span> · Ayat <span class="qn" data-cur></span></small>
       </button>
       <span class="rd-progress" aria-hidden="true"><i data-progress></i></span>
     </header>
