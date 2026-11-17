@@ -19,6 +19,7 @@ export function applyReaderStyle(el) {
   const r = getSettings().reader
   el.dataset.preset = PRESETS[r.preset] ? r.preset : 'theme'
   el.dataset.mode = r.mode
+  el.dataset.fabSide = r.fabSide === 'left' ? 'left' : 'right'
   el.classList.toggle('hide-translation', !r.showTranslation)
   el.classList.toggle('hide-latin', !r.showLatin)
   const st = el.style
@@ -46,7 +47,7 @@ export function openReaderSettings(onChange) {
         <div class="seg" data-seg="mode">
           <button data-v="focus" class="${r.mode === 'focus' ? 'on' : ''}">${icon('list')}Terjemahan</button>
           <button data-v="continuous" class="${r.mode === 'continuous' ? 'on' : ''}">${icon('flow')}Mushaf</button>
-          <button data-v="page" class="${r.mode === 'page' ? 'on' : ''}">${icon('book')}Halaman</button>
+          <button data-v="page" class="${r.mode === 'page' ? 'on' : ''}">${icon('book')}Mushaf 15 baris</button>
         </div></div>
       <div class="field"><span>Preset tampilan</span>
         <div class="preset-grid" data-seg="preset">
@@ -65,6 +66,8 @@ export function openReaderSettings(onChange) {
         </div></div>
       <label class="switch-row"><span>Tampilkan terjemahan (mode Terjemahan)</span><input type="checkbox" name="showTranslation" ${r.showTranslation ? 'checked' : ''} /></label>
       <label class="switch-row"><span>Tampilkan transliterasi Latin (mode Terjemahan)</span><input type="checkbox" name="showLatin" ${r.showLatin ? 'checked' : ''} /></label>
+      <label class="switch-row"><span>Penanda Tajwid warna</span><input type="checkbox" name="tajweed" ${r.tajweed ? 'checked' : ''} /></label>
+      <p class="hint">Mushaf 15 baris menyesuaikan ukuran huruf dan spasi tiap halaman mengikuti layar; tata letak dapat berbeda dari cetakan. Warna Tajwid berasal dari anotasi riwayat Hafs yang cakupannya terbatas, dan bukan pengganti belajar dengan guru.</p>
       <div class="field"><span>Warna kustom (opsional, menimpa preset)</span>
         <div class="color-row">
           <label>Latar <input type="color" name="customBg" value="${r.customBg || '#faf6ea'}" /></label>

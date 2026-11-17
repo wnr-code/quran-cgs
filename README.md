@@ -103,6 +103,7 @@ docs/                 panduan deploy, Android, infaq, status fitur
 | Cadangan teks, terjemahan, tafsir Jalalayn, audio | [Al Quran Cloud API](https://alquran.cloud/api) (`quran-uthmani`, `id.indonesian`, `en.transliteration`, `id.jalalayn`) | ketentuan alquran.cloud |
 | Cadangan terakhir (teks Arab saja) | paket [`quran-json`](https://github.com/risan/quran-json), disalin ke `public/data/` saat build | CC BY-SA 4.0* |
 | Juz, halaman mushaf (Madinah 604 hlm.), sajdah | paket [`quran-meta`](https://github.com/quran-center/quran-meta) (riwayat Hafs) | MIT |
+| Anotasi warna Tajwid (riwayat Hafs), dipetakan ke token teks aplikasi | [`SadaqaWorks/quran-tajweed`](https://github.com/SadaqaWorks/quran-tajweed/tree/40753ddd0cc815851dda73a5ae43c022e17496c3/output/tajweed.hafs.uthmani-pause-sajdah.json); data terolah di `src/data/tajweed-spans.json` | CC BY 4.0; atribusi dan perubahan dicatat pada panduan Tajwid |
 | Doa harian (6 kategori, 62 bacaan offline), doa wudhu, wirid & doa usai salat; 8 kategori tambahan (87 judul katalog, belum tersedia offline) | [https://quran.nu.or.id/](https://quran.nu.or.id/), data di `src/data/doa-nu.json`, `src/data/doa-nu-extra.json`, dan `src/data/dzikir.json` | ketentuan NU Online |
 | Tahlil & Doa Arwah (versi Lengkap, 28 bacaan sumber) | [https://quran.nu.or.id/](https://quran.nu.or.id/), data di `src/data/tahlil.json` | ketentuan NU Online; sejumlah terjemahan diringkas dan dicatat di aplikasi |
 | Doa dari Al-Qur'an, ayat pilihan, penyemangat beranda | daftar rujukan surah:ayat disusun untuk aplikasi; teks ayat dari sumber Al-Qur'an di atas | — |
@@ -112,7 +113,7 @@ docs/                 panduan deploy, Android, infaq, status fitur
 | Kode QR infaq | [`qrcode-generator`](https://github.com/kazuhikoarase/qrcode-generator) | MIT |
 | Font Arab | Amiri Quran, Scheherazade New, disajikan sendiri | SIL OFL 1.1 |
 | Ikon font | [Font Awesome Free 6.7.2](https://fontawesome.com) (subset, disajikan sendiri) | ikon CC BY 4.0, font SIL OFL 1.1 |
-| Pembayaran infaq | [Trakteer](https://trakteer.id) | — |
+| Pembayaran infaq | [Trakteer (referal Lanteraku)](https://trakteer.id/lanteraku/recommend) | — |
 
 \* Berkas `LICENSE.txt` pada repositori quran-json menyatakan CC BY-SA 4.0, sementara metadata paket npm menyebut CC BY 4.0; QuranKu memilih label yang lebih ketat. Paket tersebut sudah ditandai deprecated dan tidak terawat; QuranKu hanya membundel teks Arab, bukan terjemahan atau transliterasinya.
 

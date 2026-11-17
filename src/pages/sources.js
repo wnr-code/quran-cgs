@@ -3,12 +3,13 @@ import { icon } from '../components/icons.js'
 import { SOURCES } from '../data/sources.js'
 import { esc, copyText, toast } from '../utils/helpers.js'
 
-// Hanya tautan GitHub yang aktif; alamat sumber lain ditampilkan sebagai teks untuk disalin.
+// Tautan GitHub dan yang secara eksplisit ditandai dapat dibuka; alamat sumber lain bisa disalin.
 export const isGithub = (url) => /^https:\/\/github\.com\//.test(url || '')
 
 const linkRow = (s) => {
   if (!s.url) return ''
   if (isGithub(s.url)) return `<a class="link src-gh" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.host || s.url)}</a>`
+  if (s.externalLink) return `<div class="src-url"><a class="link" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.url)}</a><button class="btn btn-sm" type="button" data-copy="${esc(s.url)}" aria-label="Salin alamat ${esc(s.name)}">Salin</button></div>`
   return `<div class="src-url"><code>${esc(s.url)}</code><button class="btn btn-sm" type="button" data-copy="${esc(s.url)}" aria-label="Salin alamat ${esc(s.name)}">Salin</button></div>`
 }
 
@@ -27,7 +28,7 @@ export default function sources(root) {
       <p>QuranKu berdiri di atas kerja banyak pihak. Kami mengucapkan terima kasih yang sebesar-besarnya kepada seluruh penyedia data, penyusun, penerjemah, qari, serta pembuat pustaka dan font yang tercantum di halaman ini. Semoga Allah membalas dengan kebaikan yang berlipat dan menjadikannya amal jariyah.</p>
     </section>
     <section class="sources" id="sumber-data">
-      <p class="hint">QuranKu tidak pernah membuat atau mengubah teks ayat, terjemahan, tafsir, maupun doa. Semua konten berasal dari sumber di bawah ini dan ditampilkan apa adanya. Alamat sumber ditulis sebagai teks — ketuk <b>Salin</b> lalu tempel di peramban bila ingin mengunjunginya.</p>
+      <p class="hint">QuranKu tidak pernah membuat atau mengubah teks ayat, terjemahan, tafsir, maupun doa. Semua konten berasal dari sumber di bawah ini dan ditampilkan apa adanya. Sebagian alamat sumber ditampilkan sebagai teks — ketuk <b>Salin</b> lalu tempel di peramban. Tautan referal Trakteer dapat dibuka langsung.</p>
       ${SOURCES.map((g) => `<div class="card source-group"><p class="eyebrow">${icon(g.icon)}${esc(g.group)}</p><ul class="source-list">${g.items.map(sourceItem).join('')}</ul></div>`).join('')}
       <p class="hint">Urutan pengambilan teks: salinan di perangkat → EQuran.id → Al Quran Cloud → data lokal di server QuranKu. Sumber yang sedang dipakai selalu tertulis di menu Info pada halaman surah. Bila Anda menemukan kekeliruan, mohon laporkan kepada pengembang dan rujuk mushaf cetak resmi.</p>
     </section>

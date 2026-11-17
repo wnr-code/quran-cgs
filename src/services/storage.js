@@ -19,6 +19,8 @@ export const READER_DEFAULTS = {
   translationSize: 16,
   showTranslation: true,
   showLatin: true,
+  tajweed: false,
+  fabSide: 'right',
   customBg: '',
   customText: ''
 }

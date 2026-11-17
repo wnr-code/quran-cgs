@@ -49,6 +49,15 @@ export const SOURCES = [
         license: 'MIT',
         url: 'https://github.com/quran-center/quran-meta',
         host: 'github.com/quran-center/quran-meta'
+      },
+      {
+        name: 'SadaqaWorks/quran-tajweed',
+        role: 'Anotasi warna Tajwid',
+        use: 'Penanda aturan Tajwid untuk riwayat Hafs, disesuaikan ke token teks ayat aplikasi dan diverifikasi dengan sidik teks per ayat.',
+        note: 'Data anotasi diadaptasi dari versi sumber yang tertaut. Enam puluh tiga ayat tidak memiliki penanda dan QS 12:39 serta 12:41 dilewati karena teksnya berbeda; cakupan tidak lengkap.',
+        license: 'CC BY 4.0',
+        url: 'https://github.com/SadaqaWorks/quran-tajweed/tree/40753ddd0cc815851dda73a5ae43c022e17496c3/output/tajweed.hafs.uthmani-pause-sajdah.json',
+        host: 'github.com/SadaqaWorks/quran-tajweed'
       }
     ]
   },
@@ -186,9 +195,10 @@ export const SOURCES = [
       {
         name: 'Trakteer',
         use: 'Pemrosesan pembayaran infaq (QRIS/e-wallet). Hanya dipakai di halaman Infaq.',
-        note: 'Pembayaran berlangsung di halaman Trakteer; QuranKu tidak menerima atau menyimpan data kartu/rekening.',
-        url: 'https://trakteer.id',
-        host: 'trakteer.id'
+        note: 'Pembayaran berlangsung di halaman Trakteer; QuranKu tidak menerima atau menyimpan data kartu/rekening. Tautan ini adalah referal akun Lanteraku.',
+        url: 'https://trakteer.id/lanteraku/recommend',
+        host: 'trakteer.id/lanteraku/recommend',
+        externalLink: true
       }
     ]
   }
