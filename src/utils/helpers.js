@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 import { Browser } from '@capacitor/browser'
 import { Share } from '@capacitor/share'
+import { Directory, Filesystem } from '@capacitor/filesystem'
 
 export const $ = (sel, root = document) => root.querySelector(sel)
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel))
@@ -121,6 +122,67 @@ export async function shareText(title, text, url) {
     return 'unsupported'
   } catch (e) {
     if (e && (e.name === 'AbortError' || /share canceled/i.test(e.message || ''))) return 'cancelled'
+    return 'failed'
+  }
+}
+
+function cancelledShare(error) {
+  return !!error && (error.name === 'AbortError' || /share canceled|user canceled/i.test(error.message || ''))
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result || '').split(',')[1] || '')
+    reader.onerror = () => reject(reader.error || new Error('Gagal membaca gambar.'))
+    reader.readAsDataURL(blob)
+  })
+}
+
+/** Bagikan PNG melalui Web Share/Capacitor; jika berkas tidak didukung, unduh PNG sebagai fallback. */
+export async function shareImage(blob, { filename = 'quranku-ayat.png', title = 'Bagikan ayat', text = '' } = {}) {
+  if (!blob || typeof blob.size !== 'number' || blob.size === 0) return 'failed'
+  const safeName = String(filename).replace(/[^a-zA-Z0-9._-]/g, '-')
+  const options = { title, text }
+
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const { value } = await Share.canShare()
+      if (value) {
+        const data = await blobToBase64(blob)
+        const { uri } = await Filesystem.writeFile({
+          path: `${Date.now()}-${safeName}`,
+          data,
+          directory: Directory.Cache
+        })
+        await Share.share({ ...options, files: [uri], dialogTitle: title })
+        return 'shared'
+      }
+    } catch (error) {
+      if (cancelledShare(error)) return 'cancelled'
+    }
+  }
+
+  if (typeof navigator !== 'undefined' && typeof navigator.share === 'function' && typeof File === 'function') {
+    const file = new File([blob], safeName, { type: blob.type || 'image/png' })
+    let canShareFiles = typeof navigator.canShare !== 'function'
+    try {
+      if (typeof navigator.canShare === 'function') canShareFiles = navigator.canShare({ files: [file] })
+    } catch {}
+    if (canShareFiles) {
+      try {
+        await navigator.share({ ...options, files: [file] })
+        return 'shared'
+      } catch (error) {
+        if (cancelledShare(error)) return 'cancelled'
+      }
+    }
+  }
+
+  try {
+    downloadFile(safeName, blob, blob.type || 'image/png')
+    return 'downloaded'
+  } catch {
     return 'failed'
   }
 }

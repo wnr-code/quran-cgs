@@ -6,7 +6,8 @@ import { validateSurahDetail, validateSurahList, isAyahNo, parseCoord, cleanText
 import { qiblaBearing, distanceToKaaba } from '../src/services/qibla.js'
 import { stripBasmalah } from '../src/api/alqurancloud.js'
 import { mapDetail, mapSummary } from '../src/api/equran.js'
-import { esc, stripHtml, shareText } from '../src/utils/helpers.js'
+import { esc, stripHtml, shareText, shareImage } from '../src/utils/helpers.js'
+import { createAyahImage, wrapCanvasText } from '../src/utils/ayah-image.js'
 import { toHijri } from '../src/utils/hijri.js'
 import { mapLocalDetail } from '../src/api/local-data.js'
 import { SOURCES } from '../src/data/sources.js'
@@ -158,6 +159,130 @@ test('bagikan: gunakan Web Share atau laporkan tidak didukung, jangan diam-diam 
   } finally {
     if (previous) Object.defineProperty(globalThis, 'navigator', previous)
     else delete globalThis.navigator
+  }
+})
+
+test('berbagi PNG: kirim File lewat Web Share API', async () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+  const calls = []
+  const setNavigator = (value) => Object.defineProperty(globalThis, 'navigator', { configurable: true, value })
+  try {
+    setNavigator({
+      canShare: ({ files }) => files.length === 1 && files[0].type === 'image/png',
+      share: async (payload) => calls.push(payload)
+    })
+    const png = new Blob(['png'], { type: 'image/png' })
+    assert.equal(await shareImage(png, { filename: 'quranku-ayat-1-1.png', title: 'QS. Al-Fatihah 1:1' }), 'shared')
+    assert.equal(calls.length, 1)
+    assert.equal(calls[0].files.length, 1)
+    assert.ok(calls[0].files[0] instanceof File)
+    assert.equal(calls[0].files[0].name, 'quranku-ayat-1-1.png')
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'navigator', previous)
+    else delete globalThis.navigator
+  }
+})
+
+test('berbagi PNG: pembatalan tidak memicu unduhan', async () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+  Object.defineProperty(globalThis, 'navigator', {
+    configurable: true,
+    value: {
+      canShare: () => true,
+      share: async () => { throw new DOMException('dibatalkan', 'AbortError') }
+    }
+  })
+  try {
+    assert.equal(await shareImage(new Blob(['png'], { type: 'image/png' })), 'cancelled')
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'navigator', previous)
+    else delete globalThis.navigator
+  }
+})
+
+test('berbagi PNG: unduh bila berbagi berkas tidak didukung', async () => {
+  const previousNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
+  const previousSetTimeout = globalThis.setTimeout
+  const anchor = { click() { this.clicked = true }, remove() {} }
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { canShare: () => false } })
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { createElement: () => anchor, body: { appendChild() {} } }
+  })
+  globalThis.setTimeout = (callback, delay) => delay === 2000 ? 0 : previousSetTimeout(callback, delay)
+  try {
+    assert.equal(await shareImage(new Blob(['png'], { type: 'image/png' }), { filename: 'ayat-pilihan.png' }), 'downloaded')
+    assert.equal(anchor.download, 'ayat-pilihan.png')
+    assert.equal(anchor.clicked, true)
+  } finally {
+    if (previousNavigator) Object.defineProperty(globalThis, 'navigator', previousNavigator)
+    else delete globalThis.navigator
+    if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
+    else delete globalThis.document
+    globalThis.setTimeout = previousSetTimeout
+  }
+})
+
+test('bungkus teks gambar tanpa memotong isi', () => {
+  const ctx = { measureText: (text) => ({ width: [...text].length }) }
+  assert.deepEqual(wrapCanvasText(ctx, 'ayat pilihan hari ini', 12), ['ayat pilihan', 'hari ini'])
+  assert.deepEqual(wrapCanvasText(ctx, '   ', 12), [])
+})
+
+test('gambar ayat berisi teks Arab, terjemahan, rujukan, merek & tautan sumber', async () => {
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
+  const drawn = []
+  let canvas
+  let brandImage
+  const drawnLogos = []
+  const gradient = { addColorStop() {} }
+  const ctx = {
+    measureText: (text) => ({ width: [...text].length * 10 }),
+    createLinearGradient: () => gradient,
+    beginPath() {}, moveTo() {}, lineTo() {}, quadraticCurveTo() {}, closePath() {},
+    fill() {}, stroke() {}, fillRect() {}, strokeRect() {}, save() {}, translate() {}, rotate() {}, restore() {},
+    drawImage: (...args) => drawnLogos.push(args),
+    fillText: (text) => drawn.push(text)
+  }
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: {
+      baseURI: 'https://quran.cgs.my.id/',
+      fonts: { load: async () => [] },
+      createElement: (tag) => {
+        if (tag === 'img') {
+          brandImage = { naturalWidth: 192, src: '', decode: async () => {} }
+          return brandImage
+        }
+        canvas = { getContext: () => ctx, toBlob: (callback, type) => callback(new Blob(['png'], { type })) }
+        return canvas
+      }
+    }
+  })
+  try {
+    const arabic = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
+    const translation = 'Dengan nama Allah Yang Maha Pengasih lagi Maha Penyayang.'
+    const png = await createAyahImage({
+      arabic,
+      translation,
+      reference: 'QS. Al-Fatihah 1:1',
+      sourceUrl: 'https://quran.cgs.my.id/#/surah/1/1'
+    })
+    assert.equal(png.type, 'image/png')
+    assert.equal(canvas.width, 1080)
+    assert.equal(canvas.height, 1920, 'PNG berukuran Status WhatsApp 9:16')
+    assert.ok(brandImage.src.endsWith('/icons/icon-192-v2.png'))
+    assert.equal(drawnLogos.length, 1)
+    assert.ok(drawnLogos[0][1] < canvas.width / 2 && drawnLogos[0][2] > 1600, 'logo QuranKu berada di kiri bawah')
+    assert.equal(drawn.filter((line) => /[\u0600-\u06ff]/u.test(line)).join(' '), arabic)
+    assert.ok(drawn.includes(translation))
+    assert.ok(drawn.includes('QS. Al-Fatihah 1:1'))
+    assert.ok(drawn.includes('QuranKu'))
+    assert.ok(drawn.includes('quran.cgs.my.id/#/surah/1/1'))
+  } finally {
+    if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
+    else delete globalThis.document
   }
 })
 
