@@ -13,6 +13,7 @@ import { qnum, ayahRef } from '../utils/arabic-numbers.js'
 import { $, esc, on, toast, copyText } from '../utils/helpers.js'
 import { playAyah } from '../services/audio.js'
 import { ayahShareText } from '../components/ayah-card.js'
+import { createAyahImage } from '../utils/ayah-image.js'
 import { rerender } from '../router.js'
 import { APP } from '../config.js'
 import { openShare } from '../components/share-sheet.js'
@@ -189,9 +190,23 @@ export default async function home(root) {
           <button class="btn sm" data-ayah-copy aria-label="Salin ayat dan tautan">${icon('copy')}Salin</button></span></div>`
       $('[data-ayah-play]', el).onclick = () => playAyah(surah, aNo)
       $('[data-ayah-share]', el).onclick = () => {
+        const ref = `QS. ${surah.namaLatin} ${ayahRef(sNo, aNo)}`
+        const url = `${APP.origin}/#/surah/${sNo}/${aNo}`
         openShare(
-          { title: `QS. ${surah.namaLatin} ${ayahRef(sNo, aNo)}`, text: ayahShareText(surah, a), url: `${APP.origin}/#/surah/${sNo}/${aNo}` },
-          { title: 'Bagikan ayat', what: 'ayat' }
+          { title: ref, text: ayahShareText(surah, a), url },
+          {
+            title: 'Bagikan ayat',
+            what: 'ayat',
+            image: {
+              filename: `quranku-ayat-${sNo}-${aNo}.png`,
+              create: () => createAyahImage({
+                arabic: a.teksArab,
+                translation: a.teksIndonesia || 'Terjemahan tidak tersedia.',
+                reference: ref,
+                sourceUrl: url
+              })
+            }
+          }
         )
       }
       $('[data-ayah-copy]', el).onclick = async () => {

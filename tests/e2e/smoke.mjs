@@ -403,7 +403,7 @@ await step('Service Worker aktif & aplikasi berjalan OFFLINE (API mati)', async 
   await p2.screenshot({ path: `${SHOTS}/11-offline.png` })
   await p2.close()
 })
-await step('Ayat pilihan: Bagikan membuka media sosial; salin adalah tindakan terpisah', async () => {
+await step('Ayat pilihan: bagikan sebagai teks atau PNG; salin adalah tindakan terpisah', async () => {
   await go('/')
   await page.waitForSelector('.ayah-day-ar')
   const before = await text('.ayah-day .link')
@@ -414,6 +414,7 @@ await step('Ayat pilihan: Bagikan membuka media sosial; salin adalah tindakan te
     window.__shareCalls = []
     window.__copied = ''
     Object.defineProperty(navigator, 'share', { configurable: true, value: async (payload) => window.__shareCalls.push(payload) })
+    Object.defineProperty(navigator, 'canShare', { configurable: true, value: (payload) => !!payload.files?.length })
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (value) => { window.__copied = value } } })
   })
   await page.$eval('[data-ayah-share]', (b) => b.click())
@@ -436,6 +437,29 @@ await step('Ayat pilihan: Bagikan membuka media sosial; salin adalah tindakan te
   await page.$eval('.sheet-wrap.open [data-copyshare]', (b) => b.click())
   await page.waitForFunction(() => window.__copied.length > 0)
   assert.ok((await page.evaluate(() => window.__copied)).includes('quran.cgs.my.id/#/surah/'))
+
+  await page.$eval('[data-ayah-share]', (b) => b.click())
+  await page.waitForSelector('.sheet-wrap.open [data-image-share]')
+  await page.$eval('.sheet-wrap.open [data-image-share]', (b) => b.click())
+  await page.waitForFunction(() => window.__shareCalls.some((payload) => payload.files?.length) || document.querySelector('.sheet-wrap.open [data-image-share]')?.dataset.imageReady === 'true')
+  if (!(await page.evaluate(() => window.__shareCalls.some((payload) => payload.files?.length)))) {
+    await page.$eval('.sheet-wrap.open [data-image-share]', (b) => b.click())
+  }
+  await page.waitForFunction(() => window.__shareCalls.some((payload) => payload.files?.length))
+  const imageShare = await page.evaluate(() => window.__shareCalls.find((payload) => payload.files?.length))
+  assert.equal(imageShare.files[0].type, 'image/png')
+  assert.match(imageShare.files[0].name, /^quranku-ayat-\d+-\d+\.png$/)
+  assert.ok(imageShare.files[0].size > 1000, 'berkas gambar PNG berisi hasil render canvas')
+  const imageDimensions = await page.evaluate(async () => {
+    const file = window.__shareCalls.find((payload) => payload.files?.length).files[0]
+    const bitmap = await createImageBitmap(file)
+    const size = { width: bitmap.width, height: bitmap.height }
+    bitmap.close()
+    return size
+  })
+  assert.deepEqual(imageDimensions, { width: 1080, height: 1920 }, 'format vertikal Status WhatsApp 9:16')
+  assert.ok(imageShare.text.includes('quran.cgs.my.id/#/surah/'))
+
   await page.$eval('[data-ayah-next]', (b) => b.click())
   await page.waitForFunction((b) => document.querySelector('.ayah-day .link') && document.querySelector('.ayah-day .link').textContent.trim() !== b, {}, before)
 })
