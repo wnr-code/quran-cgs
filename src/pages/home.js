@@ -10,7 +10,7 @@ import { formatHijri } from '../utils/hijri.js'
 import { formatGregorian, greeting, greetingIcon, formatClock } from '../utils/format.js'
 import { MUTIARA } from '../data/mutiara.js'
 import { qnum, ayahRef } from '../utils/arabic-numbers.js'
-import { $, esc, on, toast, shareText } from '../utils/helpers.js'
+import { $, esc, on, toast, copyText, shareText, reportShareResult } from '../utils/helpers.js'
 import { playAyah } from '../services/audio.js'
 import { ayahShareText } from '../components/ayah-card.js'
 import { rerender } from '../router.js'
@@ -41,7 +41,7 @@ export default async function home(root) {
   root.innerHTML = `<div class="page home">
     <header class="home-hero ornament">
       ${ramadanLanterns()}
-      <div class="brand">${LOGO_SVG}<div><strong>QuranKu</strong><small>Al-Qur'an Digital</small></div>
+      <div class="brand">${LOGO_SVG}<div><h1>QuranKu</h1><small>Al-Qur'an Digital</small></div>
         <a class="icon-btn on-dark" href="#/cari" aria-label="Cari">${icon('search')}</a>
         <a class="icon-btn on-dark" href="#/pengaturan" aria-label="Pengaturan">${icon('settings')}</a></div>
       <div class="salutation">
@@ -75,8 +75,8 @@ export default async function home(root) {
     </section>
 
     <footer class="cigatas-signature" aria-label="Ajakan mengaji dari Cigatas">
-      <a class="cigatas-signature-link" href="#/tentang" aria-label="#TongEureunNgaji — lihat halaman Tentang">
-        <span class="cigatas-signature-hashtag">#TongEureunNgaji</span>
+      <a class="cigatas-signature-link" href="#/tentang">
+        <span class="sr-only">Buka halaman Tentang Cigatas: </span><span class="cigatas-signature-hashtag">#TongEureunNgaji</span>
         <span class="cigatas-signature-motto" data-cigatas-motto aria-hidden="true">Hayu ngaji unggal poé.</span>
       </a>
     </footer>
@@ -184,11 +184,16 @@ export default async function home(root) {
         ${a.teksIndonesia ? `<p class="ayah-day-tr">${esc(a.teksIndonesia)}</p>` : ''}
         <div class="ayah-day-foot"><a class="link" href="#/surah/${sNo}/${aNo}">QS. ${esc(surah.namaLatin)} ${ayahRef(sNo, aNo)} ${icon('forward')}</a>
           <span class="ayah-day-acts"><button class="icon-btn sm" data-ayah-play aria-label="Putar ayat">${icon('play')}</button>
-          <button class="icon-btn sm" data-ayah-share aria-label="Bagikan ayat">${icon('share')}</button></span></div>`
+          <button class="icon-btn sm" data-ayah-share aria-label="Bagikan ayat">${icon('share')}</button>
+          <button class="btn sm" data-ayah-copy aria-label="Salin ayat dan tautan">${icon('copy')}Salin</button></span></div>`
       $('[data-ayah-play]', el).onclick = () => playAyah(surah, aNo)
       $('[data-ayah-share]', el).onclick = async () => {
         const r = await shareText(`QS. ${surah.namaLatin} ${ayahRef(sNo, aNo)}`, ayahShareText(surah, a), `${APP.origin}/#/surah/${sNo}/${aNo}`)
-        if (r === 'copied') toast('Ayat & tautan disalin')
+        reportShareResult(r)
+      }
+      $('[data-ayah-copy]', el).onclick = async () => {
+        const payload = `${ayahShareText(surah, a)}\n${APP.origin}/#/surah/${sNo}/${aNo}`
+        toast((await copyText(payload)) ? 'Ayat & tautan disalin' : 'Gagal menyalin')
       }
     } catch {
       if (el.isConnected) el.innerHTML = `${head}<p class="muted">Ayat belum dapat dimuat (QS. ${ayahRef(sNo, aNo)}). Sambungkan internet sekali agar tersimpan.</p><a class="link" href="#/surah/${sNo}/${aNo}">Buka ayat ${icon('forward')}</a>`

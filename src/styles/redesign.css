@@ -151,7 +151,8 @@ textarea {
   position: relative;
   z-index: 1;
 }
-.brand strong {
+.brand strong,
+.brand h1 {
   letter-spacing: -0.025em;
 }
 .brand .logo {
@@ -162,7 +163,7 @@ textarea {
   margin-top: 22px;
 }
 .salutation-label {
-  color: color-mix(in srgb, var(--accent) 84%, white);
+  color: var(--hero-ink);
   letter-spacing: 0.16em;
 }
 .salam {
@@ -1186,7 +1187,7 @@ body.reading-mode .reader.mode-page .rd-wrap {
   outline-offset: 4px;
 }
 .cigatas-signature-hashtag {
-  color: var(--accent);
+  color: var(--accent-ink, var(--accent));
   font-size: 0.9rem;
   font-weight: 850;
   letter-spacing: 0.06em;

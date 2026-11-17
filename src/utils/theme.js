@@ -38,32 +38,48 @@ export function normalizeCustom(c) {
 
 /**
  * Menurunkan variabel CSS dari tema kustom. Latar gelap/terang ditentukan dari warna latar;
- * warna utama digeser seperlunya agar tetap terbaca (kontras ≥ 3 terhadap latar), kepala halaman dijaga gelap untuk teks terang.
+ * warna teks, utama, aksen, dan label tanggal dikoreksi agar kontras minimal 4.5 terhadap seluruh permukaan.
  */
 export function deriveTheme(custom) {
   const { primary: p0, accent, bg } = normalizeCustom(custom)
-  // Teks terang atau gelap: pilih yang paling kontras terhadap latar; pada latar abu-abu tengah pakai putih/hitam murni.
-  const best = (list) => list.reduce((x, y) => (contrast(y, bg) > contrast(x, bg) ? y : x))
-  let text = best(['#f1ece0', '#1b2a23'])
-  if (contrast(text, bg) < 4.5) text = best(['#ffffff', '#000000'])
-  const dark = luminance(text) > 0.5
+  const dark = luminance(bg) < 0.18
+  const surface = dark ? mix(bg, '#ffffff', 0.06) : mix(bg, '#ffffff', 0.72)
+  const surface2 = dark ? mix(bg, '#ffffff', 0.11) : mix(bg, '#000000', 0.055)
+  const contrastOnSurfaces = (color) => Math.min(contrast(color, bg), contrast(color, surface), contrast(color, surface2))
+  // Pilih teks yang tetap kontras di latar dan semua permukaan kartu, termasuk warna tengah buatan pengguna.
+  let text = dark ? '#f1ece0' : '#1b2a23'
+  if (contrastOnSurfaces(text) < 4.5) {
+    const candidates = dark ? ['#ffffff', '#000000'] : ['#000000', '#ffffff']
+    text = candidates.reduce((best, candidate) => contrastOnSurfaces(candidate) > contrastOnSurfaces(best) ? candidate : best)
+  }
   let primary = p0
-  for (let i = 0; i < 12 && contrast(primary, bg) < 3; i++) primary = mix(primary, text, 0.15)
+  for (let i = 0; i < 32 && contrastOnSurfaces(primary) < 4.5; i++) primary = mix(primary, text, 0.15)
   let hero2 = mix(p0, '#000000', dark ? 0.5 : 0.12)
   for (let i = 0; i < 12 && luminance(hero2) > 0.16; i++) hero2 = mix(hero2, '#000000', 0.15)
   const hero1 = mix(hero2, '#000000', 0.42)
+  let muted = mix(text, bg, 0.25)
+  while (contrastOnSurfaces(muted) < 4.5) muted = mix(muted, text, 0.15)
+  let accentInk = accent
+  while (contrastOnSurfaces(accentInk) < 4.5) accentInk = mix(accentInk, text, 0.15)
+  let holidayInk = '#c92b38'
+  while (contrastOnSurfaces(holidayInk) < 4.5) holidayInk = mix(holidayInk, text, 0.15)
+  let leaveInk = '#a55012'
+  while (contrastOnSurfaces(leaveInk) < 4.5) leaveInk = mix(leaveInk, text, 0.15)
   return {
     base: dark ? 'dark' : 'light',
     themeColor: hero1,
     vars: {
       '--bg': bg,
-      '--surface': dark ? mix(bg, '#ffffff', 0.06) : mix(bg, '#ffffff', 0.72),
-      '--surface-2': dark ? mix(bg, '#ffffff', 0.11) : mix(bg, '#000000', 0.055),
+      '--surface': surface,
+      '--surface-2': surface2,
       '--text': text,
-      '--muted': mix(text, bg, 0.4),
+      '--muted': muted,
       '--primary': primary,
       '--primary-ink': contrast('#06120d', primary) > contrast('#ffffff', primary) ? '#06120d' : '#ffffff',
       '--accent': accent,
+      '--accent-ink': accentInk,
+      '--holiday-ink': holidayInk,
+      '--leave-ink': leaveInk,
       '--gold': accent,
       '--border': dark ? mix(bg, '#ffffff', 0.17) : mix(bg, '#000000', 0.11),
       '--hero-1': hero1,

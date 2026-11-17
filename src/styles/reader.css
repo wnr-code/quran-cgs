@@ -3,7 +3,7 @@
   /* A softly white reading paper in light mode; dark/custom themes still flow through semantic surfaces. */
   --rd-bg: var(--surface);
   --rd-text: var(--text);
-  --rd-accent: var(--accent);
+  --rd-accent: var(--accent-ink, var(--accent));
   --rd-muted: var(--muted);
   --rd-line: var(--border);
   --rd-bar: color-mix(in srgb, var(--surface) 94%, transparent);
@@ -22,7 +22,7 @@
 .reader[data-preset='theme'] {
   --rd-bg: var(--surface);
   --rd-text: var(--text);
-  --rd-accent: var(--accent);
+  --rd-accent: var(--accent-ink, var(--accent));
   --rd-muted: var(--muted);
   --rd-line: var(--border);
   --rd-bar: color-mix(in srgb, var(--surface) 94%, transparent);
@@ -30,8 +30,8 @@
 .reader[data-preset='ivory'] {
   --rd-bg: #faf6ea;
   --rd-text: #1f2a24;
-  --rd-accent: #9a7a2c;
-  --rd-muted: #6c7a71;
+  --rd-accent: #816721;
+  --rd-muted: #5b695f;
   --rd-line: rgba(31, 42, 36, 0.1);
   --rd-bar: rgba(250, 246, 234, 0.94);
 }
@@ -54,8 +54,8 @@
 .reader[data-preset='night'] {
   --rd-bg: #111111;
   --rd-text: #a9a495;
-  --rd-accent: #8c7a4d;
-  --rd-muted: #6f6c63;
+  --rd-accent: #a08750;
+  --rd-muted: #8b8577;
   --rd-line: rgba(169, 164, 149, 0.12);
   --rd-bar: rgba(17, 17, 17, 0.95);
 }
@@ -387,6 +387,7 @@
 .reader .state {
   color: var(--rd-muted);
 }
+.reader .state h2,
 .reader .state h3 {
   color: var(--rd-text);
 }

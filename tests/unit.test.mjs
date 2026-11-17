@@ -6,7 +6,7 @@ import { validateSurahDetail, validateSurahList, isAyahNo, parseCoord, cleanText
 import { qiblaBearing, distanceToKaaba } from '../src/services/qibla.js'
 import { stripBasmalah } from '../src/api/alqurancloud.js'
 import { mapDetail, mapSummary } from '../src/api/equran.js'
-import { esc, stripHtml } from '../src/utils/helpers.js'
+import { esc, stripHtml, shareText } from '../src/utils/helpers.js'
 import { toHijri } from '../src/utils/hijri.js'
 import { mapLocalDetail } from '../src/api/local-data.js'
 import { SOURCES } from '../src/data/sources.js'
@@ -135,6 +135,30 @@ test('sanitasi', () => {
   assert.equal(cleanText('  hi\u0000 '), 'hi')
   assert.deepEqual(parseCoord('-6,97', '108.48'), { lat: -6.97, lng: 108.48 })
   assert.equal(parseCoord('91', '0'), null)
+})
+
+test('bagikan: gunakan Web Share atau laporkan tidak didukung, jangan diam-diam menyalin', async () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+  const calls = []
+  let copied = 0
+  const setNavigator = (value) => Object.defineProperty(globalThis, 'navigator', { configurable: true, value })
+  try {
+    setNavigator({ share: async (payload) => calls.push(payload), clipboard: { writeText: async () => copied++ } })
+    assert.equal(await shareText('Ayat pilihan', 'Teks ayat', 'https://quran.cgs.my.id/#/surah/1/1'), 'shared')
+    assert.deepEqual(calls, [{ title: 'Ayat pilihan', text: 'Teks ayat', url: 'https://quran.cgs.my.id/#/surah/1/1' }])
+    assert.equal(copied, 0)
+
+    setNavigator({ clipboard: { writeText: async () => copied++ } })
+    assert.equal(await shareText('Ayat pilihan', 'Teks ayat', 'https://quran.cgs.my.id/#/surah/1/1'), 'unsupported')
+    assert.equal(copied, 0, 'share yang tidak tersedia tidak berubah menjadi salin')
+
+    setNavigator({ share: async () => { throw new DOMException('dibatalkan', 'AbortError') }, clipboard: { writeText: async () => copied++ } })
+    assert.equal(await shareText('Ayat pilihan', 'Teks ayat'), 'cancelled')
+    assert.equal(copied, 0, 'membatalkan share tidak memicu salin')
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'navigator', previous)
+    else delete globalThis.navigator
+  }
 })
 
 test('hijriah (Umm al-Qura)', () => {
@@ -642,17 +666,25 @@ test('tema kustom: variabel turunan sah, terbaca, dan tahan masukan rusak', asyn
     assert.equal(t.base, luminance(p.bg) < 0.18 ? 'dark' : 'light')
     assert.ok(contrast(t.vars['--text'], t.vars['--bg']) >= 7, p.id + ' teks')
     assert.ok(contrast(t.vars['--text'], t.vars['--surface']) >= 7, p.id + ' teks di kartu')
-    assert.ok(contrast(t.vars['--primary'], t.vars['--bg']) >= 3, p.id + ' utama')
+    assert.ok(contrast(t.vars['--text'], t.vars['--surface-2']) >= 7, p.id + ' teks di permukaan kedua')
+    assert.ok(contrast(t.vars['--primary'], t.vars['--bg']) >= 4.5 && contrast(t.vars['--primary'], t.vars['--surface']) >= 4.5 && contrast(t.vars['--primary'], t.vars['--surface-2']) >= 4.5, p.id + ' utama')
     assert.ok(contrast(t.vars['--primary-ink'], t.vars['--primary']) >= 4.5, p.id + ' tombol')
     assert.ok(contrast(t.vars['--hero-ink'], t.vars['--hero-2']) >= 4.5, p.id + ' kepala')
-    assert.ok(contrast(t.vars['--muted'], t.vars['--bg']) >= 3, p.id + ' redup')
+    assert.ok([t.vars['--bg'], t.vars['--surface'], t.vars['--surface-2']].every((surface) => contrast(t.vars['--muted'], surface) >= 4.5), p.id + ' redup')
+    assert.ok([t.vars['--bg'], t.vars['--surface'], t.vars['--surface-2']].every((surface) => contrast(t.vars['--accent-ink'], surface) >= 4.5), p.id + ' aksen teks')
+    assert.ok([t.vars['--bg'], t.vars['--surface'], t.vars['--surface-2']].every((surface) => contrast(t.vars['--holiday-ink'], surface) >= 4.5), p.id + ' tanggal merah')
+    assert.ok([t.vars['--bg'], t.vars['--surface'], t.vars['--surface-2']].every((surface) => contrast(t.vars['--leave-ink'], surface) >= 4.5), p.id + ' cuti bersama')
   }
   assert.equal(new Set(THEME_PRESETS.map((p) => p.id)).size, THEME_PRESETS.length)
   // Pilihan ekstrem tetap terbaca: utama = latar.
   for (const c of ['#ffffff', '#000000', '#ffff00', '#7f7f7f']) {
     const t = deriveTheme({ primary: c, accent: c, bg: c })
-    assert.ok(contrast(t.vars['--primary'], t.vars['--bg']) >= 3, c)
-    assert.ok(contrast(t.vars['--text'], t.vars['--bg']) >= 4.5, c)
+    assert.ok([t.vars['--bg'], t.vars['--surface'], t.vars['--surface-2']].every((surface) => contrast(t.vars['--primary'], surface) >= 4.5), c + ' utama')
+    assert.ok(contrast(t.vars['--text'], t.vars['--bg']) >= 4.5 && contrast(t.vars['--text'], t.vars['--surface-2']) >= 4.5, c)
+    assert.ok(contrast(t.vars['--muted'], t.vars['--surface']) >= 4.5 && contrast(t.vars['--muted'], t.vars['--surface-2']) >= 4.5, c + ' muted')
+    assert.ok(contrast(t.vars['--accent-ink'], t.vars['--surface']) >= 4.5 && contrast(t.vars['--accent-ink'], t.vars['--surface-2']) >= 4.5, c + ' aksen teks')
+    assert.ok(contrast(t.vars['--holiday-ink'], t.vars['--surface']) >= 4.5 && contrast(t.vars['--holiday-ink'], t.vars['--surface-2']) >= 4.5, c + ' tanggal merah')
+    assert.ok(contrast(t.vars['--leave-ink'], t.vars['--surface']) >= 4.5 && contrast(t.vars['--leave-ink'], t.vars['--surface-2']) >= 4.5, c + ' cuti bersama')
     assert.ok(contrast(t.vars['--hero-ink'], t.vars['--hero-2']) >= 4.5, c)
   }
   assert.deepEqual(normalizeCustom({ primary: 'javascript:1', accent: '#ABCDEF', bg: null }), { primary: CUSTOM_DEFAULT.primary, accent: '#abcdef', bg: CUSTOM_DEFAULT.bg })

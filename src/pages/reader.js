@@ -11,7 +11,7 @@ import { savePosition, getLastRead, addHistory } from '../services/reading-posit
 import { markRead } from '../services/progress.js'
 import { playAyah, playSurah, toggle as toggleAudio, getAudioState } from '../services/audio.js'
 import { bookmarkRepo, noteRepo } from '../database/repositories.js'
-import { $, $$, esc, on, throttle, toast, isStandalone, copyText, shareText } from '../utils/helpers.js'
+import { $, $$, esc, on, throttle, toast, isStandalone, copyText, shareText, reportShareResult } from '../utils/helpers.js'
 import { qnum } from '../utils/arabic-numbers.js'
 import { juzOf, pageOf } from '../utils/quran-meta.js'
 import { tempatTurunLabel } from '../utils/format.js'
@@ -62,7 +62,7 @@ export default async function reader(root, { params, query, initial }) {
   readerEl.innerHTML = `
     <header class="rd-top rd-bar">
       <button class="icon-btn" data-act="back" aria-label="Kembali ke daftar surah">${icon('back')}</button>
-      <button class="rd-title" data-act="jump" aria-label="Pergi ke ayat, juz, atau halaman">
+      <button class="rd-title" data-act="jump" aria-label="${esc(surah.namaLatin)} — Pergi ke ayat, juz, atau halaman">
         <strong>${esc(surah.namaLatin)}</strong>
         <small>Juz <span class="qn" data-juz></span> · Hal <span class="qn" data-page></span> · Ayat <span class="qn" data-cur></span></small>
       </button>
@@ -73,9 +73,9 @@ export default async function reader(root, { params, query, initial }) {
     </header>
     <div class="rd-wrap">
       <div class="rd-tabs" role="tablist" aria-label="Mode baca">
-        <button role="tab" data-mode="focus">${icon('list')}<span>Terjemahan</span></button>
-        <button role="tab" data-mode="continuous">${icon('flow')}<span>Mushaf</span></button>
-        <button role="tab" data-mode="page">${icon('book')}<span>Halaman</span></button>
+        <button type="button" id="reader-mode-focus" role="tab" aria-controls="reader-mode-panel" data-mode="focus">${icon('list')}<span>Terjemahan</span></button>
+        <button type="button" id="reader-mode-continuous" role="tab" aria-controls="reader-mode-panel" data-mode="continuous">${icon('flow')}<span>Mushaf</span></button>
+        <button type="button" id="reader-mode-page" role="tab" aria-controls="reader-mode-panel" data-mode="page">${icon('book')}<span>Halaman</span></button>
       </div>
       <section class="surah-hero">
         <div class="surah-frame">
@@ -92,7 +92,7 @@ export default async function reader(root, { params, query, initial }) {
         ${surah.source !== 'equran' ? `<p class="source-note">${icon('info')} Sumber cadangan: ${esc(surah.edition ? surah.edition.label : surah.source)} — edisi teks & terjemahan dapat berbeda dari sumber utama.</p>` : ''}
       </section>
       ${showBasmalah ? `<p class="basmalah" lang="ar" dir="rtl">${BASMALAH}</p>` : ''}
-      <div class="mushaf" data-content></div>
+      <div class="mushaf" id="reader-mode-panel" data-content role="tabpanel" tabindex="0"></div>
       <nav class="surah-nav">
         ${n > 1 ? `<a class="btn" href="#/surah/${n - 1}">${icon('back')}Surah sebelumnya</a>` : '<span></span>'}
         ${n < 114 ? `<a class="btn" href="#/surah/${n + 1}">Surah berikutnya${icon('forward')}</a>` : '<span></span>'}
@@ -112,9 +112,12 @@ export default async function reader(root, { params, query, initial }) {
   const elJuz = $('[data-juz]', readerEl)
   const elPage = $('[data-page]', readerEl)
   const topBar = $('.rd-top', readerEl)
+  const rdTitle = $('.rd-title', readerEl)
+  const tablist = $('.rd-tabs', readerEl)
   const elProgress = $('[data-progress]', readerEl)
 
   const threshold = () => (barsHidden ? 0 : topBar.offsetHeight) + 28
+  const scrollBehavior = (smooth) => (smooth && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'instant')
   const elOf = (a) => ayahEls[a - 1]
   const modeNow = () => {
     const m = getSettings().reader.mode
@@ -128,7 +131,7 @@ export default async function reader(root, { params, query, initial }) {
     if (!el) return
     // Arah RTL: geseran bernilai negatif di peramban modern; posisi dihitung dari letak lembar agar aman di semua mesin.
     const left = el.getBoundingClientRect().left - content.getBoundingClientRect().left + content.scrollLeft
-    content.scrollTo({ left, behavior: smooth ? 'smooth' : 'auto' })
+    content.scrollTo({ left, behavior: scrollBehavior(smooth) })
   }
 
   function renderContent() {
@@ -149,9 +152,12 @@ export default async function reader(root, { params, query, initial }) {
     ayahEls = $$('.ayah', content)
     pageEls = pageMode ? $$('.mpage', content) : []
     $$('.rd-tabs [data-mode]', readerEl).forEach((b) => {
-      b.classList.toggle('on', b.dataset.mode === mode)
-      b.setAttribute('aria-selected', b.dataset.mode === mode)
+      const selected = b.dataset.mode === mode
+      b.classList.toggle('on', selected)
+      b.setAttribute('aria-selected', String(selected))
+      b.tabIndex = selected ? 0 : -1
     })
+    content.setAttribute('aria-labelledby', `reader-mode-${mode}`)
     // Mode Halaman: tombol bawah berpindah halaman (halaman berikutnya ada di sebelah kiri, seperti mushaf).
     const bottom = $('.rd-bottom', readerEl)
     const prevBtn = $('[data-act="prev"]', bottom)
@@ -171,6 +177,7 @@ export default async function reader(root, { params, query, initial }) {
     elCur.textContent = qnum(current)
     elJuz.textContent = qnum(juzOf(n, current))
     elPage.textContent = qnum(pageOf(n, current))
+    rdTitle.setAttribute('aria-label', `${surah.namaLatin} Juz ${elJuz.textContent} · Hal ${elPage.textContent} · Ayat ${elCur.textContent}. Pilih untuk pergi ke ayat, juz, atau halaman`)
     elProgress.style.width = `${Math.max(2, Math.round((current / total) * 100))}%`
     const bm = $('[data-act="bookmark"]', $('.rd-bottom', readerEl))
     bm.classList.toggle('on', marks.bookmarks.has(current))
@@ -210,7 +217,7 @@ export default async function reader(root, { params, query, initial }) {
       return
     }
     const top = el.getBoundingClientRect().top + window.scrollY - (offset ?? threshold() - 8)
-    window.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' })
+    window.scrollTo({ top: Math.max(0, top), behavior: scrollBehavior(smooth) })
     if (flash) {
       el.classList.add('flash')
       setTimeout(() => el.classList.remove('flash'), 1800)
@@ -398,7 +405,7 @@ export default async function reader(root, { params, query, initial }) {
         else if (act === 'more') openAyahSheet(surah, a, sheetOpts)
         else if (act === 'copy') copyText(ayahShareText(surah, surah.ayat[a - 1])).then((ok) => toast(ok ? `Ayat ${a} disalin` : 'Gagal menyalin'))
         else if (act === 'share')
-          shareText(`QS. ${surah.namaLatin} ${n}:${a}`, ayahShareText(surah, surah.ayat[a - 1]), `${APP.origin}/#/surah/${n}/${a}`).then((r) => r === 'copied' && toast('Teks & tautan disalin'))
+          shareText(`QS. ${surah.namaLatin} ${n}:${a}`, ayahShareText(surah, surah.ayat[a - 1]), `${APP.origin}/#/surah/${n}/${a}`).then(reportShareResult)
         return
       }
       if (actions[act]) actions[act]()
@@ -416,8 +423,19 @@ export default async function reader(root, { params, query, initial }) {
     // Sentuh area kosong: tampilkan/sembunyikan kontrol (hanya pada mode membaca).
     if (immersive) setBars(!barsHidden)
   }
+  const onTabKeydown = (e) => {
+    const currentTab = e.target.closest('[role="tab"]')
+    if (!currentTab) return
+    const tabs = [...tablist.querySelectorAll('[role="tab"]')]
+    const index = tabs.indexOf(currentTab)
+    const next = e.key === 'ArrowRight' ? tabs[(index + 1) % tabs.length] : e.key === 'ArrowLeft' ? tabs[(index - 1 + tabs.length) % tabs.length] : e.key === 'Home' ? tabs[0] : e.key === 'End' ? tabs[tabs.length - 1] : null
+    if (!next) return
+    e.preventDefault()
+    next.focus()
+    setMode(next.dataset.mode)
+  }
   const onKey = (e) => {
-    if (e.target.closest && e.target.closest('input, textarea, select')) return
+    if (e.target.closest && e.target.closest('input, textarea, select, [role="tablist"]')) return
     if (document.body.classList.contains('sheet-open')) return
     if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('ayah')) {
       e.preventDefault()
@@ -428,6 +446,7 @@ export default async function reader(root, { params, query, initial }) {
   }
 
   readerEl.addEventListener('click', onClick)
+  tablist.addEventListener('keydown', onTabKeydown)
   document.addEventListener('keydown', onKey)
   window.addEventListener('scroll', onScroll, { passive: true })
   content.addEventListener('scroll', onScroll, { passive: true })
@@ -469,6 +488,7 @@ export default async function reader(root, { params, query, initial }) {
     persist()
     destroyed = true
     readerEl.removeEventListener('click', onClick)
+    tablist.removeEventListener('keydown', onTabKeydown)
     document.removeEventListener('keydown', onKey)
     window.removeEventListener('scroll', onScroll)
     document.removeEventListener('fullscreenchange', onFsChange)

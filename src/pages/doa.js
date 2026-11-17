@@ -63,14 +63,14 @@ const repeatOf = (notes) => {
 export default function doa(root, { params = {} } = {}) {
   if (params.tab && TABS.some(([k]) => k === params.tab)) tab = params.tab
   root.innerHTML = `<div class="page">${pageHeader('Doa Harian')}
-    <div class="tabs scroll">${TABS.map(([k, l]) => `<button data-tab="${k}">${l}</button>`).join('')}</div>
+    <div class="tabs scroll" role="tablist" aria-label="Kategori bacaan doa">${TABS.map(([k, l]) => `<button type="button" id="doa-tab-${k}" role="tab" aria-controls="doa-panel" data-tab="${k}">${l}</button>`).join('')}</div>
     <div class="search-box">${icon('search')}<input type="search" placeholder="Cari doa…" aria-label="Cari doa" autocomplete="off" /></div>
     <div class="doa-tools" role="group" aria-label="Tampilan bacaan">
       <button class="doa-tog" data-view="arti"><i class="fi" aria-hidden="true"></i><span>Arti</span></button>
       <button class="doa-tog" data-view="latin"><i class="fi" aria-hidden="true"></i><span>Latin</span></button>
       <button class="doa-tog" data-size>${fi('text-height')}<span></span></button>
     </div>
-    <div data-body></div></div>`
+    <div id="doa-panel" data-body role="tabpanel" tabindex="0"></div></div>`
   const body = $('[data-body]', root)
   const input = $('input', root)
   const norm = (s) => String(s).toLowerCase()
@@ -202,7 +202,7 @@ export default function doa(root, { params = {} } = {}) {
           ${d.links && d.links.length ? `<div class="dzikir-links">${d.links.map((l) => `<a class="chip chip-link" href="#/surah/${l.s}/${l.a}">${fi('book-open')}${esc(l.label)}</a>`).join('')}</div>` : ''}
           <footer class="dzikir-foot">
             <div class="dzikir-acts">
-              ${n ? `<button class="btn sm dzikir-count" data-count="${n}" data-n="0" data-for="${d.i}" aria-label="Penghitung bacaan">${icon('beads')}<span>0 / ${n}</span></button>` : ''}
+              ${n ? `<button class="btn sm dzikir-count" data-count="${n}" data-n="0" data-for="${d.i}" aria-label="Penghitung bacaan 0 / ${n}">${icon('beads')}<span>0 / ${n}</span></button>` : ''}
               <button class="btn sm" data-copyz="${kind}:${d.i}">${fi('copy')}Salin</button>
               <button class="btn sm" data-share="${kind}:${d.i}">${fi('share')}Bagikan</button>
             </div>
@@ -233,7 +233,13 @@ export default function doa(root, { params = {} } = {}) {
   }
 
   const render = () => {
-    root.querySelectorAll('[data-tab]').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab))
+    root.querySelectorAll('[data-tab]').forEach((b) => {
+      const selected = b.dataset.tab === tab
+      b.classList.toggle('active', selected)
+      b.setAttribute('aria-selected', String(selected))
+      b.tabIndex = selected ? 0 : -1
+    })
+    body.setAttribute('aria-labelledby', `doa-tab-${tab}`)
     const act = root.querySelector('[data-tab].active')
     const bar = root.querySelector('.tabs')
     if (act && bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = act.offsetLeft - (bar.clientWidth - act.offsetWidth) / 2
@@ -241,13 +247,25 @@ export default function doa(root, { params = {} } = {}) {
     else if (tab === 'harian') renderHarian()
     else renderDzikir(tab)
   }
-  root.querySelector('.tabs').addEventListener('click', (e) => {
+  const tablist = root.querySelector('.tabs')
+  tablist.addEventListener('click', (e) => {
     const b = e.target.closest('[data-tab]')
     if (b) {
       if (b.dataset.tab === 'harian' && tab === 'harian') cat = null
       tab = b.dataset.tab
       render()
     }
+  })
+  tablist.addEventListener('keydown', (e) => {
+    const current = e.target.closest('[role="tab"]')
+    if (!current) return
+    const tabs = [...tablist.querySelectorAll('[role="tab"]')]
+    const index = tabs.indexOf(current)
+    const next = e.key === 'ArrowRight' ? tabs[(index + 1) % tabs.length] : e.key === 'ArrowLeft' ? tabs[(index - 1 + tabs.length) % tabs.length] : e.key === 'Home' ? tabs[0] : e.key === 'End' ? tabs[tabs.length - 1] : null
+    if (!next) return
+    e.preventDefault()
+    next.focus()
+    next.click()
   })
   body.addEventListener('toggle', (e) => {
     if (e.target.matches('details[data-i]') && e.target.open) fillQuran(e.target)
@@ -272,6 +290,7 @@ export default function doa(root, { params = {} } = {}) {
       const n = +cnt.dataset.n >= max ? 0 : +cnt.dataset.n + 1
       cnt.dataset.n = n
       cnt.querySelector('span').textContent = `${n} / ${max}`
+      cnt.setAttribute('aria-label', `Penghitung bacaan ${n} / ${max}`)
       cnt.classList.toggle('done', n >= max)
       if (n >= max && navigator.vibrate) navigator.vibrate(60)
       if (cnt.dataset.for != null) setDone(tab, +cnt.dataset.for, n >= max)

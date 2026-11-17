@@ -1,6 +1,6 @@
 // Menu kecil yang muncul ketika sebagian teks ayat dipilih (tekan lama lalu geser, seperti salin-tempel).
 import { icon } from './icons.js'
-import { debounce, copyText, shareText, toast } from '../utils/helpers.js'
+import { debounce, copyText, shareText, toast, reportShareResult } from '../utils/helpers.js'
 import { ayahRef } from '../utils/arabic-numbers.js'
 import { getHighlights, setHighlight, highlightHtml, isCovered, snapToWords } from '../services/highlight.js'
 import { APP } from '../config.js'
@@ -140,7 +140,7 @@ export function initSelectionMenu(content, { surah, onBookmark, onMore }) {
       onBookmark && onBookmark(parts[0].ayah)
     } else if (act === 'share') {
       const r = await shareText(refLabel(parts), `${selectedText(parts)}\n(${refLabel(parts)})`, `${APP.origin}/#/surah/${n}/${parts[0].ayah}`)
-      if (r === 'copied') toast('Teks & tautan disalin')
+      reportShareResult(r)
       clear()
     } else if (act === 'more') {
       clear()

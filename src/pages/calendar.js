@@ -66,9 +66,10 @@ export default function calendar(root) {
       if (ev) events.push({ d, key, name: ev.name, sub: `${h.day} ${HIJRI_MONTHS[h.month - 1]} ${h.year} H`, cls: '' })
       if (mark) notesOf(key).forEach((n) => monthNotes.push({ d, key, n }))
       const isToday = date.toDateString() === today.toDateString()
-      const label = `${formatGregorian(date)} ${pasaranOf(date)}${hol ? ', ' + hol.name : ''}${ev ? ', ' + ev.name : ''}${mark ? `, ${mark.count} catatan` : ''}`
+      const visibleDayLabel = `${d} ${h.day}${h.day === 1 ? ` ${HIJRI_MONTHS[h.month - 1].slice(0, 3)}` : ''}`
+      const label = `${visibleDayLabel}, ${formatGregorian(date)}, ${h.day} ${HIJRI_MONTHS[h.month - 1]} ${h.year} H, ${pasaranOf(date)}${hol ? ', ' + hol.name : ''}${ev ? ', ' + ev.name : ''}${mark ? `, ${mark.count} catatan` : ''}`
       cells.push(
-        `<button type="button" class="cal-cell ${isToday ? 'today' : ''} ${ev ? 'event' : ''} ${date.getDay() === 5 ? 'friday' : ''} ${red ? 'red' : ''} ${hol && hol.type === 'cuti' ? 'cuti' : ''}" data-day="${key}" aria-label="${esc(label)}"><b>${d}</b><small>${h.day}${h.day === 1 ? ' ' + HIJRI_MONTHS[h.month - 1].slice(0, 3) : ''}</small>${ev || mark || hol ? `<i class="cal-dots">${hol ? `<i class="dot ${hol.type === 'cuti' ? 'ct' : 'hl'}"></i>` : ''}${ev ? '<i class="dot ev"></i>' : ''}${mark ? `<i class="dot ${mark.remind ? 'rem' : 'nt'}"></i>` : ''}</i>` : ''}</button>`
+        `<button type="button" class="cal-cell ${isToday ? 'today' : ''} ${ev ? 'event' : ''} ${date.getDay() === 5 ? 'friday' : ''} ${red ? 'red' : ''} ${hol && hol.type === 'cuti' ? 'cuti' : ''}" data-day="${key}" aria-label="${esc(label)}"><b>${d}</b> <small>${h.day}${h.day === 1 ? ' ' + HIJRI_MONTHS[h.month - 1].slice(0, 3) : ''}</small>${ev || mark || hol ? `<i class="cal-dots">${hol ? `<i class="dot ${hol.type === 'cuti' ? 'ct' : 'hl'}"></i>` : ''}${ev ? '<i class="dot ev"></i>' : ''}${mark ? `<i class="dot ${mark.remind ? 'rem' : 'nt'}"></i>` : ''}</i>` : ''}</button>`
       )
     }
     const title = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(first)
