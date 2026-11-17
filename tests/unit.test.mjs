@@ -212,10 +212,14 @@ test('daftar sumber data lengkap & tautan aman', () => {
     assert.ok(s.name && s.use)
     if (s.url) assert.match(s.url, /^https:\/\//)
   }
-  for (const name of ['EQuran.id API v2', 'Al Quran Cloud API', 'quran-meta', 'Amiri Quran']) assert.ok(items.some((s) => s.name === name), name)
+  for (const name of ['EQuran.id API v2', 'Al Quran Cloud API', 'quran-meta', 'SadaqaWorks/quran-tajweed', 'Amiri Quran']) assert.ok(items.some((s) => s.name === name), name)
+  assert.equal(items.find((s) => s.name === 'SadaqaWorks/quran-tajweed').license, 'CC BY 4.0')
   const nuSources = items.filter((s) => s.host === 'quran.nu.or.id')
   assert.equal(nuSources.length, 2)
   assert.ok(nuSources.every((s) => s.url === 'https://quran.nu.or.id/'), 'tautan sumber Quran NU memakai alamat utama yang ringkas')
+  const trakteer = items.find((s) => s.name === 'Trakteer')
+  assert.equal(trakteer.url, 'https://trakteer.id/lanteraku/recommend')
+  assert.equal(trakteer.externalLink, true, 'tautan referal sumber dapat dibuka langsung')
 })
 
 test('qari tambahan: daftar valid, id unik, alamat audio surah berpola benar', async () => {
@@ -345,6 +349,46 @@ test('Tanda (stabilo): dibulatkan ke kata utuh, digabung, dihapus sebagian, HTML
   assert.deepEqual(subtractRange([[0, 13]], [5, 8]), [[0, 5], [8, 13]])
   assert.equal(isCovered([[0, 8]], [5, 8]), true)
   assert.equal(isCovered([[0, 4]], [5, 8]), false)
+})
+
+test('Tajwid: seluruh indeks cocok dengan teks ayat, atribusi tercatat, dan pemetaan gagal secara aman', async () => {
+  const { createTajweedIndex, mapTajweedRanges, arabicBaseTokens } = await import('../src/utils/tajweed.js')
+  const { highlightHtml } = await import('../src/services/highlight.js')
+  const data = JSON.parse(readFileSync('src/data/tajweed-spans.json', 'utf8'))
+  const index = createTajweedIndex(data)
+  const quran = createRequire(import.meta.url)('../node_modules/quran-json/dist/quran_id.json')
+  assert.equal(index.size, 6171)
+  assert.equal(data.license, 'CC BY 4.0')
+  assert.equal(data.coverage.sourceVerses, 6236)
+  assert.equal(data.coverage.annotatedVerses, 6171)
+  assert.equal(data.coverage.annotatedSpans, 60028)
+  assert.equal(data.coverage.unannotatedVerses, 63)
+  assert.deepEqual(data.coverage.skippedTextMismatches, ['12:39', '12:41'])
+  let spans = 0
+  for (const [surah, ayah, tokenCount, , annotations] of data.verses) {
+    const text = quran[surah - 1].verses[ayah - 1].text
+    const tokens = arabicBaseTokens(text)
+    assert.equal(tokens.length, tokenCount, `${surah}:${ayah} token count`)
+    const mapped = mapTajweedRanges(text, index.get(`${surah}:${ayah}`))
+    assert.equal(mapped.length, annotations.length, `${surah}:${ayah} mapped span count`)
+    spans += mapped.length
+  }
+  assert.equal(spans, data.coverage.annotatedSpans)
+
+  const entry = index.get('2:5')
+  const text = quran[1].verses[4].text
+  const ranges = mapTajweedRanges(text, entry)
+  assert.ok(ranges.length > 0)
+  assert.match(highlightHtml(2, 5, text, { tajweedRanges: ranges }), /class="tajweed tajweed-/)
+  assert.deepEqual(mapTajweedRanges(`${text} اختلاف`, entry), [])
+  const tampered = [...entry]
+  tampered[3] = '0000000000000000'
+  assert.deepEqual(mapTajweedRanges(text, tampered), [])
+
+  // Tanzil defines superscript alif (dagger alif) as a base letter; its annotation must map to the mark.
+  const daggerText = quran[1].verses[70].text
+  const daggerRanges = mapTajweedRanges(daggerText, index.get('2:71')).filter((range) => range.rule === 'madd_2')
+  assert.ok(daggerRanges.some((range) => daggerText.slice(range.start, range.end).includes('ـَٰٔ')))
 })
 
 test('install: peramban dikenali & panduan sesuai', async () => {
@@ -825,6 +869,8 @@ test('preset pembaca mengikuti tema global tanpa menghapus preset mushaf', async
   const { READER_DEFAULTS, DEFAULTS } = await import('../src/services/storage.js')
   const { PRESETS, applyReaderStyle } = await import('../src/components/reading-toolbar.js')
   assert.equal(READER_DEFAULTS.preset, 'theme')
+  assert.equal(READER_DEFAULTS.tajweed, false)
+  assert.equal(READER_DEFAULTS.fabSide, 'right')
   assert.equal(DEFAULTS.arabicFont, 'scheherazade')
   assert.equal(PRESETS.theme, 'Ikuti tema aplikasi')
   assert.ok(PRESETS.classic && PRESETS.ivory && PRESETS.dark && PRESETS.night)
@@ -891,6 +937,7 @@ test('sumber data: halaman terpisah, footer tidak menaut langsung ke situs sumbe
   }
   const page = rd('pages/sources.js')
   assert.match(page, /isGithub\(s\.url\)\) return `<a /)
+  assert.match(page, /if \(s\.externalLink\)/)
   assert.match(page, /Terima kasih/)
   assert.ok(!/SOURCES/.test(rd('pages/about.js')))
 })

@@ -8,28 +8,31 @@ import { bookmarkRepo, noteRepo } from '../database/repositories.js'
 import { playAyah } from '../services/audio.js'
 import { APP } from '../config.js'
 import { highlightHtml } from '../services/highlight.js'
+import { mapTajweedRanges } from '../utils/tajweed.js'
 import { openShare } from './share-sheet.js'
 
 const numHtml = (n) => `<span class="ayah-num" aria-label="Ayat ${n}">${ayahMarker(n)}</span>`
 const sajdaHtml = (s, a) => (isSajda(s, a) ? '<span class="sajda" title="Ayat sajdah">۩</span>' : '')
+const ayahArabicHtml = (s, a, text, enabled, index) =>
+  highlightHtml(s, a, text, { tajweedRanges: enabled && index ? mapTajweedRanges(text, index.get(`${s}:${a}`)) : [] })
 
 const pageSep = (surah, a) =>
   isPageStart(surah, a) && a > 1 ? `<span class="page-sep" dir="rtl" data-page="${pageOf(surah, a)}"><span>صفحة ${qnum(pageOf(surah, a))}</span></span>` : ''
 
 /** Mode Mushaf Continuous: ayat mengalir inline, nomor ayat sebagai pemisah. */
-export function flowHtml(surah, marks) {
+export function flowHtml(surah, marks, { tajweed = false, tajweedIndex = null } = {}) {
   const n = surah.nomor
   return surah.ayat
     .map((a) => {
       const k = a.nomorAyat
       const cls = (marks.bookmarks.has(k) ? ' is-bookmarked' : '') + (marks.notes.has(k) ? ' has-note' : '')
-      return `${pageSep(n, k)}<span class="ayah${cls}" data-a="${k}" tabindex="0" role="button"><span class="ayah-text">${highlightHtml(n, k, a.teksArab)}</span>${sajdaHtml(n, k)}&nbsp;${numHtml(k)}</span> `
+      return `${pageSep(n, k)}<span class="ayah${cls}" data-a="${k}" tabindex="0" role="button"><span class="ayah-text">${ayahArabicHtml(n, k, a.teksArab, tajweed, tajweedIndex)}</span>${sajdaHtml(n, k)}&nbsp;${numHtml(k)}</span> `
     })
     .join('')
 }
 
 /** Ayah Focus Mode: tiap ayat memiliki area sendiri (Arab, Latin, terjemahan, kontrol). */
-export function focusHtml(surah, marks) {
+export function focusHtml(surah, marks, { tajweed = false, tajweedIndex = null } = {}) {
   const n = surah.nomor
   return surah.ayat
     .map((a) => {
@@ -47,7 +50,7 @@ export function focusHtml(surah, marks) {
             <button class="icon-btn sm" data-act="more" aria-label="Catatan & aksi lain ayat ${k}">${icon('more')}</button>
           </span>
         </header>
-        <p class="ayah-ar" dir="rtl" lang="ar"><span class="ayah-text">${highlightHtml(n, k, a.teksArab)}</span>${sajdaHtml(n, k)}</p>
+        <p class="ayah-ar" dir="rtl" lang="ar"><span class="ayah-text">${ayahArabicHtml(n, k, a.teksArab, tajweed, tajweedIndex)}</span>${sajdaHtml(n, k)}</p>
         ${a.teksLatin ? `<p class="ayah-latin" dir="ltr">${esc(a.teksLatin)}</p>` : ''}
         ${a.teksIndonesia ? `<p class="ayah-id" dir="ltr">${esc(a.teksIndonesia)}</p>` : ''}
       </article>`
@@ -59,7 +62,7 @@ export function focusHtml(surah, marks) {
  * Mode Halaman: ayat dikelompokkan per halaman Mushaf Madinah; tiap halaman satu "lembar" yang digeser ke samping
  * (kanan → kiri seperti mushaf cetak). Lembar terakhir berisi navigasi surah.
  */
-export function pagesHtml(surah, marks, { basmalah = '' } = {}) {
+export function pagesHtml(surah, marks, { basmalah = '', tajweed = false, tajweedIndex = null } = {}) {
   const n = surah.nomor
   const groups = []
   for (const a of surah.ayat) {
@@ -74,13 +77,13 @@ export function pagesHtml(surah, marks, { basmalah = '' } = {}) {
       const last = g.ayat[g.ayat.length - 1].nomorAyat
       const head =
         i === 0
-          ? `<div class="mpage-title"><span lang="ar">${esc(surah.nama)}</span><small dir="ltr">${esc(surah.namaLatin)} · ${esc(surah.arti)}</small></div>${basmalah ? `<p class="basmalah">${basmalah}</p>` : ''}`
+          ? `<div class="mpage-title"><span lang="ar">${esc(surah.nama)}</span><small dir="ltr">${esc(surah.namaLatin)} · ${esc(surah.arti)}</small></div>${basmalah ? `<p class="basmalah basmalah-cartouche">${basmalah}</p>` : ''}`
           : ''
       const body = g.ayat
         .map((a) => {
           const k = a.nomorAyat
           const cls = (marks.bookmarks.has(k) ? ' is-bookmarked' : '') + (marks.notes.has(k) ? ' has-note' : '')
-          return `<span class="ayah${cls}" data-a="${k}" tabindex="0" role="button"><span class="ayah-text">${highlightHtml(n, k, a.teksArab)}</span>${sajdaHtml(n, k)}&nbsp;${numHtml(k)}</span> `
+          return `<span class="ayah${cls}" data-a="${k}" tabindex="0" role="button"><span class="ayah-text">${ayahArabicHtml(n, k, a.teksArab, tajweed, tajweedIndex)}</span>${sajdaHtml(n, k)}&nbsp;${numHtml(k)}</span> `
         })
         .join('')
       return `<section class="mpage" data-p="${g.page}" data-first="${first}" data-last="${last}" aria-label="Halaman ${g.page}">

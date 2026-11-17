@@ -44,6 +44,18 @@ const go = async (hash) => {
   await page.evaluate((h) => (location.hash = h), hash)
   await new Promise((r) => setTimeout(r, 700))
 }
+const openReaderMenu = async () => {
+  const open = await page.$eval('.reader-fab-panel', (el) => !el.hidden).catch(() => false)
+  if (!open) await page.click('.reader-fab-toggle')
+}
+const readerMode = async (mode) => {
+  await openReaderMenu()
+  await page.click(`.reader-fab-panel .rd-tabs [data-mode="${mode}"]`)
+}
+const readerAction = async (action) => {
+  await openReaderMenu()
+  await page.click(`.reader-fab-panel [data-act="${action}"]`)
+}
 const shot = (name) => page.screenshot({ path: `${SHOTS}/${name}.png` })
 const count = (sel) => page.$$eval(sel, (e) => e.length)
 const text = (sel) => page.$eval(sel, (e) => e.textContent.trim())
@@ -114,6 +126,20 @@ await step('Reader: Mushaf Continuous, basmalah, penanda ayat ﴿١﴾', async (
   }), 'font Amiri Quran dapat dimuat saat dipilih')
   await shot('03-mushaf-continuous')
 })
+await step('Tajwid: data Hafs dimuat saat diminta, panduan atribusi tampil, dan dapat dimatikan', async () => {
+  await readerAction('tajweed')
+  await page.waitForSelector('.mushaf-flow .tajweed')
+  assert.ok(await count('.mushaf-flow .tajweed') > 0)
+  await readerAction('tajweed-guide')
+  await page.waitForSelector('.sheet-wrap.open a[href*="creativecommons.org/licenses/by/4.0"]')
+  const guide = await text('.sheet-wrap.open')
+  assert.match(guide, /quran-tajweed/)
+  assert.match(guide, /12:39 dan 12:41/)
+  await page.$eval('.sheet-wrap button[data-close]', (b) => b.click())
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap'))
+  await readerAction('tajweed')
+  await page.waitForFunction(() => document.querySelectorAll('.mushaf-flow .tajweed').length === 0)
+})
 await step('At-Taubah tanpa basmalah; Al-Fatihah tanpa basmalah terpisah', async () => {
   await go('/surah/9')
   await page.waitForSelector('.mushaf-flow .ayah')
@@ -126,11 +152,11 @@ await step('At-Taubah tanpa basmalah; Al-Fatihah tanpa basmalah terpisah', async
 await step('Ayah Focus Mode + Dark Reading + ukuran font', async () => {
   await go('/surah/36')
   await page.waitForSelector('.mushaf-flow .ayah')
-  await page.click('.rd-tabs [data-mode="focus"]')
+  await readerMode('focus')
   await page.waitForSelector('.mushaf-focus .ayah-block')
   assert.equal(await count('.ayah-block'), 83)
   await shot('04-ayah-focus')
-  await page.click('.rd-top [data-act="settings"]')
+  await readerAction('settings')
   await page.waitForSelector('.sheet-wrap.open')
   await new Promise((r) => setTimeout(r, 300))
   await shot('05-pengaturan-baca')
@@ -144,11 +170,11 @@ await step('Ayah Focus Mode + Dark Reading + ukuran font', async () => {
   await page.click('.sheet [data-close]')
   await new Promise((r) => setTimeout(r, 350))
   await shot('06-dark-reading')
-  await page.click('.rd-tabs [data-mode="continuous"]')
+  await readerMode('continuous')
   await page.waitForSelector('.mushaf-flow .ayah')
 })
 await step('Mode membaca imersif menyembunyikan navigasi', async () => {
-  await page.click('.rd-top [data-act="immersive"]')
+  await readerAction('immersive')
   await new Promise((r) => setTimeout(r, 400))
   assert.equal(await page.$eval('.navbar', (e) => getComputedStyle(e).display), 'none')
   await shot('07-mode-membaca')
@@ -324,8 +350,14 @@ await step('Ayat pilihan: Bagikan membuka media sosial; salin adalah tindakan te
 await step('Mode Halaman: lembar per halaman mushaf, digeser ke samping', async () => {
   await go('/surah/2')
   await page.waitForSelector('.mushaf-flow .ayah')
-  await page.click('.rd-tabs [data-mode="page"]')
+  await readerMode('page')
   await page.waitForSelector('.mushaf-pages .mpage')
+  await page.waitForFunction(() => {
+    const pages = [...document.querySelectorAll('.mushaf-pages .mpage:not(.mpage-end)')]
+    return pages.length === 48 && pages.every((page) => page.dataset.lineCount)
+  })
+  const renderedLines = await page.$$eval('.mushaf-pages .mpage:not(.mpage-end)', (pages) => pages.map((page) => Number(page.dataset.lineCount)))
+  assert.ok(renderedLines.every((lines) => lines === 15), 'semua lembar harus pas 15 baris; didapat ' + [...new Set(renderedLines)].join(', '))
   // Al-Baqarah menempati halaman 2–49 → 48 lembar + 1 lembar penutup; seluruh 286 ayat tetap ada.
   assert.equal(await count('.mushaf-pages .mpage:not(.mpage-end)'), 48)
   assert.equal(await count('.mushaf-pages .ayah'), 286)
@@ -337,6 +369,38 @@ await step('Mode Halaman: lembar per halaman mushaf, digeser ke samping', async 
   // Halaman tidak melebar keluar layar (tidak ada gulir mendatar pada dokumen).
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
   await shot('16-mode-halaman')
+  // Desktop: gunakan seluruh tinggi baca, tetap 15 baris, dan pertahankan lebar teks yang wajar tanpa luapan.
+  await page.setViewport({ width: 1365, height: 768 })
+  await page.waitForFunction(() => {
+    const pages = [...document.querySelectorAll('.mushaf-pages .mpage:not(.mpage-end)')]
+    return pages.length === 48 && pages.every((page) => page.dataset.fitViewport === '1365x768')
+  }, { timeout: 30000 })
+  const desktopPages = await page.$$eval('.mushaf-pages .mpage:not(.mpage-end)', (pages) => pages.map((page) => {
+    const body = page.querySelector('.mpage-body')
+    const text = body.querySelector('.mpage-text')
+    const available = body.clientWidth - parseFloat(getComputedStyle(body).paddingLeft) - parseFloat(getComputedStyle(body).paddingRight)
+    return {
+      lines: Number(page.dataset.lineCount),
+      textWidth: text.getBoundingClientRect().width,
+      minWidth: Math.min(available, Math.max(320, available * 0.45)),
+      overflow: body.scrollHeight > body.clientHeight + 1
+    }
+  }))
+  assert.ok(desktopPages.every((page) => page.lines === 15), 'desktop: semua halaman pas 15 baris')
+  assert.ok(desktopPages.every((page) => page.textWidth >= page.minWidth - 1), 'desktop: kolom tidak menyempit di bawah batas baca')
+  assert.ok(desktopPages.every((page) => !page.overflow), 'desktop: teks tidak meluap dari badan halaman')
+  assert.deepEqual(await page.evaluate(() => ['.rd-top', '.rd-bottom'].map((selector) => getComputedStyle(document.querySelector(selector)).display)), ['none', 'none'])
+  await page.click('.reader-fab-toggle')
+  await page.click('.reader-fab-panel [data-act="next"]')
+  await page.waitForFunction(() => document.querySelector('.rd-top [data-page]').textContent.trim() === '٣')
+  await page.click('.reader-fab-toggle')
+  await page.click('.reader-fab-panel [data-act="prev"]')
+  await page.waitForFunction(() => document.querySelector('.rd-top [data-page]').textContent.trim() === '٢')
+  await page.setViewport({ width: 412, height: 915, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
+  await page.waitForFunction(() => {
+    const pages = [...document.querySelectorAll('.mushaf-pages .mpage:not(.mpage-end)')]
+    return pages.every((page) => page.dataset.fitViewport === '412x915')
+  }, { timeout: 30000 })
   // Pindah halaman dengan tombol → info halaman & ayat ikut berubah.
   assert.equal(await text('.rd-top [data-page]'), '٢')
   await page.click('.rd-bottom [data-act="next"]')
@@ -369,15 +433,15 @@ await step('Mode Halaman: lembar per halaman mushaf, digeser ke samping', async 
   await page.waitForSelector('.mushaf-pages .mpage')
   await new Promise((r) => setTimeout(r, 500))
   assert.equal(await text('.rd-top [data-page]'), '٤٢')
-  await page.click('.rd-tabs [data-mode="continuous"]')
+  await readerMode('continuous')
   await page.waitForSelector('.mushaf-flow .ayah')
   assert.equal(await page.evaluate(() => document.body.classList.contains('reader-paged')), false)
 })
 await step('Mode Terjemahan: ikon aksi per ayat', async () => {
-  await page.click('.rd-tabs [data-mode="focus"]')
+  await readerMode('focus')
   await page.waitForSelector('.mushaf-focus .ayah-block')
   assert.equal(await count('.ayah-block[data-a="1"] .ayah-btns > *'), 6)
-  await page.click('.rd-tabs [data-mode="continuous"]')
+  await readerMode('continuous')
   await page.waitForSelector('.mushaf-flow .ayah')
 })
 await step('Doa wudhu & wirid setelah salat (tersimpan di aplikasi)', async () => {
@@ -553,8 +617,7 @@ await step('Asmaul Husna: bagikan ke media sosial', async () => {
 await step('Membaca tanpa gangguan: sentuh teks ayat tidak membuka apa pun, nomor ayat membuka aksi', async () => {
   for (const mode of ['continuous', 'page']) {
     await go('/surah/36')
-    await page.waitForSelector('.rd-tabs [data-mode]')
-    await page.$eval(`.rd-tabs [data-mode="${mode}"]`, (b) => b.click())
+    await readerMode(mode)
     const root = mode === 'page' ? '.mushaf-pages' : '.mushaf-flow'
     await page.waitForSelector(`${root} .ayah[data-a="2"] .ayah-text`)
     await new Promise((r) => setTimeout(r, 400))
@@ -569,12 +632,11 @@ await step('Membaca tanpa gangguan: sentuh teks ayat tidak membuka apa pun, nomo
   }
   // Halaman baca di ponsel tampil tanpa navigasi bawah.
   assert.equal(await page.$eval('.navbar', (e) => getComputedStyle(e).display), 'none')
-  await page.$eval('.rd-tabs [data-mode="continuous"]', (b) => b.click())
+  await readerMode('continuous')
 })
 await step('Teks ayat rapi (rata tengah) & pilih teks → menu kecil: Tandai, Salin, Hapus tanda', async () => {
   await go('/surah/36')
-  await page.waitForSelector('.rd-tabs [data-mode]')
-  await page.$eval('.rd-tabs [data-mode="continuous"]', (b) => b.click())
+  await readerMode('continuous')
   await page.waitForSelector('.mushaf-flow .ayah[data-a="3"] .ayah-text')
   assert.equal(await page.$eval('.mushaf-flow', (e) => getComputedStyle(e).textAlign), 'center')
   // Jarak antarkata alami: lebar spasi antara dua kata bertetangga tidak melebihi 0,6 × ukuran huruf.
@@ -618,9 +680,9 @@ await step('Teks ayat rapi (rata tengah) & pilih teks → menu kecil: Tandai, Sa
   // Tanda tersimpan: tetap ada setelah dimuat ulang dan di mode lain.
   await page.reload({ waitUntil: 'networkidle2' })
   await page.waitForSelector('.mushaf-flow .ayah[data-a="3"] mark.hl')
-  await page.$eval('.rd-tabs [data-mode="focus"]', (b) => b.click())
+  await readerMode('focus')
   await page.waitForSelector('.mushaf-focus .ayah[data-a="3"] .ayah-ar mark.hl')
-  await page.$eval('.rd-tabs [data-mode="continuous"]', (b) => b.click())
+  await readerMode('continuous')
   await page.waitForSelector('.mushaf-flow .ayah[data-a="3"] mark.hl')
   // Sentuh bagian bertanda → menu menawarkan "Hapus tanda".
   await page.$eval('.mushaf-flow .ayah[data-a="3"] mark.hl', (m) => m.click())

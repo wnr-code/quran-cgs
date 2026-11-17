@@ -88,18 +88,37 @@ export function setHighlight(surah, ayah, text, start, end, on) {
   return on
 }
 
-/** Teks ayat sebagai HTML aman dengan bagian bertanda dibungkus <mark class="hl">. */
-export function highlightHtml(surah, ayah, text) {
-  const list = getHighlights(surah, ayah)
-  if (!list.length) return esc(text)
-  let html = ''
-  let pos = 0
-  for (const [a, b] of list) {
-    if (a < pos || a >= text.length) continue
-    html += esc(text.slice(pos, a)) + `<mark class="hl">${esc(text.slice(a, Math.min(b, text.length)))}</mark>`
-    pos = Math.min(b, text.length)
+/** Teks ayat aman; rentang Tajwid hanya berasal dari anotasi data yang sudah dicocokkan. */
+export function highlightHtml(surah, ayah, text, { tajweedRanges = [] } = {}) {
+  const highlights = getHighlights(surah, ayah).filter((r) => Array.isArray(r) && Number.isInteger(r[0]) && Number.isInteger(r[1]))
+  const rules = Array.isArray(tajweedRanges)
+    ? tajweedRanges.filter((r) => r && Number.isInteger(r.start) && Number.isInteger(r.end) && r.start >= 0 && r.end > r.start && r.end <= text.length && /^[a-z_]+$/.test(r.rule))
+    : []
+  if (!highlights.length && !rules.length) return esc(text)
+
+  const points = new Set([0, text.length])
+  for (const [start, end] of highlights) {
+    points.add(Math.max(0, Math.min(text.length, start)))
+    points.add(Math.max(0, Math.min(text.length, end)))
   }
-  return html + esc(text.slice(pos))
+  for (const range of rules) {
+    points.add(range.start)
+    points.add(range.end)
+  }
+  const ordered = [...points].sort((a, b) => a - b)
+  let html = ''
+  for (let i = 0; i < ordered.length - 1; i++) {
+    const start = ordered[i]
+    const end = ordered[i + 1]
+    if (start >= end) continue
+    const rule = rules.filter((r) => r.start <= start && r.end >= end).at(-1)
+    const isHighlighted = highlights.some(([a, b]) => a <= start && b >= end)
+    let piece = esc(text.slice(start, end))
+    if (rule) piece = `<span class="tajweed tajweed-${rule.rule}" title="${esc(rule.label)}">${piece}</span>`
+    if (isHighlighted) piece = `<mark class="hl">${piece}</mark>`
+    html += piece
+  }
+  return html
 }
 
 export const highlightCount = () => Object.values(load()).reduce((n, l) => n + l.length, 0)
