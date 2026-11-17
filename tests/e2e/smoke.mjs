@@ -387,11 +387,11 @@ await step('Doa wudhu & wirid setelah salat (tersimpan di aplikasi)', async () =
   // Sumber cukup satu kali di kaki halaman, bukan di tiap kartu.
   assert.equal(await count('.dzikir .doa-ref'), 0)
   assert.equal(await count('.src-foot'), 1)
-  assert.match(await text('.src-foot'), /Sumber: Quran NU Online/)
+  assert.match(await text('.src-foot'), /Atribusi: Sumber Data/)
   await go('/doa/salat')
   await page.waitForSelector('.dzikir')
   assert.equal(await count('.dzikir'), 17)
-  assert.match(await text('.src-foot'), /Sumber: Quran NU Online/)
+  assert.match(await text('.src-foot'), /Atribusi: Sumber Data/)
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
   const c = '.dzikir[data-card="0"] [data-count]'
   for (let i = 0; i < 3; i++) await page.$eval(c, (b) => b.click())
@@ -477,10 +477,15 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
   assert.match(await page.evaluate(() => window.__copied), /Istighfar/)
   await page.waitForFunction(() => !document.querySelector('.sheet-wrap.open'))
 })
-await step('Doa harian per kategori (Quran NU Online), cari lintas kategori, tanpa duplikat', async () => {
+await step('Doa harian per kategori, cari lintas kategori, tanpa duplikat', async () => {
   await go('/doa/harian')
   await page.waitForSelector('.cat-card')
-  assert.deepEqual(await page.$$eval('.cat-card strong', (e) => e.map((x) => x.textContent)), ['Keseharian', 'Rezeki', 'Tolak Bala', 'Kesehatan', 'Perjalanan', 'Ilmu', 'Wudhu', 'Usai Salat', "Doa dari Al-Qur'an"])
+  assert.deepEqual(await page.$$eval('.cat-card strong', (e) => e.map((x) => x.textContent)), [
+    'Keseharian', 'Rezeki', 'Tolak Bala', 'Kesehatan', 'Perjalanan', 'Ilmu',
+    'Waktu Tertentu', 'Kualitas Diri', 'Pernikahan & Rumah Tangga', 'Hamil & Persalinan',
+    'Para Nabi di Al-Qur’an', 'Baca Al-Qur’an', 'Haji & Umrah', 'Kematian',
+    'Wudhu', 'Usai Salat', 'Tahlil & Doa Arwah', "Doa dari Al-Qur'an"
+  ])
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
   await new Promise((r) => setTimeout(r, 700))
   await shot('30-doa-kategori')
@@ -502,7 +507,9 @@ await step('Doa harian per kategori (Quran NU Online), cari lintas kategori, tan
   assert.equal(await count('.doa-nu[open]'), 1)
   await page.$eval('.doa-nu[open] [data-share]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open .share-grid')
-  assert.match(decodeURIComponent(await page.$eval('.sheet-wrap.open .share-opt.wa', (a) => a.href)), /Doa Keluar Rumah[\s\S]*Quran NU Online[\s\S]*#\/doa\/harian$/)
+  const shareHref = decodeURIComponent(await page.$eval('.sheet-wrap.open .share-opt.wa', (a) => a.href))
+  assert.match(shareHref, /Doa Keluar Rumah[\s\S]*#\/doa\/harian$/)
+  assert.doesNotMatch(shareHref, /Quran NU Online/)
   await page.$eval('.sheet-head [data-close]', (b) => b.click())
   await new Promise((r) => setTimeout(r, 300))
   // Pindah kategori lewat chip, kembali ke daftar kategori.

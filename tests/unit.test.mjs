@@ -616,6 +616,59 @@ test('doa harian NU: per kategori, lengkap, tanpa duplikat', () => {
   assert.ok(SOURCES.some((g) => g.items.some((i) => i.name === 'Logo merek (Simple Icons)' && i.license === 'CC0 1.0')))
 })
 
+test('delapan kategori doa NU tambahan memuat katalog sumber tanpa teks yang belum diverifikasi', () => {
+  const base = JSON.parse(readFileSync('src/data/doa-nu.json', 'utf8'))
+  const extra = JSON.parse(readFileSync('src/data/doa-nu-extra.json', 'utf8'))
+  const dzikir = JSON.parse(readFileSync('src/data/dzikir.json', 'utf8'))
+  const styles = readFileSync('src/styles/main.css', 'utf8')
+  const expected = [
+    ['doa-waktu-tertentu', 12], ['doa-kualitas-diri', 10], ['doa-pernikahan-rumah-tangga', 10],
+    ['doa-hamil-dan-persalinan', 7], ['doa-para-nabi-di-al-quran', 14], ['doa-baca-al-quran', 7],
+    ['doa-haji-umrah', 21], ['doa-kematian', 6]
+  ]
+  assert.deepEqual(extra.categories.map((c) => [c.slug, c.items.length]), expected)
+  assert.equal(extra.categories.reduce((n, c) => n + c.count, 0), 87)
+  assert.equal(base.categories.length + extra.categories.length, 14)
+  assert.equal(base.categories.reduce((n, c) => n + c.items.length, 0) + extra.categories.reduce((n, c) => n + c.count, 0), 149)
+  assert.match(extra.note, /tidak disalin ke data aplikasi/)
+  const ids = new Set(base.categories.flatMap((c) => c.items.map((d) => d.id)))
+  const titles = new Set(base.categories.flatMap((c) => c.items.map((d) => d.title)))
+  for (const category of extra.categories) {
+    assert.equal(category.sourceOnly, true)
+    assert.match(styles, new RegExp(`\\.fi-${category.icon}::before`), `ikon kategori tersedia: ${category.icon}`)
+    assert.equal(category.count, category.items.length)
+    assert.equal(category.sourceUrl, `${extra.source.url}/${category.slug}`)
+    for (const item of category.items) {
+      assert.match(item.id, /^[a-z0-9-]+$/)
+      assert.ok(item.title)
+      assert.ok(item.sourceUrl.startsWith(category.sourceUrl), `tautan item tetap di kategori sumber: ${item.sourceUrl}`)
+      assert.equal('parts' in item, false, 'teks hanya disajikan oleh halaman sumber sampai ditranskripsi dan diverifikasi')
+      assert.ok(!ids.has(item.id), `ID ganda: ${item.id}`)
+      assert.ok(!titles.has(item.title), `judul ganda: ${item.title}`)
+      ids.add(item.id)
+      titles.add(item.title)
+    }
+  }
+  const lut = extra.categories.find((c) => c.slug === 'doa-para-nabi-di-al-quran').items.find((d) => d.id === 'doa-nabi-luth')
+  assert.equal(lut.title, 'Doa Nabi Luth (dua permohonan)')
+  assert.equal(lut.sourceUrl, 'https://quran.nu.or.id/doa/doa-para-nabi-di-al-quran/doa-nabi-luth', 'dua permohonan pada halaman detail tetap terwakili oleh satu item katalog')
+  assert.ok(!extra.categories.some((c) => ['doa-wudhu', 'doa-shalat'].includes(c.slug)), 'Wudhu dan Shalat tetap berada pada rangkaian dzikir')
+  assert.ok(dzikir.wudhu.length > 0 && dzikir.salat.length > 0)
+  const doaPage = readFileSync('src/pages/doa.js', 'utf8')
+  assert.match(doaPage, /const NU_CATEGORIES = \[\.\.\.NU\.categories, \.\.\.NU_EXTRA\.categories\]/)
+  assert.match(doaPage, /Jelajahi \$\{NU_TITLE_TOTAL\} judul doa/)
+  assert.match(doaPage, /c\.sourceOnly \? 'judul' : 'doa'/)
+  assert.match(doaPage, /href="#\/infaq"/)
+  assert.match(doaPage, /Buka sumber/)
+  assert.match(doaPage, /nuLink\(page\.url, 'Sumber Data'\)/)
+  const morePage = readFileSync('src/pages/more.js', 'utf8')
+  const inbox = readFileSync('src/services/inbox.js', 'utf8')
+  assert.doesNotMatch(doaPage, /Quran NU Online/)
+  assert.doesNotMatch(morePage, /Quran NU Online/)
+  assert.doesNotMatch(inbox, /Quran NU Online/)
+  assert.match(readFileSync('src/data/sources.js', 'utf8'), /name: 'Quran NU Online/)
+})
+
 test('beranda: ikon ucapan sesuai waktu & penyemangat berujukan ayat', async () => {
   const { greeting, greetingIcon } = await import('../src/utils/format.js')
   const at = (h) => new Date(2026, 0, 1, h, 0)

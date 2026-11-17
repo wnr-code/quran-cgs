@@ -96,11 +96,18 @@ test('alamat tujuan reminder dibatasi ke rute internal dan data Tahlil punya ruj
   const tahlil = JSON.parse(readFileSync('src/data/tahlil.json', 'utf8'))
   assert.equal(tahlil.source.url, 'https://quran.nu.or.id/tahlil')
   assert.equal(tahlil.source.variant, 'Lengkap')
-  assert.equal(tahlil.items.length, 28)
+  assert.equal(tahlil.items.length, 29, '28 sumber + Surah Yasin tambahan QuranKu')
   assert.equal(tahlil.items[3].title, 'Al-Fatihah untuk ahli kubur yang disebut namanya')
   assert.equal(tahlil.items[3].section, 'Tawassul')
+  const yasin = tahlil.items.find((item) => item.surah === 36)
+  assert.ok(yasin)
+  assert.equal(yasin.step, 25)
+  assert.equal(yasin.section, 'Bacaan Tambahan')
+  assert.equal(yasin.title, 'Surah Yasin')
+  assert.match(tahlil.source.note, /bukan bagian dari susunan sumber/)
+  assert.equal(tahlil.items.filter((item) => !item.surah).length, 28)
   assert.equal(new Set(tahlil.items.map((item) => item.step)).size, tahlil.items.length)
-  for (const item of tahlil.items) {
+  for (const item of tahlil.items.filter((item) => !item.surah)) {
     assert.ok(item.title && item.arabic && item.latin && item.translation, item.title)
     assert.match(item.arabic, /[\u0600-\u06FF]/, item.title)
   }

@@ -15,7 +15,7 @@ const ANNOUNCEMENTS = [
     id: 'content:tahlil-nu-online-v1',
     type: 'content',
     title: 'Tahlil & Doa Arwah kini tersedia',
-    body: 'Rangkaian Tahlil lengkap tersedia offline, dengan bacaan dan rujukan ke Quran NU Online.',
+    body: 'Rangkaian lengkap tersedia offline, dengan Surah Yasin sebagai bacaan lanjutan.',
     route: '/doa/tahlil',
     at: Date.UTC(2026, 10, 14)
   }

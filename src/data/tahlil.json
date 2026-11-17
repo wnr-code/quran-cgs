@@ -4,7 +4,7 @@
     "title": "Bacaan Tahlil dan Doa Arwah Lengkap Arab, Latin dan Terjemah",
     "url": "https://quran.nu.or.id/tahlil",
     "variant": "Lengkap",
-    "note": "Quran NU Online menyediakan pilihan Ringkas dan Lengkap. Susunan ini mengikuti bacaan pada versi Lengkap."
+    "note": "Tersedia pilihan Ringkas dan Lengkap. QuranKu mengikuti susunan Lengkap (28 langkah) dan menambahkan Surah Yasin sebagai bacaan lanjutan setelah rangkaian Tahlil, sebelum doa penutup; Yasin bukan bagian dari susunan sumber."
   },
   "items": [
     {
@@ -315,6 +315,16 @@
     },
     {
       "step": 25,
+      "section": "Bacaan Tambahan",
+      "kind": "quran",
+      "title": "Surah Yasin",
+      "surah": 36,
+      "notes": "",
+      "fawaid": "Bacaan lanjutan tambahan QuranKu setelah rangkaian Tahlil dan sebelum doa penutup. Bukan bagian dari rangkaian 28 bacaan sumber.",
+      "links": []
+    },
+    {
+      "step": 26,
       "section": "Doa",
       "kind": "doa",
       "title": "Doa pembuka",
@@ -326,7 +336,7 @@
       "links": []
     },
     {
-      "step": 26,
+      "step": 27,
       "section": "Doa",
       "kind": "doa",
       "title": "Doa menyampaikan pahala bacaan",
@@ -338,7 +348,7 @@
       "links": []
     },
     {
-      "step": 27,
+      "step": 28,
       "section": "Doa",
       "kind": "doa",
       "title": "Doa ampunan untuk ahli kubur",
@@ -350,7 +360,7 @@
       "links": []
     },
     {
-      "step": 28,
+      "step": 29,
       "section": "Doa",
       "kind": "doa",
       "title": "Doa memohon kebenaran dan kebaikan",
