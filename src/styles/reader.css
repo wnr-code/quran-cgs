@@ -83,6 +83,7 @@
   padding: var(--safe-t) 6px 0;
   border-bottom: 1px solid var(--rd-line);
   gap: 0;
+  transition: opacity 0.18s ease, visibility 0s linear;
 }
 .rd-title {
   flex: 1;
@@ -117,10 +118,6 @@
 .rd-play .icon {
   fill: currentColor;
 }
-.reader.bars-hidden .rd-top {
-  transform: translateY(-105%);
-}
-
 .rd-wrap {
   max-width: calc(var(--rd-width) + 2 * var(--rd-margin));
   margin: 0 auto;
@@ -513,8 +510,7 @@ body.reading-mode .reader.mode-page .rd-wrap {
   .reader.mode-page .rd-top {
     display: none;
   }
-  .reader.mode-page .rd-wrap,
-  .reader.mode-page.bars-hidden .rd-wrap {
+  .reader.mode-page .rd-wrap {
     padding-top: calc(var(--safe-t) + 6px);
     padding-bottom: calc(72px + var(--safe-b));
   }
@@ -535,10 +531,6 @@ body.reading-mode .reader.mode-page .rd-wrap {
     font-size: var(--rd-font);
     line-height: 1.45;
   }
-}
-.reader.mode-page.bars-hidden .rd-wrap {
-  padding-top: calc(var(--safe-t) + 6px);
-  padding-bottom: calc(72px + var(--safe-b));
 }
 .reader.mode-page .rd-tabs {
   width: calc(100% - 2 * var(--rd-margin));
@@ -1185,9 +1177,12 @@ mark.hl {
   border-color: var(--rd-accent);
   background: color-mix(in srgb, var(--rd-accent) 11%, transparent);
 }
+/* Fade the fixed header in place; translating it used to make the reading area feel like it jumped. */
 .reader.bars-hidden .rd-top {
+  opacity: 0;
   pointer-events: none;
   visibility: hidden;
+  transition: opacity 0.18s ease, visibility 0s linear 0.18s;
 }
 body.reader-bars-hidden .navbar {
   opacity: 0;
