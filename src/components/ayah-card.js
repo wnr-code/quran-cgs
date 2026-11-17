@@ -10,6 +10,7 @@ import { APP } from '../config.js'
 import { highlightHtml } from '../services/highlight.js'
 import { mapTajweedRanges } from '../utils/tajweed.js'
 import { openShare } from './share-sheet.js'
+import { getTafsir } from '../api/api-adapter.js'
 
 const numHtml = (n) => `<span class="ayah-num" aria-label="Ayat ${n}">${ayahMarker(n)}</span>`
 const sajdaHtml = (s, a) => (isSajda(s, a) ? '<span class="sajda" title="Ayat sajdah">۩</span>' : '')
@@ -105,13 +106,15 @@ export function ayahShareText(surah, a) {
   return `${a.teksArab}\n\n${a.teksIndonesia ? `“${a.teksIndonesia}”\n` : ''}(QS. ${surah.namaLatin} ${ayahRef(surah.nomor, a.nomorAyat)})`
 }
 
-/** Lembar aksi untuk satu ayat. */
+/** Lembar aksi satu ayat: baca, dengarkan, buka tafsir sumbernya, lalu simpan catatan bila perlu. */
 export async function openAyahSheet(surah, ayahNo, { onChange, onMarkLast } = {}) {
   const a = surah.ayat[ayahNo - 1]
   if (!a) return
   const n = surah.nomor
   const [bookmarked, note, categories] = await Promise.all([bookmarkRepo.has('ayat', n, ayahNo), noteRepo.get(n, ayahNo), bookmarkRepo.categories()])
   const ref = ayahRef(n, ayahNo)
+  const tafsirId = `ayah-tafsir-${n}-${ayahNo}`
+  const hasNote = !!(note && note.text)
   openSheet({
     title: `QS. ${surah.namaLatin} ${ref}`,
     content: `
@@ -119,23 +122,68 @@ export async function openAyahSheet(surah, ayahNo, { onChange, onMarkLast } = {}
       <p class="sheet-ar" dir="rtl" lang="ar">${esc(a.teksArab)}</p>
       ${a.teksLatin ? `<p class="ayah-latin">${esc(a.teksLatin)}</p>` : ''}
       ${a.teksIndonesia ? `<p class="sheet-tr">${esc(a.teksIndonesia)}</p>` : '<p class="muted">Terjemahan tidak tersedia.</p>'}
-      <div class="action-grid">
+      <p class="ayah-sheet-action-label">Aksi ayat</p>
+      <div class="action-grid ayah-sheet-actions">
         <button data-act="play">${icon('play')}<span>Putar</span></button>
-        <button data-act="bookmark" class="${bookmarked ? 'on' : ''}">${icon('bookmark')}<span>${bookmarked ? 'Hapus bookmark' : 'Bookmark'}</span></button>
-        <a href="#/tafsir/${n}/${ayahNo}">${icon('book')}<span>Tafsir</span></a>
+        <button data-act="bookmark" class="${bookmarked ? 'on' : ''}" aria-pressed="${bookmarked}">${icon('bookmark')}<span>${bookmarked ? 'Hapus bookmark' : 'Bookmark'}</span></button>
+        <button data-act="tafsir" aria-expanded="false" aria-controls="${tafsirId}">${icon('book')}<span>Baca tafsir</span></button>
         <button data-act="copy">${icon('copy')}<span>Salin</span></button>
         <button data-act="share">${icon('share')}<span>Bagikan</span></button>
         <button data-act="last">${icon('check')}<span>Tandai terakhir</span></button>
       </div>
-      <label class="field"><span>Kategori bookmark</span>
-        <input list="bm-cats" name="category" value="Umum" maxlength="40" autocomplete="off" />
-        <datalist id="bm-cats">${categories.map((c) => `<option value="${esc(c)}"></option>`).join('')}</datalist>
+      <section class="ayah-sheet-tafsir" id="${tafsirId}" aria-label="Tafsir ayat ${ayahNo}" aria-live="polite" hidden>
+        <p class="muted" data-tafsir-status></p>
+        <div data-tafsir-result></div>
+      </section>
+      <label class="field ayah-sheet-category"><span>Kategori bookmark</span>
+        <input list="bm-cats-${n}-${ayahNo}" name="category" value="Umum" maxlength="40" autocomplete="off" />
+        <datalist id="bm-cats-${n}-${ayahNo}">${categories.map((c) => `<option value="${esc(c)}"></option>`).join('')}</datalist>
       </label>
-      <label class="field"><span>Catatan pribadi (tersimpan di perangkat ini saja)</span>
-        <textarea name="note" rows="3" maxlength="5000" placeholder="Tulis catatan tadabbur…">${esc(note ? note.text : '')}</textarea>
-      </label>
-      <div class="btn-row"><button class="btn btn-primary" data-act="save-note">${icon('note')}Simpan catatan</button></div>`,
+      <details class="ayah-sheet-notes" ${hasNote ? 'open' : ''}>
+        <summary><span>${icon('note')}Catatan pribadi</span><small>${hasNote ? 'Ada catatan tersimpan' : 'Tersimpan hanya di perangkat ini'}</small></summary>
+        <div class="ayah-sheet-note-body">
+          <label class="field"><span>Catatan tadabbur</span>
+            <textarea name="note" rows="3" maxlength="5000" placeholder="Tulis catatan pribadi…">${esc(note ? note.text : '')}</textarea>
+          </label>
+          <div class="btn-row"><button class="btn btn-primary" data-act="save-note">${icon('note')}Simpan catatan</button></div>
+        </div>
+      </details>`,
     onOpen(body, close) {
+      const tafsirButton = body.querySelector('[data-act="tafsir"]')
+      const tafsirPanel = body.querySelector(`#${tafsirId}`)
+      const tafsirStatus = body.querySelector('[data-tafsir-status]')
+      const tafsirResult = body.querySelector('[data-tafsir-result]')
+      let tafsirLoaded = false
+      let tafsirLoading = false
+
+      const loadTafsir = async () => {
+        if (tafsirLoaded || tafsirLoading) return
+        tafsirLoading = true
+        tafsirStatus.hidden = false
+        tafsirStatus.textContent = 'Memuat tafsir ayat…'
+        tafsirResult.innerHTML = ''
+        try {
+          const data = await getTafsir(n)
+          const entry = data.tafsir.find((item) => item.ayat === ayahNo)
+          if (!entry) {
+            tafsirStatus.textContent = 'Tafsir untuk ayat ini belum tersedia dari sumber yang digunakan.'
+            tafsirLoaded = true
+            return
+          }
+          tafsirStatus.hidden = true
+          const text = esc(entry.teks).replace(/\n{2,}/g, '</p><p>').replace(/^/, '<p>').replace(/$/, '</p>').replace(/\n/g, '<br/>')
+          tafsirResult.innerHTML = `
+            <div class="ayah-sheet-tafsir-source"><strong>Sumber tafsir</strong><span>${esc(data.edition || 'Sumber tidak dicantumkan')}</span></div>
+            <div class="prose ayah-sheet-tafsir-copy">${text}</div>
+            <a class="btn sm ayah-sheet-full-tafsir" href="#/tafsir/${n}/${ayahNo}">${icon('book')}Buka tafsir lengkap surah</a>`
+          tafsirLoaded = true
+        } catch {
+          tafsirStatus.innerHTML = 'Tafsir belum dapat dimuat. Periksa koneksi lalu coba lagi. <button type="button" class="btn sm" data-act="tafsir-retry">Coba lagi</button>'
+        } finally {
+          tafsirLoading = false
+        }
+      }
+
       body.addEventListener('click', async (e) => {
         const b = e.target.closest('[data-act]')
         if (!b) return
@@ -144,10 +192,21 @@ export async function openAyahSheet(surah, ayahNo, { onChange, onMarkLast } = {}
           playAyah(surah, ayahNo)
           close()
         } else if (act === 'bookmark') {
-          const on = await bookmarkRepo.toggle({ surah: n, ayah: ayahNo, surahName: surah.namaLatin, category: body.querySelector('[name=category]').value })
-          toast(on ? 'Bookmark disimpan' : 'Bookmark dihapus')
+          const onNow = await bookmarkRepo.toggle({ surah: n, ayah: ayahNo, surahName: surah.namaLatin, category: body.querySelector('[name=category]').value })
+          toast(onNow ? 'Bookmark disimpan' : 'Bookmark dihapus')
           onChange && onChange()
           close()
+        } else if (act === 'tafsir') {
+          const expanded = tafsirButton.getAttribute('aria-expanded') === 'true'
+          tafsirPanel.hidden = expanded
+          tafsirButton.setAttribute('aria-expanded', String(!expanded))
+          tafsirButton.querySelector('span').textContent = expanded ? 'Baca tafsir' : 'Tutup tafsir'
+          if (!expanded) {
+            tafsirPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+            await loadTafsir()
+          }
+        } else if (act === 'tafsir-retry') {
+          await loadTafsir()
         } else if (act === 'copy') {
           toast((await copyText(ayahShareText(surah, a))) ? 'Ayat disalin' : 'Gagal menyalin')
         } else if (act === 'share') {
