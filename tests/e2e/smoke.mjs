@@ -134,6 +134,14 @@ await step('Reader: Mushaf Continuous, basmalah, penanda ayat ﴿١﴾', async (
   assert.equal(await text('.ayah[data-a="1"] .ayah-num'), '\uFD3F١\uFD3E')
   assert.equal(await text('.ayah[data-a="286"] .ayah-num'), '\uFD3F٢٨٦\uFD3E')
   assert.equal(await count('.basmalah'), 1)
+  const openingFrames = await page.evaluate(() => ({
+    bismillahRadius: getComputedStyle(document.querySelector('.rd-wrap > .basmalah-cartouche')).borderRadius,
+    surahRadius: getComputedStyle(document.querySelector('.surah-frame')).borderRadius,
+    bismillahOutline: getComputedStyle(document.querySelector('.rd-wrap > .basmalah-cartouche')).outlineStyle,
+    surahOutline: getComputedStyle(document.querySelector('.surah-frame')).outlineStyle,
+  }))
+  assert.notEqual(openingFrames.bismillahRadius, openingFrames.surahRadius, 'bingkai basmalah berbeda dari bingkai pembuka surah')
+  assert.notEqual(openingFrames.bismillahOutline, openingFrames.surahOutline)
   assert.equal(await page.$eval('.mushaf-flow', (e) => getComputedStyle(e).direction), 'rtl')
   assert.equal(await page.$eval('.mushaf-flow .ayah-text', (e) => getComputedStyle(e).fontSize), '32px')
   assert.ok(await page.evaluate(async () => {
@@ -400,6 +408,33 @@ await step('Mode Halaman: lembar per halaman mushaf, digeser ke samping', async 
   assert.equal(await count('.mushaf-pages .mpage:not(.mpage-end)'), 48)
   assert.equal(await count('.mushaf-pages .ayah'), 286)
   assert.equal(await count('.mushaf-pages .basmalah'), 1)
+  const ornaments = await page.$eval('.mushaf-pages .mpage', (sheet) => {
+    const pageNo = sheet.querySelector('.mpage-no')
+    const juz = sheet.querySelector('.reader-juz-chip')
+    const basmalah = sheet.querySelector('.basmalah-cartouche')
+    const surahTitle = sheet.querySelector('.mpage-title')
+    const pageStyle = getComputedStyle(pageNo)
+    return {
+      pageLabel: pageNo.textContent.trim(),
+      pageNumber: sheet.dataset.p,
+      pageWidth: parseFloat(pageStyle.width),
+      pageFontSize: parseFloat(pageStyle.fontSize),
+      pageShape: getComputedStyle(pageNo, '::before').clipPath,
+      juzShape: getComputedStyle(juz, '::before').clipPath,
+      bismillahRadius: getComputedStyle(basmalah).borderRadius,
+      titleRadius: getComputedStyle(surahTitle).borderRadius,
+      bismillahOutline: getComputedStyle(basmalah).outlineStyle,
+      titleOutline: getComputedStyle(surahTitle).outlineStyle,
+    }
+  })
+  assert.equal(ornaments.pageLabel, '٢', 'nomor halaman ditampilkan di dalam medali')
+  assert.ok(ornaments.pageWidth >= 36 && ornaments.pageFontSize > 16, 'medali nomor halaman sedikit lebih besar')
+  assert.match(ornaments.pageShape, /polygon/, 'nomor halaman memakai bingkai roset')
+  assert.match(ornaments.juzShape, /polygon/, 'nomor Juz memakai bingkai khusus')
+  assert.notEqual(ornaments.pageShape, ornaments.juzShape, 'bingkai Juz berbeda dari roset halaman')
+  assert.notEqual(ornaments.bismillahRadius, ornaments.titleRadius, 'bingkai basmalah berbeda dari bingkai nama surah')
+  assert.equal(ornaments.bismillahOutline, 'solid')
+  assert.equal(ornaments.titleOutline, 'none')
   const geo = await page.$eval('.mushaf-pages', (e) => ({ sw: e.scrollWidth, cw: e.clientWidth, ch: e.clientHeight, snap: getComputedStyle(e).scrollSnapType, docScroll: document.documentElement.scrollHeight - innerHeight }))
   assert.ok(geo.sw >= geo.cw * 48, 'lembar tersusun mendatar')
   assert.match(geo.snap, /x mandatory/)

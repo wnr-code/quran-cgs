@@ -13,6 +13,8 @@
   --rd-width: 760px;
   --rd-margin: 20px;
   --rd-tr: 18px;
+  --page-rosette: polygon(50% 0%, 62% 12%, 82% 8%, 88% 28%, 100% 50%, 88% 72%, 82% 92%, 62% 88%, 50% 100%, 38% 88%, 18% 92%, 12% 72%, 0% 50%, 12% 28%, 18% 8%, 38% 12%);
+  --juz-shield: polygon(50% 0%, 88% 10%, 96% 19%, 92% 70%, 50% 100%, 8% 70%, 4% 19%, 12% 10%);
   --bar-h: 54px;
   background: var(--rd-bg);
   color: var(--rd-text);
@@ -282,6 +284,24 @@
 :root[data-numerals='latin'] .doa-body .ayah-num {
   font-size: 0.8rem;
 }
+
+/* Halaman mendapat medali roset, sedikit lebih besar agar nomor mudah ditemukan. */
+.reader .mpage-no::before,
+.reader .mpage-no::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  clip-path: var(--page-rosette);
+  pointer-events: none;
+}
+.reader .mpage-no::before {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--rd-accent) 62%, #fff), var(--rd-accent));
+}
+.reader .mpage-no::after {
+  inset: 2px;
+  background: color-mix(in srgb, var(--rd-bg) 94%, var(--rd-accent));
+}
 .sajda {
   color: var(--rd-accent, var(--accent));
   font-size: 0.8em;
@@ -511,7 +531,7 @@ body.reading-mode .reader.mode-page .rd-wrap {
   }
   .reader.mode-page .mpage-body .basmalah-cartouche {
     margin: 4px auto;
-    padding-inline: 14px;
+    padding-inline: 1em;
     font-size: var(--rd-font);
     line-height: 1.45;
   }
@@ -584,11 +604,18 @@ body.reading-mode .reader.mode-page .rd-wrap {
   text-align: end;
 }
 .mpage-no {
-  text-align: center;
-  font-size: 1rem;
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  flex: 0 0 2.5em;
+  place-items: center;
+  width: 2.5em;
+  height: 2.5em;
+  box-sizing: border-box;
   color: var(--rd-accent);
   font-family: var(--font-ar);
-  line-height: 1.5;
+  font-size: 1.05rem;
+  line-height: 1;
 }
 .mpage-hint {
   display: inline-flex;
@@ -820,33 +847,39 @@ mark.hl {
 .mpage-body .basmalah-cartouche,
 .rd-wrap > .basmalah-cartouche {
   position: relative;
+  box-sizing: border-box;
   width: fit-content;
   max-width: calc(100% - 22px);
   margin: 10px auto 8px;
-  padding: 0 18px;
-  border-block: 1px solid color-mix(in srgb, var(--rd-accent) 65%, transparent);
+  padding: 0 1.35em;
+  border: 1px solid color-mix(in srgb, var(--rd-accent) 72%, transparent);
   border-radius: 999px;
+  outline: 1px solid color-mix(in srgb, var(--rd-accent) 38%, transparent);
+  outline-offset: 2px;
   font-size: var(--rd-font);
   line-height: 2.1;
   color: var(--rd-accent);
-  background: color-mix(in srgb, var(--rd-accent) 5%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rd-accent) 7%, transparent), 0 3px 12px color-mix(in srgb, var(--rd-accent) 9%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--rd-accent) 8%, var(--rd-bg)), color-mix(in srgb, var(--rd-bg) 96%, transparent));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--rd-accent) 9%, transparent), 0 3px 12px color-mix(in srgb, var(--rd-accent) 9%, transparent);
   white-space: normal;
   text-wrap: balance;
   text-align: center;
 }
 .basmalah-cartouche::before,
 .basmalah-cartouche::after {
+  content: '';
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
-  font-family: var(--font-ar);
-  font-size: 0.95rem;
-  color: var(--rd-accent);
-  content: '۞';
+  width: 0.52em;
+  height: 0.52em;
+  border: 1px solid color-mix(in srgb, var(--rd-accent) 86%, transparent);
+  background: var(--rd-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rd-accent) 10%, transparent);
+  transform: translateY(-50%) rotate(45deg);
+  pointer-events: none;
 }
-.basmalah-cartouche::before { inset-inline-start: 3px; }
-.basmalah-cartouche::after { inset-inline-end: 3px; }
+.basmalah-cartouche::before { inset-inline-start: 0.43em; }
+.basmalah-cartouche::after { inset-inline-end: 0.43em; }
 .mpage-body .basmalah-cartouche {
   font-size: var(--rd-font);
   line-height: 1.65;
@@ -1004,21 +1037,87 @@ mark.hl {
 }
 .reader-fab-toggle:active { transform: scale(0.94); }
 .reader-fab-toggle .icon { width: 22px; height: 22px; }
+.reader-juz-chip {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.9em;
+  height: 1.9em;
+  margin-inline: 0.12em;
+  padding: 0 0.32em 0.08em;
+  color: var(--rd-accent);
+  font-family: var(--font-ar);
+  font-size: 0.84em;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+}
+.reader-juz-chip::before,
+.reader-juz-chip::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  clip-path: var(--juz-shield);
+  pointer-events: none;
+}
+.reader-juz-chip::before { background: var(--rd-accent); }
+.reader-juz-chip::after {
+  inset: 1px;
+  background: color-mix(in srgb, var(--rd-bg) 95%, var(--rd-accent));
+}
+:root[data-numerals='latin'] .reader-juz-chip {
+  font-family: var(--font-ui);
+  font-size: 0.74em;
+  direction: ltr;
+}
 .reader-juz-fab {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  min-height: 48px;
-  padding: 4px 2px;
-  border-radius: 24px;
-  line-height: 1.1;
+  gap: 1px;
+  width: 56px;
+  min-height: 64px;
+  padding: 8px 5px 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--rd-accent);
+  box-shadow: none;
+  filter: drop-shadow(0 5px 8px color-mix(in srgb, var(--rd-text) 24%, transparent));
+  line-height: 1.05;
+  transition: transform 0.18s ease;
 }
-.reader-juz-fab small { font-size: 0.58rem; opacity: 0.85; }
+.reader-juz-fab::before,
+.reader-juz-fab::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  clip-path: var(--juz-shield);
+  pointer-events: none;
+}
+.reader-juz-fab::before { background: var(--rd-accent); }
+.reader-juz-fab::after {
+  inset: 2px;
+  background: color-mix(in srgb, var(--rd-bg) 95%, var(--rd-accent));
+}
+.reader-juz-fab > * { position: relative; z-index: 1; }
+.reader-juz-fab:active { transform: scale(0.94); }
+.reader-juz-fab small {
+  color: var(--rd-muted);
+  font-size: 0.57rem;
+  font-weight: 700;
+  opacity: 1;
+}
 .reader-juz-fab strong {
+  color: var(--rd-accent);
   font-family: var(--font-ar);
-  font-size: 1.05rem;
+  font-size: 1.12rem;
   font-weight: 700;
 }
 .reader-fab-panel {
