@@ -2,6 +2,8 @@ import { pageHeader } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { APP } from '../config.js'
 import { installApp, shouldOfferInstall } from '../services/install.js'
+import { notificationBell, refreshNotificationBell } from '../components/notification-bell.js'
+import { on } from '../utils/helpers.js'
 
 export const MORE_SLOGANS = Object.freeze([
   'Menemani Hari, Mendekatkan Hati kepada Kalamullah.',
@@ -26,6 +28,7 @@ const GROUPS = [
     ['/kalender', 'calendar', 'Kalender Hijriah', 'Tanggal & hari besar'],
     ['/doa', 'hands', 'Doa Harian', 'Arab, Latin, arti'],
     ['/doa/salat', 'beads', 'Wirid & Doa Usai Salat', 'Berurutan sesudah salam'],
+    ['/doa/tahlil', 'beads', 'Tahlil & Doa Arwah', 'Rangkaian lengkap · Quran NU Online'],
     ['/doa/wudhu', 'shield', 'Doa Wudhu', 'Niat & doa tiap gerakan'],
     ['/asmaul-husna', 'star', 'Asmaul Husna', '99 nama Allah'],
     ['/tasbih', 'beads', 'Tasbih Digital', 'Penghitung zikir']
@@ -43,7 +46,7 @@ const GROUPS = [
 ]
 
 export default function more(root) {
-  root.innerHTML = `<div class="page more-page">${pageHeader('Lainnya', { back: false })}
+  root.innerHTML = `<div class="page more-page">${pageHeader('Lainnya', { back: false, actions: notificationBell() })}
     <section class="more-hero" aria-labelledby="more-brand-title">
       <img src="/icons/icon-192-v2.png" alt="" aria-hidden="true" width="56" height="56" />
       <div class="more-brand-copy">
@@ -63,4 +66,7 @@ export default function more(root) {
   card.onclick = async () => {
     if ((await installApp()) === 'accepted') card.hidden = true
   }
+  const stopInbox = on('inbox:changed', () => void refreshNotificationBell(root))
+  void refreshNotificationBell(root)
+  return stopInbox
 }

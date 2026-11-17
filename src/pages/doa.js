@@ -7,6 +7,7 @@ import { doaText } from '../utils/doa-share.js'
 import { fi, openShare } from '../components/share-sheet.js'
 import { ayahMarker } from '../utils/arabic-numbers.js'
 import DZIKIR from '../data/dzikir.json'
+import TAHLIL from '../data/tahlil.json'
 import NU from '../data/doa-nu.json'
 
 let tab = 'harian'
@@ -16,25 +17,28 @@ const TABS = [
   ['harian', 'Harian'],
   ['wudhu', 'Wudhu'],
   ['salat', 'Usai Salat'],
+  ['tahlil', 'Tahlil'],
   ['quran', "Al-Qur'an"]
 ]
 const NU_TOTAL = NU.categories.reduce((n, c) => n + c.items.length, 0)
-/** Kartu kategori: kategori doa harian + pintasan ke tab Wudhu dan Usai Salat (juga kategori di Quran NU Online). */
+/** Kartu kategori doa harian serta pintasan Wudhu, Usai Salat, Tahlil Lengkap, dan doa Al-Qur’an. */
 const CAT_CARDS = [
   ...NU.categories.map((c) => ({ cat: c.slug, name: c.name, icon: c.icon, desc: c.desc, n: c.items.length })),
   { tab: 'wudhu', name: 'Wudhu', icon: 'droplet', desc: 'Niat dan doa tiap gerakan wudhu', n: DZIKIR.wudhu.length },
   { tab: 'salat', name: 'Usai Salat', icon: 'pray', desc: 'Wirid lalu doa setelah salat fardu', n: DZIKIR.salat.length },
+  { tab: 'tahlil', name: 'Tahlil & Doa Arwah', icon: 'beads', desc: 'Rangkaian lengkap dari Quran NU Online', n: TAHLIL.items.length },
   { tab: 'quran', name: "Doa dari Al-Qur'an", icon: 'quran', desc: 'Ayat-ayat doa, langsung dari mushaf', n: DOA_QURAN.length }
 ]
 const SOURCE_NOTE = {
-  nu: 'Teks Arab, Latin, dan arti disalin apa adanya dari Quran NU Online; kategori dan judul doa mengikuti sumber.',
-  dzikir: 'Teks Arab, Latin, dan arti disalin apa adanya dari Quran NU Online. Judul kartu dan pemisahan bagian disusun QuranKu agar mudah diikuti.'
+  nu: 'Teks Arab, Latin, dan arti mengikuti halaman Quran NU Online; kategori dan judul doa mengikuti sumber.',
+  dzikir: 'Teks Arab, Latin, dan arti mengikuti Quran NU Online. Judul kartu dan pemisahan bagian disusun QuranKu agar mudah diikuti.',
+  tahlil: 'Urutan dan bacaan merujuk pilihan Lengkap pada halaman sumber; pemenggalan dan sebagian terjemahan diringkas oleh QuranKu. Cocokkan dengan sumber bila ingin meninjau detail atau memilih versi Ringkas.'
 }
 const srcFoot = (html) => `<footer class="src-foot">${fi('book-open')}<p>${html}</p></footer>`
 // Nama sumber di footer menuju halaman Sumber Data di dalam aplikasi, bukan langsung ke situs sumber.
 const nuLink = (_url, label) => `<a class="link" href="#/sumber">${label}</a>`
 /** Bacaan yang sudah ditandai (selama aplikasi terbuka). */
-const done = { wudhu: new Set(), salat: new Set() }
+const done = { wudhu: new Set(), salat: new Set(), tahlil: new Set() }
 const KIND_LABEL = { wirid: 'Wirid', doa: 'Doa', niat: 'Niat' }
 const SECTION_CLASS = { wirid: 'wirid', doa: 'doa', niat: 'doa' }
 
@@ -111,8 +115,8 @@ export default function doa(root, { params = {} } = {}) {
       }
       return null
     }
-    const d = DZIKIR[k] && DZIKIR[k][+id]
-    return d ? { title: d.title, ar: d.arabic, latin: d.latin, arti: d.translation, ref: d.source, tab: k } : null
+    const d = k === 'tahlil' ? TAHLIL.items[+id] : DZIKIR[k] && DZIKIR[k][+id]
+    return d ? { title: d.title, ar: d.arabic, latin: d.latin, arti: d.translation, ref: d.source || (k === 'tahlil' ? `${TAHLIL.source.name} — ${TAHLIL.source.title}` : `${DZIKIR.source.name} — ${DZIKIR.source.pages[k].title}`), tab: k } : null
   }
 
   function renderQuran() {
@@ -172,14 +176,17 @@ export default function doa(root, { params = {} } = {}) {
   /** Doa wudhu & wirid/doa usai salat: data tersimpan di aplikasi (offline), dari Quran NU Online. */
   function renderDzikir(kind) {
     const q = norm(input.value)
-    const all = DZIKIR[kind]
+    const all = kind === 'tahlil' ? TAHLIL.items : DZIKIR[kind]
     const items = all.map((d, i) => ({ ...d, i })).filter((d) => !q || norm(d.title).includes(q) || norm(d.translation).includes(q) || norm(d.latin).includes(q))
-    const page = DZIKIR.source.pages[kind]
+    const page = kind === 'tahlil' ? TAHLIL.source : DZIKIR.source.pages[kind]
+    const sourceName = page.name || DZIKIR.source.name
     const seen = done[kind]
     const intro =
       kind === 'salat'
         ? 'Dibaca berurutan setelah salam dari salat fardu: wirid lebih dulu, lalu doa. Tandai tiap bacaan agar tidak ada yang terlewat.'
-        : 'Niat dan doa sebelum, saat, dan setelah berwudhu, berurutan sesuai gerakan wudhu.'
+        : kind === 'tahlil'
+          ? 'Rangkaian Tahlil dan Doa Arwah versi Lengkap dari Quran NU Online. Bacaan disusun bertahap dan dapat dibuka tanpa internet.'
+          : 'Niat dan doa sebelum, saat, dan setelah berwudhu, berurutan sesuai gerakan wudhu.'
     let section = null
     body.innerHTML = `<p class="dzikir-intro">${intro}</p>
       <div class="dzikir-progress" data-progress>
@@ -208,14 +215,14 @@ export default function doa(root, { params = {} } = {}) {
             </div>
           </footer></article>`
       }).join('') || '<p class="muted pad">Tidak ditemukan.</p>'}</div>
-      ${srcFoot(`<strong>Sumber:</strong> ${nuLink(page.url, esc(DZIKIR.source.name))}, halaman “${esc(page.title)}”. ${SOURCE_NOTE.dzikir}${page.note ? ' ' + esc(page.note) : ''}`)}`
+      ${srcFoot(`<strong>Sumber:</strong> ${nuLink(page.url, esc(sourceName))}, halaman “${esc(page.title)}”. ${SOURCE_NOTE[kind === 'tahlil' ? 'tahlil' : 'dzikir']}${page.note ? ' ' + esc(page.note) : ''}`)}`
     paintProgress(kind)
   }
 
   function paintProgress(kind) {
     const box = $('[data-progress]', body)
     if (!box) return
-    const total = DZIKIR[kind].length
+    const total = (kind === 'tahlil' ? TAHLIL.items : DZIKIR[kind]).length
     const n = done[kind].size
     $('.dzikir-bar span', box).style.width = `${Math.round((n / total) * 100)}%`
     $('[data-progress-text]', box).textContent = n >= total ? 'Selesai — alhamdulillah' : `${n} dari ${total} dibaca`

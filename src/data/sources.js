@@ -32,8 +32,8 @@ export const SOURCES = [
         name: 'quran-json (Risan Bagja Pradana)',
         role: 'Cadangan terakhir',
         use: 'Salinan teks Arab rasm Utsmani (dari Ensiklopedia Al-Qur\'an, QuranEnc) di server QuranKu sendiri, dipakai bila kedua API gagal.',
-        note: 'Hanya teks Arab: tanpa terjemahan, transliterasi, audio, dan tafsir.',
-        license: 'CC BY 4.0',
+        note: 'Hanya teks Arab yang dibundel. LICENSE.txt repositori menyebut CC BY-SA 4.0, sedangkan metadata paket npm menyebut CC BY 4.0; QuranKu memakai label CC BY-SA 4.0 yang lebih ketat. Terjemahan dan transliterasi paket tidak disertakan.',
+        license: 'CC BY-SA 4.0',
         url: 'https://github.com/risan/quran-json',
         host: 'github.com/risan/quran-json'
       },
@@ -66,11 +66,19 @@ export const SOURCES = [
       },
       {
         name: 'Quran NU Online (quran.nu.or.id)',
-        role: 'Seluruh doa harian, doa wudhu, wirid & doa usai salat',
-        use: 'Teks Arab, Latin, dan arti untuk doa harian (kategori Keseharian, Rezeki, Tolak Bala, Kesehatan, Perjalanan, Ilmu), doa wudhu, serta wirid dan doa usai salat fardu. Disimpan di aplikasi sehingga dapat dibuka offline.',
-        note: 'Disalin dari halaman kategori di quran.nu.or.id/doa; teks Arab, Latin, dan arti ditampilkan apa adanya (tidak dikoreksi). Kategori dan judul doa harian mengikuti sumber; pada doa wudhu dan usai salat, judul kartu dan pemisahan Wirid/Doa disusun QuranKu. Kategori lain menyusul.',
+        role: 'Doa harian, wudhu, wirid & doa usai salat',
+        use: 'Teks Arab, Latin, dan arti untuk enam kategori doa harian yang telah dihimpun di QuranKu, doa wudhu, serta bacaan usai salat fardu. Konten disimpan di aplikasi agar dapat dibuka offline.',
+        note: 'Katalog Quran NU Online memuat 16 kategori doa. QuranKu saat ini mencakup enam kategori harian, doa wudhu, dan bacaan usai salat; kategori lainnya belum diintegrasikan. Judul dan pemisahan bagian tertentu disusun QuranKu agar mudah dibaca.',
         url: 'https://quran.nu.or.id/doa',
         host: 'quran.nu.or.id'
+      },
+      {
+        name: 'Quran NU Online — Tahlil & Doa Arwah',
+        role: 'Rangkaian versi lengkap',
+        use: 'Bacaan Tahlil dan Doa Arwah Arab, Latin, dan terjemah dari halaman khusus Quran NU Online; ditampilkan di aplikasi dan tersedia offline.',
+        note: 'Halaman sumber menyediakan pilihan Ringkas dan Lengkap. QuranKu menggunakan susunan Lengkap; judul dan pemenggalan bacaan disusun agar nyaman dibaca, dan sebagian terjemahan diringkas. Silakan cocokkan dengan halaman sumber bila ingin meninjau detail.',
+        url: 'https://quran.nu.or.id/tahlil',
+        host: 'quran.nu.or.id/tahlil'
       },
       {
         name: 'wnr-code/asmaul_husna',

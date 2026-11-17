@@ -46,11 +46,11 @@ public final class PrayerAlarmReceiver extends BroadcastReceiver {
         int id = eventId == null ? (int) at : eventId.hashCode();
         String channelId = ensureChannel(context, kind, sound, vibrate);
 
-        Intent open = new Intent(context, MainActivity.class)
-            .setAction(Intent.ACTION_MAIN)
-            .addCategory(Intent.CATEGORY_LAUNCHER)
-            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent content = PendingIntent.getActivity(context, id, open,
+        Intent open = new Intent(context, PrayerNotificationOpenReceiver.class)
+            .setAction(PrayerNotificationOpenReceiver.ACTION_OPEN)
+            .setData(Uri.parse("quranku://notification-open/" + Uri.encode(eventId)))
+            .putExtra("eventId", eventId);
+        PendingIntent content = PendingIntent.getBroadcast(context, id, open,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
@@ -76,6 +76,7 @@ public final class PrayerAlarmReceiver extends BroadcastReceiver {
         } catch (SecurityException ignored) {
             return;
         }
+        PrayerAlarmScheduler.recordNotification(context, eventId, kind, key, title, body, at);
 
         if ("prayer".equals(kind) && intent.getBooleanExtra("longAzan", false)) {
             PrayerPlaybackService.start(
@@ -97,7 +98,7 @@ public final class PrayerAlarmReceiver extends BroadcastReceiver {
             if (manager != null && manager.getNotificationChannel(id) == null) {
                 String name = "QuranKu · " + channelName(type) + " · " + soundName(choice);
                 NotificationChannel channel = new NotificationChannel(id, name, NotificationManager.IMPORTANCE_HIGH);
-                channel.setDescription("Pemberitahuan waktu salat dan puasa QuranKu");
+                channel.setDescription("Pemberitahuan salat, tilawah, target, dan kalender QuranKu");
                 Uri uri = soundUri(choice);
                 AudioAttributes attrs = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION)
@@ -121,7 +122,10 @@ public final class PrayerAlarmReceiver extends BroadcastReceiver {
     private static String channelName(String kind) {
         if ("prayer".equals(kind)) return "Azan";
         if ("imsak".equals(kind)) return "Imsak";
-        if ("tarhim".equals(kind) || "pre_reminder".equals(kind)) return "Pengingat";
+        if ("tarhim".equals(kind) || "pre_reminder".equals(kind)) return "Pengingat salat";
+        if ("tilawah".equals(kind)) return "Pengingat tilawah";
+        if ("goal".equals(kind)) return "Target tilawah";
+        if ("calendar".equals(kind)) return "Kalender";
         return "Jadwal salat";
     }
 

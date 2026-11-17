@@ -1273,3 +1273,216 @@ body.reading-mode .reader.mode-page .rd-wrap {
     transition: none;
   }
 }
+
+/* Compact notification bell and a calm, accessible inbox. */
+.notification-bell {
+  position: relative;
+  overflow: visible;
+  color: var(--muted);
+}
+.notification-bell.has-unread {
+  color: var(--primary);
+}
+.notification-bell .icon {
+  width: 22px;
+  height: 22px;
+}
+.notification-badge {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  display: grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0 4px;
+  border: 2px solid var(--bg);
+  border-radius: 999px;
+  color: var(--primary-ink);
+  background: var(--primary);
+  font-size: 0.62rem;
+  font-weight: 850;
+  line-height: 1;
+}
+.notification-badge[hidden] {
+  display: none;
+}
+.notification-bell--arrive .icon {
+  transform-origin: 50% 16%;
+  animation: notification-bell-nudge 640ms cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+@keyframes notification-bell-nudge {
+  0%, 100% { transform: rotate(0); }
+  22% { transform: rotate(-12deg); }
+  44% { transform: rotate(9deg); }
+  66% { transform: rotate(-5deg); }
+  82% { transform: rotate(2deg); }
+}
+.inbox-page {
+  --inbox-accent: var(--primary);
+}
+.inbox-summary {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 16px 18px;
+  border-color: color-mix(in srgb, var(--primary) 16%, var(--border-soft));
+  background: linear-gradient(125deg, color-mix(in srgb, var(--primary) 8%, var(--surface)), var(--surface));
+}
+.inbox-summary-icon,
+.inbox-item-icon,
+.inbox-empty-icon {
+  display: grid;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 14px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+}
+.inbox-summary-icon .icon,
+.inbox-item-icon .icon,
+.inbox-empty-icon .icon {
+  width: 21px;
+  height: 21px;
+}
+.inbox-summary-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.inbox-summary-copy strong {
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+.inbox-summary-copy small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+.inbox-list {
+  display: grid;
+  gap: 12px;
+}
+.inbox-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  transition: border-color var(--motion-fast) ease, background var(--motion-fast) ease;
+}
+.inbox-card.is-unread {
+  border-inline-start: 3px solid var(--primary);
+  background: color-mix(in srgb, var(--primary) 3%, var(--surface));
+}
+.inbox-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+.inbox-item-icon.type-update {
+  color: #9a762b;
+  background: color-mix(in srgb, #d7b55f 17%, var(--surface));
+}
+.inbox-item-icon.type-reminder {
+  color: #256b83;
+  background: color-mix(in srgb, #4c9fba 13%, var(--surface));
+}
+.inbox-item-title {
+  flex: 1;
+  min-width: 0;
+}
+.inbox-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 8px;
+  margin: 1px 0 4px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.inbox-card.is-unread .inbox-meta > span:first-child {
+  color: var(--primary);
+}
+.inbox-state {
+  padding: 2px 7px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.62rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.inbox-card h2 {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.inbox-card time {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+.inbox-card > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+.inbox-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.inbox-card-actions .btn {
+  gap: 7px;
+}
+.inbox-card-actions .icon {
+  width: 16px;
+  height: 16px;
+}
+.inbox-empty {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding-block: 28px;
+  text-align: center;
+}
+.inbox-empty-icon {
+  width: 52px;
+  height: 52px;
+  color: var(--muted);
+  background: var(--surface-2);
+}
+.inbox-empty h2 {
+  margin: 3px 0 0;
+  font-size: 1rem;
+}
+.inbox-empty p,
+.inbox-privacy {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  text-align: center;
+}
+.inbox-privacy {
+  align-self: center;
+  padding-inline: 10px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .notification-bell--arrive .icon {
+    animation: none;
+  }
+  .inbox-card,
+  .notification-bell {
+    transition: none;
+  }
+}

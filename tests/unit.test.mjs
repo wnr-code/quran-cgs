@@ -450,7 +450,7 @@ test('notifikasi Android memakai status izin sistem dan menyediakan permintaan r
 })
 
 test('payload jadwal native mencakup lokasi, metode, zona waktu, azan, dan pengingat terpisah', async () => {
-  const { nativePrayerSettings } = await import('../src/services/prayer-notifications.js')
+  const { nativePrayerSettings, isFutureCalendarReminder } = await import('../src/services/prayer-notifications.js')
   const payload = nativePrayerSettings({
     location: { lat: -6.9764, lng: 108.4836, name: 'Kuningan' },
     prayerMethod: 'mwl',
@@ -469,6 +469,15 @@ test('payload jadwal native mencakup lokasi, metode, zona waktu, azan, dan pengi
   assert.equal(payload.prayerReminders.prayers.subuh, false)
   assert.equal(payload.prayerReminders.sound, 'silent')
   assert.equal(payload.ramadanReminders.imsakEnabled, false)
+  assert.equal(payload.readingReminders.tilawahEnabled, false)
+  const readingOnly = nativePrayerSettings({
+    reminders: { tilawah: true, tilawahTime: '06:45', goal: true },
+    goal: { type: 'p5', pages: 5 }
+  })
+  assert.equal(readingOnly.enabled, true, 'pengingat tilawah/target tidak memerlukan lokasi')
+  assert.equal(readingOnly.readingReminders.tilawahTime, '06:45')
+  assert.equal(readingOnly.readingReminders.goalEnabled, true)
+  assert.equal(readingOnly.readingReminders.targetPages, 5)
   const imsakOnly = nativePrayerSettings({
     location: { lat: -6.2, lng: 106.8, name: 'Jakarta' },
     adzan: { enabled: false },
@@ -478,6 +487,10 @@ test('payload jadwal native mencakup lokasi, metode, zona waktu, azan, dan pengi
   assert.equal(imsakOnly.enabled, true, 'imsak dapat dijadwalkan tanpa azan atau pengingat pra-salat')
   assert.equal(imsakOnly.ramadanReminders.imsakSound, 'alarm')
   assert.ok(payload.timezone)
+  const now = new Date(2026, 10, 16, 18, 0).getTime()
+  assert.equal(isFutureCalendarReminder({ date: '2026-11-16', time: '19:00' }, now), true)
+  assert.equal(isFutureCalendarReminder({ date: '2026-11-16', time: '17:00' }, now), false)
+  assert.equal(isFutureCalendarReminder({ date: '2026-02-30', time: '19:00' }, now), false)
 })
 
 test('worker: CORS hanya untuk alamat resmi + preflight', async () => {

@@ -1,7 +1,7 @@
 {
   "name": "quranku",
   "private": true,
-  "version": "1.4.15",
+  "version": "1.4.16",
   "description": "QuranKu — Al-Qur'an digital (PWA + Capacitor Android)",
   "license": "MIT",
   "author": "WNR Code (https://github.com/wnr-code)",
@@ -19,7 +19,7 @@
     "gen:local": "node scripts/gen-local.mjs",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node --test tests/unit.test.mjs tests/d1.test.mjs tests/infaq.test.mjs tests/adzan.test.mjs tests/calendar.test.mjs tests/location.test.mjs",
+    "test": "node --test tests/unit.test.mjs tests/d1.test.mjs tests/infaq.test.mjs tests/adzan.test.mjs tests/calendar.test.mjs tests/location.test.mjs tests/inbox.test.mjs",
     "gen:meta": "node scripts/gen-meta.mjs",
     "cap:sync": "npm run build && cap sync android",
     "cap:open": "cap open android",

@@ -1,5 +1,5 @@
-// Browser notifications stay in the PWA. Android requests the real POST_NOTIFICATIONS
-// permission through Capacitor Local Notifications; prayer alarms are delivered natively.
+// Browser reminders stay in the PWA. Android requests POST_NOTIFICATIONS through Capacitor;
+// prayer, tilawah, target, and calendar alarms are delivered by the native AlarmManager receiver.
 import { LocalNotifications } from '@capacitor/local-notifications'
 import { isAndroidApp, isNativePlatform } from './platform.js'
 import { toast } from '../utils/helpers.js'
@@ -7,6 +7,7 @@ import { getSettings } from './storage.js'
 import { todayProgress, goalPages } from './progress.js'
 import { dateKey, formatClock } from '../utils/format.js'
 import { takeDueReminders } from './calendar-notes.js'
+import { recordInboxReminder } from './inbox.js'
 
 let androidPermission = 'prompt'
 
@@ -45,18 +46,41 @@ export async function requestNotifPermission() {
   return Notification.permission
 }
 
+const reminderRoute = (tag) => {
+  if (String(tag || '').startsWith('kal-')) return '/kalender'
+  if (tag === 'tilawah' || tag === 'goal') return '/target'
+  if (['subuh', 'zuhur', 'asar', 'magrib', 'isya', 'imsak'].includes(tag)) return '/salat'
+  return '/notifikasi'
+}
+
 export async function showNotification(title, body, tag) {
   if (isNativePlatform()) {
-    // Non-prayer foreground reminders remain lightweight in-app messages on Android.
+    // Native foreground-only notices use a lightweight in-app message; scheduled Android reminders use AlarmManager.
     toast(`${title} · ${body}`, 6000)
     return true
   }
   if (notifPermission() !== 'granted') return false
-  const opts = { body, tag, icon: '/icons/icon-192-v2.png', badge: '/icons/badge-96-v2.png', lang: 'id' }
+  const item = {
+    id: `web:${String(tag || 'info')}:${Date.now()}`,
+    type: 'reminder',
+    title: String(title || 'Pengingat QuranKu'),
+    body: String(body || ''),
+    route: reminderRoute(tag),
+    at: Date.now()
+  }
+  const opts = {
+    body,
+    tag,
+    icon: '/icons/icon-192-v2.png',
+    badge: '/icons/badge-96-v2.png',
+    lang: 'id',
+    data: { inboxId: item.id, inboxItem: item, route: item.route, at: item.at }
+  }
   try {
     const reg = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null
     if (reg) await reg.showNotification(title, opts)
     else new Notification(title, opts)
+    recordInboxReminder(item)
     return true
   } catch {
     return false
@@ -75,6 +99,8 @@ const fireOnce = (key, title, body) => {
 }
 
 async function tick() {
+  // Android delivers these through AlarmManager so the JS fallback cannot duplicate system notifications.
+  if (isAndroidApp()) return
   const s = getSettings()
   const r = s.reminders
   if (!isNativePlatform() && notifPermission() !== 'granted') return
@@ -94,6 +120,7 @@ async function tick() {
 let interval
 export function startReminderLoop() {
   clearInterval(interval)
+  if (isAndroidApp()) return
   interval = setInterval(() => tick().catch(() => {}), 30000)
   tick().catch(() => {})
 }

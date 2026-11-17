@@ -174,10 +174,15 @@ self.addEventListener('push', (event) => {
   } catch {}
   const key = String(d.key || 'info')
   const isPrayer = ['subuh', 'zuhur', 'asar', 'magrib', 'isya'].includes(key)
+  const title = d.title || 'QuranKu'
+  const body = d.body || ''
+  const at = Number(d.at) || Date.now()
+  const route = isPrayer ? '/salat' : '/notifikasi'
+  const inboxItem = { id: `push:${key}:${at}`, type: 'reminder', title, body, route, at }
   event.waitUntil(
     (async () => {
-      await self.registration.showNotification(d.title || 'QuranKu', {
-        body: d.body || '',
+      await self.registration.showNotification(title, {
+        body,
         tag: 'salat-' + key,
         renotify: true,
         requireInteraction: isPrayer,
@@ -185,10 +190,13 @@ self.addEventListener('push', (event) => {
         badge: '/icons/badge-96-v2.png',
         lang: 'id',
         vibrate: [300, 150, 300, 150, 600],
-        timestamp: d.at || Date.now(),
-        data: { url: '/#/salat', key, play: isPrayer }
+        timestamp: at,
+        data: { url: '/#' + route, route, key, play: isPrayer, at, inboxId: inboxItem.id, inboxItem }
       })
-      if (d.type === 'adzan') for (const c of await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) c.postMessage({ type: 'adzan', key, at: d.at })
+      for (const c of await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) {
+        c.postMessage({ type: 'quranku:inbox-notification', item: inboxItem })
+        if (d.type === 'adzan') c.postMessage({ type: 'adzan', key, at: d.at })
+      }
     })()
   )
 })
@@ -197,17 +205,42 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   const data = event.notification.data || {}
   const isSalat = event.notification.tag && event.notification.tag.startsWith('salat')
-  const target = isSalat ? (data.play ? `/?adzan=${data.key}#/salat` : '/#/salat') : '/#/'
+  const route = typeof data.route === 'string' && data.route.startsWith('/') && !data.route.startsWith('//')
+    ? data.route
+    : isSalat ? '/salat' : '/notifikasi'
+  const inboxItem = data.inboxItem || (data.inboxId ? { id: data.inboxId, title: event.notification.title, body: event.notification.body, route, at: data.at || event.notification.timestamp } : null)
+  const routeQuery = new URLSearchParams(route.includes('?') ? route.slice(route.indexOf('?') + 1) : '')
+  if (data.inboxId && inboxItem) routeQuery.set('inboxOpen', JSON.stringify({ inboxId: data.inboxId, item: inboxItem }))
+  const routePath = route.split('?')[0]
+  const serializedRouteQuery = routeQuery.toString()
+  const routeWithQuery = `${routePath}${serializedRouteQuery ? `?${serializedRouteQuery}` : ''}`
+  const target = isSalat
+    ? (data.play ? `/?adzan=${encodeURIComponent(data.key || '')}#${routeWithQuery}` : `/#${routeWithQuery}`)
+    : `/#${routeWithQuery}`
   event.waitUntil(
     (async () => {
       const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-      for (const c of all)
-        if ('focus' in c) {
-          // Ketukan pemberitahuan adalah interaksi pengguna → halaman boleh memutar adzan.
-          if (data.play) c.postMessage({ type: 'adzan', key: data.key, play: true })
-          return c.focus()
+      for (const c of all) {
+        if (!('focus' in c)) continue
+        if ('navigate' in c) {
+          try {
+            await c.navigate(target)
+            await c.focus()
+            return c
+          } catch {}
         }
-      if (self.clients.openWindow) return self.clients.openWindow(target)
+        if (data.inboxId) c.postMessage({ type: 'quranku:notification-opened', inboxId: data.inboxId, item: inboxItem, route })
+        // Ketukan pemberitahuan adalah interaksi pengguna → halaman boleh memutar adzan.
+        if (data.play) c.postMessage({ type: 'adzan', key: data.key, play: true })
+        await c.focus()
+        return c
+      }
+      if (self.clients.openWindow) {
+        const client = await self.clients.openWindow(target)
+        if (client && data.inboxId) client.postMessage({ type: 'quranku:notification-opened', inboxId: data.inboxId, item: inboxItem, route })
+        if (client && data.play) client.postMessage({ type: 'adzan', key: data.key, play: true })
+        return client
+      }
     })()
   )
 })
