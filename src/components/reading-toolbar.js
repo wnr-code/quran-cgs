@@ -47,7 +47,7 @@ export function openReaderSettings(onChange) {
         <div class="seg" data-seg="mode">
           <button data-v="focus" class="${r.mode === 'focus' ? 'on' : ''}">${icon('list')}Terjemahan</button>
           <button data-v="continuous" class="${r.mode === 'continuous' ? 'on' : ''}">${icon('flow')}Mushaf</button>
-          <button data-v="page" class="${r.mode === 'page' ? 'on' : ''}">${icon('book')}Mushaf 15 baris</button>
+          <button data-v="page" class="${r.mode === 'page' ? 'on' : ''}">${icon('book')}Halaman mushaf</button>
         </div></div>
       <div class="field"><span>Preset tampilan</span>
         <div class="preset-grid" data-seg="preset">
@@ -58,7 +58,7 @@ export function openReaderSettings(onChange) {
       ${range('gap', 'Jarak antarbaris / antarayat', 4, 48, 2, r.gap, 'px')}
       ${range('width', 'Lebar area bacaan', 360, 1200, 20, r.width, 'px')}
       ${range('margin', 'Margin kiri & kanan', 8, 64, 2, r.margin, 'px')}
-      ${range('translationSize', 'Ukuran terjemahan', 12, 24, 1, r.translationSize, 'px')}
+      ${range('translationSize', 'Ukuran terjemahan', 12, 28, 1, r.translationSize, 'px')}
       <div class="field"><span>Font Arab</span>
         <div class="seg" data-seg="arabicFont">
           <button data-v="amiri" class="${fontSel === 'amiri' ? 'on' : ''}">Amiri Quran</button>
@@ -67,7 +67,7 @@ export function openReaderSettings(onChange) {
       <label class="switch-row"><span>Tampilkan terjemahan (mode Terjemahan)</span><input type="checkbox" name="showTranslation" ${r.showTranslation ? 'checked' : ''} /></label>
       <label class="switch-row"><span>Tampilkan transliterasi Latin (mode Terjemahan)</span><input type="checkbox" name="showLatin" ${r.showLatin ? 'checked' : ''} /></label>
       <label class="switch-row"><span>Penanda Tajwid warna</span><input type="checkbox" name="tajweed" ${r.tajweed ? 'checked' : ''} /></label>
-      <p class="hint">Mushaf 15 baris menyesuaikan ukuran huruf dan spasi tiap halaman mengikuti layar; tata letak dapat berbeda dari cetakan. Warna Tajwid berasal dari anotasi riwayat Hafs yang cakupannya terbatas, dan bukan pengganti belajar dengan guru.</p>
+      <p class="hint">Mode halaman mempertahankan ukuran huruf yang Anda pilih; bila teks melebihi tinggi layar, gulir di dalam halaman. Tata letak dapat berbeda dari cetakan. Warna Tajwid berasal dari anotasi riwayat Hafs yang cakupannya terbatas, dan bukan pengganti belajar dengan guru.</p>
       <div class="field"><span>Warna kustom (opsional, menimpa preset)</span>
         <div class="color-row">
           <label>Latar <input type="color" name="customBg" value="${r.customBg || '#faf6ea'}" /></label>

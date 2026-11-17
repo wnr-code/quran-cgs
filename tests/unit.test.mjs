@@ -379,7 +379,9 @@ test('Tajwid: seluruh indeks cocok dengan teks ayat, atribusi tercatat, dan peme
   const text = quran[1].verses[4].text
   const ranges = mapTajweedRanges(text, entry)
   assert.ok(ranges.length > 0)
-  assert.match(highlightHtml(2, 5, text, { tajweedRanges: ranges }), /class="tajweed tajweed-/)
+  const annotatedHtml = highlightHtml(2, 5, text, { tajweedRanges: ranges })
+  assert.match(annotatedHtml, /class="tajweed tajweed-/)
+  assert.match(annotatedHtml, /data-rule-label="[^"]+" aria-label="Aturan Tajwid: [^"]+"/)
   assert.deepEqual(mapTajweedRanges(`${text} اختلاف`, entry), [])
   const tampered = [...entry]
   tampered[3] = '0000000000000000'
@@ -865,12 +867,43 @@ test('migrasi font Arab lama ke Scheherazade tetap satu kali dan Amiri tetap bis
   }
 })
 
+test('migrasi tipografi pembaca memperbesar bawaan lama tanpa mengubah ukuran pilihan lain', async () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+  const values = new Map([['quranku:settings', JSON.stringify({ reader: { fontSize: 28, lineHeight: 2.1, translationSize: 16 } })]])
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: (key) => values.has(key) ? values.get(key) : null,
+      setItem: (key, value) => values.set(key, String(value)),
+      removeItem: (key) => values.delete(key)
+    }
+  })
+  try {
+    const loadFresh = () => import(`../src/services/storage.js?reader-typography=${Math.random()}`)
+    const migrated = (await loadFresh()).getSettings().reader
+    assert.equal(migrated.fontSize, 32)
+    assert.equal(migrated.translationSize, 18)
+    assert.equal(values.get('quranku:migration:reader-typography-v2'), '1')
+    assert.equal(JSON.parse(values.get('quranku:settings')).reader.fontSize, 32)
+
+    values.set('quranku:settings', JSON.stringify({ reader: { fontSize: 44, lineHeight: 2.3, translationSize: 22 } }))
+    const custom = (await loadFresh()).getSettings().reader
+    assert.equal(custom.fontSize, 44)
+    assert.equal(custom.translationSize, 22)
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'localStorage', previous)
+    else delete globalThis.localStorage
+  }
+})
+
 test('preset pembaca mengikuti tema global tanpa menghapus preset mushaf', async () => {
   const { READER_DEFAULTS, DEFAULTS } = await import('../src/services/storage.js')
   const { PRESETS, applyReaderStyle } = await import('../src/components/reading-toolbar.js')
   assert.equal(READER_DEFAULTS.preset, 'theme')
   assert.equal(READER_DEFAULTS.tajweed, false)
   assert.equal(READER_DEFAULTS.fabSide, 'right')
+  assert.equal(READER_DEFAULTS.fontSize, 32)
+  assert.equal(READER_DEFAULTS.translationSize, 18)
   assert.equal(DEFAULTS.arabicFont, 'scheherazade')
   assert.equal(PRESETS.theme, 'Ikuti tema aplikasi')
   assert.ok(PRESETS.classic && PRESETS.ivory && PRESETS.dark && PRESETS.night)
@@ -889,6 +922,11 @@ test('preset pembaca mengikuti tema global tanpa menghapus preset mushaf', async
   assert.equal(vars.get('--rd-font'), `${READER_DEFAULTS.fontSize}px`)
   const css = readFileSync('src/styles/reader.css', 'utf8')
   assert.match(css, /\.reader\[data-preset='theme'\][^{]*\{[^}]*--rd-bg:\s*var\(--surface\)/)
+  assert.match(css, /\.mpage-text[^{]*\{[^}]*font-size:\s*var\(--rd-font\)/)
+  assert.match(css, /\.mpage-body[^{]*\{[^}]*overflow-y:\s*auto/)
+  assert.doesNotMatch(css, /\.rd-bottom/)
+  const toolbar = readFileSync('src/components/reading-toolbar.js', 'utf8')
+  assert.match(toolbar, /range\('translationSize', 'Ukuran terjemahan', 12, 28/)
 })
 
 test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache', () => {

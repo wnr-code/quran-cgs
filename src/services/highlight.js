@@ -114,7 +114,7 @@ export function highlightHtml(surah, ayah, text, { tajweedRanges = [] } = {}) {
     const rule = rules.filter((r) => r.start <= start && r.end >= end).at(-1)
     const isHighlighted = highlights.some(([a, b]) => a <= start && b >= end)
     let piece = esc(text.slice(start, end))
-    if (rule) piece = `<span class="tajweed tajweed-${rule.rule}" title="${esc(rule.label)}">${piece}</span>`
+    if (rule) piece = `<span class="tajweed tajweed-${rule.rule}" title="${esc(rule.label)}" data-rule-label="${esc(rule.label)}" aria-label="Aturan Tajwid: ${esc(rule.label)}">${piece}</span>`
     if (isHighlighted) piece = `<mark class="hl">${piece}</mark>`
     html += piece
   }

@@ -45,20 +45,35 @@ const go = async (hash) => {
   await new Promise((r) => setTimeout(r, 700))
 }
 const openReaderMenu = async () => {
+  await waitForSplashToClear()
   const open = await page.$eval('.reader-fab-panel', (el) => !el.hidden).catch(() => false)
-  if (!open) await page.click('.reader-fab-toggle')
+  if (!open) {
+    await page.click('.reader-fab-toggle')
+    await page.waitForFunction(() => {
+      const panel = document.querySelector('.reader-fab-panel')
+      return panel && !panel.hidden && panel.getBoundingClientRect().height > 0
+    })
+  }
 }
 const readerMode = async (mode) => {
   await openReaderMenu()
-  await page.click(`.reader-fab-panel .rd-tabs [data-mode="${mode}"]`)
+  const selector = `.reader-fab-panel .rd-tabs [data-mode="${mode}"]`
+  await page.waitForSelector(selector, { visible: true })
+  await page.click(selector)
 }
 const readerAction = async (action) => {
   await openReaderMenu()
-  await page.click(`.reader-fab-panel [data-act="${action}"]`)
+  const selector = `.reader-fab-panel [data-act="${action}"]`
+  await page.waitForSelector(selector, { visible: true })
+  await page.click(selector)
 }
 const shot = (name) => page.screenshot({ path: `${SHOTS}/${name}.png` })
 const count = (sel) => page.$$eval(sel, (e) => e.length)
 const text = (sel) => page.$eval(sel, (e) => e.textContent.trim())
+const waitForSplashToClear = () => page.waitForFunction(() => {
+  const splash = document.querySelector('#splash')
+  return !splash || getComputedStyle(splash).visibility === 'hidden'
+})
 const step = async (name, fn) => {
   try {
     await fn()
@@ -120,6 +135,7 @@ await step('Reader: Mushaf Continuous, basmalah, penanda ayat ﴿١﴾', async (
   assert.equal(await text('.ayah[data-a="286"] .ayah-num'), '\uFD3F٢٨٦\uFD3E')
   assert.equal(await count('.basmalah'), 1)
   assert.equal(await page.$eval('.mushaf-flow', (e) => getComputedStyle(e).direction), 'rtl')
+  assert.equal(await page.$eval('.mushaf-flow .ayah-text', (e) => getComputedStyle(e).fontSize), '32px')
   assert.ok(await page.evaluate(async () => {
     await document.fonts.load('30px "Amiri Quran"', 'بِسْمِ اللَّهِ')
     return document.fonts.check('30px "Amiri Quran"', 'بِسْمِ اللَّهِ')
@@ -135,8 +151,12 @@ await step('Tajwid: data Hafs dimuat saat diminta, panduan atribusi tampil, dan 
   const guide = await text('.sheet-wrap.open')
   assert.match(guide, /quran-tajweed/)
   assert.match(guide, /12:39 dan 12:41/)
+  const tajweedLabel = await page.$eval('.mushaf-flow .tajweed', (e) => e.dataset.ruleLabel)
+  assert.ok(tajweedLabel)
   await page.$eval('.sheet-wrap button[data-close]', (b) => b.click())
   await page.waitForFunction(() => !document.querySelector('.sheet-wrap'))
+  await page.$eval('.mushaf-flow .tajweed', (e) => e.click())
+  await page.waitForFunction((label) => document.querySelector('#toast')?.textContent === label, {}, tajweedLabel)
   await readerAction('tajweed')
   await page.waitForFunction(() => document.querySelectorAll('.mushaf-flow .tajweed').length === 0)
 })
@@ -160,23 +180,43 @@ await step('Ayah Focus Mode + Dark Reading + ukuran font', async () => {
   await page.waitForSelector('.sheet-wrap.open')
   await new Promise((r) => setTimeout(r, 300))
   await shot('05-pengaturan-baca')
+  assert.equal(await page.$eval('.ayah-block .ayah-ar', (e) => getComputedStyle(e).fontSize), '32px')
+  assert.equal(await page.$eval('.ayah-block .ayah-id', (e) => getComputedStyle(e).fontSize), '18px')
   await page.click('.preset-dark')
   assert.equal(await page.$eval('.reader', (e) => e.dataset.preset), 'dark')
   await page.$eval('input[name=fontSize]', (e) => {
-    e.value = 40
+    e.value = e.max
     e.dispatchEvent(new Event('input', { bubbles: true }))
   })
-  assert.equal(await page.$eval('.ayah-block .ayah-ar', (e) => getComputedStyle(e).fontSize), '40px')
+  assert.equal(await page.$eval('.ayah-block .ayah-ar', (e) => getComputedStyle(e).fontSize), '56px')
+  const themeBefore = await page.$eval(':root', (e) => e.dataset.theme)
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'dark' })
+  assert.equal(await page.$eval('.ayah-block .ayah-ar', (e) => getComputedStyle(e).fontSize), '56px')
+  await page.evaluate((theme) => { document.documentElement.dataset.theme = theme }, themeBefore)
   await page.click('.sheet [data-close]')
   await new Promise((r) => setTimeout(r, 350))
   await shot('06-dark-reading')
   await readerMode('continuous')
   await page.waitForSelector('.mushaf-flow .ayah')
+  assert.equal(await page.$eval('.mushaf-flow .ayah-text', (e) => getComputedStyle(e).fontSize), '56px')
 })
 await step('Mode membaca imersif menyembunyikan navigasi', async () => {
   await readerAction('immersive')
   await new Promise((r) => setTimeout(r, 400))
   assert.equal(await page.$eval('.navbar', (e) => getComputedStyle(e).display), 'none')
+  assert.equal(await page.evaluate(() => !!document.querySelector('.rd-bottom')), false, 'tidak ada bilah navigasi bawah tetap')
+  const controlsSeparated = await page.evaluate(() => {
+    const audio = document.querySelector('.reader-audio-float').getBoundingClientRect()
+    const menu = document.querySelector('.reader-float').getBoundingClientRect()
+    return audio.right <= menu.left || menu.right <= audio.left || audio.bottom <= menu.top || menu.bottom <= audio.top
+  })
+  assert.equal(controlsSeparated, true, 'pemutar audio tidak menimpa kontrol baca')
+  await page.click('.reader-audio-toggle')
+  await page.waitForFunction(() => document.querySelector('.reader').classList.contains('audio-dock-hidden'))
+  assert.equal(await page.$eval('.reader-audio-toggle', (e) => e.getAttribute('aria-label')), 'Tampilkan pemutar audio')
+  assert.equal(await page.$eval('.reader-audio-dock', (e) => getComputedStyle(e).visibility), 'hidden')
+  await page.click('.reader-audio-toggle')
+  await page.waitForFunction(() => !document.querySelector('.reader').classList.contains('audio-dock-hidden'))
   await shot('07-mode-membaca')
 })
 await step('Bookmark + posisi bacaan tersimpan & dipulihkan', async () => {
@@ -188,7 +228,7 @@ await step('Bookmark + posisi bacaan tersimpan & dipulihkan', async () => {
   assert.ok(Math.abs(cur.ayah - 40) <= 1, 'ayat terakhir ≈ 40, dapat ' + cur.ayah)
   await page.evaluate(() => window.scrollBy(0, -30))
   await new Promise((r) => setTimeout(r, 300))
-  await page.click('.rd-bottom [data-act="bookmark"]')
+  await readerAction('bookmark')
   await new Promise((r) => setTimeout(r, 400))
   await page.reload({ waitUntil: 'networkidle0' })
   await go('/')
@@ -352,12 +392,10 @@ await step('Mode Halaman: lembar per halaman mushaf, digeser ke samping', async 
   await page.waitForSelector('.mushaf-flow .ayah')
   await readerMode('page')
   await page.waitForSelector('.mushaf-pages .mpage')
-  await page.waitForFunction(() => {
-    const pages = [...document.querySelectorAll('.mushaf-pages .mpage:not(.mpage-end)')]
-    return pages.length === 48 && pages.every((page) => page.dataset.lineCount)
-  })
-  const renderedLines = await page.$$eval('.mushaf-pages .mpage:not(.mpage-end)', (pages) => pages.map((page) => Number(page.dataset.lineCount)))
-  assert.ok(renderedLines.every((lines) => lines === 15), 'semua lembar harus pas 15 baris; didapat ' + [...new Set(renderedLines)].join(', '))
+  await page.waitForFunction(() => document.querySelectorAll('.mushaf-pages .mpage:not(.mpage-end)').length === 48)
+  const pageFontSizes = await page.$$eval('.mushaf-pages .mpage:not(.mpage-end) .mpage-text', (texts) => texts.map((el) => getComputedStyle(el).fontSize))
+  assert.equal(new Set(pageFontSizes).size, 1, 'ukuran huruf Arab sama di semua halaman')
+  assert.equal(pageFontSizes[0], '56px', 'pengaturan maksimum berlaku juga di mode halaman')
   // Al-Baqarah menempati halaman 2–49 → 48 lembar + 1 lembar penutup; seluruh 286 ayat tetap ada.
   assert.equal(await count('.mushaf-pages .mpage:not(.mpage-end)'), 48)
   assert.equal(await count('.mushaf-pages .ayah'), 286)
@@ -369,41 +407,30 @@ await step('Mode Halaman: lembar per halaman mushaf, digeser ke samping', async 
   // Halaman tidak melebar keluar layar (tidak ada gulir mendatar pada dokumen).
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true)
   await shot('16-mode-halaman')
-  // Desktop: gunakan seluruh tinggi baca, tetap 15 baris, dan pertahankan lebar teks yang wajar tanpa luapan.
+  // Desktop: ukuran huruf tetap seragam dan halaman panjang dapat digulir vertikal tanpa luapan dokumen.
   await page.setViewport({ width: 1365, height: 768 })
-  await page.waitForFunction(() => {
-    const pages = [...document.querySelectorAll('.mushaf-pages .mpage:not(.mpage-end)')]
-    return pages.length === 48 && pages.every((page) => page.dataset.fitViewport === '1365x768')
-  }, { timeout: 30000 })
+  await waitForSplashToClear()
+  await page.waitForFunction(() => document.querySelectorAll('.mushaf-pages .mpage:not(.mpage-end)').length === 48)
   const desktopPages = await page.$$eval('.mushaf-pages .mpage:not(.mpage-end)', (pages) => pages.map((page) => {
     const body = page.querySelector('.mpage-body')
     const text = body.querySelector('.mpage-text')
-    const available = body.clientWidth - parseFloat(getComputedStyle(body).paddingLeft) - parseFloat(getComputedStyle(body).paddingRight)
-    return {
-      lines: Number(page.dataset.lineCount),
-      textWidth: text.getBoundingClientRect().width,
-      minWidth: Math.min(available, Math.max(320, available * 0.45)),
-      overflow: body.scrollHeight > body.clientHeight + 1
-    }
+    return { fontSize: getComputedStyle(text).fontSize, overflowY: getComputedStyle(body).overflowY }
   }))
-  assert.ok(desktopPages.every((page) => page.lines === 15), 'desktop: semua halaman pas 15 baris')
-  assert.ok(desktopPages.every((page) => page.textWidth >= page.minWidth - 1), 'desktop: kolom tidak menyempit di bawah batas baca')
-  assert.ok(desktopPages.every((page) => !page.overflow), 'desktop: teks tidak meluap dari badan halaman')
-  assert.deepEqual(await page.evaluate(() => ['.rd-top', '.rd-bottom'].map((selector) => getComputedStyle(document.querySelector(selector)).display)), ['none', 'none'])
-  await page.click('.reader-fab-toggle')
-  await page.click('.reader-fab-panel [data-act="next"]')
+  assert.ok(desktopPages.every((page) => page.fontSize === '56px'), 'desktop: semua halaman memakai ukuran pilihan')
+  assert.ok(desktopPages.every((page) => page.overflowY === 'auto'), 'teks halaman panjang dapat digulir vertikal')
+  assert.deepEqual(await page.evaluate(() => [getComputedStyle(document.querySelector('.rd-top')).display, !!document.querySelector('.rd-bottom')]), ['none', false])
+  await readerAction('next')
   await page.waitForFunction(() => document.querySelector('.rd-top [data-page]').textContent.trim() === '٣')
-  await page.click('.reader-fab-toggle')
-  await page.click('.reader-fab-panel [data-act="prev"]')
+  await readerAction('prev')
   await page.waitForFunction(() => document.querySelector('.rd-top [data-page]').textContent.trim() === '٢')
+  await new Promise((resolve) => setTimeout(resolve, 900)) // tunggu usapan halus & posisi terakhir tersimpan sebelum emulasi memuat ulang halaman
   await page.setViewport({ width: 412, height: 915, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
-  await page.waitForFunction(() => {
-    const pages = [...document.querySelectorAll('.mushaf-pages .mpage:not(.mpage-end)')]
-    return pages.every((page) => page.dataset.fitViewport === '412x915')
-  }, { timeout: 30000 })
+  await waitForSplashToClear()
+  await page.waitForFunction(() => document.querySelectorAll('.mushaf-pages .mpage:not(.mpage-end) .mpage-text').length === 48)
+  assert.ok(await page.$$eval('.mpage-text', (texts) => texts.every((el) => getComputedStyle(el).fontSize === '56px')), 'font maksimum tetap sama setelah ukuran viewport berubah')
   // Pindah halaman dengan tombol → info halaman & ayat ikut berubah.
   assert.equal(await text('.rd-top [data-page]'), '٢')
-  await page.click('.rd-bottom [data-act="next"]')
+  await readerAction('next')
   await page.waitForFunction(() => document.querySelector('.rd-top [data-page]').textContent.trim() === '٣', { timeout: 5000 }).catch(() => assert.fail('tombol halaman berikutnya tidak memindah halaman'))
   assert.equal(await text('.rd-top [data-cur]'), '٦')
   await new Promise((r) => setTimeout(r, 600)) // biarkan animasi geser selesai
@@ -436,6 +463,15 @@ await step('Mode Halaman: lembar per halaman mushaf, digeser ke samping', async 
   await readerMode('continuous')
   await page.waitForSelector('.mushaf-flow .ayah')
   assert.equal(await page.evaluate(() => document.body.classList.contains('reader-paged')), false)
+  await readerAction('settings')
+  await page.waitForSelector('.sheet-wrap.open input[name=fontSize]')
+  await page.$eval('.sheet-wrap.open input[name=fontSize]', (e) => {
+    e.value = 32
+    e.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  await page.$eval('.sheet-wrap.open button[data-close]', (b) => b.click())
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap'))
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('.mushaf-flow .ayah-text')).fontSize === '32px')
 })
 await step('Mode Terjemahan: ikon aksi per ayat', async () => {
   await readerMode('focus')
