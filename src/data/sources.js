@@ -69,7 +69,7 @@ export const SOURCES = [
         role: 'Doa harian, katalog kategori, wudhu, dan doa usai salat',
         use: 'Teks Arab, Latin, dan arti enam kategori doa harian, doa wudhu, serta bacaan usai salat dihimpun dalam QuranKu dan dapat dibuka offline. Delapan kategori tambahan ditampilkan sebagai katalog judul yang menaut ke halaman resmi; teks lengkap kategori tersebut tidak disalin ke aplikasi.',
         note: 'Katalog Quran NU Online memuat 16 kategori. QuranKu menghindari duplikasi Wudhu dan Shalat dengan menempatkan keduanya pada rangkaian dzikir tersendiri. Delapan kategori tambahan menampilkan jumlah bacaan serta tautan ke sumber resmi, bukan teks offline.',
-        url: 'https://quran.nu.or.id/doa',
+        url: 'https://quran.nu.or.id/',
         host: 'quran.nu.or.id'
       },
       {
@@ -77,8 +77,8 @@ export const SOURCES = [
         role: 'Rangkaian versi lengkap',
         use: '28 bacaan Tahlil dan Doa Arwah Arab, Latin, dan terjemah dari halaman khusus Quran NU Online; ditampilkan di aplikasi dan tersedia offline. QuranKu menambahkan kartu Surah Yasin yang teks ayatnya dimuat dari sumber mushaf aplikasi.',
         note: 'Halaman sumber menyediakan pilihan Ringkas dan Lengkap. QuranKu menggunakan susunan Lengkap dan menambahkan Surah Yasin setelah rangkaian Tahlil, sebelum doa penutup; Yasin bukan bagian dari 28 langkah pada halaman Quran NU Online. Judul, pemenggalan, dan sebagian terjemahan disusun agar mudah dibaca.',
-        url: 'https://quran.nu.or.id/tahlil',
-        host: 'quran.nu.or.id/tahlil'
+        url: 'https://quran.nu.or.id/',
+        host: 'quran.nu.or.id'
       },
       {
         name: 'wnr-code/asmaul_husna',
