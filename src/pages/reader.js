@@ -6,12 +6,13 @@ import { flowHtml, focusHtml, pagesHtml, openAyahSheet, ayahShareText } from '..
 import { applyReaderStyle, openReaderSettings, openJumpSheet } from '../components/reading-toolbar.js'
 import { openSheet } from '../components/modal.js'
 import { initSelectionMenu } from '../components/selection-menu.js'
+import { openShare } from '../components/share-sheet.js'
 import { getSettings, saveSettings } from '../services/storage.js'
 import { savePosition, getLastRead, addHistory } from '../services/reading-position.js'
 import { markRead } from '../services/progress.js'
 import { playAyah, playSurah, toggle as toggleAudio, getAudioState } from '../services/audio.js'
 import { bookmarkRepo, noteRepo } from '../database/repositories.js'
-import { $, $$, esc, on, throttle, toast, isStandalone, copyText, shareText, reportShareResult } from '../utils/helpers.js'
+import { $, $$, esc, on, throttle, toast, isStandalone, copyText } from '../utils/helpers.js'
 import { qnum } from '../utils/arabic-numbers.js'
 import { juzOf, pageOf } from '../utils/quran-meta.js'
 import { tempatTurunLabel } from '../utils/format.js'
@@ -405,7 +406,10 @@ export default async function reader(root, { params, query, initial }) {
         else if (act === 'more') openAyahSheet(surah, a, sheetOpts)
         else if (act === 'copy') copyText(ayahShareText(surah, surah.ayat[a - 1])).then((ok) => toast(ok ? `Ayat ${a} disalin` : 'Gagal menyalin'))
         else if (act === 'share')
-          shareText(`QS. ${surah.namaLatin} ${n}:${a}`, ayahShareText(surah, surah.ayat[a - 1]), `${APP.origin}/#/surah/${n}/${a}`).then(reportShareResult)
+          openShare(
+            { title: `QS. ${surah.namaLatin} ${n}:${a}`, text: ayahShareText(surah, surah.ayat[a - 1]), url: `${APP.origin}/#/surah/${n}/${a}` },
+            { title: 'Bagikan ayat', what: 'ayat' }
+          )
         return
       }
       if (actions[act]) actions[act]()

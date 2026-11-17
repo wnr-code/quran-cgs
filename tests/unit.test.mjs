@@ -515,8 +515,8 @@ test('cuplikan tautan: tag Open Graph/Twitter lengkap & gambar 1200×630', async
   assert.ok(readFileSync(new URL('../public/og-image.jpg', import.meta.url)).length < 300 * 1024, 'di bawah 300 KB (batas WhatsApp)')
 })
 
-test('bagikan doa: teks lengkap & tautan media sosial', async () => {
-  const { doaText, doaUrl, shareLinks } = await import('../src/utils/doa-share.js')
+test('bagikan: teks doa/konten, tautan kontekstual, dan URL media sosial', async () => {
+  const { doaText, doaUrl, shareContent, shareLinks } = await import('../src/utils/doa-share.js')
   const p = { title: 'Istighfar', ar: 'أَسْتَغْفِرُ اللهَ', latin: 'Astaghfirullāh', arti: 'Aku memohon ampun kepada Allah.', ref: 'NU Online', tab: 'salat' }
   assert.equal(doaText(p), 'Istighfar\n\nأَسْتَغْفِرُ اللهَ\n\nAstaghfirullāh\n\nArtinya: Aku memohon ampun kepada Allah.\n\n(NU Online)')
   assert.equal(doaText({ title: 'A', ar: 'ب', latin: '', arti: '', ref: '', tab: 'quran' }), 'A\n\nب')
@@ -528,6 +528,21 @@ test('bagikan doa: teks lengkap & tautan media sosial', async () => {
   assert.match(l.facebook, /sharer\.php\?u=https%3A/)
   const long = shareLinks({ ...p, ar: 'ا'.repeat(500) }, 'https://quran.cgs.my.id')
   assert.ok(decodeURIComponent(new URL(long.x).searchParams.get('text')).length <= 200)
+
+  const ayah = {
+    title: 'QS. Al-Fatihah 1:1',
+    text: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\n\nDengan nama Allah Yang Maha Pengasih.\n(QS. Al-Fatihah 1:1)',
+    url: 'https://quran.cgs.my.id/#/surah/1/1'
+  }
+  assert.equal(shareContent(ayah), ayah.text)
+  assert.equal(doaUrl(ayah, 'https://quran.cgs.my.id'), ayah.url)
+  const social = shareLinks(ayah, 'https://quran.cgs.my.id')
+  assert.ok(decodeURIComponent(social.whatsapp).includes(ayah.text))
+  assert.ok(decodeURIComponent(social.whatsapp).endsWith(ayah.url))
+  assert.match(social.telegram, /url=https%3A%2F%2Fquran\.cgs\.my\.id%2F%23%2Fsurah%2F1%2F1/)
+  assert.equal(new URL(social.facebook).searchParams.get('u'), ayah.url)
+  assert.equal(new URL(social.x).searchParams.get('url'), ayah.url)
+  assert.ok(new URL(social.x).searchParams.get('text').startsWith(ayah.title))
 })
 
 test('doa harian NU: per kategori, lengkap, tanpa duplikat', () => {
@@ -645,11 +660,11 @@ test('kebijakan privasi menjelaskan pelacak, lokasi, Web Push, dan data papan do
   assert.match(policy, /Web Push tidak menjanjikan alarm yang presisi/)
   assert.match(policy, /pesan\/ucapan bila dikirim/)
   assert.match(policy, /Catatan endpoint lama/)
-  assert.match(policy, /WhatsApp, Telegram, Facebook, dan X \(Twitter\)/)
+  assert.match(policy, /WhatsApp, Telegram, Facebook, X \(Twitter\), atau aplikasi tujuan lain/)
   assert.match(policy, /hitungan tasbih, bookmark, catatan, riwayat, dan progres tilawah/)
   assert.doesNotMatch(policy, /Kami tidak menyimpan alamat email maupun pesan dukungan Anda/)
   assert.match(about, /nama tampilan dan ucapan yang Anda kirim dapat ditampilkan/)
-  assert.match(about, /layanan yang dipilih menerima teks doa dan tautan QuranKu/)
+  assert.match(about, /layanan atau aplikasi yang dipilih menerima konten yang Anda pilih/)
 })
 
 test('bagikan: tautan Asmaul Husna memakai path', async () => {

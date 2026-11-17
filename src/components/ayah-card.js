@@ -1,13 +1,14 @@
 // Markup ayat (mode mushaf & mode fokus) serta lembar aksi ayat.
 import { icon } from './icons.js'
 import { openSheet } from './modal.js'
-import { esc, toast, copyText, shareText, reportShareResult } from '../utils/helpers.js'
+import { esc, toast, copyText } from '../utils/helpers.js'
 import { ayahMarker, ayahRef, qnum } from '../utils/arabic-numbers.js'
 import { isSajda, isPageStart, pageOf, juzOf } from '../utils/quran-meta.js'
 import { bookmarkRepo, noteRepo } from '../database/repositories.js'
 import { playAyah } from '../services/audio.js'
 import { APP } from '../config.js'
 import { highlightHtml } from '../services/highlight.js'
+import { openShare } from './share-sheet.js'
 
 const numHtml = (n) => `<span class="ayah-num" aria-label="Ayat ${n}">${ayahMarker(n)}</span>`
 const sajdaHtml = (s, a) => (isSajda(s, a) ? '<span class="sajda" title="Ayat sajdah">۩</span>' : '')
@@ -147,8 +148,10 @@ export async function openAyahSheet(surah, ayahNo, { onChange, onMarkLast } = {}
         } else if (act === 'copy') {
           toast((await copyText(ayahShareText(surah, a))) ? 'Ayat disalin' : 'Gagal menyalin')
         } else if (act === 'share') {
-          const r = await shareText(`QS. ${surah.namaLatin} ${ref}`, ayahShareText(surah, a), `${APP.origin}/#/surah/${n}/${ayahNo}`)
-          reportShareResult(r)
+          openShare(
+            { title: `QS. ${surah.namaLatin} ${ref}`, text: ayahShareText(surah, a), url: `${APP.origin}/#/surah/${n}/${ayahNo}` },
+            { title: 'Bagikan ayat', what: 'ayat' }
+          )
         } else if (act === 'last') {
           onMarkLast && onMarkLast(ayahNo)
           toast('Ditandai sebagai bacaan terakhir')

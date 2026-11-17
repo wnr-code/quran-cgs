@@ -1,16 +1,17 @@
-// Lembar "Bagikan" ke media sosial, dipakai halaman Doa dan Asmaul Husna.
+// Lembar seragam untuk membagikan doa, ayat, audio, dan konten lain ke media sosial.
 import { openSheet } from './modal.js'
 import { esc, copyText, toast, canShareText, openExternal, shareText, reportShareResult } from '../utils/helpers.js'
 import { APP } from '../config.js'
-import { doaText, doaUrl, shareLinks } from '../utils/doa-share.js'
+import { shareContent, shareUrl, shareLinks } from '../utils/doa-share.js'
 
 /** Ikon font (subset Font Awesome Free, lihat public/fonts). */
 export const fi = (name, brand) => `<i class="fi fi-${name}${brand ? ' fib' : ''}" aria-hidden="true"></i>`
 
-/** p: { title, ar, latin, arti, ref, tab | path } */
-export function openShare(p, { title = 'Bagikan doa', what = 'doa' } = {}) {
+/** p: { title, text, url } atau bentuk doa lama { title, ar, latin, arti, ref, tab | path }. */
+export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint } = {}) {
   const L = shareLinks(p, APP.origin)
-  const url = doaUrl(p, APP.origin)
+  const url = shareUrl(p, APP.origin)
+  const text = shareContent(p)
   const opt = (cls, href, ic, label) => `<a class="share-opt ${cls}" href="${esc(href)}" target="_blank" rel="noopener" data-net="${cls}"><span class="share-ic">${fi(ic, true)}</span>${label}</a>`
   openSheet({
     title,
@@ -23,7 +24,7 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa' } = {}) {
         ${canShareText() ? `<button type="button" class="share-opt" data-native><span class="share-ic">${fi('share')}</span>Aplikasi lain</button>` : ''}
         <button type="button" class="share-opt" data-copyshare><span class="share-ic">${fi('copy')}</span>Salin teks</button>
       </div>
-      <p class="hint">Yang dibagikan: judul, tulisan Arab, Latin, arti, dan tautan ke QuranKu. Facebook membagikan tautan; gunakan “Salin teks” terpisah bila ingin menempelkan isi bacaan.</p>`,
+      <p class="hint">${esc(hint || 'Pilih media sosial atau salin teks. Facebook membagikan tautan; media lain dapat menyertakan teks dan tautan ke QuranKu.')}</p>`,
     onOpen(el, close) {
       el.addEventListener('click', async (e) => {
         const social = e.target.closest('[data-net]')
@@ -35,11 +36,11 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa' } = {}) {
           return
         }
         if (e.target.closest('[data-copyshare]')) {
-          toast((await copyText(`${doaText(p)}\n\n${url}`)) ? `Teks ${what} disalin` : 'Gagal menyalin')
+          toast((await copyText(`${text}\n\n${url}`)) ? `Teks ${what} disalin` : 'Gagal menyalin')
           return close()
         }
         if (e.target.closest('[data-native]')) {
-          const pending = shareText(p.title, doaText(p), url)
+          const pending = shareText(p.title, text, url)
           close()
           reportShareResult(await pending)
         }

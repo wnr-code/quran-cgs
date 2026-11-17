@@ -10,11 +10,12 @@ import { formatHijri } from '../utils/hijri.js'
 import { formatGregorian, greeting, greetingIcon, formatClock } from '../utils/format.js'
 import { MUTIARA } from '../data/mutiara.js'
 import { qnum, ayahRef } from '../utils/arabic-numbers.js'
-import { $, esc, on, toast, copyText, shareText, reportShareResult } from '../utils/helpers.js'
+import { $, esc, on, toast, copyText } from '../utils/helpers.js'
 import { playAyah } from '../services/audio.js'
 import { ayahShareText } from '../components/ayah-card.js'
 import { rerender } from '../router.js'
 import { APP } from '../config.js'
+import { openShare } from '../components/share-sheet.js'
 import { installApp, shouldOfferInstall, installDismissed, dismissInstall } from '../services/install.js'
 
 const SHORTCUTS = [
@@ -187,9 +188,11 @@ export default async function home(root) {
           <button class="icon-btn sm" data-ayah-share aria-label="Bagikan ayat">${icon('share')}</button>
           <button class="btn sm" data-ayah-copy aria-label="Salin ayat dan tautan">${icon('copy')}Salin</button></span></div>`
       $('[data-ayah-play]', el).onclick = () => playAyah(surah, aNo)
-      $('[data-ayah-share]', el).onclick = async () => {
-        const r = await shareText(`QS. ${surah.namaLatin} ${ayahRef(sNo, aNo)}`, ayahShareText(surah, a), `${APP.origin}/#/surah/${sNo}/${aNo}`)
-        reportShareResult(r)
+      $('[data-ayah-share]', el).onclick = () => {
+        openShare(
+          { title: `QS. ${surah.namaLatin} ${ayahRef(sNo, aNo)}`, text: ayahShareText(surah, a), url: `${APP.origin}/#/surah/${sNo}/${aNo}` },
+          { title: 'Bagikan ayat', what: 'ayat' }
+        )
       }
       $('[data-ayah-copy]', el).onclick = async () => {
         const payload = `${ayahShareText(surah, a)}\n${APP.origin}/#/surah/${sNo}/${aNo}`
