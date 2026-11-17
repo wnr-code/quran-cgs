@@ -78,17 +78,10 @@ export default async function reader(root, { params, query, initial }) {
   const resume = (query.resume === '1' || initial) && !params.a && last && last.surah === n ? last : null
   let current = Math.min(total, Math.max(1, parseInt(params.a, 10) || (resume ? resume.ayah : 1)))
   let immersive = false
-  let barsHidden = false
-  let barScrollDirection = 0
-  let barScrollDistance = 0
-  const BAR_HIDE_SCROLL_DISTANCE = 40
-  const BAR_SHOW_SCROLL_DISTANCE = 24
   let fabOpen = false
-  let autoHideTimer = 0
   let settingsRestoreTimer = 0
   let audioDockHidden = false
   let pageMode = false
-  const pageScrollPositions = new WeakMap()
   let ayahEls = []
   let lastMarked = current
   let destroyed = false
@@ -131,7 +124,10 @@ export default async function reader(root, { params, query, initial }) {
     </div>
     <nav class="reader-float" aria-label="Kontrol baca">
       <div class="reader-fab-panel" id="reader-fab-panel" hidden>
-        <span class="reader-fab-caption">Tampilan &amp; fitur baca</span>
+        <div class="reader-fab-panel-head">
+          <span class="reader-fab-caption">Tampilan &amp; fitur baca</span>
+          <button type="button" class="reader-fab-close" data-act="fab-toggle" aria-controls="reader-fab-panel" aria-label="Tutup panel kontrol baca">${icon('close')}</button>
+        </div>
         <div class="rd-tabs" role="tablist" aria-label="Mode baca">
           <button type="button" id="reader-mode-focus" role="tab" aria-controls="reader-mode-panel" data-mode="focus">${icon('list')}<span>Terjemahan</span></button>
           <button type="button" id="reader-mode-continuous" role="tab" aria-controls="reader-mode-panel" data-mode="continuous">${icon('flow')}<span>Mushaf</span></button>
@@ -180,7 +176,7 @@ export default async function reader(root, { params, query, initial }) {
   const elFabNext = $('.reader-fab-panel [data-act="next"]', readerEl)
   const elFabBookmark = $('.reader-fab-panel [data-act="bookmark"]', readerEl)
 
-  const threshold = () => (barsHidden ? 0 : topBar.offsetHeight) + 28
+  const threshold = () => topBar.offsetHeight + 28
   const scrollBehavior = (smooth) => (smooth && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'instant')
   const elOf = (a) => ayahEls[a - 1]
   const modeNow = () => {
@@ -210,42 +206,6 @@ export default async function reader(root, { params, query, initial }) {
     elFabNext.innerHTML = `${icon(pageMode ? 'back' : 'down')}<span>${pageMode ? 'Halaman berikutnya' : 'Ayat berikutnya'}</span>`
   }
 
-  function scheduleBarsHide(delay = 3000) {
-    clearTimeout(autoHideTimer)
-    if (barsHidden || fabOpen) return
-    autoHideTimer = setTimeout(() => {
-      if (document.body.classList.contains('sheet-open')) return scheduleBarsHide(1000)
-      setBars(true)
-    }, delay)
-  }
-
-  function updateBarsFromScroll(delta, absoluteY = null) {
-    if (!delta) return
-    const direction = Math.sign(delta)
-    if (direction !== barScrollDirection) {
-      barScrollDirection = direction
-      barScrollDistance = 0
-    }
-    barScrollDistance += Math.abs(delta)
-    if (!barsHidden && direction > 0 && (absoluteY == null || absoluteY > 120) && barScrollDistance >= BAR_HIDE_SCROLL_DISTANCE) setBars(true)
-    else if (barsHidden && direction < 0 && barScrollDistance >= BAR_SHOW_SCROLL_DISTANCE) setBars(false)
-  }
-
-  function setBars(hidden) {
-    clearTimeout(autoHideTimer)
-    if (barsHidden === hidden) {
-      if (!hidden && !fabOpen) scheduleBarsHide()
-      return
-    }
-    barsHidden = hidden
-    barScrollDirection = 0
-    barScrollDistance = 0
-    readerEl.classList.toggle('bars-hidden', hidden)
-    document.body.classList.toggle('reader-bars-hidden', hidden)
-    if (hidden) setFabMenu(false)
-    else if (!fabOpen) scheduleBarsHide()
-  }
-
   function setFabMenu(open) {
     if (!open && fabOpen && fabPanel.contains(document.activeElement)) fabToggle.focus()
     fabOpen = open
@@ -254,14 +214,6 @@ export default async function reader(root, { params, query, initial }) {
     fabToggle.setAttribute('aria-label', open ? 'Tutup menu baca' : 'Buka menu baca')
     fabToggle.innerHTML = icon(open ? 'close' : 'more')
     readerEl.classList.toggle('fab-open', open)
-    if (open) {
-      clearTimeout(autoHideTimer)
-      if (barsHidden) {
-        barsHidden = false
-        readerEl.classList.remove('bars-hidden')
-        document.body.classList.remove('reader-bars-hidden')
-      }
-    } else scheduleBarsHide()
   }
 
   function setAudioDockHidden(hidden) {
@@ -383,20 +335,9 @@ export default async function reader(root, { params, query, initial }) {
   window.addEventListener('wheel', onMove, { passive: true, once: true })
   window.addEventListener('touchmove', onMove, { passive: true, once: true })
 
-  let lastY = window.scrollY
-  const onScroll = throttle((e) => {
+  const onScroll = throttle(() => {
     if (destroyed || !ready) return
     const y = window.scrollY
-    const target = e && e.target
-    if (!document.body.classList.contains('sheet-open') && !fabOpen) {
-      if (pageMode && target && target.classList && target.classList.contains('mpage-body')) {
-        const previous = pageScrollPositions.get(target) || 0
-        updateBarsFromScroll(target.scrollTop - previous)
-        pageScrollPositions.set(target, target.scrollTop)
-      } else if (pageMode && target === content) scheduleBarsHide()
-      else updateBarsFromScroll(y - lastY, y)
-    }
-    lastY = y
     const c = findCurrent()
     const atEnd = pageMode ? pageIdx() === pageEls.length - 1 : window.innerHeight + y >= document.documentElement.scrollHeight - 40
     if (c !== current) {
@@ -421,7 +362,6 @@ export default async function reader(root, { params, query, initial }) {
       b.innerHTML = `${icon(v ? 'shrink' : 'expand')}<span>${v ? 'Keluar mode membaca' : 'Mode membaca'}</span>`
     })
     $$('[data-immersive-label]', readerEl).forEach((label) => { label.textContent = v ? 'Keluar mode membaca' : 'Mode membaca' })
-    setBars(false)
     if (v) {
       let fs = false
       // PWA terpasang dan Capacitor sudah tampil tanpa UI browser; Fullscreen API hanya dicoba di tab browser.
@@ -431,9 +371,8 @@ export default async function reader(root, { params, query, initial }) {
           fs = true
         } catch {}
       }
-      toast(fs ? 'Mode membaca layar penuh aktif. Sentuh tepi layar untuk menampilkan kontrol.' : isStandalone() ? 'Mode membaca aktif. Sentuh tepi layar untuk menampilkan kontrol.' : 'Mode membaca aktif (layar penuh sistem tidak tersedia di browser ini).', 3200)
+      toast(fs ? 'Mode membaca layar penuh aktif. Panel kontrol tidak hilang otomatis.' : isStandalone() ? 'Mode membaca aktif. Panel kontrol tidak hilang otomatis.' : 'Mode membaca aktif (layar penuh sistem tidak tersedia). Panel kontrol tidak hilang otomatis.', 3200)
     } else {
-      setBars(false)
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
     }
     requestAnimationFrame(() => scrollToAyah(current))
@@ -626,12 +565,7 @@ export default async function reader(root, { params, query, initial }) {
     // Mode mushaf/halaman: menyentuh teks TIDAK membuka apa pun agar bacaan tidak terganggu.
     // Terjemahan & aksi ayat hanya dibuka lewat nomor ayat (seperti quran.com).
     const num = e.target.closest('.mushaf-flow .ayah-num, .mushaf-pages .ayah-num')
-    if (num) {
-      openAyahSheet(surah, +num.closest('.ayah').dataset.a, sheetOpts)
-      return
-    }
-    // Sentuh area kosong untuk menampilkan atau menyembunyikan bilah atas.
-    setBars(!barsHidden)
+    if (num) openAyahSheet(surah, +num.closest('.ayah').dataset.a, sheetOpts)
   }
   const onTabKeydown = (e) => {
     const currentTab = e.target.closest('[role="tab"]')
@@ -675,7 +609,6 @@ export default async function reader(root, { params, query, initial }) {
   }), on('audio:state', highlightPlaying)]
 
   renderContent()
-  scheduleBarsHide()
   // Tekan lama lalu geser untuk memilih teks → menu kecil (Salin, Tandai, Bookmark, Bagikan, Lainnya).
   const offSelection = initSelectionMenu(content, { surah, onBookmark: (a) => toggleBookmark(a), onMore: (a) => openAyahSheet(surah, a, sheetOpts) })
   updateInfo()
@@ -699,7 +632,6 @@ export default async function reader(root, { params, query, initial }) {
   return () => {
     persist()
     destroyed = true
-    clearTimeout(autoHideTimer)
     clearTimeout(settingsRestoreTimer)
     readerEl.removeEventListener('click', onClick)
     tablist.removeEventListener('keydown', onTabKeydown)
@@ -710,7 +642,7 @@ export default async function reader(root, { params, query, initial }) {
     window.removeEventListener('pagehide', onHide)
     offAudio.forEach((f) => f())
     offSelection()
-    document.body.classList.remove('reading-mode', 'reader-paged', 'reader-bars-hidden')
+    document.body.classList.remove('reading-mode', 'reader-paged')
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
   }
 }
