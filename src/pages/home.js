@@ -199,11 +199,13 @@ export default async function home(root) {
             what: 'ayat',
             image: {
               filename: `quranku-ayat-${sNo}-${aNo}.png`,
-              create: () => createAyahImage({
+              create: ({ theme, format }) => createAyahImage({
                 arabic: a.teksArab,
                 translation: a.teksIndonesia || 'Terjemahan tidak tersedia.',
                 reference: ref,
-                sourceUrl: url
+                sourceUrl: url,
+                theme,
+                format
               })
             }
           }

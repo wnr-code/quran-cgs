@@ -139,7 +139,7 @@ function blobToBase64(blob) {
   })
 }
 
-/** Bagikan PNG melalui Web Share/Capacitor; jika berkas tidak didukung, unduh PNG sebagai fallback. */
+/** Bagikan PNG/JPG melalui Web Share/Capacitor; jika berkas tidak didukung, unduh gambar sebagai fallback. */
 export async function shareImage(blob, { filename = 'quranku-ayat.png', title = 'Bagikan ayat', text = '' } = {}) {
   if (!blob || typeof blob.size !== 'number' || blob.size === 0) return 'failed'
   const safeName = String(filename).replace(/[^a-zA-Z0-9._-]/g, '-')
