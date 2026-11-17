@@ -13,6 +13,9 @@
   --rd-width: 760px;
   --rd-margin: 20px;
   --rd-tr: 18px;
+  --rd-frame: color-mix(in srgb, var(--rd-accent) 44%, #c98980);
+  --rd-frame-line: color-mix(in srgb, var(--rd-frame) 56%, var(--rd-line));
+  --rd-frame-wash: color-mix(in srgb, var(--rd-frame) 6%, var(--rd-bg));
   --page-rosette: polygon(50% 0%, 62% 12%, 82% 8%, 88% 28%, 100% 50%, 88% 72%, 82% 92%, 62% 88%, 50% 100%, 38% 88%, 18% 92%, 12% 72%, 0% 50%, 12% 28%, 18% 8%, 38% 12%);
   --juz-shield: polygon(50% 0%, 88% 10%, 96% 19%, 92% 70%, 50% 100%, 8% 70%, 4% 19%, 12% 10%);
   --bar-h: 54px;
@@ -83,7 +86,6 @@
   padding: var(--safe-t) 6px 0;
   border-bottom: 1px solid var(--rd-line);
   gap: 0;
-  transition: opacity 0.18s ease, visibility 0s linear;
 }
 .rd-title {
   flex: 1;
@@ -206,14 +208,6 @@
   /* ruang agar harakat baris pertama/terakhir tidak terpotong */
   padding-block: 0.35em;
   overflow-wrap: break-word;
-}
-.reader[data-preset='classic'] .mushaf-flow {
-  border: 1.5px solid var(--rd-accent);
-  outline: 1px solid var(--rd-accent);
-  outline-offset: 4px;
-  border-radius: 6px;
-  padding: 0.5em 0.7em;
-  margin-inline: 5px;
 }
 .mushaf-flow .ayah {
   border-radius: 8px;
@@ -1127,13 +1121,31 @@ mark.hl {
   animation: reader-fab-in 0.16s ease-out;
 }
 .reader-fab-panel[hidden] { display: none; }
+.reader-fab-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 1px 8px;
+}
 .reader-fab-caption {
-  display: block;
-  margin: 0 4px 8px;
+  margin: 0 3px;
   color: var(--rd-muted);
   font-size: 0.75rem;
   font-weight: 650;
 }
+.reader-fab-close {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--rd-line);
+  border-radius: 10px;
+  color: var(--rd-accent);
+  background: color-mix(in srgb, var(--rd-frame, var(--rd-accent)) 8%, var(--rd-bg));
+}
+.reader-fab-close .icon { width: 16px; height: 16px; }
 .reader-fab-panel .rd-tabs { margin: 0 0 10px; max-width: none; }
 .reader-fab-panel .rd-tabs button {
   min-width: 0;
@@ -1177,30 +1189,13 @@ mark.hl {
   border-color: var(--rd-accent);
   background: color-mix(in srgb, var(--rd-accent) 11%, transparent);
 }
-/* Fade the fixed header in place; translating it used to make the reading area feel like it jumped. */
-.reader.bars-hidden .rd-top {
-  opacity: 0;
-  pointer-events: none;
-  visibility: hidden;
-  transition: opacity 0.18s ease, visibility 0s linear 0.18s;
-}
-body.reader-bars-hidden .navbar {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-}
-body:not(.reader-bars-hidden) .navbar { transition: opacity 0.2s; }
-body.reader-bars-hidden .reader-float { transform: translateY(0); }
-.reader.bars-hidden.mode-page .rd-wrap {
-  padding-top: calc(var(--safe-t) + 6px);
-}
 body.reading-mode .reader-float { bottom: calc(var(--safe-b, 0px) + 14px); }
 .reader-float .reader-fab-panel {
   max-height: min(68dvh, 520px);
   overflow-y: auto;
 }
 @keyframes reader-fab-in {
-  from { opacity: 0; transform: translateY(5px) scale(0.98); }
+  from { opacity: 0; }
 }
 
 /* Tajwid annotations from the licensed Hafs dataset; mappings are validated per ayah. */

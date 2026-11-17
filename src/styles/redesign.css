@@ -1702,3 +1702,73 @@ body.reading-mode .reader.mode-page .rd-wrap {
     transition: none;
   }
 }
+
+/* Bingkai mushaf rose-gold yang tipis: ornamen kecil, kontras lembut pada tema terang maupun gelap. */
+.reader .mushaf {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--rd-frame-line);
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--rd-frame) 5%, transparent), transparent 60%),
+    var(--rd-frame-wash);
+  box-shadow:
+    inset 0 0 0 3px color-mix(in srgb, var(--rd-frame) 5%, transparent),
+    0 6px 18px color-mix(in srgb, var(--rd-frame) 5%, transparent);
+}
+.reader .mushaf-flow {
+  padding: 0.85em clamp(12px, 3vw, 26px);
+}
+.reader .mushaf-focus {
+  padding: 26px clamp(12px, 3vw, 20px) 12px;
+}
+.reader .mushaf-flow::before,
+.reader .mushaf-flow::after,
+.reader .mushaf-focus::before,
+.reader .mushaf-focus::after {
+  content: '۞';
+  position: absolute;
+  z-index: 1;
+  top: 7px;
+  color: var(--rd-frame);
+  font-family: var(--font-ar);
+  font-size: 0.76rem;
+  line-height: 1;
+  opacity: 0.68;
+  pointer-events: none;
+}
+.reader .mushaf-flow::before,
+.reader .mushaf-focus::before { inset-inline-start: 10px; }
+.reader .mushaf-flow::after,
+.reader .mushaf-focus::after { inset-inline-end: 10px; }
+.reader .surah-frame {
+  border-color: color-mix(in srgb, var(--rd-frame) 70%, transparent);
+  outline-color: color-mix(in srgb, var(--rd-frame) 45%, transparent);
+  background-image: var(--ornament), radial-gradient(ellipse at center, color-mix(in srgb, var(--rd-frame) 9%, transparent), transparent 72%);
+  box-shadow:
+    inset 0 0 0 4px color-mix(in srgb, var(--rd-frame) 6%, transparent),
+    inset 0 0 0 6px color-mix(in srgb, var(--rd-frame) 10%, transparent);
+}
+.reader .surah-frame::before,
+.reader .surah-frame::after,
+.reader .mpage-title::before,
+.reader .mpage-title::after {
+  color: var(--rd-frame);
+}
+.reader .mpage-title {
+  border-color: color-mix(in srgb, var(--rd-frame) 72%, transparent);
+  background-image: var(--ornament), radial-gradient(ellipse at center, color-mix(in srgb, var(--rd-frame) 10%, transparent), transparent 75%);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--rd-frame) 7%, transparent);
+}
+.reader .basmalah-cartouche {
+  border-color: color-mix(in srgb, var(--rd-frame) 72%, transparent);
+  outline-color: color-mix(in srgb, var(--rd-frame) 40%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--rd-frame) 8%, var(--rd-bg)), color-mix(in srgb, var(--rd-bg) 96%, transparent));
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--rd-frame) 8%, transparent),
+    0 3px 12px color-mix(in srgb, var(--rd-frame) 8%, transparent);
+}
+.reader .basmalah-cartouche::before,
+.reader .basmalah-cartouche::after {
+  border-color: color-mix(in srgb, var(--rd-frame) 86%, transparent);
+}

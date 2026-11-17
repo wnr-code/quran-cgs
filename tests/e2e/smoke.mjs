@@ -208,26 +208,28 @@ await step('Ayah Focus Mode + Dark Reading + ukuran font', async () => {
   await page.waitForSelector('.mushaf-flow .ayah')
   assert.equal(await page.$eval('.mushaf-flow .ayah-text', (e) => getComputedStyle(e).fontSize), '56px')
 })
-await step('Bilah tersembunyi tidak menggeser halaman mushaf', async () => {
+await step('Kontrol tidak auto-hide, panel dapat ditutup, dan mushaf berbingkai', async () => {
+  await readerMode('continuous')
+  await page.waitForSelector('.mushaf-flow')
+  await page.evaluate(() => window.scrollTo({ top: 240, behavior: 'instant' }))
+  await new Promise((r) => setTimeout(r, 3200))
+  assert.equal(await page.$eval('.reader', (el) => el.classList.contains('bars-hidden')), false)
+  assert.equal(await page.$eval('.rd-top', (el) => getComputedStyle(el).visibility), 'visible')
+  assert.equal(await page.$eval('.rd-top', (el) => getComputedStyle(el).opacity), '1')
+  const flowFrame = await page.$eval('.mushaf-flow', (el) => ({
+    border: getComputedStyle(el).borderTopWidth,
+    ornament: getComputedStyle(el, '::before').content
+  }))
+  assert.equal(flowFrame.border, '1px')
+  assert.match(flowFrame.ornament, /۞/)
+  await openReaderMenu()
+  assert.equal(await page.$eval('.reader-fab-panel', (el) => el.hidden), false)
+  await page.click('.reader-fab-close')
+  await page.waitForFunction(() => document.querySelector('.reader-fab-panel')?.hidden)
   await readerMode('page')
-  await page.waitForSelector('.mushaf-pages .mpage')
-  const before = await page.$eval('.reader.mode-page .mushaf-pages', (el) => el.getBoundingClientRect().top)
-  await page.evaluate(() => {
-    document.querySelector('.reader').classList.add('bars-hidden')
-    document.body.classList.add('reader-bars-hidden')
-  })
-  await new Promise((r) => setTimeout(r, 240))
-  const hidden = await page.$eval('.reader.mode-page .mushaf-pages', (el) => el.getBoundingClientRect().top)
-  assert.ok(Math.abs(hidden - before) < 1, 'mushaf tidak berpindah saat bilah disembunyikan')
-  assert.equal(await page.$eval('.reader.bars-hidden .rd-top', (el) => getComputedStyle(el).transform), 'none')
-  assert.equal(await page.$eval('.reader.bars-hidden .rd-top', (el) => getComputedStyle(el).opacity), '0')
-  await page.evaluate(() => {
-    document.querySelector('.reader').classList.remove('bars-hidden')
-    document.body.classList.remove('reader-bars-hidden')
-  })
-  await new Promise((r) => setTimeout(r, 240))
-  const shown = await page.$eval('.reader.mode-page .mushaf-pages', (el) => el.getBoundingClientRect().top)
-  assert.ok(Math.abs(shown - before) < 1, 'mushaf tetap pada posisi yang sama saat bilah muncul')
+  assert.equal(await page.$eval('.mushaf-pages', (el) => getComputedStyle(el).borderTopWidth), '1px')
+  await readerMode('focus')
+  assert.equal(await page.$eval('.mushaf-focus', (el) => getComputedStyle(el).borderTopWidth), '1px')
   await readerMode('continuous')
 })
 await step('Lembar ayat: tafsir dan catatan tersedia tanpa meninggalkan bacaan', async () => {
