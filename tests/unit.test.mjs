@@ -7,7 +7,7 @@ import { qiblaBearing, distanceToKaaba } from '../src/services/qibla.js'
 import { stripBasmalah } from '../src/api/alqurancloud.js'
 import { mapDetail, mapSummary } from '../src/api/equran.js'
 import { esc, stripHtml, shareText, shareImage } from '../src/utils/helpers.js'
-import { createAyahImage, wrapCanvasText } from '../src/utils/ayah-image.js'
+import { createAyahImage, wrapCanvasText, AYAH_IMAGE_THEMES } from '../src/utils/ayah-image.js'
 import { toHijri } from '../src/utils/hijri.js'
 import { mapLocalDetail } from '../src/api/local-data.js'
 import { SOURCES } from '../src/data/sources.js'
@@ -18,6 +18,7 @@ import { periodStarts } from '../functions/api/donors.js'
 import { parseDonation, onRequestPost } from '../functions/api/trakteer-webhook.js'
 import { createRequire } from 'node:module'
 const meta = createRequire(import.meta.url)('../src/data/quran-meta.json')
+const quranImageFixtures = createRequire(import.meta.url)('quran-json/dist/quran_id.json')
 
 test('angka Arab-Indic', () => {
   assert.equal(toArabicIndic(1), '١')
@@ -183,6 +184,27 @@ test('berbagi PNG: kirim File lewat Web Share API', async () => {
   }
 })
 
+test('berbagi JPG: pertahankan MIME type dan ekstensi saat berbagi', async () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+  const calls = []
+  Object.defineProperty(globalThis, 'navigator', {
+    configurable: true,
+    value: {
+      canShare: ({ files }) => files.length === 1 && files[0].type === 'image/jpeg',
+      share: async (payload) => calls.push(payload)
+    }
+  })
+  try {
+    const jpg = new Blob(['jpg'], { type: 'image/jpeg' })
+    assert.equal(await shareImage(jpg, { filename: 'quranku-ayat-112-1.jpg' }), 'shared')
+    assert.equal(calls[0].files[0].type, 'image/jpeg')
+    assert.equal(calls[0].files[0].name, 'quranku-ayat-112-1.jpg')
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'navigator', previous)
+    else delete globalThis.navigator
+  }
+})
+
 test('berbagi PNG: pembatalan tidak memicu unduhan', async () => {
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
   Object.defineProperty(globalThis, 'navigator', {
@@ -230,56 +252,129 @@ test('bungkus teks gambar tanpa memotong isi', () => {
   assert.deepEqual(wrapCanvasText(ctx, '   ', 12), [])
 })
 
-test('gambar ayat berisi teks Arab, terjemahan, rujukan, merek & tautan sumber', async () => {
-  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
-  const drawn = []
-  let canvas
+function makeAyahCanvasHarness() {
+  const canvases = []
+  const contexts = []
   let brandImage
-  const drawnLogos = []
   const gradient = { addColorStop() {} }
-  const ctx = {
-    measureText: (text) => ({ width: [...text].length * 10 }),
-    createLinearGradient: () => gradient,
-    beginPath() {}, moveTo() {}, lineTo() {}, quadraticCurveTo() {}, closePath() {},
-    fill() {}, stroke() {}, fillRect() {}, strokeRect() {}, save() {}, translate() {}, rotate() {}, restore() {},
-    drawImage: (...args) => drawnLogos.push(args),
-    fillText: (text) => drawn.push(text)
-  }
-  Object.defineProperty(globalThis, 'document', {
-    configurable: true,
-    value: {
-      baseURI: 'https://quran.cgs.my.id/',
-      fonts: { load: async () => [] },
-      createElement: (tag) => {
-        if (tag === 'img') {
-          brandImage = { naturalWidth: 192, src: '', decode: async () => {} }
-          return brandImage
-        }
-        canvas = { getContext: () => ctx, toBlob: (callback, type) => callback(new Blob(['png'], { type })) }
-        return canvas
+  const doc = {
+    baseURI: 'https://quran.cgs.my.id/',
+    fonts: { load: async () => [] },
+    createElement(tag) {
+      if (tag === 'img') {
+        brandImage = { naturalWidth: 192, src: '', decode: async () => {} }
+        return brandImage
       }
+      const canvas = { width: 0, height: 0 }
+      const ctx = {
+        font: '10px sans-serif', fillStyle: '#000', direction: 'ltr', operations: [], texts: [], images: [],
+        measureText(text) {
+          const size = Number.parseFloat(this.font) || 10
+          const factor = /Amiri|Scheherazade/.test(this.font) ? 0.42 : 0.52
+          return { width: [...String(text)].length * size * factor }
+        },
+        createLinearGradient: () => gradient,
+        scale() {}, beginPath() {}, moveTo() {}, lineTo() {}, quadraticCurveTo() {}, closePath() {},
+        fill() {}, stroke() {}, strokeRect() {}, save() {}, translate() {}, rotate() {}, restore() {}, arc() {},
+        fillRect(x, y, width, height) {
+          this.operations.push({ kind: 'fillRect', x, y, width, height, fillStyle: this.fillStyle, composite: this.globalCompositeOperation })
+        },
+        drawImage(...args) { this.images.push(args); this.operations.push({ kind: 'drawImage', args }) },
+        fillText(text, x, y) { this.texts.push({ text, x, y, font: this.font, color: this.fillStyle }) }
+      }
+      canvas.getContext = (type, options) => {
+        ctx.contextOptions = options
+        return ctx
+      }
+      canvas.toBlob = (callback, type, quality) => {
+        canvas.requestedType = type
+        canvas.requestedQuality = quality
+        callback(new Blob(['rendered-image'], { type }))
+      }
+      canvases.push(canvas)
+      contexts.push(ctx)
+      return canvas
     }
-  })
+  }
+  return { doc, canvases, contexts, getBrandImage: () => brandImage }
+}
+
+test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 720×1280', async () => {
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
+  const setDocument = (value) => Object.defineProperty(globalThis, 'document', { configurable: true, value })
+  const cases = [
+    { label: 'pendek', surah: 112, ayah: 1 },
+    { label: 'sedang', surah: 13, ayah: 28 },
+    { label: 'panjang', surah: 2, ayah: 282 }
+  ]
+  const arabicSizes = []
   try {
-    const arabic = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
-    const translation = 'Dengan nama Allah Yang Maha Pengasih lagi Maha Penyayang.'
-    const png = await createAyahImage({
-      arabic,
-      translation,
-      reference: 'QS. Al-Fatihah 1:1',
-      sourceUrl: 'https://quran.cgs.my.id/#/surah/1/1'
+    for (const sample of cases) {
+      const surah = quranImageFixtures[sample.surah - 1]
+      const verse = surah.verses[sample.ayah - 1]
+      const harness = makeAyahCanvasHarness()
+      setDocument(harness.doc)
+      const png = await createAyahImage({
+        arabic: verse.text,
+        translation: verse.translation,
+        reference: `QS. ${surah.transliteration} ${sample.surah}:${sample.ayah}`,
+        sourceUrl: `https://quran.cgs.my.id/#/surah/${sample.surah}/${sample.ayah}`
+      })
+      const [renderCanvas, exportCanvas] = harness.canvases
+      const [renderCtx, exportCtx] = harness.contexts
+      const palette = AYAH_IMAGE_THEMES[0].colors
+      const arabicRows = renderCtx.texts.filter((row) => row.color === palette.arabic)
+      const translationRows = renderCtx.texts.filter((row) => row.color === palette.translation)
+      const fullText = renderCtx.texts.map((row) => row.text).join(' ')
+      const backgroundFill = exportCtx.operations.find((op) => op.kind === 'fillRect' && op.x === 0 && op.y === 0 && op.width === 720 && op.height === 1280)
+      const compositeIndex = exportCtx.operations.findIndex((op) => op.kind === 'drawImage')
+      const backgroundIndex = exportCtx.operations.findIndex((op) => op.kind === 'fillRect' && op.x === 0 && op.y === 0 && op.width === 720 && op.height === 1280)
+      const logo = renderCtx.images.find((args) => args[0] === harness.getBrandImage())
+
+      assert.equal(png.type, 'image/png', `${sample.label}: PNG`)
+      assert.deepEqual([exportCanvas.width, exportCanvas.height], [720, 1280], `${sample.label}: ukuran Status WhatsApp 9:16`)
+      assert.deepEqual([renderCanvas.width, renderCanvas.height], [1440, 2560], `${sample.label}: render 2× untuk ketajaman`)
+      assert.equal(renderCtx.contextOptions.alpha, false)
+      assert.equal(exportCtx.contextOptions.alpha, false)
+      assert.equal(backgroundFill.fillStyle, palette.backgroundStart, `${sample.label}: kanvas akhir selalu punya latar penuh`)
+      assert.ok(backgroundIndex >= 0 && compositeIndex > backgroundIndex, `${sample.label}: latar digambar sebelum artwork diratakan`)
+      assert.equal(arabicRows.map((row) => row.text).join(' '), verse.text, `${sample.label}: seluruh tulisan Arab terjaga`)
+      assert.match(arabicRows[0].font, /Amiri Quran|Scheherazade New/, `${sample.label}: font Arab tersetel`)
+      assert.equal(translationRows.map((row) => row.text).join(' '), verse.translation, `${sample.label}: seluruh terjemahan terjaga`)
+      assert.ok(arabicRows.every((row) => row.y < 1120) && translationRows.every((row) => row.y < 1120), `${sample.label}: teks tidak menabrak footer`)
+      assert.ok(logo && logo[1] < 360 && logo[2] > 1100, `${sample.label}: logo di kiri bawah, terpisah dari ayat`)
+      assert.ok(fullText.includes(`QS. ${surah.transliteration} ${sample.surah}:${sample.ayah}`))
+      assert.ok(fullText.includes(`quran.cgs.my.id/#/surah/${sample.surah}/${sample.ayah}`))
+      assert.ok(fullText.includes('QuranKu'))
+      arabicSizes.push(Number.parseFloat(arabicRows[0].font))
+    }
+    assert.ok(arabicSizes[2] < arabicSizes[0], 'ayat panjang mengecil secara proporsional; ayat pendek tetap besar')
+  } finally {
+    if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
+    else delete globalThis.document
+  }
+})
+
+test('gambar JPG: tema terpilih, latar tetap opak, dan resolusi konsisten', async () => {
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
+  const harness = makeAyahCanvasHarness()
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: harness.doc })
+  try {
+    const short = quranImageFixtures[111].verses[0]
+    const jpg = await createAyahImage({
+      arabic: short.text,
+      translation: short.translation,
+      reference: 'QS. Al-Ikhlas 112:1',
+      sourceUrl: 'https://quran.cgs.my.id/#/surah/112/1',
+      theme: 'malam',
+      format: 'jpg'
     })
-    assert.equal(png.type, 'image/png')
-    assert.equal(canvas.width, 1080)
-    assert.equal(canvas.height, 1920, 'PNG berukuran Status WhatsApp 9:16')
-    assert.ok(brandImage.src.endsWith('/icons/icon-192-v2.png'))
-    assert.equal(drawnLogos.length, 1)
-    assert.ok(drawnLogos[0][1] < canvas.width / 2 && drawnLogos[0][2] > 1600, 'logo QuranKu berada di kiri bawah')
-    assert.equal(drawn.filter((line) => /[\u0600-\u06ff]/u.test(line)).join(' '), arabic)
-    assert.ok(drawn.includes(translation))
-    assert.ok(drawn.includes('QS. Al-Fatihah 1:1'))
-    assert.ok(drawn.includes('QuranKu'))
-    assert.ok(drawn.includes('quran.cgs.my.id/#/surah/1/1'))
+    assert.equal(jpg.type, 'image/jpeg')
+    assert.equal(harness.canvases[1].requestedType, 'image/jpeg')
+    assert.equal(harness.canvases[1].requestedQuality, 0.94)
+    assert.deepEqual([harness.canvases[1].width, harness.canvases[1].height], [720, 1280])
+    const bg = harness.contexts[1].operations.find((op) => op.kind === 'fillRect' && op.x === 0 && op.y === 0 && op.width === 720 && op.height === 1280)
+    assert.equal(bg.fillStyle, AYAH_IMAGE_THEMES.find((item) => item.id === 'malam').colors.backgroundStart)
   } finally {
     if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
     else delete globalThis.document

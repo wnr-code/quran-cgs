@@ -439,25 +439,48 @@ await step('Ayat pilihan: bagikan sebagai teks atau PNG; salin adalah tindakan t
   assert.ok((await page.evaluate(() => window.__copied)).includes('quran.cgs.my.id/#/surah/'))
 
   await page.$eval('[data-ayah-share]', (b) => b.click())
-  await page.waitForSelector('.sheet-wrap.open [data-image-share]')
+  await page.waitForSelector('.sheet-wrap.open [data-image-create]')
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 3)
+  await page.$eval('.sheet-wrap.open [data-image-create]', (b) => b.click())
+  await page.waitForFunction(() => {
+    const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
+    return image && image.complete && image.naturalWidth === 720 && !document.querySelector('.sheet-wrap.open [data-image-preview-wrap]').hidden
+  })
+  const previewDimensions = await page.$eval('.sheet-wrap.open [data-image-preview]', (image) => [image.naturalWidth, image.naturalHeight])
+  assert.deepEqual(previewDimensions, [720, 1280], 'pratinjau memakai desain 9:16 yang sama dengan hasil ekspor')
+  await page.evaluate(async () => {
+    const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
+    const blob = await (await fetch(image.src)).blob()
+    const digest = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer())
+    window.__previewImageFingerprint = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
+  })
   await page.$eval('.sheet-wrap.open [data-image-share]', (b) => b.click())
-  await page.waitForFunction(() => window.__shareCalls.some((payload) => payload.files?.length) || document.querySelector('.sheet-wrap.open [data-image-share]')?.dataset.imageReady === 'true')
-  if (!(await page.evaluate(() => window.__shareCalls.some((payload) => payload.files?.length)))) {
-    await page.$eval('.sheet-wrap.open [data-image-share]', (b) => b.click())
-  }
   await page.waitForFunction(() => window.__shareCalls.some((payload) => payload.files?.length))
   const imageShare = await page.evaluate(() => window.__shareCalls.find((payload) => payload.files?.length))
   assert.equal(imageShare.files[0].type, 'image/png')
   assert.match(imageShare.files[0].name, /^quranku-ayat-\d+-\d+\.png$/)
   assert.ok(imageShare.files[0].size > 1000, 'berkas gambar PNG berisi hasil render canvas')
-  const imageDimensions = await page.evaluate(async () => {
+  const imageInspection = await page.evaluate(async () => {
     const file = window.__shareCalls.find((payload) => payload.files?.length).files[0]
+    const fileDigest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
+    const fileFingerprint = [...new Uint8Array(fileDigest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
     const bitmap = await createImageBitmap(file)
-    const size = { width: bitmap.width, height: bitmap.height }
+    const canvas = document.createElement('canvas')
+    canvas.width = bitmap.width
+    canvas.height = bitmap.height
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
+    ctx.drawImage(bitmap, 0, 0)
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data
+    let transparentPixels = 0
+    for (let alpha = 3; alpha < pixels.length; alpha += 4) if (pixels[alpha] !== 255) transparentPixels++
+    const result = { width: bitmap.width, height: bitmap.height, transparentPixels, topLeft: [...pixels.slice(0, 4)], fingerprint: fileFingerprint }
     bitmap.close()
-    return size
+    return result
   })
-  assert.deepEqual(imageDimensions, { width: 1080, height: 1920 }, 'format vertikal Status WhatsApp 9:16')
+  assert.deepEqual([imageInspection.width, imageInspection.height], [720, 1280], 'format vertikal Status WhatsApp 9:16')
+  assert.equal(imageInspection.transparentPixels, 0, 'latar PNG hasil berbagi terisi penuh dan tidak transparan')
+  assert.ok(imageInspection.topLeft[3] === 255, 'piksel sudut memiliki latar yang nyata')
+  assert.equal(imageInspection.fingerprint, await page.evaluate(() => window.__previewImageFingerprint), 'berkas berbagi identik dengan pratinjau')
   assert.ok(imageShare.text.includes('quran.cgs.my.id/#/surah/'))
 
   await page.$eval('[data-ayah-next]', (b) => b.click())
