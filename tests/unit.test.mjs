@@ -213,6 +213,9 @@ test('daftar sumber data lengkap & tautan aman', () => {
     if (s.url) assert.match(s.url, /^https:\/\//)
   }
   for (const name of ['EQuran.id API v2', 'Al Quran Cloud API', 'quran-meta', 'Amiri Quran']) assert.ok(items.some((s) => s.name === name), name)
+  const nuSources = items.filter((s) => s.host === 'quran.nu.or.id')
+  assert.equal(nuSources.length, 2)
+  assert.ok(nuSources.every((s) => s.url === 'https://quran.nu.or.id/'), 'tautan sumber Quran NU memakai alamat utama yang ringkas')
 })
 
 test('qari tambahan: daftar valid, id unik, alamat audio surah berpola benar', async () => {

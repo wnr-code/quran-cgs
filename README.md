@@ -1,7 +1,11 @@
 # QuranKu
 
-[![Lisensi: MIT](https://img.shields.io/badge/Lisensi-MIT-green.svg)](LICENSE)
-[![CI](https://github.com/wnr-code/quran-cgs/actions/workflows/ci.yml/badge.svg)](https://github.com/wnr-code/quran-cgs/actions/workflows/ci.yml)
+[![GitHub stars](https://img.shields.io/github/stars/wnr-code/quran-cgs?style=for-the-badge&logo=github)](https://github.com/wnr-code/quran-cgs/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/wnr-code/quran-cgs?style=for-the-badge&logo=github)](https://github.com/wnr-code/quran-cgs/forks)
+[![CI](https://img.shields.io/github/actions/workflow/status/wnr-code/quran-cgs/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/wnr-code/quran-cgs/actions/workflows/ci.yml)
+[![Android build](https://img.shields.io/github/actions/workflow/status/wnr-code/quran-cgs/android.yml?branch=main&style=for-the-badge&label=Android%20build)](https://github.com/wnr-code/quran-cgs/actions/workflows/android.yml)
+[![Lisensi: MIT](https://img.shields.io/github/license/wnr-code/quran-cgs?style=for-the-badge)](LICENSE)
+[![Buka aplikasi web](https://img.shields.io/badge/Web-App-0A7D6B?style=for-the-badge&logo=googlechrome&logoColor=white)](https://quran.cgs.my.id)
 
 Aplikasi Al-Qur'an digital berbahasa Indonesia dengan **satu antarmuka bersama** untuk PWA web dan APK Android. Keduanya memakai HTML, CSS, JavaScript, halaman, dan API yang sama; Capacitor menyediakan cangkang Android tipis, bukan UI Compose terpisah.
 Gratis, tanpa iklan, tidak memerlukan akun, tanpa pelacak iklan atau analitik, dan **sumber terbuka (MIT)**. PWA memakai Cloudflare Workers + D1; Android membundel antarmuka dan data cadangan untuk penggunaan offline. Layanan pihak ketiga dapat menerima metadata koneksi saat digunakan; lihat [Kebijakan Privasi](public/privacy.html).
@@ -58,7 +62,7 @@ Perintah `npm run cap:sync` menjalankan build web lalu menyalin aset yang sama k
 - **Target tilawah** dan statistik harian/mingguan/bulanan, pengingat.
 - **Jadwal salat** (hisab lokal) dan **adzan otomatis**: suara adzan saat aplikasi terbuka, pemberitahuan push saat tertutup; imsak & tarhim khusus Ramadan; tiap waktu bisa dinyalakan/dimatikan.
 - **Arah kiblat** (kompas), **kalender Hijriah**, **tasbih digital**.
-- **Doa harian per kategori** (Keseharian, Rezeki, Tolak Bala, Kesehatan, Perjalanan, Ilmu), **doa wudhu**, **wirid & doa usai salat** — Arab, Latin, arti dari Quran NU Online, tersimpan di aplikasi (offline); arti/Latin bisa disembunyikan, bagikan ke media sosial. **Tahlil & Doa Arwah Lengkap** (28 langkah) tersedia di tab terpisah; bacaan Tahlil ringkas usai salat tetap berada pada wirid. **Asmaul Husna** (99 nama dengan makna, faedah, rujukan ayat, dan tombol bagikan).
+- **Doa harian per kategori**: 62 bacaan dari enam kategori tersimpan offline; delapan kategori tambahan menampilkan 87 judul dan tautan sumber (teks lengkapnya belum tersedia offline). **Doa wudhu**, **wirid & doa usai salat** tersedia offline; arti/Latin bisa disembunyikan dan bacaan dapat dibagikan. **Tahlil & Doa Arwah Lengkap** (28 bacaan sumber) tersedia di tab terpisah; Surah Yasin ditambahkan sebagai bacaan lanjutan. Bacaan Tahlil ringkas usai salat tetap berada pada wirid. **Asmaul Husna** (99 nama dengan makna, faedah, rujukan ayat, dan tombol bagikan).
 - **Kotak masuk notifikasi**: lonceng dan badge hanya di Lainnya; pengumuman konten, versi aplikasi, dan pengingat tersimpan lokal, dapat ditandai sudah dibaca.
 - **PWA**: dapat dipasang dari peramban apa pun (panduan per peramban), pembaruan versi otomatis, app shell + font + daftar surah tersedia offline; surah tersimpan saat dibuka; halaman Kelola Offline.
 - **Alamat cadangan otomatis**: bila alamat utama mati, data diambil dari alamat cadangan tanpa tindakan pengguna.
@@ -99,8 +103,8 @@ docs/                 panduan deploy, Android, infaq, status fitur
 | Cadangan teks, terjemahan, tafsir Jalalayn, audio | [Al Quran Cloud API](https://alquran.cloud/api) (`quran-uthmani`, `id.indonesian`, `en.transliteration`, `id.jalalayn`) | ketentuan alquran.cloud |
 | Cadangan terakhir (teks Arab saja) | paket [`quran-json`](https://github.com/risan/quran-json), disalin ke `public/data/` saat build | CC BY-SA 4.0* |
 | Juz, halaman mushaf (Madinah 604 hlm.), sajdah | paket [`quran-meta`](https://github.com/quran-center/quran-meta) (riwayat Hafs) | MIT |
-| Doa harian (6 kategori, 62 doa), doa wudhu, wirid & doa usai salat | [Quran NU Online](https://quran.nu.or.id/doa), disalin apa adanya ke `src/data/doa-nu.json` dan `src/data/dzikir.json` | ketentuan NU Online |
-| Tahlil & Doa Arwah (versi Lengkap, 28 langkah) | [Quran NU Online — Tahlil](https://quran.nu.or.id/tahlil), salinan `src/data/tahlil.json` | ketentuan NU Online; sejumlah terjemahan diringkas dan dicatat di aplikasi |
+| Doa harian (6 kategori, 62 bacaan offline), doa wudhu, wirid & doa usai salat; 8 kategori tambahan (87 judul katalog, belum tersedia offline) | [https://quran.nu.or.id/](https://quran.nu.or.id/), data di `src/data/doa-nu.json`, `src/data/doa-nu-extra.json`, dan `src/data/dzikir.json` | ketentuan NU Online |
+| Tahlil & Doa Arwah (versi Lengkap, 28 bacaan sumber) | [https://quran.nu.or.id/](https://quran.nu.or.id/), data di `src/data/tahlil.json` | ketentuan NU Online; sejumlah terjemahan diringkas dan dicatat di aplikasi |
 | Doa dari Al-Qur'an, ayat pilihan, penyemangat beranda | daftar rujukan surah:ayat disusun untuk aplikasi; teks ayat dari sumber Al-Qur'an di atas | — |
 | Asmaul Husna (data v2) | [wnr-code/asmaul_husna](https://github.com/wnr-code/asmaul_husna) | MIT |
 | Suara adzan | [AlAdhan.com](https://aladhan.com/play) (diputar dari `cdn.aladhan.com`) | ketentuan aladhan.com |
