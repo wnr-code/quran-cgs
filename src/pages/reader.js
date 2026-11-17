@@ -79,6 +79,10 @@ export default async function reader(root, { params, query, initial }) {
   let current = Math.min(total, Math.max(1, parseInt(params.a, 10) || (resume ? resume.ayah : 1)))
   let immersive = false
   let barsHidden = false
+  let barScrollDirection = 0
+  let barScrollDistance = 0
+  const BAR_HIDE_SCROLL_DISTANCE = 40
+  const BAR_SHOW_SCROLL_DISTANCE = 24
   let fabOpen = false
   let autoHideTimer = 0
   let settingsRestoreTimer = 0
@@ -215,6 +219,18 @@ export default async function reader(root, { params, query, initial }) {
     }, delay)
   }
 
+  function updateBarsFromScroll(delta, absoluteY = null) {
+    if (!delta) return
+    const direction = Math.sign(delta)
+    if (direction !== barScrollDirection) {
+      barScrollDirection = direction
+      barScrollDistance = 0
+    }
+    barScrollDistance += Math.abs(delta)
+    if (!barsHidden && direction > 0 && (absoluteY == null || absoluteY > 120) && barScrollDistance >= BAR_HIDE_SCROLL_DISTANCE) setBars(true)
+    else if (barsHidden && direction < 0 && barScrollDistance >= BAR_SHOW_SCROLL_DISTANCE) setBars(false)
+  }
+
   function setBars(hidden) {
     clearTimeout(autoHideTimer)
     if (barsHidden === hidden) {
@@ -222,6 +238,8 @@ export default async function reader(root, { params, query, initial }) {
       return
     }
     barsHidden = hidden
+    barScrollDirection = 0
+    barScrollDistance = 0
     readerEl.classList.toggle('bars-hidden', hidden)
     document.body.classList.toggle('reader-bars-hidden', hidden)
     if (hidden) setFabMenu(false)
@@ -373,12 +391,10 @@ export default async function reader(root, { params, query, initial }) {
     if (!document.body.classList.contains('sheet-open') && !fabOpen) {
       if (pageMode && target && target.classList && target.classList.contains('mpage-body')) {
         const previous = pageScrollPositions.get(target) || 0
-        if (target.scrollTop > previous + 3) setBars(true)
-        else if (target.scrollTop < previous - 3) setBars(false)
+        updateBarsFromScroll(target.scrollTop - previous)
         pageScrollPositions.set(target, target.scrollTop)
       } else if (pageMode && target === content) scheduleBarsHide()
-      else if (y > lastY + 12 && y > 120) setBars(true)
-      else if (y < lastY - 12) setBars(false)
+      else updateBarsFromScroll(y - lastY, y)
     }
     lastY = y
     const c = findCurrent()
