@@ -811,6 +811,186 @@ textarea {
   margin-inline-start: 7px;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
 }
+.quran-popular-slot {
+  width: 100%;
+  min-width: 0;
+}
+.quran-popular {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+.quran-popular-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.quran-popular-kicker {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--accent-ink, var(--accent));
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.quran-popular-head h2 {
+  font-size: 1.04rem;
+  font-weight: 760;
+  letter-spacing: -0.02em;
+}
+.quran-popular-caption {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.71rem;
+  line-height: 1.45;
+}
+.quran-popular-count {
+  flex: none;
+  padding: 5px 8px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 88%, var(--bg));
+  font-size: 0.67rem;
+  font-weight: 700;
+}
+.quran-popular-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(146px, 42vw);
+  gap: 10px;
+  min-width: 0;
+  margin-inline: -2px;
+  padding: 2px 2px 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.quran-popular-track::-webkit-scrollbar { display: none; }
+.popular-surah-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  min-height: 142px;
+  padding: 13px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--primary) 17%, var(--border-soft));
+  border-radius: 19px;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 11%, transparent), transparent 58%),
+    var(--surface);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--text) 5%, transparent);
+  text-decoration: none;
+  scroll-snap-align: start;
+  transition: border-color var(--motion-normal) ease, box-shadow var(--motion-normal) ease;
+}
+.popular-surah-card::after {
+  content: '۞';
+  position: absolute;
+  z-index: 0;
+  inset-inline-end: -5px;
+  bottom: -24px;
+  color: var(--accent-ink, var(--accent));
+  font-family: var(--font-ar);
+  font-size: 4.8rem;
+  line-height: 1;
+  opacity: 0.09;
+  pointer-events: none;
+}
+.popular-card-top,
+.popular-card-copy,
+.popular-card-bottom {
+  position: relative;
+  z-index: 1;
+}
+.popular-card-top,
+.popular-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.popular-card-index {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.popular-card-badge {
+  max-width: 112px;
+  padding: 4px 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  color: var(--accent-ink, var(--accent));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  font-size: 0.6rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.popular-card-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.popular-card-copy strong {
+  overflow: hidden;
+  font-size: 0.96rem;
+  font-weight: 760;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.popular-card-copy small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.67rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.popular-card-ar {
+  overflow: hidden;
+  color: var(--primary);
+  font-size: 1.48rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.popular-card-arrow {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border-soft));
+  border-radius: 50%;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface));
+}
+.popular-card-arrow .icon { width: 15px; height: 15px; }
+@media (min-width: 900px) {
+  .quran-popular-track {
+    grid-auto-flow: unset;
+    grid-auto-columns: unset;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    overflow: visible;
+  }
+}
+@media (hover: hover) {
+  .popular-surah-card:hover {
+    border-color: color-mix(in srgb, var(--primary) 42%, var(--border-soft));
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 10%, transparent);
+  }
+}
 
 /* Floating navigation dock: recognizable across PWA and APK, with a calm active state. */
 .navbar {
