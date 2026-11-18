@@ -17,48 +17,55 @@ export const AYAH_IMAGE_THEMES = [
     id: 'zamrud',
     label: 'Zamrud',
     swatch: '#0f6b4f',
+    template: '/share-templates/emerald-courtyard.jpg',
     colors: {
-      backgroundStart: '#f4efdf', backgroundEnd: '#e7ddc8', card: '#fffdf8',
-      frame: '#b8923a', innerFrame: '#eadfca', headerStart: '#0b3d2e', headerEnd: '#145d46',
-      title: '#fffdf8', subtitle: '#e2d6b9', accent: '#b8923a', arabic: '#163f32',
-      latin: '#59675d', translation: '#36453d', chip: '#f2ead8', chipText: '#315a46', divider: '#dfd2bb',
-      brand: '#31513f', secondary: '#68736a', ornament: '#b8923a'
+      backgroundStart: '#062b29', backgroundEnd: '#061d2a', card: '#082d2b',
+      frame: '#d9b75c', innerFrame: '#9b7a37', headerStart: '#062b29', headerEnd: '#145d46',
+      title: '#fff8e6', subtitle: '#f5e5ba', accent: '#e2bd61', arabic: '#f5e4b6',
+      latin: '#e5dfce', translation: '#fff9eb', chip: '#062b29', chipText: '#fff0bd', divider: '#d4b65f',
+      brand: '#31513f', secondary: '#f1d88d', ornament: '#dfbd63', footer: '#062723', textShadow: 'rgba(0, 10, 12, 0.78)'
     }
   },
   {
     id: 'malam',
     label: 'Malam',
     swatch: '#273d68',
+    template: '/share-templates/cosmic-sky.jpg',
     colors: {
-      backgroundStart: '#101827', backgroundEnd: '#263958', card: '#16243a',
-      frame: '#d2b66f', innerFrame: '#46536a', headerStart: '#0b1425', headerEnd: '#2c4162',
-      title: '#fffaf0', subtitle: '#d9d5ca', accent: '#d2b66f', arabic: '#fff9e9',
-      latin: '#d0d8e2', translation: '#e4e9f1', chip: '#263650', chipText: '#f2d99d', divider: '#516078',
-      brand: '#fff4d9', secondary: '#d0d7e2', ornament: '#d2b66f'
+      backgroundStart: '#071a35', backgroundEnd: '#1f3e58', card: '#10243b',
+      frame: '#e6c878', innerFrame: '#738599', headerStart: '#0b1425', headerEnd: '#2c4162',
+      title: '#fffaf0', subtitle: '#d9d5ca', accent: '#f0d483', arabic: '#fff6db',
+      latin: '#e4e9ef', translation: '#fffdf5', chip: '#081b31', chipText: '#fff0c2', divider: '#e1c476',
+      brand: '#fff4d9', secondary: '#f0dcaa', ornament: '#f0d483', footer: '#071829',
+      textShadow: 'rgba(2, 11, 24, 0.9)', contentScrim: true
     }
   },
   {
     id: 'pasir',
     label: 'Pasir',
     swatch: '#9a673a',
+    template: '/share-templates/warm-cream.jpg',
     colors: {
-      backgroundStart: '#f5e8d1', backgroundEnd: '#e3c69e', card: '#fff8eb',
-      frame: '#a87843', innerFrame: '#e7d3b3', headerStart: '#69452e', headerEnd: '#92663f',
-      title: '#fffaf2', subtitle: '#f1dfc5', accent: '#bb8a4e', arabic: '#493523',
-      latin: '#76644f', translation: '#554638', chip: '#f1e2c9', chipText: '#714e2e', divider: '#dfc8a7',
-      brand: '#62452f', secondary: '#76644f', ornament: '#a87843'
+      backgroundStart: '#f5ead5', backgroundEnd: '#e8d1ad', card: '#fff8eb',
+      frame: '#ad7f43', innerFrame: '#e7d3b3', headerStart: '#69452e', headerEnd: '#92663f',
+      title: '#fffaf2', subtitle: '#f1dfc5', accent: '#a77739', arabic: '#21463a',
+      latin: '#667468', translation: '#33473d', chip: '#fff7e7', chipText: '#2c493d', divider: '#bd9859',
+      brand: '#62452f', secondary: '#4e5a50', ornament: '#a87843', footer: '#092824',
+      textShadow: 'rgba(255, 249, 232, 0.86)'
     }
   },
   {
     id: 'ramadan',
     label: 'Ramadan',
     swatch: '#0b5b46',
+    template: '/share-templates/emerald-courtyard.jpg',
     colors: {
-      backgroundStart: '#f4efdb', backgroundEnd: '#e7dcc0', card: '#fffdf4',
-      frame: '#d3a83e', innerFrame: '#e9d9af', headerStart: '#073d32', headerEnd: '#0b684d',
-      title: '#fff9e8', subtitle: '#f0dfa9', accent: '#d6aa45', arabic: '#163f32',
-      latin: '#5c6a5b', translation: '#38473b', chip: '#f4e8c7', chipText: '#315740', divider: '#ddcea4',
-      brand: '#31513f', secondary: '#6b7568', ornament: '#c99734'
+      backgroundStart: '#062b29', backgroundEnd: '#061d2a', card: '#082d2b',
+      frame: '#e3bd59', innerFrame: '#a48542', headerStart: '#073d32', headerEnd: '#0b684d',
+      title: '#fff9e8', subtitle: '#f0dfa9', accent: '#e0bb5c', arabic: '#f5e4b6',
+      latin: '#e5dfce', translation: '#fff9eb', chip: '#062b29', chipText: '#fff0bd', divider: '#dfbd60',
+      brand: '#31513f', secondary: '#f1d88d', ornament: '#c99734', footer: '#062723',
+      textShadow: 'rgba(0, 10, 12, 0.82)'
     }
   }
 ]
@@ -410,6 +417,10 @@ function resolveTheme(themeId) {
 
 function drawContent(ctx, layout, bodyY, palette) {
   for (const segment of layout.segments) {
+    ctx.shadowColor = 'transparent'
+    ctx.shadowBlur = 0
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 0
     if (segment.kind === 'mosque-divider') {
       drawMosqueDivider(ctx, WIDTH / 2, bodyY + segment.offset + segment.segmentHeight / 2, palette, 112)
       continue
@@ -421,6 +432,10 @@ function drawContent(ctx, layout, bodyY, palette) {
     ctx.direction = segment.kind === 'arabic' ? 'rtl' : 'ltr'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'alphabetic'
+    ctx.shadowColor = palette.textShadow || 'transparent'
+    ctx.shadowBlur = segment.kind === 'arabic' ? 4 : 2
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 1
     ctx.fillStyle = segment.kind === 'arabic' ? palette.arabic
       : segment.kind === 'latin' ? palette.latin
         : segment.kind === 'translation' ? palette.translation
@@ -449,6 +464,104 @@ function drawRamadanFooter(ctx, palette) {
   drawStar(ctx, WIDTH / 2, 1124, 4, palette.accent, 0.8)
 }
 
+function drawCoverTemplate(ctx, image) {
+  const scale = Math.max(WIDTH / image.naturalWidth, HEIGHT / image.naturalHeight)
+  const sourceWidth = WIDTH / scale
+  const sourceHeight = HEIGHT / scale
+  const sourceX = (image.naturalWidth - sourceWidth) / 2
+  const sourceY = (image.naturalHeight - sourceHeight) / 2
+  ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, WIDTH, HEIGHT)
+}
+
+function drawContentScrim(ctx) {
+  const gradient = ctx.createLinearGradient(0, BODY_TOP - 18, 0, BODY_BOTTOM + 18)
+  gradient.addColorStop(0, 'rgba(3, 17, 38, 0.18)')
+  gradient.addColorStop(0.56, 'rgba(3, 17, 38, 0.31)')
+  gradient.addColorStop(1, 'rgba(3, 17, 38, 0.52)')
+  ctx.save()
+  roundRect(ctx, 38, BODY_TOP - 18, WIDTH - 76, BODY_HEIGHT + 36, 28)
+  ctx.fillStyle = gradient
+  ctx.fill()
+  ctx.restore()
+}
+
+function drawTemplateFooter(ctx, palette, cigatasLogo, sourceUrl, isRamadan) {
+  const source = String(sourceUrl ?? '').replace(/^https?:\/\//i, '')
+  ctx.save()
+  ctx.direction = 'ltr'
+  ctx.textAlign = 'right'
+  ctx.fillStyle = palette.secondary
+  ctx.font = `8px ${LATIN_FAMILY}`
+  ctx.fillText(source, WIDTH - 38, 1101)
+
+  ctx.beginPath()
+  ctx.moveTo(0, 1134)
+  ctx.quadraticCurveTo(115, 1114, 247, 1140)
+  ctx.quadraticCurveTo(466, 1170, WIDTH, 1128)
+  ctx.lineTo(WIDTH, HEIGHT)
+  ctx.lineTo(0, HEIGHT)
+  ctx.closePath()
+  ctx.fillStyle = palette.footer || palette.backgroundStart
+  ctx.fill()
+  ctx.strokeStyle = palette.frame
+  ctx.lineWidth = 2.2
+  ctx.beginPath()
+  ctx.moveTo(0, 1134)
+  ctx.quadraticCurveTo(115, 1114, 247, 1140)
+  ctx.quadraticCurveTo(466, 1170, WIDTH, 1128)
+  ctx.stroke()
+  ctx.strokeStyle = palette.innerFrame
+  ctx.lineWidth = 0.7
+  ctx.beginPath()
+  ctx.moveTo(0, 1140)
+  ctx.quadraticCurveTo(115, 1120, 247, 1146)
+  ctx.quadraticCurveTo(466, 1176, WIDTH, 1134)
+  ctx.stroke()
+
+  if (cigatasLogo) ctx.drawImage(cigatasLogo, 18, 1135, 210, 140)
+  else {
+    ctx.textAlign = 'left'
+    ctx.fillStyle = palette.title
+    ctx.font = `700 18px ${LATIN_FAMILY}`
+    ctx.fillText('Cigatas', 28, 1191)
+    ctx.font = `700 11px ${LATIN_FAMILY}`
+    ctx.fillText('#TongEureunNgaji', 28, 1211)
+  }
+
+  const globeX = 495
+  const globeY = 1204
+  const globeRadius = 15
+  ctx.strokeStyle = palette.title
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  ctx.arc(globeX, globeY, globeRadius, 0, Math.PI * 2)
+  ctx.moveTo(globeX - globeRadius, globeY)
+  ctx.lineTo(globeX + globeRadius, globeY)
+  ctx.moveTo(globeX, globeY - globeRadius)
+  ctx.lineTo(globeX, globeY + globeRadius)
+  ctx.moveTo(globeX, globeY - globeRadius)
+  ctx.quadraticCurveTo(globeX - 18, globeY, globeX, globeY + globeRadius)
+  ctx.moveTo(globeX, globeY - globeRadius)
+  ctx.quadraticCurveTo(globeX + 18, globeY, globeX, globeY + globeRadius)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(520, 1183)
+  ctx.lineTo(520, 1225)
+  ctx.stroke()
+  ctx.direction = 'ltr'
+  ctx.textAlign = 'left'
+  ctx.fillStyle = palette.title
+  ctx.font = `600 18px ${LATIN_FAMILY}`
+  ctx.fillText('quran.cgs.my.id', 533, 1211)
+
+  if (isRamadan) {
+    drawKetupat(ctx, 288, 1200, 24, palette.accent)
+    drawBedug(ctx, WIDTH / 2, 1201, 52, 28, palette)
+    drawKetupat(ctx, 432, 1200, 24, palette.accent)
+  }
+  ctx.restore()
+}
+
 /**
  * Render ayat, doa, atau dzikir langsung lewat Canvas (bukan screenshot). Pratinjau dan ekspor
  * memakai Blob yang sama; kanvas kerja 2× menghasilkan berkas akhir tepat 720×1280 piksel.
@@ -472,8 +585,9 @@ export async function createShareImage({
       document.fonts.load(`60px "Scheherazade New"`)
     ])
   }
+  const templateImage = selectedTheme.template ? await loadImage(selectedTheme.template) : null
   const [quranLogo, cigatasLogo] = await Promise.all([
-    loadImage('/icons/icon-192-v2.png'),
+    templateImage ? Promise.resolve(null) : loadImage('/icons/icon-192-v2.png'),
     loadImage('/cigatas-identity.png')
   ])
 
@@ -484,57 +598,65 @@ export async function createShareImage({
   if (!ctx) throw new Error('Tidak dapat membuat gambar bacaan.')
   ctx.scale(SCALE, SCALE)
 
-  // Latar dan bingkai digambar penuh agar tidak ada piksel transparan di tepi.
-  const background = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT)
-  background.addColorStop(0, palette.backgroundStart)
-  background.addColorStop(1, palette.backgroundEnd)
-  ctx.fillStyle = background
-  ctx.fillRect(0, 0, WIDTH, HEIGHT)
-  drawRosette(ctx, 22, 22, 42, palette.ornament, 0.5)
-  drawRosette(ctx, WIDTH - 22, 22, 42, palette.ornament, 0.5)
-  drawRosette(ctx, 22, HEIGHT - 22, 42, palette.ornament, 0.5)
-  drawRosette(ctx, WIDTH - 22, HEIGHT - 22, 42, palette.ornament, 0.5)
+  // Template pengguna dipakai sebagai latar penuh; jalur ilustrasi Canvas tetap menjadi fallback.
+  if (templateImage) {
+    ctx.fillStyle = palette.backgroundStart
+    ctx.fillRect(0, 0, WIDTH, HEIGHT)
+    drawCoverTemplate(ctx, templateImage)
+    if (palette.contentScrim) drawContentScrim(ctx)
+  } else {
+    // Latar dan bingkai digambar penuh agar tidak ada piksel transparan di tepi.
+    const background = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT)
+    background.addColorStop(0, palette.backgroundStart)
+    background.addColorStop(1, palette.backgroundEnd)
+    ctx.fillStyle = background
+    ctx.fillRect(0, 0, WIDTH, HEIGHT)
+    drawRosette(ctx, 22, 22, 42, palette.ornament, 0.5)
+    drawRosette(ctx, WIDTH - 22, 22, 42, palette.ornament, 0.5)
+    drawRosette(ctx, 22, HEIGHT - 22, 42, palette.ornament, 0.5)
+    drawRosette(ctx, WIDTH - 22, HEIGHT - 22, 42, palette.ornament, 0.5)
 
-  roundRect(ctx, 24, 24, WIDTH - 48, HEIGHT - 48, 30)
-  ctx.fillStyle = palette.card
-  ctx.fill()
-  ctx.strokeStyle = palette.frame
-  ctx.lineWidth = 2
-  ctx.stroke()
-  roundRect(ctx, 32, 32, WIDTH - 64, HEIGHT - 64, 25)
-  ctx.strokeStyle = palette.innerFrame
-  ctx.lineWidth = 1
-  ctx.stroke()
+    roundRect(ctx, 24, 24, WIDTH - 48, HEIGHT - 48, 30)
+    ctx.fillStyle = palette.card
+    ctx.fill()
+    ctx.strokeStyle = palette.frame
+    ctx.lineWidth = 2
+    ctx.stroke()
+    roundRect(ctx, 32, 32, WIDTH - 64, HEIGHT - 64, 25)
+    ctx.strokeStyle = palette.innerFrame
+    ctx.lineWidth = 1
+    ctx.stroke()
 
-  // Panel QuranKu di bagian atas, lentera dan bintang digambar simetris pada semua tema.
-  roundRect(ctx, 42, 42, WIDTH - 84, 184, 23)
-  const header = ctx.createLinearGradient(42, 42, WIDTH - 42, 226)
-  header.addColorStop(0, palette.headerStart)
-  header.addColorStop(1, palette.headerEnd)
-  ctx.fillStyle = header
-  ctx.fill()
-  drawLantern(ctx, 84, 124, 39, palette.accent, 0.78)
-  drawLantern(ctx, WIDTH - 84, 124, 39, palette.accent, 0.78)
-  drawStar(ctx, 131, 67, 4.5, palette.subtitle, 0.74)
-  drawStar(ctx, WIDTH - 131, 67, 4.5, palette.subtitle, 0.74)
-  drawStar(ctx, 139, 190, 3.5, palette.accent, 0.7)
-  drawStar(ctx, WIDTH - 139, 190, 3.5, palette.accent, 0.7)
-  if (quranLogo) ctx.drawImage(quranLogo, WIDTH / 2 - 41, 47, 82, 82)
-  ctx.direction = 'ltr'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'alphabetic'
-  ctx.fillStyle = palette.subtitle
-  ctx.font = `600 13px ${LATIN_FAMILY}`
-  ctx.fillText('Al-Qur’an Digital', WIDTH / 2, 153)
-  ctx.fillStyle = palette.title
-  let headingSize = 12
-  const cleanHeading = clean(heading) || 'RENUNGAN AL-QUR’AN'
-  ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
-  while (ctx.measureText(cleanHeading).width > WIDTH - 180 && headingSize > 10) {
-    headingSize--
+    // Panel QuranKu di bagian atas, lentera dan bintang digambar simetris pada semua tema.
+    roundRect(ctx, 42, 42, WIDTH - 84, 184, 23)
+    const header = ctx.createLinearGradient(42, 42, WIDTH - 42, 226)
+    header.addColorStop(0, palette.headerStart)
+    header.addColorStop(1, palette.headerEnd)
+    ctx.fillStyle = header
+    ctx.fill()
+    drawLantern(ctx, 84, 124, 39, palette.accent, 0.78)
+    drawLantern(ctx, WIDTH - 84, 124, 39, palette.accent, 0.78)
+    drawStar(ctx, 131, 67, 4.5, palette.subtitle, 0.74)
+    drawStar(ctx, WIDTH - 131, 67, 4.5, palette.subtitle, 0.74)
+    drawStar(ctx, 139, 190, 3.5, palette.accent, 0.7)
+    drawStar(ctx, WIDTH - 139, 190, 3.5, palette.accent, 0.7)
+    if (quranLogo) ctx.drawImage(quranLogo, WIDTH / 2 - 41, 47, 82, 82)
+    ctx.direction = 'ltr'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'alphabetic'
+    ctx.fillStyle = palette.subtitle
+    ctx.font = `600 13px ${LATIN_FAMILY}`
+    ctx.fillText('Al-Qur’an Digital', WIDTH / 2, 153)
+    ctx.fillStyle = palette.title
+    let headingSize = 12
+    const cleanHeading = clean(heading) || 'RENUNGAN AL-QUR’AN'
     ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
+    while (ctx.measureText(cleanHeading).width > WIDTH - 180 && headingSize > 10) {
+      headingSize--
+      ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
+    }
+    ctx.fillText(cleanHeading, WIDTH / 2, 179)
   }
-  ctx.fillText(cleanHeading, WIDTH / 2, 179)
 
   // Garis identitas memakai ikon masjid-bulan-bintang dengan ruang lega dari header dan chip.
   ctx.save()
@@ -545,18 +667,24 @@ export async function createShareImage({
   const ref = clean(reference)
   if (ref) {
     let referenceSize = 15
+    const maxReferenceWidth = templateImage ? WIDTH - 180 : WIDTH - 112
     ctx.font = `600 ${referenceSize}px ${LATIN_FAMILY}`
-    while (ctx.measureText(ref).width > WIDTH - 112 && referenceSize > 10) {
+    while (ctx.measureText(ref).width > maxReferenceWidth && referenceSize > 10) {
       referenceSize--
       ctx.font = `600 ${referenceSize}px ${LATIN_FAMILY}`
     }
-    const chipWidth = Math.min(WIDTH - 96, ctx.measureText(ref).width + 32)
-    roundRect(ctx, (WIDTH - chipWidth) / 2, 260, chipWidth, 38, 19)
+    const chipWidth = Math.min(WIDTH - 96, ctx.measureText(ref).width + (templateImage ? 76 : 32))
+    const chipX = (WIDTH - chipWidth) / 2
+    roundRect(ctx, chipX, 260, chipWidth, 38, 19)
     ctx.fillStyle = palette.chip
     ctx.fill()
     ctx.strokeStyle = palette.innerFrame
-    ctx.lineWidth = 1
+    ctx.lineWidth = templateImage ? 1.8 : 1
     ctx.stroke()
+    if (templateImage) {
+      drawRosette(ctx, chipX + 18, 279, 13, palette.accent, 0.92)
+      drawRosette(ctx, chipX + chipWidth - 18, 279, 13, palette.accent, 0.92)
+    }
     ctx.fillStyle = palette.chipText
     ctx.textAlign = 'center'
     ctx.font = `600 ${referenceSize}px ${LATIN_FAMILY}`
@@ -565,41 +693,49 @@ export async function createShareImage({
 
   const layout = measureShareBlocks(ctx, contentBlocks)
   const bodyY = Math.round(BODY_TOP + Math.max(0, (BODY_HEIGHT - layout.contentHeight) / 2))
-  drawBodyStars(ctx, bodyY, layout.contentHeight, palette)
+  if (!templateImage) drawBodyStars(ctx, bodyY, layout.contentHeight, palette)
   drawContent(ctx, layout, bodyY, palette)
 
-  // Identitas Cigatas tetap di kiri bawah; QuranKu sudah berada di panel atas.
-  const footerDividerY = 1080
-  ctx.strokeStyle = palette.divider
-  ctx.lineWidth = 1.2
-  ctx.beginPath()
-  ctx.moveTo(50, footerDividerY)
-  ctx.lineTo(WIDTH - 50, footerDividerY)
-  ctx.stroke()
-  drawStar(ctx, WIDTH / 2, footerDividerY, 5, palette.accent, 0.9)
-  if (cigatasLogo) ctx.drawImage(cigatasLogo, 44, 1098, 162, 108)
-  else {
-    ctx.direction = 'ltr'
-    ctx.textAlign = 'left'
-    ctx.fillStyle = palette.brand
-    ctx.font = `700 16px ${LATIN_FAMILY}`
-    ctx.fillText('Cigatas', 48, 1158)
-    ctx.font = `11px ${LATIN_FAMILY}`
-    ctx.fillText('#TongEureunNgaji', 48, 1178)
-  }
-  if (selectedTheme.id === 'ramadan') drawRamadanFooter(ctx, palette)
+  ctx.shadowColor = 'transparent'
+  ctx.shadowBlur = 0
+  ctx.shadowOffsetX = 0
+  ctx.shadowOffsetY = 0
+  if (templateImage) {
+    drawTemplateFooter(ctx, palette, cigatasLogo, sourceUrl, selectedTheme.id === 'ramadan')
+  } else {
+    // Identitas Cigatas tetap di kiri bawah; QuranKu sudah berada di panel atas.
+    const footerDividerY = 1080
+    ctx.strokeStyle = palette.divider
+    ctx.lineWidth = 1.2
+    ctx.beginPath()
+    ctx.moveTo(50, footerDividerY)
+    ctx.lineTo(WIDTH - 50, footerDividerY)
+    ctx.stroke()
+    drawStar(ctx, WIDTH / 2, footerDividerY, 5, palette.accent, 0.9)
+    if (cigatasLogo) ctx.drawImage(cigatasLogo, 44, 1098, 162, 108)
+    else {
+      ctx.direction = 'ltr'
+      ctx.textAlign = 'left'
+      ctx.fillStyle = palette.brand
+      ctx.font = `700 16px ${LATIN_FAMILY}`
+      ctx.fillText('Cigatas', 48, 1158)
+      ctx.font = `11px ${LATIN_FAMILY}`
+      ctx.fillText('#TongEureunNgaji', 48, 1178)
+    }
+    if (selectedTheme.id === 'ramadan') drawRamadanFooter(ctx, palette)
 
-  const source = String(sourceUrl ?? '').replace(/^https?:\/\//i, '')
-  ctx.direction = 'ltr'
-  ctx.textAlign = 'right'
-  ctx.fillStyle = palette.secondary
-  let sourceSize = 11
-  ctx.font = `${sourceSize}px ${LATIN_FAMILY}`
-  while (ctx.measureText(source).width > WIDTH - 390 && sourceSize > 8) {
-    sourceSize--
+    const source = String(sourceUrl ?? '').replace(/^https?:\/\//i, '')
+    ctx.direction = 'ltr'
+    ctx.textAlign = 'right'
+    ctx.fillStyle = palette.secondary
+    let sourceSize = 11
     ctx.font = `${sourceSize}px ${LATIN_FAMILY}`
+    while (ctx.measureText(source).width > WIDTH - 390 && sourceSize > 8) {
+      sourceSize--
+      ctx.font = `${sourceSize}px ${LATIN_FAMILY}`
+    }
+    ctx.fillText(source, WIDTH - 48, 1234)
   }
-  ctx.fillText(source, WIDTH - 48, 1234)
 
   // Ratakan latar belakang kedua sebagai pengaman PNG/JPG di WebView dan aplikasi berbagi.
   ctx.save()
