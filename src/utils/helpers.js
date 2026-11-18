@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core'
 import { Browser } from '@capacitor/browser'
 import { Share } from '@capacitor/share'
 import { Directory, Filesystem } from '@capacitor/filesystem'
+import { NativeImageGallery } from '../services/native-image-gallery.js'
 
 export const $ = (sel, root = document) => root.querySelector(sel)
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel))
@@ -131,6 +132,20 @@ function cancelledShare(error) {
 }
 
 function blobToBase64(blob) {
+  if (typeof FileReader === 'undefined') {
+    if (typeof blob?.arrayBuffer !== 'function' || typeof btoa !== 'function') {
+      return Promise.reject(new Error('Gagal membaca gambar.'))
+    }
+    return blob.arrayBuffer().then((buffer) => {
+      const bytes = new Uint8Array(buffer)
+      const chunks = []
+      const chunkSize = 0x8000
+      for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+        chunks.push(String.fromCharCode(...bytes.subarray(offset, offset + chunkSize)))
+      }
+      return btoa(chunks.join(''))
+    })
+  }
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(String(reader.result || '').split(',')[1] || '')
@@ -179,12 +194,7 @@ export async function shareImage(blob, { filename = 'quranku-ayat.png', title = 
     }
   }
 
-  try {
-    downloadFile(safeName, blob, blob.type || 'image/png')
-    return 'downloaded'
-  } catch {
-    return 'failed'
-  }
+  return downloadImage(safeName, blob, blob.type || 'image/png')
 }
 
 /** Buka tujuan sosial lewat Custom Tab Capacitor di Android/iOS, tab baru pada web. */
@@ -216,6 +226,30 @@ export function downloadFile(filename, content, type = 'application/json') {
   a.click()
   a.remove()
   setTimeout(() => URL.revokeObjectURL(a.href), 2000)
+}
+
+/** Save generated images to Android's public MediaStore; keep normal browser downloads elsewhere. */
+export async function downloadImage(filename, content, type = content?.type || 'image/png', options = {}) {
+  if (!content || typeof content.size !== 'number' || content.size === 0) return 'failed'
+  const mimeType = type || content.type || 'image/png'
+  const platform = options.platform ?? Capacitor.getPlatform()
+
+  if (platform === 'android') {
+    try {
+      const saveToGallery = options.saveToGallery || ((payload) => NativeImageGallery.saveImage(payload))
+      const result = await saveToGallery({ filename, mimeType, data: await blobToBase64(content) })
+      return result?.saved === true ? 'saved' : 'failed'
+    } catch {
+      return 'failed'
+    }
+  }
+
+  try {
+    await (options.download || downloadFile)(filename, content, mimeType)
+    return 'downloaded'
+  } catch {
+    return 'failed'
+  }
 }
 
 export const isStandalone = () =>

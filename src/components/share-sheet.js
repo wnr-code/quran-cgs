@@ -2,7 +2,7 @@
 import { openSheet } from './modal.js'
 import {
   esc, copyText, toast, canShareText, openExternal, shareText, shareImage,
-  reportShareResult, downloadFile
+  reportShareResult, downloadImage
 } from '../utils/helpers.js'
 import { APP } from '../config.js'
 import { shareContent, shareUrl, shareLinks } from '../utils/doa-share.js'
@@ -65,6 +65,7 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
     onOpen(el, close) {
       let imageBlob = null
       let imageBusy = false
+      let downloadBusy = false
       let currentTheme = selectedTheme
       let currentFormat = 'png'
       const previewWrap = el.querySelector('[data-image-preview-wrap]')
@@ -186,9 +187,47 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
           return
         }
         if (e.target.closest('[data-image-download]')) {
-          if (!imageBlob) return
-          downloadFile(filenameFor(currentFormat), imageBlob, imageBlob.type || (currentFormat === 'jpg' ? 'image/jpeg' : 'image/png'))
-          toast(`Gambar ${currentFormat.toUpperCase()} diunduh.`)
+          if (!imageBlob || downloadBusy) return
+          downloadBusy = true
+          const format = currentFormat
+          const blob = imageBlob
+          const filename = filenameFor(format)
+          const mimeType = blob.type || (format === 'jpg' ? 'image/jpeg' : 'image/png')
+          disableSelectors(true)
+          if (createButton) {
+            createButton.disabled = true
+            createButton.setAttribute('aria-busy', 'true')
+          }
+          if (downloadButton) {
+            downloadButton.disabled = true
+            downloadButton.setAttribute('aria-busy', 'true')
+            downloadButton.textContent = 'Menyimpan gambar…'
+          }
+          try {
+            const result = await downloadImage(filename, blob, mimeType)
+            if (result === 'saved') {
+              if (status?.isConnected) status.textContent = `Gambar ${format.toUpperCase()} tersimpan di Galeri.`
+              toast(`Gambar ${format.toUpperCase()} disimpan ke Galeri.`)
+            } else if (result === 'downloaded') {
+              if (status?.isConnected) status.textContent = `Unduhan ${format.toUpperCase()} dimulai di browser.`
+              toast(`Unduhan ${format.toUpperCase()} dimulai di browser.`)
+            } else {
+              if (status?.isConnected) status.textContent = `Gagal menyimpan gambar ${imageKind}. Silakan coba lagi.`
+              toast(`Gagal menyimpan gambar ${imageKind}. Coba lagi.`)
+            }
+          } finally {
+            downloadBusy = false
+            disableSelectors(false)
+            if (createButton?.isConnected) {
+              createButton.disabled = false
+              createButton.removeAttribute('aria-busy')
+            }
+            if (downloadButton?.isConnected) {
+              downloadButton.disabled = false
+              downloadButton.removeAttribute('aria-busy')
+              downloadButton.textContent = `Unduh ${currentFormat.toUpperCase()}`
+            }
+          }
           return
         }
         if (e.target.closest('[data-image-share]')) {
@@ -200,7 +239,8 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
           })
           close()
           const result = await pending
-          if (result === 'downloaded') toast(`Gambar ${currentFormat.toUpperCase()} diunduh, siap dibagikan.`)
+          if (result === 'saved') toast(`Gambar ${currentFormat.toUpperCase()} tersimpan di Galeri, siap dibagikan.`)
+          else if (result === 'downloaded') toast(`Gambar ${currentFormat.toUpperCase()} diunduh, siap dibagikan.`)
           else if (result === 'failed') toast(`Gagal membagikan gambar ${imageKind}.`)
         }
       })

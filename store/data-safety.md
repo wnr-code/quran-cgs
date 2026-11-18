@@ -33,7 +33,7 @@ Untuk formulir Play, tinjau kategori lokasi (untuk permintaan nama wilayah) dan 
 | Target usia | 13 tahun ke atas disarankan (menghindari persyaratan tambahan program Keluarga) |
 | Akses aplikasi | Fitur tersedia tanpa login; infaq opsional |
 | Aplikasi berita / kesehatan / keuangan / pemerintah | Bukan |
-| Izin Android | `INTERNET`; `ACCESS_COARSE_LOCATION` (opsional, diminta setelah tindakan pengguna; tidak ada lokasi latar); `POST_NOTIFICATIONS` (izin runtime untuk notifikasi); `SCHEDULE_EXACT_ALARM` (akses khusus untuk alarm tepat); `RECEIVE_BOOT_COMPLETED` (memulihkan jadwal setelah reboot) |
+| Izin Android | `INTERNET`; `ACCESS_COARSE_LOCATION` (opsional, diminta setelah tindakan pengguna; tidak ada lokasi latar); `POST_NOTIFICATIONS` (izin runtime untuk notifikasi); `SCHEDULE_EXACT_ALARM` (akses khusus untuk alarm tepat); `RECEIVE_BOOT_COMPLETED` (memulihkan jadwal setelah reboot); `WRITE_EXTERNAL_STORAGE` hanya untuk Android 9 ke bawah saat menyimpan gambar ke Galeri |
 
 ## Alur pengujian
 

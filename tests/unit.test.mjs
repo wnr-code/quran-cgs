@@ -6,7 +6,7 @@ import { validateSurahDetail, validateSurahList, isAyahNo, parseCoord, cleanText
 import { qiblaBearing, distanceToKaaba } from '../src/services/qibla.js'
 import { stripBasmalah } from '../src/api/alqurancloud.js'
 import { mapDetail, mapSummary } from '../src/api/equran.js'
-import { esc, stripHtml, shareText, shareImage } from '../src/utils/helpers.js'
+import { esc, stripHtml, shareText, shareImage, downloadImage } from '../src/utils/helpers.js'
 import { createAyahImage, createShareImage, wrapCanvasText, AYAH_IMAGE_THEMES, SHARE_IMAGE_SLOGANS } from '../src/utils/ayah-image.js'
 import { toHijri } from '../src/utils/hijri.js'
 import { mapLocalDetail } from '../src/api/local-data.js'
@@ -244,6 +244,69 @@ test('berbagi PNG: unduh bila berbagi berkas tidak didukung', async () => {
     else delete globalThis.document
     globalThis.setTimeout = previousSetTimeout
   }
+})
+
+test('unduh gambar browser tetap memakai unduhan web dan melaporkan saat dimulai', async () => {
+  const calls = []
+  const blob = new Blob(['png'], { type: 'image/png' })
+  const result = await downloadImage('quranku-ayat-1-1.png', blob, 'image/png', {
+    platform: 'web',
+    download: async (...args) => calls.push(args),
+    saveToGallery: async () => assert.fail('browser tidak boleh memanggil MediaStore Android')
+  })
+  assert.equal(result, 'downloaded')
+  assert.deepEqual(calls, [['quranku-ayat-1-1.png', blob, 'image/png']])
+})
+
+test('unduh gambar Android menunggu hasil penyimpanan MediaStore', async () => {
+  const calls = []
+  let browserDownloads = 0
+  const blob = new Blob([new Uint8Array([0, 1, 255])], { type: 'image/png' })
+  const result = await downloadImage('quranku-ayat-1-1.png', blob, 'image/png', {
+    platform: 'android',
+    saveToGallery: async (payload) => {
+      calls.push(payload)
+      return { saved: true, uri: 'content://media/external/images/1' }
+    },
+    download: () => browserDownloads++
+  })
+  assert.equal(result, 'saved')
+  assert.deepEqual(calls, [{ filename: 'quranku-ayat-1-1.png', mimeType: 'image/png', data: 'AAH/' }])
+  assert.equal(browserDownloads, 0, 'Android menggunakan penyimpanan publik, bukan anchor WebView')
+})
+
+test('unduh gambar Android tidak melaporkan sukses saat penyimpanan gagal', async () => {
+  const blob = new Blob(['jpg'], { type: 'image/jpeg' })
+  let browserDownloads = 0
+  for (const saveToGallery of [
+    async () => ({ saved: false }),
+    async () => { throw new Error('MediaStore unavailable') }
+  ]) {
+    const result = await downloadImage('quranku-ayat-1-1.jpg', blob, 'image/jpeg', {
+      platform: 'android',
+      saveToGallery,
+      download: () => browserDownloads++
+    })
+    assert.equal(result, 'failed')
+  }
+  assert.equal(browserDownloads, 0, 'kegagalan Android tidak disamarkan sebagai unduhan berhasil')
+  assert.equal(await downloadImage('empty.png', new Blob(), 'image/png', { platform: 'android' }), 'failed')
+})
+
+test('jembatan galeri Android terdaftar dan menyimpan lewat MediaStore', () => {
+  const plugin = readFileSync('android/app/src/main/java/id/cgs/quranku/ImageGalleryPlugin.java', 'utf8')
+  assert.match(plugin, /@CapacitorPlugin\(\s*name = "ImageGallery"/)
+  assert.match(plugin, /public void saveImage\(PluginCall call\)/)
+  assert.match(plugin, /MediaStore\.Images\.Media\.RELATIVE_PATH/)
+  assert.match(plugin, /Environment\.DIRECTORY_PICTURES \+ "\/" \+ DIRECTORY_NAME/)
+  assert.match(plugin, /IS_PENDING, 0/)
+  assert.match(plugin, /call\.reject\(/, 'kegagalan penyimpanan harus dilaporkan ke JavaScript')
+  assert.match(plugin, /requestPermissionForAlias\("storage"/, 'versi Android lama meminta izin penyimpanan saat dibutuhkan')
+  assert.match(plugin, /MediaScannerConnection\.scanFile/, 'Android lama tetap menerbitkan berkas ke Galeri')
+  assert.match(readFileSync('android/app/src/main/java/id/cgs/quranku/MainActivity.java', 'utf8'), /registerPlugin\(ImageGalleryPlugin\.class\)/)
+  assert.match(readFileSync('android/app/src/main/AndroidManifest.xml', 'utf8'), /WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/)
+  assert.match(readFileSync('src/services/native-image-gallery.js', 'utf8'), /registerPlugin\('ImageGallery'\)/)
+  assert.match(readFileSync('src/utils/helpers.js', 'utf8'), /NativeImageGallery\.saveImage/)
 })
 
 test('bungkus teks gambar tanpa memotong isi', () => {
