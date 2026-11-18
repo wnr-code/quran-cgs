@@ -54,7 +54,7 @@ function makeTheme(id, label, scene, options) {
   }
 }
 
-// The first 15 themes are drawn as original Canvas scenes. The last four retain their legacy IDs
+// The first 18 themes are drawn as original Canvas scenes. The last four retain their legacy IDs
 // and use the supplied poster images directly as backgrounds, preserving those original assets.
 export const AYAH_IMAGE_THEMES = [
   makeTheme('zamrud-premium', 'Zamrud Premium', 'emerald-premium', {
@@ -120,6 +120,27 @@ export const AYAH_IMAGE_THEMES = [
     backgroundStart: '#f4f1e5', backgroundEnd: '#bed8cf', accent: '#b98074', frame: '#78998c',
     innerFrame: '#b0c0a3', footer: '#304e49', light: true, ink: '#354c45', glow: '#ffe0b0',
     motif: '#c59286', swatch: '#c8dbd0', bodyScrim: 'rgba(250, 247, 235, 0.42)'
+  }),
+  makeTheme('pantai-sore', 'Nuansa Pantai Sore', 'sunset-beach', {
+    backgroundStart: '#f6c69c', backgroundEnd: '#637489', headerStart: '#ffe0b1', headerEnd: '#dfa083',
+    accent: '#a85f52', frame: '#dcac90', innerFrame: '#c89582', footer: '#2d424f', light: true,
+    ink: '#354952', title: '#344a52', subtitle: '#675752', arabic: '#344950', latin: '#617679',
+    translation: '#344c52', glow: '#ffe1a0', motif: '#f2c7a3', swatch: '#e7a47c',
+    bodyScrim: 'rgba(255, 249, 236, 0.48)', textShadow: 'rgba(255, 250, 238, 0.72)'
+  }),
+  makeTheme('pantai-ombak', 'Pantai Ombak', 'ocean-waves', {
+    backgroundStart: '#d4efeb', backgroundEnd: '#5fa8b4', headerStart: '#e5f5ec', headerEnd: '#9bcec8',
+    accent: '#347d83', frame: '#73b5b8', innerFrame: '#a2d1ca', footer: '#194a54', light: true,
+    ink: '#19474d', title: '#19464c', subtitle: '#527377', arabic: '#18454d', latin: '#55777a',
+    translation: '#1c4a50', glow: '#ffe0a0', motif: '#d5f0e8', swatch: '#58aeb3',
+    bodyScrim: 'rgba(244, 252, 245, 0.48)', textShadow: 'rgba(255, 255, 255, 0.68)'
+  }),
+  makeTheme('percikan-hujan', 'Nuansa Percikan Hujan', 'rain-splashes', {
+    backgroundStart: '#17293e', backgroundEnd: '#456a7b', headerStart: '#203951', headerEnd: '#385e71',
+    accent: '#a5dfe7', frame: '#81c0cb', innerFrame: '#5f8e9e', footer: '#122735',
+    glow: '#91d5e1', motif: '#c0e4e8', swatch: '#3e778a', title: '#eef9f8', subtitle: '#d5e7eb',
+    arabic: '#f4fbf7', latin: '#c8e2e4', translation: '#f1f7f3',
+    bodyScrim: 'rgba(8, 23, 37, 0.48)', textShadow: 'rgba(0, 9, 20, 0.8)'
   }),
   // Keep the previous four selections and IDs; these are distinct Canvas illustrations now.
   makeTheme('zamrud', 'Zamrud', 'emerald-courtyard', {
@@ -613,6 +634,106 @@ function drawPoolRings(ctx, palette, y = 1030) {
   ctx.restore()
 }
 
+function drawOceanLayer(ctx, y, color, alpha = 0.4, phase = 0, amplitude = 28) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(0, y + phase)
+  ctx.quadraticCurveTo(164, y - amplitude + phase, WIDTH / 2, y + phase * 0.25)
+  ctx.quadraticCurveTo(548, y + amplitude * 0.72 + phase, WIDTH, y - amplitude * 0.18 + phase)
+  ctx.lineTo(WIDTH, HEIGHT)
+  ctx.lineTo(0, HEIGHT)
+  ctx.closePath()
+  ctx.fill()
+  ctx.restore()
+}
+
+function drawWaveFoam(ctx, y, color, alpha = 0.5, offset = 0) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.strokeStyle = color
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  ctx.moveTo(0, y + offset)
+  ctx.quadraticCurveTo(168, y - 18 + offset, WIDTH / 2, y + 4 + offset)
+  ctx.quadraticCurveTo(552, y + 20 + offset, WIDTH, y - 7 + offset)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(16, y + 24 + offset)
+  ctx.quadraticCurveTo(175, y + 7 + offset, 362, y + 28 + offset)
+  ctx.quadraticCurveTo(555, y + 46 + offset, WIDTH - 8, y + 18 + offset)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawPalmTree(ctx, x, baseY, height, lean, color, alpha = 0.62) {
+  const crownX = x + lean * height * 0.07
+  const crownY = baseY - height
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.strokeStyle = color
+  ctx.lineWidth = Math.max(1.4, height * 0.017)
+  ctx.beginPath()
+  ctx.moveTo(x, baseY)
+  ctx.quadraticCurveTo(x + lean * height * 0.02, baseY - height * 0.58, crownX, crownY)
+  ctx.stroke()
+  const fronds = [-2.95, -2.58, -2.2, -1.82, -1.45, -1.08, -0.72, -0.36, -0.08]
+  fronds.forEach((angle, index) => {
+    const length = height * (0.34 + 0.08 * (1 - Math.abs(index - 4) / 4))
+    const dx = Math.cos(angle) * length
+    const dy = Math.sin(angle) * length * 0.7
+    ctx.beginPath()
+    ctx.moveTo(crownX, crownY)
+    ctx.quadraticCurveTo(crownX + dx * 0.52, crownY + dy * 0.35 + height * 0.045, crownX + dx, crownY + dy)
+    ctx.stroke()
+    for (const step of [0.28, 0.48, 0.68]) {
+      const leafX = crownX + dx * step
+      const leafY = crownY + dy * step
+      const leafLength = height * 0.052 * (1 - step * 0.32)
+      const side = angle < -Math.PI / 2 ? -0.85 : 0.85
+      ctx.beginPath()
+      ctx.moveTo(leafX, leafY)
+      ctx.quadraticCurveTo(leafX + Math.cos(angle + side) * leafLength * 0.52, leafY + Math.sin(angle + side) * leafLength * 0.55 + leafLength * 0.2,
+        leafX + Math.cos(angle + side) * leafLength, leafY + leafLength * 0.58)
+      ctx.stroke()
+    }
+  })
+  ctx.restore()
+}
+
+function drawRainDrop(ctx, x, y, size, color, alpha = 0.52) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(x, y - size)
+  ctx.quadraticCurveTo(x + size * 0.92, y - size * 0.08, x, y + size)
+  ctx.quadraticCurveTo(x - size * 0.92, y - size * 0.08, x, y - size)
+  ctx.closePath()
+  ctx.fill()
+  ctx.restore()
+}
+
+function drawRainSplash(ctx, x, y, color, alpha = 0.56) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.strokeStyle = color
+  ctx.lineWidth = 1.4
+  for (const radius of [7, 13, 20]) {
+    ctx.beginPath()
+    ctx.arc(x, y, radius, Math.PI * 0.12, Math.PI * 0.88)
+    ctx.stroke()
+  }
+  for (const side of [-1, 1]) {
+    ctx.beginPath()
+    ctx.moveTo(x + side * 8, y + 1)
+    ctx.lineTo(x + side * 15, y - 9)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
 function drawThemeFrame(ctx, palette) {
   ctx.save()
   ctx.globalAlpha = 0.46
@@ -851,6 +972,87 @@ function drawThemeBackground(ctx, theme, templateImage = null) {
       }
       drawPoolRings(ctx, p, 1058)
       break
+    case 'sunset-beach':
+      drawGlow(ctx, 518, 808, 276, p.glow, 0.56)
+      drawCloud(ctx, 152, 424, 190, p.frame, 0.32)
+      drawCloud(ctx, 570, 520, 224, p.motif, 0.28)
+      ctx.save()
+      ctx.globalAlpha = 0.78
+      ctx.fillStyle = '#ffe0a3'
+      ctx.beginPath()
+      ctx.arc(518, 807, 56, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+      drawOceanLayer(ctx, 840, '#c98c75', 0.34, 2, 22)
+      drawOceanLayer(ctx, 909, '#82909b', 0.44, -5, 25)
+      drawOceanLayer(ctx, 980, '#5b6e7c', 0.55, 7, 24)
+      drawOceanLayer(ctx, 1048, '#3d5363', 0.65, -4, 18)
+      ctx.save()
+      ctx.globalAlpha = 0.4
+      ctx.strokeStyle = '#ffe6b2'
+      ctx.lineWidth = 1.4
+      for (let i = 0; i < 7; i++) {
+        const y = 900 + i * 15
+        const halfWidth = 28 + i * 7
+        ctx.beginPath()
+        ctx.moveTo(518 - halfWidth, y)
+        ctx.lineTo(518 + halfWidth, y + (i % 2 ? 1 : -1))
+        ctx.stroke()
+      }
+      ctx.restore()
+      drawPalmTree(ctx, 20, 1120, 218, 1, '#39454e', 0.58)
+      drawPalmTree(ctx, WIDTH - 20, 1120, 188, -1, '#39454e', 0.54)
+      break
+    case 'ocean-waves':
+      drawGlow(ctx, 542, 632, 300, p.glow, 0.32)
+      drawCloud(ctx, 146, 406, 188, p.frame, 0.28)
+      drawCloud(ctx, 585, 474, 228, p.motif, 0.25)
+      ctx.save()
+      ctx.globalAlpha = 0.62
+      ctx.fillStyle = '#ffe6ae'
+      ctx.beginPath()
+      ctx.arc(542, 633, 42, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+      drawOceanLayer(ctx, 712, '#91ced0', 0.34, 1, 32)
+      drawOceanLayer(ctx, 795, '#5fb0b8', 0.46, -8, 38)
+      drawOceanLayer(ctx, 884, '#368a9b', 0.56, 6, 34)
+      drawOceanLayer(ctx, 973, '#246d84', 0.64, -4, 28)
+      drawOceanLayer(ctx, 1050, '#19576f', 0.7, 3, 20)
+      for (const [y, offset] of [[958, -4], [1032, 4]]) {
+        drawWaveFoam(ctx, y, '#eff9ef', 0.46, offset)
+      }
+      drawPalmTree(ctx, 14, 1120, 174, 1, '#1d5962', 0.4)
+      drawPalmTree(ctx, WIDTH - 14, 1120, 162, -1, '#1d5962', 0.38)
+      break
+    case 'rain-splashes':
+      drawGlow(ctx, 540, 522, 370, p.glow, 0.26)
+      drawCloud(ctx, 142, 402, 196, p.motif, 0.26)
+      drawCloud(ctx, 575, 432, 220, p.frame, 0.24)
+      ctx.save()
+      ctx.globalAlpha = 0.36
+      ctx.strokeStyle = '#d8f0f3'
+      ctx.lineWidth = 1.05
+      for (let i = 0; i < 34; i++) {
+        const x = 22 + ((i * 83 + 19) % 676)
+        const y = 248 + ((i * 137 + 53) % 820)
+        const length = 20 + (i % 4) * 6
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x - 10, y + length)
+        ctx.stroke()
+      }
+      ctx.restore()
+      for (const [x, y, size, alpha] of [
+        [48, 568, 12, 0.42], [670, 622, 10, 0.4], [55, 866, 9, 0.34], [662, 947, 13, 0.38]
+      ]) {
+        drawRainDrop(ctx, x, y, size, p.glow, alpha)
+      }
+      drawRainSplash(ctx, 72, 1004, p.accent, 0.5)
+      drawRainSplash(ctx, 642, 904, p.motif, 0.46)
+      drawRainSplash(ctx, 348, 1064, p.accent, 0.38)
+      drawPoolRings(ctx, p, 1036)
+      break
     case 'emerald-courtyard':
       drawGlow(ctx, WIDTH / 2, 508, 390, p.glow, 0.24)
       drawThemeArch(ctx, WIDTH / 2, 214, 1115, 314, p.frame, 0.42, 5)
@@ -977,8 +1179,8 @@ function drawBrandHeader(ctx, palette, brandLogo, heading, slogan) {
   ctx.textBaseline = 'alphabetic'
   if (brandLogo) {
     // Use the supplied transparent QuranKu logo, scaled down without cropping its tagline.
-    ctx.drawImage(brandLogo, 48, 52, 180, 120)
-    headingX = 260
+    ctx.drawImage(brandLogo, 48, 62, 144, 96)
+    headingX = 224
     headingY = 104
     headingMaxWidth = WIDTH - headingX - 52
     sloganY = 156
@@ -1230,7 +1432,7 @@ function drawShareFooter(ctx, palette, cigatasLogo) {
   ctx.stroke()
 
   const footerInk = palette.light ? '#fff8e7' : palette.title
-  if (cigatasLogo) ctx.drawImage(cigatasLogo, 24, 1154, 108, 72)
+  if (cigatasLogo) ctx.drawImage(cigatasLogo, 24, 1162, 84, 56)
   else {
     ctx.direction = 'ltr'
     ctx.textAlign = 'left'
