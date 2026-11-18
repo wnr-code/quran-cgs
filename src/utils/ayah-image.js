@@ -1238,21 +1238,15 @@ function drawShareFooter(ctx, palette, cigatasLogo) {
     ctx.fillText('#TongEureunNgaji', 28, 1208)
   }
 
-  roundRect(ctx, 426, 1155, 270, 72, 16)
-  ctx.fillStyle = withAlpha('#ffffff', 0.09)
-  ctx.fill()
-  ctx.strokeStyle = withAlpha(palette.frame, 0.78)
-  ctx.lineWidth = 1
-  ctx.stroke()
-  drawPlayStoreMark(ctx, 445, 1174, 36)
+  drawPlayStoreMark(ctx, 452, 1180, 24)
   ctx.direction = 'ltr'
   ctx.textAlign = 'left'
   ctx.fillStyle = footerInk
   ctx.font = `700 13px ${LATIN_FAMILY}`
-  ctx.fillText('Unduh APK', 495, 1187)
+  ctx.fillText('Unduh APK', 487, 1187)
   ctx.fillStyle = palette.light ? '#f1e6cf' : palette.subtitle
   ctx.font = `600 10px ${LATIN_FAMILY}`
-  ctx.fillText('Google Play · QuranKu', 495, 1205)
+  ctx.fillText('Google Play · QuranKu', 487, 1205)
   ctx.restore()
 }
 

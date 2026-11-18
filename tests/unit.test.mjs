@@ -503,6 +503,11 @@ test('gambar doa: Arab, latin, arti, identitas kecil, dan footer unduh', async (
     assert.ok(!ramadan.images.some((image) => image.src.includes('/share-templates/')))
     assert.ok(ctx.texts.some((row) => row.text === 'Sumber: quran.cgs.my.id/#/doa/harian'), 'sumber bacaan terletak di bawah teks')
     assert.ok(ctx.texts.some((row) => row.text === 'Unduh APK') && ctx.texts.some((row) => row.text === 'Google Play · QuranKu'), 'ajakan unduh ada sejajar di kanan footer')
+    const renderer = readFileSync('src/utils/ayah-image.js', 'utf8')
+    const shareFooter = renderer.split('function drawShareFooter(ctx, palette, cigatasLogo) {')[1].split('\n}\n\n/**')[0]
+    assert.doesNotMatch(shareFooter, /roundRect\(ctx,\s*426,\s*1155,\s*270,\s*72/)
+    assert.doesNotMatch(shareFooter, /withAlpha\('#ffffff',\s*0\.09\)/)
+    assert.match(shareFooter, /drawPlayStoreMark\(ctx,\s*452,\s*1180,\s*24\)/, 'ikon Play Store diperkecil tanpa kartu latar')
   } finally {
     if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
     else delete globalThis.document
@@ -1515,6 +1520,8 @@ test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache'
   const html = readFileSync('index.html', 'utf8')
   assert.match(html, /<div id="splash"/)
   assert.ok(html.normalize('NFC').includes('اَلسَّلَامُ عَلَيْكُمْ'.normalize('NFC')))
+  assert.match(html, /Buat poster 9:16 dari ayat, doa, atau Asmaul Husna\./, 'splash menjelaskan fitur poster')
+  assert.match(html, /Pilih satu dari 19 tema, lalu simpan atau bagikan\./)
   assert.match(html, /<script src="\/splash\.js"><\/script>/)
   assert.match(html, /sp-bye [^;]*8s/) // menutup sendiri bila aplikasi gagal dimuat
   assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'splash\.js'/)
