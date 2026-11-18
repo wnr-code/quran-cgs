@@ -10,6 +10,7 @@ import { APP } from '../config.js'
 import { highlightHtml } from '../services/highlight.js'
 import { mapTajweedRanges } from '../utils/tajweed.js'
 import { openShare } from './share-sheet.js'
+import { ayahImageOption } from '../utils/ayah-image.js'
 import { getTafsir } from '../api/api-adapter.js'
 
 const numHtml = (n) => `<span class="ayah-num" aria-label="Ayat ${n}">${ayahMarker(n)}</span>`
@@ -210,9 +211,24 @@ export async function openAyahSheet(surah, ayahNo, { onChange, onMarkLast } = {}
         } else if (act === 'copy') {
           toast((await copyText(ayahShareText(surah, a))) ? 'Ayat disalin' : 'Gagal menyalin')
         } else if (act === 'share') {
+          const shareUrl = `${APP.origin}/#/surah/${n}/${ayahNo}`
+          const shareRef = `QS. ${surah.namaLatin} ${ref}`
           openShare(
-            { title: `QS. ${surah.namaLatin} ${ref}`, text: ayahShareText(surah, a), url: `${APP.origin}/#/surah/${n}/${ayahNo}` },
-            { title: 'Bagikan ayat', what: 'ayat' }
+            { title: shareRef, text: ayahShareText(surah, a), url: shareUrl },
+            {
+              title: 'Bagikan ayat',
+              what: 'ayat',
+              image: ayahImageOption({
+                surahNumber: n,
+                ayahNumber: ayahNo,
+                arabic: a.teksArab,
+                latin: a.teksLatin,
+                translation: a.teksIndonesia,
+                reference: shareRef,
+                sourceUrl: shareUrl,
+                heading: 'AYAT AL-QUR’AN'
+              })
+            }
           )
         } else if (act === 'last') {
           onMarkLast && onMarkLast(ayahNo)

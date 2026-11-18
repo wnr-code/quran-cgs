@@ -16,15 +16,16 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
   const L = shareLinks(p, APP.origin)
   const url = shareUrl(p, APP.origin)
   const text = shareContent(p)
+  const imageKind = what === 'doa' ? 'doa' : 'ayat'
   const opt = (cls, href, ic, label) => `<a class="share-opt ${cls}" href="${esc(href)}" target="_blank" rel="noopener" data-net="${cls}"><span class="share-ic">${fi(ic, true)}</span>${label}</a>`
-  const selectedTheme = image?.theme || AYAH_IMAGE_THEMES[0].id
+  const selectedTheme = image?.theme || (document.documentElement.dataset.theme === 'ramadan' ? 'ramadan' : AYAH_IMAGE_THEMES[0].id)
   const themeOptions = image
     ? AYAH_IMAGE_THEMES.map((theme) => `<button type="button" class="share-theme-opt" data-image-theme="${esc(theme.id)}" aria-pressed="${theme.id === selectedTheme}">
         <span class="share-theme-swatch" style="--share-swatch:${theme.swatch}"></span><span>${esc(theme.label)}</span>
       </button>`).join('')
     : ''
   const imageOption = image
-    ? `<section class="share-image-section" aria-label="Buat pratinjau gambar ayat">
+    ? `<section class="share-image-section" aria-label="Buat pratinjau gambar ${imageKind}">
         <p class="share-mode-label">Gambar untuk Status WhatsApp</p>
         <p class="share-image-intro">Pilih tema dan format. Pratinjau yang tampil akan sama persis dengan berkas yang dibagikan atau diunduh.</p>
         <div class="share-theme-grid" role="group" aria-label="Tema gambar">${themeOptions}</div>
@@ -35,7 +36,7 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
         <button type="button" class="btn btn-primary btn-block share-image-create" data-image-create>Buat pratinjau 720 × 1280</button>
         <p class="share-image-status" data-image-status role="status" aria-live="polite">Rasio vertikal 9:16 · pilih gaya yang disukai.</p>
         <div class="share-image-preview-wrap" data-image-preview-wrap hidden>
-          <img class="share-image-preview" data-image-preview alt="Pratinjau gambar ayat untuk Status WhatsApp" />
+          <img class="share-image-preview" data-image-preview alt="Pratinjau gambar ${imageKind} untuk Status WhatsApp" />
         </div>
         <div class="share-image-actions" data-image-actions hidden>
           <button type="button" class="btn btn-primary" data-image-share>Bagikan gambar</button>
@@ -102,7 +103,7 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
           createButton.setAttribute('aria-busy', 'true')
           createButton.textContent = 'Membuat pratinjau…'
         }
-        if (status) status.textContent = 'Menyusun ayat, terjemahan, dan ornamen…'
+        if (status) status.textContent = 'Menyusun bacaan, terjemahan, dan ornamen…'
         disableSelectors(true)
         try {
           const blob = await image.create({ theme: currentTheme, format: currentFormat })
@@ -112,7 +113,7 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
           imageBlob = blob
           previewUrl = URL.createObjectURL(blob)
           previewImage.src = previewUrl
-          previewImage.alt = `Pratinjau ${currentFormat.toUpperCase()} ayat ${p.title}, tema ${currentTheme}, ukuran 720 × 1280.`
+          previewImage.alt = `Pratinjau ${currentFormat.toUpperCase()} ${imageKind} ${p.title}, tema ${currentTheme}, ukuran 720 × 1280.`
           previewWrap.hidden = false
           imageActions.hidden = false
           createButton.textContent = 'Perbarui pratinjau'
@@ -121,7 +122,7 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
         } catch (error) {
           if (!el.isConnected) return
           if (status) status.textContent = error?.message || 'Gagal membuat pratinjau. Silakan coba lagi.'
-          toast(error?.message || 'Gagal membuat gambar ayat. Coba lagi.')
+          toast(error?.message || `Gagal membuat gambar ${imageKind}. Coba lagi.`)
         } finally {
           imageBusy = false
           if (createButton?.isConnected) {
@@ -191,7 +192,7 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
           close()
           const result = await pending
           if (result === 'downloaded') toast(`Gambar ${currentFormat.toUpperCase()} diunduh, siap dibagikan.`)
-          else if (result === 'failed') toast('Gagal membagikan gambar ayat.')
+          else if (result === 'failed') toast(`Gagal membagikan gambar ${imageKind}.`)
         }
       })
     },
