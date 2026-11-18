@@ -68,6 +68,15 @@ initMiniPlayer(document.getElementById('mini-player'))
 watchConnectivity()
 initInbox()
 
+/**
+ * Durasi minimum layar pembuka terlihat penuh, dihitung sejak splash native Android ditutup.
+ * Salam "Assalamu'alaikum" baru muncul utuh pada ~0,85 detik, jadi waktu tahan ini menentukan
+ * berapa lama ia benar-benar terbaca sebelum splash memudar.
+ * Wajib dideklarasikan sebelum startRouter(): rute pertama dirender sinkron saat modul ini dievaluasi,
+ * sehingga hideSplash() sudah berjalan sebelum baris-baris berikutnya sempat dieksekusi.
+ */
+const SPLASH_MIN_VISIBLE_MS = { standalone: 2600, browser: 1600 }
+
 let firstRoute = true
 startRouter(document.getElementById('view'), (path, meta) => {
   setActiveNav(nav, path)
@@ -94,13 +103,6 @@ if (isAndroidApp()) {
 void prepareLegacyNativeData()
   .then((migration) => migration && importLegacyNativeSurahs(migration))
   .catch((error) => console.warn('[migration] data Android lama tidak dapat dipindahkan', error))
-
-/**
- * Durasi minimum layar pembuka terlihat penuh, dihitung sejak splash native Android ditutup.
- * Salam "Assalamu'alaikum" baru muncul utuh pada ~0,85 detik, jadi waktu tahan ini menentukan
- * berapa lama ia benar-benar terbaca sebelum splash memudar.
- */
-const SPLASH_MIN_VISIBLE_MS = { standalone: 2600, browser: 1600 }
 
 /** Tutup layar pembuka setelah halaman pertama siap, dengan waktu tahan agar salam sempat terbaca. */
 function hideSplash() {

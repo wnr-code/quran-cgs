@@ -1636,6 +1636,13 @@ test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache'
   assert.match(app, /hideSplash\(\)/)
   assert.match(app, /SPLASH_MIN_VISIBLE_MS = \{ standalone: 2600, browser: 1600 \}/, 'salam tampil cukup lama sebelum splash ditutup')
   assert.match(app, /window\.__splashAt = Date\.now\(\)/, 'waktu tahan dihitung sejak splash native ditutup, bukan sejak halaman mulai dimuat')
+  // Router merender rute pertama secara sinkron saat modul dievaluasi; konstanta setelah startRouter() akan
+  // memicu ReferenceError (TDZ) di hideSplash() dan membuat beranda tidak pernah tampil.
+  assert.ok(
+    app.indexOf('const SPLASH_MIN_VISIBLE_MS') > -1 &&
+      app.indexOf('const SPLASH_MIN_VISIBLE_MS') < app.indexOf("startRouter(document.getElementById('view')"),
+    'SPLASH_MIN_VISIBLE_MS harus dideklarasikan sebelum startRouter() dipanggil'
+  )
   assert.match(readFileSync('src/app.js', 'utf8'), /showFirstRunOnboarding\(\)/)
 })
 
