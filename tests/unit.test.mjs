@@ -1632,7 +1632,10 @@ test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache'
   assert.match(html, /<script src="\/splash\.js"><\/script>/)
   assert.match(html, /sp-bye [^;]*8s/) // menutup sendiri bila aplikasi gagal dimuat
   assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'splash\.js'/)
-  assert.match(readFileSync('src/app.js', 'utf8'), /hideSplash\(\)/)
+  const app = readFileSync('src/app.js', 'utf8')
+  assert.match(app, /hideSplash\(\)/)
+  assert.match(app, /SPLASH_MIN_VISIBLE_MS = \{ standalone: 2600, browser: 1600 \}/, 'salam tampil cukup lama sebelum splash ditutup')
+  assert.match(app, /window\.__splashAt = Date\.now\(\)/, 'waktu tahan dihitung sejak splash native ditutup, bukan sejak halaman mulai dimuat')
   assert.match(readFileSync('src/app.js', 'utf8'), /showFirstRunOnboarding\(\)/)
 })
 
