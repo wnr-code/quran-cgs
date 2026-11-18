@@ -4598,33 +4598,54 @@ button.cal-cell:focus-visible {
   line-height: 1.45;
 }
 .share-theme-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0 0 11px;
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: inline proximity;
+  scrollbar-width: thin;
+  padding: 2px 1px 8px;
+  margin: 0 0 8px;
+}
+.share-theme-grid::-webkit-scrollbar { height: 4px; }
+.share-theme-grid::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 45%, transparent);
 }
 .share-theme-opt {
-  min-width: 0;
-  display: grid;
-  gap: 6px;
-  justify-items: center;
-  padding: 7px 6px;
+  flex: 0 0 auto;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px 5px 7px;
   border: 1px solid var(--border);
-  border-radius: 13px;
+  border-radius: 999px;
   background: var(--surface);
   color: var(--text);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 650;
+  white-space: nowrap;
+  scroll-snap-align: start;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+.share-theme-opt:hover { border-color: var(--primary); }
+.share-theme-opt:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 .share-theme-opt[aria-pressed='true'] {
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 14%, transparent);
+  background: color-mix(in srgb, var(--surface) 90%, var(--primary));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 12%, transparent);
 }
 .share-theme-swatch {
-  width: 100%;
-  height: 26px;
-  border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
-  border-radius: 8px;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 23px;
+  border: 1px solid color-mix(in srgb, var(--text) 20%, transparent);
+  border-radius: 50%;
   background:
     radial-gradient(circle at 18% 30%, var(--share-accent) 0 2px, transparent 3px),
     radial-gradient(circle at 82% 72%, var(--share-accent) 0 2px, transparent 3px),

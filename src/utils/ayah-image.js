@@ -12,6 +12,19 @@ const BODY_HEIGHT = BODY_BOTTOM - BODY_TOP
 const ARABIC_FAMILY = '"Amiri Quran", "Scheherazade New", serif'
 const LATIN_FAMILY = 'system-ui, -apple-system, "Segoe UI", sans-serif'
 
+export const SHARE_IMAGE_SLOGANS = Object.freeze([
+  "Hidup Berkah dalam Cahaya Al-Qur'an",
+  'Al-Qur’an menuntun hati, menenangkan jiwa',
+  'Dekat dengan Al-Qur’an, teguh melangkah',
+  'Satu ayat, sejuta kebaikan',
+  'Cahaya petunjuk untuk setiap langkah',
+  'Baca, hayati, amalkan'
+])
+
+function randomShareSlogan() {
+  return SHARE_IMAGE_SLOGANS[Math.floor(Math.random() * SHARE_IMAGE_SLOGANS.length)]
+}
+
 function makeTheme(id, label, scene, options) {
   const {
     backgroundStart, backgroundEnd, accent, frame = accent, innerFrame = frame,
@@ -41,7 +54,7 @@ function makeTheme(id, label, scene, options) {
   }
 }
 
-// The first 12 themes are drawn as original Canvas scenes. The last four retain their legacy IDs
+// The first 15 themes are drawn as original Canvas scenes. The last four retain their legacy IDs
 // and use the supplied poster images directly as backgrounds, preserving those original assets.
 export const AYAH_IMAGE_THEMES = [
   makeTheme('zamrud-premium', 'Zamrud Premium', 'emerald-premium', {
@@ -93,6 +106,20 @@ export const AYAH_IMAGE_THEMES = [
   makeTheme('ramadan-ketupat', 'Ramadan Ketupat', 'ketupat-night', {
     backgroundStart: '#05272d', backgroundEnd: '#126065', accent: '#e6c875', frame: '#dbbd72',
     footer: '#05252b', glow: '#62c3a5', motif: '#f0d88d', swatch: '#0b4a50'
+  }),
+  makeTheme('senja-andalusia', 'Senja Andalusia', 'andalusian-dusk', {
+    backgroundStart: '#211a30', backgroundEnd: '#995b55', accent: '#f0d199', frame: '#d8ad72',
+    innerFrame: '#e3c295', footer: '#282035', glow: '#f4a969', motif: '#efc985', swatch: '#80504f',
+    textShadow: 'rgba(29, 20, 35, 0.86)', bodyScrim: 'rgba(35, 26, 40, 0.48)'
+  }),
+  makeTheme('menara-safir', 'Menara Safir', 'sapphire-minaret', {
+    backgroundStart: '#071a33', backgroundEnd: '#17617b', accent: '#f3d58d', frame: '#8bd0dc',
+    innerFrame: '#b1e0e3', footer: '#071b31', glow: '#62bed0', motif: '#b4e4e6', swatch: '#13516d'
+  }),
+  makeTheme('teratai-fajar', 'Teratai Fajar', 'lotus-dawn', {
+    backgroundStart: '#f4f1e5', backgroundEnd: '#bed8cf', accent: '#b98074', frame: '#78998c',
+    innerFrame: '#b0c0a3', footer: '#304e49', light: true, ink: '#354c45', glow: '#ffe0b0',
+    motif: '#c59286', swatch: '#c8dbd0', bodyScrim: 'rgba(250, 247, 235, 0.42)'
   }),
   // Keep the previous four selections and IDs; these are distinct Canvas illustrations now.
   makeTheme('zamrud', 'Zamrud', 'emerald-courtyard', {
@@ -783,6 +810,47 @@ function drawThemeBackground(ctx, theme, templateImage = null) {
       }
       drawBedug(ctx, WIDTH / 2, 1084, 70, 36, p)
       break
+    case 'andalusian-dusk':
+      drawGlow(ctx, 526, 830, 300, p.glow, 0.44)
+      drawThemeArch(ctx, WIDTH / 2, 218, 1086, 306, p.frame, 0.33, 3.2)
+      drawThemeArch(ctx, WIDTH / 2, 246, 1086, 276, p.motif, 0.22, 1.2)
+      ctx.save()
+      ctx.globalAlpha = 0.84
+      ctx.fillStyle = '#f7c783'
+      ctx.beginPath()
+      ctx.arc(526, 833, 47, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+      drawDuneLayer(ctx, 1002, 112, '#b77a67', 0.48, -10)
+      drawDuneLayer(ctx, 1068, 100, '#483448', 0.8, 8)
+      drawMosqueSilhouette(ctx, 1090, '#33283b', p.accent, 0.76)
+      for (const x of [54, WIDTH - 54]) drawOctagram(ctx, x, 340, 17, p.motif, 0.58)
+      break
+    case 'sapphire-minaret':
+      drawGlow(ctx, 112, 376, 215, p.glow, 0.34)
+      drawGlow(ctx, WIDTH - 112, 376, 215, p.glow, 0.3)
+      drawCrescent(ctx, WIDTH - 108, 342, 38, p.accent, p.backgroundStart)
+      drawStarField(ctx, p, true)
+      drawThemeArch(ctx, WIDTH / 2, 220, 1100, 310, p.frame, 0.26, 2.2)
+      drawMosqueSilhouette(ctx, 1092, '#081e35', p.accent, 0.68)
+      drawPoolRings(ctx, p, 1076)
+      for (const y of [475, 665, 855]) {
+        drawOctagram(ctx, 42, y, 15, p.motif, 0.56)
+        drawOctagram(ctx, WIDTH - 42, y, 15, p.motif, 0.56)
+      }
+      break
+    case 'lotus-dawn':
+      drawGlow(ctx, 510, 890, 310, p.glow, 0.48)
+      drawCloud(ctx, 106, 606, 188, p.frame, 0.3)
+      drawCloud(ctx, 612, 708, 208, p.frame, 0.24)
+      drawThemeArch(ctx, WIDTH / 2, 228, 1090, 304, p.frame, 0.28, 2.4)
+      drawGardenSprig(ctx, 20, 440, 1, p, 0.7)
+      drawGardenSprig(ctx, WIDTH - 20, 412, -1, p, 0.7)
+      for (const [x, y, size] of [[65, 884, 20], [WIDTH - 65, 842, 17], [92, 1044, 15], [WIDTH - 92, 1024, 19]]) {
+        drawFlower(ctx, x, y, size, p.motif, p.accent, 0.66)
+      }
+      drawPoolRings(ctx, p, 1058)
+      break
     case 'emerald-courtyard':
       drawGlow(ctx, WIDTH / 2, 508, 390, p.glow, 0.24)
       drawThemeArch(ctx, WIDTH / 2, 214, 1115, 314, p.frame, 0.42, 5)
@@ -866,7 +934,26 @@ function drawBodyScrim(ctx, palette) {
   ctx.restore()
 }
 
-function drawBrandHeader(ctx, palette, brandLogo, heading) {
+function drawTemplateBrandCover(ctx, palette) {
+  // Supplied JPEGs remain the artwork background, while their oversized baked-in logos are
+  // replaced with the user's latest, compact brand marks and the new footer layout.
+  ctx.save()
+  const header = ctx.createLinearGradient(0, 0, WIDTH, 224)
+  header.addColorStop(0, palette.headerStart)
+  header.addColorStop(1, palette.headerEnd)
+  ctx.fillStyle = header
+  ctx.fillRect(0, 0, WIDTH, 224)
+
+  const footerColor = palette.footer || palette.backgroundStart
+  const footer = ctx.createLinearGradient(0, 1084, 0, HEIGHT)
+  footer.addColorStop(0, withAlpha(footerColor, 0.96))
+  footer.addColorStop(1, footerColor)
+  ctx.fillStyle = footer
+  ctx.fillRect(0, 1084, WIDTH, HEIGHT - 1084)
+  ctx.restore()
+}
+
+function drawBrandHeader(ctx, palette, brandLogo, heading, slogan) {
   roundRect(ctx, 38, 32, WIDTH - 76, 180, 24)
   const header = ctx.createLinearGradient(38, 32, WIDTH - 38, 212)
   header.addColorStop(0, palette.headerStart)
@@ -880,44 +967,57 @@ function drawBrandHeader(ctx, palette, brandLogo, heading) {
   drawOctagram(ctx, WIDTH - 56, 51, 14, palette.motif, 0.58)
 
   const cleanHeading = clean(heading) || 'RENUNGAN AL-QUR’AN'
+  const cleanSlogan = clean(slogan) || randomShareSlogan()
   let headingX = 62
-  let headingY = 158
+  let headingY = 139
   let headingMaxWidth = WIDTH - 126
+  let sloganY = 185
   ctx.direction = 'ltr'
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
   if (brandLogo) {
-    // Use the transparent QuranKu logo supplied by the user, including its own tagline.
-    ctx.drawImage(brandLogo, 48, 38, 252, 168)
-    headingX = 322
-    headingY = 125
-    headingMaxWidth = WIDTH - headingX - 62
+    // Use the supplied transparent QuranKu logo, scaled down without cropping its tagline.
+    ctx.drawImage(brandLogo, 48, 52, 180, 120)
+    headingX = 260
+    headingY = 104
+    headingMaxWidth = WIDTH - headingX - 52
+    sloganY = 156
   } else {
     ctx.fillStyle = palette.title
-    ctx.font = `700 28px ${LATIN_FAMILY}`
-    ctx.fillText('QuranKu', 62, 99)
+    ctx.font = `700 25px ${LATIN_FAMILY}`
+    ctx.fillText('QuranKu', 62, 82)
     ctx.fillStyle = palette.subtitle
-    ctx.font = `600 13px ${LATIN_FAMILY}`
-    ctx.fillText('Teman Ibadah Harian', 64, 124)
+    ctx.font = `600 12px ${LATIN_FAMILY}`
+    ctx.fillText('Teman Ibadah Harian', 64, 103)
   }
 
   ctx.fillStyle = palette.accent
-  let headingSize = brandLogo ? 22 : 12
+  let headingSize = brandLogo ? 20 : 15
   ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
   while (ctx.measureText(cleanHeading).width > headingMaxWidth && headingSize > 10) {
     headingSize--
     ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
   }
   ctx.fillText(cleanHeading, headingX, headingY)
+
   ctx.save()
   ctx.globalAlpha = 0.62
   ctx.strokeStyle = palette.innerFrame
   ctx.lineWidth = 1
   ctx.beginPath()
-  ctx.moveTo(headingX, headingY + 18)
-  ctx.lineTo(WIDTH - 64, headingY + 18)
+  ctx.moveTo(headingX, headingY + 15)
+  ctx.lineTo(WIDTH - 64, headingY + 15)
   ctx.stroke()
   ctx.restore()
+
+  ctx.fillStyle = palette.subtitle
+  let sloganSize = 12
+  ctx.font = `600 ${sloganSize}px ${LATIN_FAMILY}`
+  while (ctx.measureText(cleanSlogan).width > headingMaxWidth && sloganSize > 9) {
+    sloganSize--
+    ctx.font = `600 ${sloganSize}px ${LATIN_FAMILY}`
+  }
+  ctx.fillText(cleanSlogan, headingX, sloganY)
 }
 
 async function loadImage(path) {
@@ -1058,15 +1158,50 @@ function drawBodyStars(ctx, bodyY, contentHeight, palette) {
   for (const [x, y, size] of positions) drawStar(ctx, x, y, size, palette.ornament, decorativeAlpha)
 }
 
-function drawShareFooter(ctx, palette, cigatasLogo, sourceUrl, scene) {
-  const source = String(sourceUrl ?? '').replace(/^https?:\/\//i, '')
+function drawSourceLink(ctx, palette, sourceUrl, baselineY) {
+  const source = String(sourceUrl ?? '').replace(/^https?:\/\//i, '').trim()
+  if (!source) return
+  const label = `Sumber: ${source}`
   ctx.save()
   ctx.direction = 'ltr'
-  ctx.textAlign = 'right'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'alphabetic'
+  let fontSize = 11
+  ctx.font = `600 ${fontSize}px ${LATIN_FAMILY}`
+  while (ctx.measureText(label).width > WIDTH - 88 && fontSize > 8) {
+    fontSize--
+    ctx.font = `600 ${fontSize}px ${LATIN_FAMILY}`
+  }
   ctx.fillStyle = palette.secondary
-  ctx.font = `8px ${LATIN_FAMILY}`
-  ctx.fillText(source, WIDTH - 38, 1101)
+  ctx.shadowColor = palette.textShadow || 'transparent'
+  ctx.shadowBlur = 2
+  ctx.fillText(label, WIDTH / 2, baselineY)
+  ctx.restore()
+}
 
+function drawPlayStoreMark(ctx, x, y, size) {
+  const a = [x + 1, y + 1]
+  const b = [x + 1, y + size - 1]
+  const upper = [x + size * 0.62, y + size * 0.28]
+  const center = [x + size * 0.43, y + size * 0.5]
+  const lower = [x + size * 0.62, y + size * 0.72]
+  const tip = [x + size - 1, y + size * 0.5]
+  const polygon = (points, color) => {
+    ctx.beginPath()
+    ctx.moveTo(points[0][0], points[0][1])
+    points.slice(1).forEach(([px, py]) => ctx.lineTo(px, py))
+    ctx.closePath()
+    ctx.fillStyle = color
+    ctx.fill()
+  }
+  polygon([a, b, center], '#4285f4')
+  polygon([a, upper, center], '#34a853')
+  polygon([b, center, lower], '#fbbc04')
+  polygon([upper, tip, lower, center], '#ea4335')
+}
+
+function drawShareFooter(ctx, palette, cigatasLogo) {
+  ctx.save()
   ctx.beginPath()
   ctx.moveTo(0, 1134)
   ctx.quadraticCurveTo(115, 1114, 247, 1140)
@@ -1091,44 +1226,33 @@ function drawShareFooter(ctx, palette, cigatasLogo, sourceUrl, scene) {
   ctx.quadraticCurveTo(466, 1176, WIDTH, 1134)
   ctx.stroke()
 
-  // Compact identity at the footer's left; put the bold website label directly beneath it.
-  if (cigatasLogo) ctx.drawImage(cigatasLogo, 22, 1140, 150, 100)
+  const footerInk = palette.light ? '#fff8e7' : palette.title
+  if (cigatasLogo) ctx.drawImage(cigatasLogo, 24, 1154, 108, 72)
   else {
+    ctx.direction = 'ltr'
     ctx.textAlign = 'left'
-    ctx.fillStyle = palette.title
+    ctx.fillStyle = footerInk
     ctx.font = `700 15px ${LATIN_FAMILY}`
-    ctx.fillText('Cigatas', 26, 1180)
+    ctx.fillText('Cigatas', 28, 1193)
     ctx.font = `700 9px ${LATIN_FAMILY}`
-    ctx.fillText('#TongEureunNgaji', 26, 1197)
+    ctx.fillText('#TongEureunNgaji', 28, 1208)
   }
 
-  const globeX = 35
-  const globeY = 1253
-  const globeRadius = 10
-  ctx.strokeStyle = palette.title
-  ctx.lineWidth = 1.4
-  ctx.beginPath()
-  ctx.arc(globeX, globeY, globeRadius, 0, Math.PI * 2)
-  ctx.moveTo(globeX - globeRadius, globeY)
-  ctx.lineTo(globeX + globeRadius, globeY)
-  ctx.moveTo(globeX, globeY - globeRadius)
-  ctx.lineTo(globeX, globeY + globeRadius)
-  ctx.moveTo(globeX, globeY - globeRadius)
-  ctx.quadraticCurveTo(globeX - 12, globeY, globeX, globeY + globeRadius)
-  ctx.moveTo(globeX, globeY - globeRadius)
-  ctx.quadraticCurveTo(globeX + 12, globeY, globeX, globeY + globeRadius)
+  roundRect(ctx, 426, 1155, 270, 72, 16)
+  ctx.fillStyle = withAlpha('#ffffff', 0.09)
+  ctx.fill()
+  ctx.strokeStyle = withAlpha(palette.frame, 0.78)
+  ctx.lineWidth = 1
   ctx.stroke()
+  drawPlayStoreMark(ctx, 445, 1174, 36)
   ctx.direction = 'ltr'
   ctx.textAlign = 'left'
-  ctx.fillStyle = palette.title
-  ctx.font = `700 16px ${LATIN_FAMILY}`
-  ctx.fillText('quran.cgs.my.id', 53, 1259)
-
-  if (['lantern-arch', 'ketupat-night', 'ramadan-green'].includes(scene)) {
-    drawKetupat(ctx, 288, 1200, 24, palette.accent)
-    drawBedug(ctx, WIDTH / 2, 1201, 52, 28, palette)
-    drawKetupat(ctx, 432, 1200, 24, palette.accent)
-  }
+  ctx.fillStyle = footerInk
+  ctx.font = `700 13px ${LATIN_FAMILY}`
+  ctx.fillText('Unduh APK', 495, 1187)
+  ctx.fillStyle = palette.light ? '#f1e6cf' : palette.subtitle
+  ctx.font = `600 10px ${LATIN_FAMILY}`
+  ctx.fillText('Google Play · QuranKu', 495, 1205)
   ctx.restore()
 }
 
@@ -1157,12 +1281,10 @@ export async function createShareImage({
     ])
   }
   const templateImage = selectedTheme.template ? await loadImage(selectedTheme.template) : null
-  const [brandLogo, cigatasLogo] = templateImage
-    ? [null, null]
-    : await Promise.all([
-      loadImage('/brand/quranku-logo.png'),
-      loadImage('/cigatas-identity.png')
-    ])
+  const [brandLogo, cigatasLogo] = await Promise.all([
+    loadImage('/brand/quranku-logo.png'),
+    loadImage('/cigatas-identity.png')
+  ])
 
   const renderCanvas = document.createElement('canvas')
   renderCanvas.width = WIDTH * SCALE
@@ -1171,12 +1293,11 @@ export async function createShareImage({
   if (!ctx) throw new Error('Tidak dapat membuat gambar bacaan.')
   ctx.scale(SCALE, SCALE)
 
-  // Pilihan lama menggunakan gambar template asli; tema lain dirender sebagai ilustrasi Canvas.
+  // Template JPEG tetap dipakai sebagai ilustrasi latar; branding lamanya ditutup oleh identitas baru.
   drawThemeBackground(ctx, selectedTheme, templateImage)
-  if (!templateImage) {
-    drawBodyScrim(ctx, palette)
-    drawBrandHeader(ctx, palette, brandLogo, heading)
-  }
+  if (templateImage) drawTemplateBrandCover(ctx, palette)
+  drawBodyScrim(ctx, palette)
+  drawBrandHeader(ctx, palette, brandLogo, heading, randomShareSlogan())
 
   // Garis identitas memakai ikon masjid-bulan-bintang dengan ruang lega dari header dan chip.
   ctx.save()
@@ -1214,12 +1335,13 @@ export async function createShareImage({
   const bodyY = Math.round(BODY_TOP + Math.max(0, (BODY_HEIGHT - layout.contentHeight) / 2))
   if (!templateImage) drawBodyStars(ctx, bodyY, layout.contentHeight, palette)
   drawContent(ctx, layout, bodyY, palette)
+  drawSourceLink(ctx, palette, sourceUrl, Math.min(BODY_BOTTOM + 28, bodyY + layout.contentHeight + 20))
 
   ctx.shadowColor = 'transparent'
   ctx.shadowBlur = 0
   ctx.shadowOffsetX = 0
   ctx.shadowOffsetY = 0
-  if (!templateImage) drawShareFooter(ctx, palette, cigatasLogo, sourceUrl, selectedTheme.scene)
+  drawShareFooter(ctx, palette, cigatasLogo)
 
   // Ratakan latar belakang kedua sebagai pengaman PNG/JPG di WebView dan aplikasi berbagi.
   ctx.save()

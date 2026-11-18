@@ -5,6 +5,8 @@ import { getSurah } from '../api/api-adapter.js'
 import data from '../data/asmaul-husna.json'
 import { $, esc, debounce, copyText, toast } from '../utils/helpers.js'
 import { qnum } from '../utils/arabic-numbers.js'
+import { APP } from '../config.js'
+import { createShareImage } from '../utils/ayah-image.js'
 import { fi, openShare } from '../components/share-sheet.js'
 
 const TOTAL = data.items.length
@@ -85,7 +87,26 @@ export default function asmaul(root) {
           } else if (ev.target.closest('[data-share]')) {
             openShare(
               { title: `Asmaul Husna ke-${cur.id}: ${cur.latin}`, ar: cur.arab, latin: cur.latin, arti: [cur.arti, cur.makna].filter(Boolean).join('. '), path: '/asmaul-husna' },
-              { title: 'Bagikan Asmaul Husna', what: 'Asmaul Husna' }
+              {
+                title: 'Bagikan Asmaul Husna',
+                what: 'Asmaul Husna',
+                image: {
+                  filename: `quranku-asmaul-husna-${cur.id}.png`,
+                  create: ({ theme, format }) => createShareImage({
+                    heading: 'ASMAUL HUSNA',
+                    blocks: [{
+                      label: `Asmaul Husna ke-${cur.id}`,
+                      arabic: cur.arab,
+                      latin: cur.latin,
+                      translation: [cur.arti, cur.makna].filter(Boolean).join('. ')
+                    }],
+                    reference: `${cur.id}. ${cur.latin}`,
+                    sourceUrl: `${APP.origin}/#/asmaul-husna`,
+                    theme,
+                    format
+                  })
+                }
+              }
             )
           } else if (ev.target.closest('[data-copy]')) {
             toast((await copyText(`${cur.arab}\n${cur.latin} — ${cur.arti}${cur.makna ? '\n\n' + cur.makna : ''}`)) ? 'Disalin' : 'Gagal menyalin')
