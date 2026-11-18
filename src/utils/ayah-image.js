@@ -12,66 +12,114 @@ const BODY_HEIGHT = BODY_BOTTOM - BODY_TOP
 const ARABIC_FAMILY = '"Amiri Quran", "Scheherazade New", serif'
 const LATIN_FAMILY = 'system-ui, -apple-system, "Segoe UI", sans-serif'
 
-export const AYAH_IMAGE_THEMES = [
-  {
-    id: 'zamrud',
-    label: 'Zamrud',
-    swatch: '#0f6b4f',
-    template: '/share-templates/emerald-courtyard.jpg',
+function makeTheme(id, label, scene, options) {
+  const {
+    backgroundStart, backgroundEnd, accent, frame = accent, innerFrame = frame,
+    headerStart = backgroundStart, headerEnd = backgroundEnd, footer = backgroundStart,
+    light = false, ink, arabic, latin, translation, title, subtitle, chip, chipText, glow = accent, motif = frame,
+    swatch = backgroundEnd, textShadow, bodyScrim, template = null
+  } = options
+  const textColor = ink || (light ? '#31473f' : '#fff7e7')
+  const safeBodyScrim = bodyScrim || withAlpha(light ? '#fff8ed' : '#081b20', light ? 0.94 : 0.9)
+  const arabicColor = arabic || textColor
+  const latinColor = latin || (light ? '#66746a' : '#d9e3df')
+  const translationColor = translation || textColor
+  return {
+    id, label, scene, swatch, template,
     colors: {
-      backgroundStart: '#062b29', backgroundEnd: '#061d2a', card: '#082d2b',
-      frame: '#d9b75c', innerFrame: '#9b7a37', headerStart: '#062b29', headerEnd: '#145d46',
-      title: '#fff8e6', subtitle: '#f5e5ba', accent: '#e2bd61', arabic: '#f5e4b6',
-      latin: '#e5dfce', translation: '#fff9eb', chip: '#062b29', chipText: '#fff0bd', divider: '#d4b65f',
-      brand: '#31513f', secondary: '#f1d88d', ornament: '#dfbd63', footer: '#062723', textShadow: 'rgba(0, 10, 12, 0.78)'
-    }
-  },
-  {
-    id: 'malam',
-    label: 'Malam',
-    swatch: '#273d68',
-    template: '/share-templates/cosmic-sky.jpg',
-    colors: {
-      backgroundStart: '#071a35', backgroundEnd: '#1f3e58', card: '#10243b',
-      frame: '#e6c878', innerFrame: '#738599', headerStart: '#0b1425', headerEnd: '#2c4162',
-      title: '#fffaf0', subtitle: '#d9d5ca', accent: '#f0d483', arabic: '#fff6db',
-      latin: '#e4e9ef', translation: '#fffdf5', chip: '#081b31', chipText: '#fff0c2', divider: '#e1c476',
-      brand: '#fff4d9', secondary: '#f0dcaa', ornament: '#f0d483', footer: '#071829',
-      textShadow: 'rgba(2, 11, 24, 0.9)', contentScrim: true
-    }
-  },
-  {
-    id: 'pasir',
-    label: 'Pasir',
-    swatch: '#9a673a',
-    template: '/share-templates/warm-cream.jpg',
-    colors: {
-      backgroundStart: '#f5ead5', backgroundEnd: '#e8d1ad', card: '#fff8eb',
-      frame: '#ad7f43', innerFrame: '#e7d3b3', headerStart: '#69452e', headerEnd: '#92663f',
-      title: '#fffaf2', subtitle: '#f1dfc5', accent: '#a77739', arabic: '#21463a',
-      latin: '#667468', translation: '#33473d', chip: '#fff7e7', chipText: '#2c493d', divider: '#bd9859',
-      brand: '#62452f', secondary: '#4e5a50', ornament: '#a87843', footer: '#092824',
-      textShadow: 'rgba(255, 249, 232, 0.86)'
-    }
-  },
-  {
-    id: 'ramadan',
-    label: 'Ramadan',
-    swatch: '#0b5b46',
-    template: '/share-templates/emerald-courtyard.jpg',
-    colors: {
-      backgroundStart: '#062b29', backgroundEnd: '#061d2a', card: '#082d2b',
-      frame: '#e3bd59', innerFrame: '#a48542', headerStart: '#073d32', headerEnd: '#0b684d',
-      title: '#fff9e8', subtitle: '#f0dfa9', accent: '#e0bb5c', arabic: '#f5e4b6',
-      latin: '#e5dfce', translation: '#fff9eb', chip: '#062b29', chipText: '#fff0bd', divider: '#dfbd60',
-      brand: '#31513f', secondary: '#f1d88d', ornament: '#c99734', footer: '#062723',
-      textShadow: 'rgba(0, 10, 12, 0.82)'
+      backgroundStart, backgroundEnd, card: light ? '#fff8ed' : '#102721',
+      frame, innerFrame, headerStart, headerEnd,
+      title: title || (light ? '#2e433d' : '#fff8e7'),
+      subtitle: subtitle || (light ? '#66584c' : '#eee0c5'),
+      accent, arabic: arabicColor, latin: latinColor, translation: translationColor,
+      chip: chip || (light ? '#fffaf1' : '#102a2a'),
+      chipText: chipText || textColor, divider: frame,
+      brand: textColor, secondary: light ? '#66584c' : '#f1d88d',
+      ornament: motif, footer, textShadow: textShadow || (light ? 'rgba(255, 250, 237, 0.72)' : 'rgba(0, 9, 18, 0.8)'),
+      glow, motif, light, bodyScrim: safeBodyScrim
     }
   }
+}
+
+// The supplied JPEGs are retained in public/share-templates for compatibility, but are not
+// used as backgrounds: those files contain fixed branding. These share themes are text-free art.
+export const AYAH_IMAGE_THEMES = [
+  makeTheme('zamrud-premium', 'Zamrud Premium', 'emerald-premium', {
+    backgroundStart: '#061b19', backgroundEnd: '#0c493b', accent: '#d9ac91', frame: '#dfc883',
+    innerFrame: '#a47a60', footer: '#061f1b', glow: '#33a980', motif: '#c89078', swatch: '#0b4939'
+  }),
+  makeTheme('malam-berbintang', 'Malam Berbintang', 'starry-night', {
+    backgroundStart: '#07142d', backgroundEnd: '#243c67', accent: '#f0d38d', frame: '#a9c3e5',
+    footer: '#08162b', glow: '#6e89d2', motif: '#c6d5f2', swatch: '#101f42'
+  }),
+  makeTheme('galaksi-islami', 'Galaksi Islami', 'galaxy', {
+    backgroundStart: '#090c29', backgroundEnd: '#372251', accent: '#f1c6d8', frame: '#bca7fa',
+    footer: '#110f2e', glow: '#9566e8', motif: '#8fc9ed', swatch: '#261847'
+  }),
+  makeTheme('ramadan-lentera', 'Ramadan Lentera', 'lantern-arch', {
+    backgroundStart: '#08231f', backgroundEnd: '#185541', accent: '#f3d17c', frame: '#d9b766',
+    footer: '#06231e', glow: '#ffcb62', motif: '#e7c875', swatch: '#0c4938'
+  }),
+  makeTheme('masjid-emas', 'Masjid Emas', 'golden-mosque', {
+    backgroundStart: '#0a1830', backgroundEnd: '#3e2a3d', accent: '#f1ce75', frame: '#c9a45d',
+    footer: '#0a1728', glow: '#edb94e', motif: '#ead39a', swatch: '#26344c'
+  }),
+  makeTheme('rose-gold-luxury', 'Rose Gold Luxury', 'rose-luxury', {
+    backgroundStart: '#f8e9e5', backgroundEnd: '#e6c9c5', accent: '#b87878', frame: '#bd8b7d',
+    innerFrame: '#d2a996', footer: '#57383d', light: true, ink: '#523a3c', glow: '#f0bda8',
+    motif: '#c39284', swatch: '#e6c9c5'
+  }),
+  makeTheme('fajar-damai', 'Fajar Damai', 'peaceful-dawn', {
+    backgroundStart: '#fff1dc', backgroundEnd: '#e8ae8b', accent: '#c98461', frame: '#c9926c',
+    footer: '#354a50', light: true, ink: '#35484a', glow: '#ffe1a2', motif: '#d5a17a', swatch: '#f4c7a8'
+  }),
+  makeTheme('taman-islami', 'Taman Islami', 'islamic-garden', {
+    backgroundStart: '#eef3e7', backgroundEnd: '#bfd4bd', accent: '#728f71', frame: '#719177',
+    footer: '#23483a', light: true, ink: '#304a3d', glow: '#d8e7be', motif: '#8ca680', swatch: '#c7d9bd'
+  }),
+  makeTheme('ottoman-blue', 'Ottoman Blue', 'ottoman-blue', {
+    backgroundStart: '#071a39', backgroundEnd: '#164d76', accent: '#e5c574', frame: '#d8b966',
+    footer: '#071b33', glow: '#4b96c6', motif: '#8eb8d1', swatch: '#12385d'
+  }),
+  makeTheme('champagne-minimalis', 'Champagne Minimalis', 'champagne-minimal', {
+    backgroundStart: '#faf4e7', backgroundEnd: '#e9d9b9', accent: '#ad8c57', frame: '#c0a06e',
+    footer: '#34483e', light: true, ink: '#3a463f', glow: '#fff9e9', motif: '#d4bd91', swatch: '#eee2c8'
+  }),
+  makeTheme('gurun-senja', 'Gurun Senja', 'sunset-desert', {
+    backgroundStart: '#392c45', backgroundEnd: '#d58a56', accent: '#f5d28b', frame: '#e3b66e',
+    footer: '#382c39', glow: '#ffc779', motif: '#efd19a', swatch: '#9b5d52',
+    textShadow: 'rgba(34, 23, 38, 0.88)', bodyScrim: 'rgba(45, 31, 45, 0.9)'
+  }),
+  makeTheme('ramadan-ketupat', 'Ramadan Ketupat', 'ketupat-night', {
+    backgroundStart: '#05272d', backgroundEnd: '#126065', accent: '#e6c875', frame: '#dbbd72',
+    footer: '#05252b', glow: '#62c3a5', motif: '#f0d88d', swatch: '#0b4a50'
+  }),
+  // Keep the previous four selections and IDs; these are distinct Canvas illustrations now.
+  makeTheme('zamrud', 'Zamrud', 'emerald-courtyard', {
+    template: '/share-templates/emerald-courtyard.jpg',
+    backgroundStart: '#09251e', backgroundEnd: '#1b5b43', accent: '#d7bd79', frame: '#b89156',
+    footer: '#08251e', glow: '#2c8860', motif: '#dfc68b', swatch: '#14513c'
+  }),
+  makeTheme('malam', 'Malam', 'moonlit-minaret', {
+    template: '/share-templates/cosmic-sky.jpg',
+    backgroundStart: '#101b31', backgroundEnd: '#344865', accent: '#e6d49c', frame: '#b6c4d4',
+    footer: '#101b2d', glow: '#9eb9de', motif: '#c5d3e4', swatch: '#243950'
+  }),
+  makeTheme('pasir', 'Pasir', 'parchment-manuscript', {
+    template: '/share-templates/warm-cream.jpg',
+    backgroundStart: '#f5ecd8', backgroundEnd: '#dfc69e', accent: '#a77d4d', frame: '#a6895c',
+    footer: '#28483e', light: true, ink: '#35473d', glow: '#fff4d7', motif: '#c3a373', swatch: '#e7d4b2'
+  }),
+  makeTheme('ramadan', 'Ramadan', 'ramadan-green', {
+    template: '/share-templates/emerald-courtyard.jpg',
+    backgroundStart: '#073329', backgroundEnd: '#0d5842', accent: '#dfbf6a', frame: '#c39a4f',
+    footer: '#062b23', glow: '#e3b94f', motif: '#e4ce87', swatch: '#0d4c39'
+  })
 ]
 
 export const SHARE_IMAGE_THEMES = AYAH_IMAGE_THEMES
-const DEFAULT_THEME = AYAH_IMAGE_THEMES[0]
+export const DEFAULT_AYAH_IMAGE_THEME_ID = AYAH_IMAGE_THEMES[0].id
+const DEFAULT_THEME = AYAH_IMAGE_THEMES.find((theme) => theme.id === DEFAULT_AYAH_IMAGE_THEME_ID)
 
 /** Bungkus teks sesuai lebar canvas tanpa membuang kata atau karakter. */
 export function wrapCanvasText(ctx, text, maxWidth) {
@@ -320,6 +368,545 @@ function drawBedug(ctx, x, y, width, height, palette) {
   ctx.restore()
 }
 
+function withAlpha(color, alpha) {
+  const match = /^#([\da-f]{6})$/i.exec(String(color))
+  if (!match) return color
+  const value = Number.parseInt(match[1], 16)
+  return `rgba(${value >> 16}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`
+}
+
+function drawGlow(ctx, x, y, radius, color, alpha = 0.5) {
+  if (!ctx.createRadialGradient) return
+  const glow = ctx.createRadialGradient(x, y, 0, x, y, radius)
+  glow.addColorStop(0, withAlpha(color, alpha))
+  glow.addColorStop(1, withAlpha(color, 0))
+  ctx.save()
+  ctx.fillStyle = glow
+  ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2)
+  ctx.restore()
+}
+
+function drawOctagram(ctx, x, y, radius, color, alpha = 0.35) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.translate(x, y)
+  ctx.strokeStyle = color
+  ctx.lineWidth = 1.2
+  for (const angle of [0, Math.PI / 4]) {
+    ctx.save()
+    ctx.rotate(angle)
+    ctx.strokeRect(-radius * 0.72, -radius * 0.72, radius * 1.44, radius * 1.44)
+    ctx.restore()
+  }
+  ctx.beginPath()
+  ctx.arc(0, 0, radius * 0.16, 0, Math.PI * 2)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawThemeArch(ctx, cx, top, base, halfWidth, color, alpha = 0.3, lineWidth = 2) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.strokeStyle = color
+  ctx.lineWidth = lineWidth
+  ctx.beginPath()
+  ctx.moveTo(cx - halfWidth, base)
+  ctx.lineTo(cx - halfWidth, top + halfWidth * 0.42)
+  ctx.quadraticCurveTo(cx - halfWidth, top, cx, top)
+  ctx.quadraticCurveTo(cx + halfWidth, top, cx + halfWidth, top + halfWidth * 0.42)
+  ctx.lineTo(cx + halfWidth, base)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawDome(ctx, x, baseY, width, height, color) {
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(x - width / 2, baseY)
+  ctx.quadraticCurveTo(x - width / 2, baseY - height, x, baseY - height)
+  ctx.quadraticCurveTo(x + width / 2, baseY - height, x + width / 2, baseY)
+  ctx.closePath()
+  ctx.fill()
+}
+
+function drawMinaret(ctx, x, baseY, width, height, color, accent) {
+  ctx.save()
+  ctx.fillStyle = color
+  ctx.fillRect(x - width / 2, baseY - height * 0.76, width, height * 0.76)
+  ctx.fillRect(x - width * 0.72, baseY - height * 0.76, width * 1.44, height * 0.08)
+  drawDome(ctx, x, baseY - height * 0.75, width * 1.15, height * 0.24, color)
+  ctx.fillStyle = accent
+  ctx.globalAlpha = 0.58
+  ctx.fillRect(x - width * 0.12, baseY - height * 0.52, width * 0.24, height * 0.09)
+  ctx.fillRect(x - width * 0.12, baseY - height * 0.32, width * 0.24, height * 0.09)
+  ctx.restore()
+}
+
+function drawMosqueSilhouette(ctx, baseY, color, accent, alpha = 0.55) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.fillStyle = color
+  ctx.fillRect(0, baseY, WIDTH, HEIGHT - baseY)
+  ctx.fillRect(186, baseY - 62, 348, 62)
+  drawDome(ctx, WIDTH / 2, baseY - 58, 175, 125, color)
+  drawDome(ctx, 246, baseY - 48, 94, 71, color)
+  drawDome(ctx, 474, baseY - 48, 94, 71, color)
+  drawDome(ctx, 170, baseY - 36, 55, 45, color)
+  drawDome(ctx, 550, baseY - 36, 55, 45, color)
+  drawMinaret(ctx, 112, baseY, 25, 210, color, accent)
+  drawMinaret(ctx, 608, baseY, 25, 210, color, accent)
+  ctx.globalAlpha = alpha * 0.66
+  ctx.fillStyle = accent
+  for (const x of [258, 300, 342, 378, 420, 462]) ctx.fillRect(x, baseY - 34, 5, 22)
+  ctx.restore()
+}
+
+function drawDuneLayer(ctx, y, height, color, alpha = 0.5, phase = 0) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(0, y + height * 0.25)
+  ctx.quadraticCurveTo(150, y - height * 0.42 + phase, 315, y + height * 0.08)
+  ctx.quadraticCurveTo(495, y + height * 0.62 + phase, WIDTH, y - height * 0.1)
+  ctx.lineTo(WIDTH, HEIGHT)
+  ctx.lineTo(0, HEIGHT)
+  ctx.closePath()
+  ctx.fill()
+  ctx.restore()
+}
+
+function drawLeaf(ctx, x, y, length, color, alpha = 0.5, angle = 0) {
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.rotate(angle)
+  ctx.globalAlpha = alpha
+  ctx.fillStyle = color
+  ctx.strokeStyle = color
+  ctx.lineWidth = 0.8
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.quadraticCurveTo(length * 0.38, -length * 0.42, length, 0)
+  ctx.quadraticCurveTo(length * 0.38, length * 0.42, 0, 0)
+  ctx.fill()
+  ctx.globalAlpha = alpha * 0.72
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.quadraticCurveTo(length * 0.5, 0, length, 0)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawGardenSprig(ctx, x, y, direction, palette, scale = 1) {
+  ctx.save()
+  ctx.translate(x, y)
+  ctx.scale(direction, 1)
+  ctx.strokeStyle = palette.frame
+  ctx.globalAlpha = 0.62
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.quadraticCurveTo(26 * scale, 100 * scale, 7 * scale, 250 * scale)
+  ctx.quadraticCurveTo(35 * scale, 360 * scale, 4 * scale, 480 * scale)
+  ctx.stroke()
+  for (let i = 0; i < 7; i++) {
+    const yOffset = i * 62 * scale
+    const side = i % 2 ? -1 : 1
+    drawLeaf(ctx, 7 * scale, yOffset, (36 + (i % 3) * 7) * scale, i % 2 ? palette.accent : palette.motif, 0.52, side * 0.5)
+  }
+  ctx.restore()
+}
+
+function drawFlower(ctx, x, y, radius, color, centerColor, alpha = 0.58) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.fillStyle = color
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI * 2 * i) / 6
+    ctx.beginPath()
+    ctx.arc(x + Math.cos(angle) * radius * 0.62, y + Math.sin(angle) * radius * 0.62, radius * 0.42, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  ctx.fillStyle = centerColor
+  ctx.beginPath()
+  ctx.arc(x, y, radius * 0.28, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+}
+
+function drawStarField(ctx, palette, dense = false) {
+  const points = [
+    [36, 244, 3], [86, 284, 2], [158, 229, 3], [248, 258, 2], [472, 236, 2], [574, 282, 3], [678, 244, 2],
+    [27, 364, 2], [691, 391, 3], [35, 532, 3], [685, 559, 2], [27, 719, 2], [693, 746, 3],
+    [37, 901, 3], [680, 932, 2], [83, 1050, 2], [635, 1060, 3], [300, 1070, 2], [419, 1044, 2]
+  ]
+  for (const [x, y, size] of points) drawStar(ctx, x, y, size, palette.accent, dense ? 0.75 : 0.48)
+  if (dense) {
+    for (let i = 0; i < 28; i++) {
+      const x = (i * 131 + 29) % WIDTH
+      const y = 240 + ((i * 173 + 47) % 830)
+      if ((x < 58 || x > WIDTH - 58 || y < 300 || y > 320 || y > 1030) && y < 1110) {
+        ctx.save()
+        ctx.globalAlpha = 0.38 + (i % 3) * 0.12
+        ctx.fillStyle = palette.subtitle
+        ctx.beginPath()
+        ctx.arc(x, y, 1 + (i % 2), 0, Math.PI * 2)
+        ctx.fill()
+        ctx.restore()
+      }
+    }
+  }
+}
+
+function drawCloud(ctx, x, y, width, color, alpha = 0.22) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.strokeStyle = color
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(x - width / 2, y)
+  ctx.quadraticCurveTo(x - width * 0.36, y - 22, x - width * 0.16, y - 8)
+  ctx.quadraticCurveTo(x, y - 34, x + width * 0.18, y - 8)
+  ctx.quadraticCurveTo(x + width * 0.4, y - 23, x + width / 2, y)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawPoolRings(ctx, palette, y = 1030) {
+  ctx.save()
+  ctx.globalAlpha = 0.42
+  ctx.strokeStyle = palette.accent
+  ctx.lineWidth = 1.2
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath()
+    ctx.moveTo(210 - i * 22, y + i * 15)
+    ctx.quadraticCurveTo(WIDTH / 2, y + i * 4, 510 + i * 22, y + i * 15)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
+function drawThemeFrame(ctx, palette) {
+  ctx.save()
+  ctx.globalAlpha = 0.46
+  roundRect(ctx, 18, 18, WIDTH - 36, HEIGHT - 36, 30)
+  ctx.strokeStyle = palette.frame
+  ctx.lineWidth = 1.6
+  ctx.stroke()
+  roundRect(ctx, 27, 27, WIDTH - 54, HEIGHT - 54, 25)
+  ctx.strokeStyle = palette.innerFrame
+  ctx.lineWidth = 0.8
+  ctx.stroke()
+  ctx.restore()
+  for (const [x, y] of [[44, 48], [WIDTH - 44, 48], [44, HEIGHT - 48], [WIDTH - 44, HEIGHT - 48]]) {
+    drawOctagram(ctx, x, y, 14, palette.motif, 0.55)
+  }
+}
+
+/** Draw one text-free, offline Canvas illustration for a selected theme. */
+function drawThemeBackground(ctx, theme) {
+  const p = theme.colors
+  const background = ctx.createLinearGradient(0, 0, 0, HEIGHT)
+  background.addColorStop(0, p.backgroundStart)
+  background.addColorStop(1, p.backgroundEnd)
+  ctx.fillStyle = background
+  ctx.fillRect(0, 0, WIDTH, HEIGHT)
+
+  switch (theme.scene) {
+    case 'emerald-premium':
+      drawGlow(ctx, WIDTH / 2, 310, 440, p.glow, 0.3)
+      drawThemeArch(ctx, WIDTH / 2, 220, 1125, 304, p.frame, 0.48, 5)
+      drawThemeArch(ctx, WIDTH / 2, 248, 1084, 278, p.motif, 0.28, 1.5)
+      for (const y of [308, 465, 634, 801, 968]) {
+        drawOctagram(ctx, 42, y, 18, p.motif, 0.56)
+        drawOctagram(ctx, WIDTH - 42, y, 18, p.motif, 0.56)
+      }
+      drawPoolRings(ctx, p, 1002)
+      break
+    case 'starry-night':
+      drawGlow(ctx, 555, 314, 230, p.glow, 0.3)
+      drawCrescent(ctx, 574, 325, 43, p.accent, p.backgroundStart)
+      drawStarField(ctx, p, true)
+      drawThemeArch(ctx, WIDTH / 2, 228, 1120, 310, p.frame, 0.2, 2)
+      drawMosqueSilhouette(ctx, 1088, '#07152a', p.accent, 0.68)
+      break
+    case 'galaxy':
+      drawGlow(ctx, 82, 412, 250, '#57a4f5', 0.48)
+      drawGlow(ctx, 640, 615, 300, p.glow, 0.48)
+      drawGlow(ctx, 350, 965, 275, '#d17cba', 0.24)
+      drawStarField(ctx, p, true)
+      ctx.save()
+      ctx.globalAlpha = 0.38
+      ctx.strokeStyle = p.motif
+      ctx.lineWidth = 2
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath()
+        ctx.arc(642, 590, 74 + i * 22, Math.PI * 0.68, Math.PI * 1.74)
+        ctx.stroke()
+      }
+      ctx.beginPath()
+      ctx.arc(71, 405, 65, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.restore()
+      drawThemeArch(ctx, WIDTH / 2, 236, 1106, 315, p.frame, 0.18, 1.5)
+      break
+    case 'lantern-arch':
+      drawGlow(ctx, 58, 460, 150, p.glow, 0.36)
+      drawGlow(ctx, WIDTH - 58, 460, 150, p.glow, 0.36)
+      drawThemeArch(ctx, WIDTH / 2, 215, 1120, 312, p.frame, 0.42, 5)
+      drawThemeArch(ctx, WIDTH / 2, 244, 1090, 282, p.motif, 0.24, 1.5)
+      for (const [x, y, size] of [[58, 397, 64], [WIDTH - 58, 397, 64], [52, 640, 46], [WIDTH - 52, 640, 46]]) {
+        ctx.save()
+        ctx.globalAlpha = 0.55
+        ctx.strokeStyle = p.accent
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.moveTo(x, 222)
+        ctx.lineTo(x, y - size * 0.7)
+        ctx.stroke()
+        ctx.restore()
+        drawGlow(ctx, x, y, size * 1.45, p.glow, 0.32)
+        drawLantern(ctx, x, y, size, p.accent, 0.86)
+      }
+      break
+    case 'golden-mosque':
+      drawGlow(ctx, WIDTH / 2, 876, 430, p.glow, 0.32)
+      drawStarField(ctx, p, false)
+      drawThemeArch(ctx, WIDTH / 2, 224, 1124, 314, p.frame, 0.22, 2)
+      drawMosqueSilhouette(ctx, 1098, '#111c31', p.accent, 0.8)
+      drawPoolRings(ctx, p, 1080)
+      break
+    case 'rose-luxury':
+      drawGlow(ctx, WIDTH / 2, 604, 470, p.glow, 0.16)
+      drawThemeArch(ctx, WIDTH / 2, 220, 1125, 300, p.frame, 0.44, 4)
+      drawThemeArch(ctx, WIDTH / 2, 246, 1090, 276, p.motif, 0.25, 1.2)
+      for (let x = 82; x < WIDTH - 52; x += 118) {
+        drawOctagram(ctx, x, 258, 20, p.motif, 0.5)
+        drawOctagram(ctx, x, 1076, 16, p.motif, 0.36)
+      }
+      for (const [x, y] of [[38, 344], [WIDTH - 38, 344], [38, 877], [WIDTH - 38, 877]]) {
+        drawFlower(ctx, x, y, 14, p.accent, p.frame, 0.44)
+      }
+      break
+    case 'peaceful-dawn':
+      drawGlow(ctx, 520, 822, 280, p.glow, 0.58)
+      drawCloud(ctx, 105, 635, 170, p.frame, 0.34)
+      drawCloud(ctx, 600, 706, 220, p.frame, 0.28)
+      drawCloud(ctx, 332, 890, 260, p.frame, 0.2)
+      ctx.save()
+      ctx.globalAlpha = 0.78
+      ctx.fillStyle = '#f8d9a7'
+      ctx.beginPath()
+      ctx.arc(520, 820, 54, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+      drawDuneLayer(ctx, 958, 120, '#c99473', 0.42, 14)
+      drawDuneLayer(ctx, 1016, 122, '#9d7c68', 0.48, -8)
+      drawMinaret(ctx, 78, 1110, 24, 156, '#6f6559', p.accent)
+      drawMinaret(ctx, 642, 1110, 24, 156, '#6f6559', p.accent)
+      break
+    case 'islamic-garden':
+      drawGlow(ctx, WIDTH / 2, 540, 360, p.glow, 0.32)
+      drawThemeArch(ctx, WIDTH / 2, 222, 1122, 306, p.frame, 0.34, 3)
+      drawGardenSprig(ctx, 12, 347, 1, p, 0.88)
+      drawGardenSprig(ctx, WIDTH - 12, 372, -1, p, 0.88)
+      for (const [x, y] of [[48, 850], [WIDTH - 48, 827], [86, 1030], [WIDTH - 86, 1010]]) {
+        drawFlower(ctx, x, y, 13, p.motif, p.accent, 0.58)
+      }
+      break
+    case 'ottoman-blue':
+      drawGlow(ctx, WIDTH / 2, 270, 360, p.glow, 0.18)
+      drawThemeArch(ctx, WIDTH / 2, 226, 1120, 302, p.frame, 0.32, 3)
+      for (let y = 296; y <= 1010; y += 118) {
+        drawOctagram(ctx, 39, y, 21, p.motif, 0.72)
+        drawOctagram(ctx, WIDTH - 39, y + 54, 21, p.motif, 0.72)
+      }
+      for (let x = 82; x < WIDTH - 60; x += 108) {
+        drawOctagram(ctx, x, 244, 17, p.accent, 0.56)
+        drawOctagram(ctx, x, 1074, 17, p.accent, 0.42)
+      }
+      break
+    case 'champagne-minimal':
+      drawGlow(ctx, WIDTH / 2, 640, 430, p.glow, 0.2)
+      ctx.save()
+      ctx.globalAlpha = 0.62
+      roundRect(ctx, 34, 34, WIDTH - 68, HEIGHT - 68, 28)
+      ctx.strokeStyle = p.frame
+      ctx.lineWidth = 1.3
+      ctx.stroke()
+      roundRect(ctx, 45, 45, WIDTH - 90, HEIGHT - 90, 24)
+      ctx.strokeStyle = p.motif
+      ctx.lineWidth = 0.7
+      ctx.stroke()
+      ctx.restore()
+      drawThemeArch(ctx, WIDTH / 2, 257, 1102, 281, p.frame, 0.23, 1.5)
+      for (const [x, y] of [[62, 282], [WIDTH - 62, 282], [62, 1076], [WIDTH - 62, 1076]]) {
+        drawOctagram(ctx, x, y, 12, p.accent, 0.48)
+      }
+      break
+    case 'sunset-desert':
+      drawGlow(ctx, 515, 813, 305, p.glow, 0.52)
+      drawStarField(ctx, p, false)
+      ctx.save()
+      ctx.globalAlpha = 0.88
+      ctx.fillStyle = '#f9d38e'
+      ctx.beginPath()
+      ctx.arc(515, 817, 56, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+      drawDuneLayer(ctx, 898, 155, '#bd795f', 0.7, -12)
+      drawDuneLayer(ctx, 982, 126, '#9f654f', 0.76, 8)
+      drawDuneLayer(ctx, 1051, 112, '#67444b', 0.9, -8)
+      drawGardenSprig(ctx, 14, 746, 1, { ...p, frame: '#67494d', accent: '#ddba7b', motif: '#bd855e' }, 0.5)
+      drawGardenSprig(ctx, WIDTH - 14, 746, -1, { ...p, frame: '#67494d', accent: '#ddba7b', motif: '#bd855e' }, 0.5)
+      break
+    case 'ketupat-night':
+      drawGlow(ctx, WIDTH / 2, 324, 320, p.glow, 0.18)
+      drawStarField(ctx, p, false)
+      drawCrescent(ctx, WIDTH - 98, 319, 32, p.accent, p.backgroundStart)
+      drawThemeArch(ctx, WIDTH / 2, 224, 1115, 312, p.frame, 0.2, 2)
+      for (const [x, y, size] of [[53, 410, 43], [WIDTH - 53, 410, 43], [62, 700, 38], [WIDTH - 62, 700, 38], [42, 960, 32], [WIDTH - 42, 960, 32]]) {
+        ctx.save()
+        ctx.globalAlpha = 0.48
+        ctx.strokeStyle = p.accent
+        ctx.beginPath()
+        ctx.moveTo(x, y - 96)
+        ctx.lineTo(x, y - size / 2)
+        ctx.stroke()
+        ctx.restore()
+        drawKetupat(ctx, x, y, size, p.accent)
+      }
+      drawBedug(ctx, WIDTH / 2, 1084, 70, 36, p)
+      break
+    case 'emerald-courtyard':
+      drawGlow(ctx, WIDTH / 2, 508, 390, p.glow, 0.24)
+      drawThemeArch(ctx, WIDTH / 2, 214, 1115, 314, p.frame, 0.42, 5)
+      drawThemeArch(ctx, WIDTH / 2, 245, 1080, 284, p.motif, 0.3, 1.5)
+      for (const x of [43, 677]) {
+        ctx.save()
+        ctx.globalAlpha = 0.46
+        ctx.fillStyle = p.frame
+        roundRect(ctx, x - 13, 720, 26, 374, 12)
+        ctx.fill()
+        ctx.restore()
+      }
+      drawPoolRings(ctx, p, 1022)
+      drawOctagram(ctx, 50, 340, 18, p.motif, 0.46)
+      drawOctagram(ctx, WIDTH - 50, 340, 18, p.motif, 0.46)
+      break
+    case 'moonlit-minaret':
+      drawGlow(ctx, 126, 340, 190, p.glow, 0.26)
+      drawCrescent(ctx, 126, 342, 39, p.accent, p.backgroundStart)
+      drawStarField(ctx, p, true)
+      drawMosqueSilhouette(ctx, 1090, '#101a2e', p.accent, 0.72)
+      drawThemeArch(ctx, WIDTH / 2, 231, 1107, 306, p.frame, 0.2, 1.6)
+      break
+    case 'parchment-manuscript':
+      drawGlow(ctx, WIDTH / 2, 615, 440, p.glow, 0.2)
+      ctx.save()
+      ctx.globalAlpha = 0.62
+      roundRect(ctx, 28, 28, WIDTH - 56, HEIGHT - 56, 26)
+      ctx.strokeStyle = p.frame
+      ctx.lineWidth = 2
+      ctx.stroke()
+      roundRect(ctx, 39, 39, WIDTH - 78, HEIGHT - 78, 21)
+      ctx.strokeStyle = p.motif
+      ctx.lineWidth = 0.8
+      ctx.stroke()
+      ctx.restore()
+      drawThemeArch(ctx, WIDTH / 2, 252, 1095, 279, p.accent, 0.2, 1.6)
+      for (const [x, y] of [[58, 256], [WIDTH - 58, 256], [58, 1081], [WIDTH - 58, 1081]]) {
+        drawOctagram(ctx, x, y, 18, p.frame, 0.6)
+      }
+      drawDuneLayer(ctx, 1085, 72, '#d3bc91', 0.22, 6)
+      break
+    case 'ramadan-green':
+      drawGlow(ctx, 65, 450, 136, p.glow, 0.34)
+      drawGlow(ctx, WIDTH - 65, 450, 136, p.glow, 0.34)
+      drawStarField(ctx, p, false)
+      for (const [x, y, size] of [[64, 429, 52], [WIDTH - 64, 429, 52]]) {
+        ctx.save()
+        ctx.globalAlpha = 0.5
+        ctx.strokeStyle = p.accent
+        ctx.beginPath()
+        ctx.moveTo(x, 224)
+        ctx.lineTo(x, y - size * 0.7)
+        ctx.stroke()
+        ctx.restore()
+        drawLantern(ctx, x, y, size, p.accent, 0.8)
+      }
+      drawThemeArch(ctx, WIDTH / 2, 222, 1114, 311, p.frame, 0.22, 2)
+      for (const y of [720, 894]) {
+        drawKetupat(ctx, 42, y, 25, p.motif)
+        drawKetupat(ctx, WIDTH - 42, y, 25, p.motif)
+      }
+      break
+    default:
+      drawThemeArch(ctx, WIDTH / 2, 220, 1120, 300, p.frame, 0.32, 2)
+      drawStarField(ctx, p, false)
+  }
+
+  drawThemeFrame(ctx, p)
+}
+
+function drawBodyScrim(ctx, palette) {
+  // A quiet inner panel keeps the verse readable over every scene's ornaments and textures.
+  ctx.save()
+  roundRect(ctx, SIDE, BODY_TOP - 12, WIDTH - SIDE * 2, BODY_HEIGHT + 24, 26)
+  ctx.fillStyle = palette.bodyScrim
+  ctx.fill()
+  ctx.strokeStyle = withAlpha(palette.frame, 0.24)
+  ctx.lineWidth = 1
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawBrandHeader(ctx, palette, quranLogo, heading) {
+  roundRect(ctx, 38, 32, WIDTH - 76, 180, 24)
+  const header = ctx.createLinearGradient(38, 32, WIDTH - 38, 212)
+  header.addColorStop(0, palette.headerStart)
+  header.addColorStop(1, palette.headerEnd)
+  ctx.fillStyle = header
+  ctx.fill()
+  ctx.strokeStyle = palette.frame
+  ctx.lineWidth = 1.5
+  ctx.stroke()
+  drawOctagram(ctx, 56, 51, 14, palette.motif, 0.58)
+  drawOctagram(ctx, WIDTH - 56, 51, 14, palette.motif, 0.58)
+
+  // Crop the emblem only: the source app icon also contains the QuranKu wordmark, which is
+  // typeset beside it here so the header does not show the name twice.
+  if (quranLogo) ctx.drawImage(quranLogo, 64, 42, 384, 272, 62, 70, 86, 61)
+  ctx.direction = 'ltr'
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillStyle = palette.title
+  ctx.font = `700 28px ${LATIN_FAMILY}`
+  ctx.fillText('QuranKu', 160, 99)
+  ctx.fillStyle = palette.subtitle
+  ctx.font = `600 13px ${LATIN_FAMILY}`
+  ctx.fillText('Teman Ibadah Harian', 162, 124)
+  ctx.fillStyle = palette.accent
+  ctx.font = `700 12px ${LATIN_FAMILY}`
+  const cleanHeading = clean(heading) || 'RENUNGAN AL-QUR’AN'
+  let headingSize = 12
+  ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
+  while (ctx.measureText(cleanHeading).width > WIDTH - 214 && headingSize > 9) {
+    headingSize--
+    ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
+  }
+  ctx.fillText(cleanHeading, 162, 158)
+  ctx.save()
+  ctx.globalAlpha = 0.62
+  ctx.strokeStyle = palette.innerFrame
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(162, 174)
+  ctx.lineTo(WIDTH - 64, 174)
+  ctx.stroke()
+  ctx.restore()
+}
+
 async function loadImage(path) {
   const image = document.createElement('img')
   const src = new URL(path, document.baseURI).href
@@ -352,18 +939,20 @@ function normalizeBlocks({ blocks, arabic, latin, translation, text }) {
 
 function measureShareBlocks(ctx, blocks) {
   let best = null
-  for (let scale = 1; scale >= 0.19; scale -= 0.025) {
+  for (let scale = 1; scale >= 0.075; scale -= 0.025) {
+    const compact = scale < 0.42
+    const dense = scale < 0.23
     const sizes = {
-      arabic: Math.max(14, Math.round(60 * scale)),
-      latin: Math.max(10, Math.round(21 * scale)),
-      translation: Math.max(10, Math.round(26 * scale)),
-      label: Math.max(10, Math.round(12 * scale))
+      arabic: Math.max(10, Math.round(60 * scale)),
+      latin: Math.max(8, Math.round(21 * scale)),
+      translation: Math.max(8, Math.round(26 * scale)),
+      label: Math.max(8, Math.round(12 * scale))
     }
     const lineHeights = {
       arabic: Math.ceil(sizes.arabic * 1.62),
-      latin: Math.ceil(sizes.latin * 1.5),
-      translation: Math.ceil(sizes.translation * 1.48),
-      label: Math.ceil(sizes.label * 1.35)
+      latin: Math.ceil(sizes.latin * 1.4),
+      translation: Math.ceil(sizes.translation * 1.4),
+      label: Math.ceil(sizes.label * 1.25)
     }
     const segments = []
     let height = 0
@@ -379,33 +968,35 @@ function measureShareBlocks(ctx, blocks) {
 
     blocks.forEach((block, index) => {
       if (index) {
-        segments.push({ kind: 'small-divider', offset: height, segmentHeight: 22 })
-        height += 22
+        const gap = dense ? 8 : compact ? 14 : 22
+        segments.push({ kind: 'small-divider', offset: height, segmentHeight: gap })
+        height += gap
       }
       if (block.label) {
         addText('label', block.label, 'ltr', INNER_WIDTH - 76)
-        height += 2
+        height += dense ? 0 : compact ? 1 : 2
       }
       if (block.arabic) {
         addText('arabic', block.arabic, 'rtl', INNER_WIDTH - 28)
         if (block.latin || block.translation) {
-          segments.push({ kind: 'mosque-divider', offset: height, segmentHeight: 38 })
-          height += 38
+          const dividerHeight = dense ? 12 : compact ? 22 : 38
+          segments.push({ kind: 'mosque-divider', offset: height, segmentHeight: dividerHeight })
+          height += dividerHeight
         }
       }
       if (block.latin) {
         addText('label', 'LATIN', 'ltr', INNER_WIDTH - 76)
-        height += 1
+        height += dense ? 0 : 1
         addText('latin', block.latin, 'ltr', INNER_WIDTH - 52)
-        height += 4
+        height += dense ? 1 : compact ? 2 : 4
       }
       if (block.translation) {
         addText('label', block.latin ? 'ARTI / TERJEMAHAN' : 'TERJEMAHAN', 'ltr', INNER_WIDTH - 76)
-        height += 1
+        height += dense ? 0 : 1
         addText('translation', block.translation, 'ltr', INNER_WIDTH - 52)
       }
     })
-    best = { sizes, lineHeights, segments, contentHeight: height }
+    best = { sizes, lineHeights, segments, contentHeight: height, scale }
     if (height <= BODY_HEIGHT) return best
   }
   return best
@@ -457,35 +1048,7 @@ function drawBodyStars(ctx, bodyY, contentHeight, palette) {
   for (const [x, y, size] of positions) drawStar(ctx, x, y, size, palette.ornament, decorativeAlpha)
 }
 
-function drawRamadanFooter(ctx, palette) {
-  drawKetupat(ctx, 268, 1164, 27, palette.accent)
-  drawBedug(ctx, WIDTH / 2, 1167, 62, 31, palette)
-  drawKetupat(ctx, WIDTH - 268, 1164, 27, palette.accent)
-  drawStar(ctx, WIDTH / 2, 1124, 4, palette.accent, 0.8)
-}
-
-function drawCoverTemplate(ctx, image) {
-  const scale = Math.max(WIDTH / image.naturalWidth, HEIGHT / image.naturalHeight)
-  const sourceWidth = WIDTH / scale
-  const sourceHeight = HEIGHT / scale
-  const sourceX = (image.naturalWidth - sourceWidth) / 2
-  const sourceY = (image.naturalHeight - sourceHeight) / 2
-  ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, WIDTH, HEIGHT)
-}
-
-function drawContentScrim(ctx) {
-  const gradient = ctx.createLinearGradient(0, BODY_TOP - 18, 0, BODY_BOTTOM + 18)
-  gradient.addColorStop(0, 'rgba(3, 17, 38, 0.18)')
-  gradient.addColorStop(0.56, 'rgba(3, 17, 38, 0.31)')
-  gradient.addColorStop(1, 'rgba(3, 17, 38, 0.52)')
-  ctx.save()
-  roundRect(ctx, 38, BODY_TOP - 18, WIDTH - 76, BODY_HEIGHT + 36, 28)
-  ctx.fillStyle = gradient
-  ctx.fill()
-  ctx.restore()
-}
-
-function drawTemplateFooter(ctx, palette, cigatasLogo, sourceUrl, isRamadan) {
+function drawShareFooter(ctx, palette, cigatasLogo, sourceUrl, scene) {
   const source = String(sourceUrl ?? '').replace(/^https?:\/\//i, '')
   ctx.save()
   ctx.direction = 'ltr'
@@ -554,7 +1117,7 @@ function drawTemplateFooter(ctx, palette, cigatasLogo, sourceUrl, isRamadan) {
   ctx.font = `600 18px ${LATIN_FAMILY}`
   ctx.fillText('quran.cgs.my.id', 533, 1211)
 
-  if (isRamadan) {
+  if (['lantern-arch', 'ketupat-night', 'ramadan-green'].includes(scene)) {
     drawKetupat(ctx, 288, 1200, 24, palette.accent)
     drawBedug(ctx, WIDTH / 2, 1201, 52, 28, palette)
     drawKetupat(ctx, 432, 1200, 24, palette.accent)
@@ -568,7 +1131,7 @@ function drawTemplateFooter(ctx, palette, cigatasLogo, sourceUrl, isRamadan) {
  */
 export async function createShareImage({
   arabic, latin, translation, text, blocks, reference, sourceUrl,
-  heading = 'RENUNGAN AL-QUR’AN', theme = 'zamrud', format = 'png'
+  heading = 'RENUNGAN AL-QUR’AN', theme = DEFAULT_AYAH_IMAGE_THEME_ID, format = 'png'
 } = {}) {
   if (typeof document === 'undefined') throw new Error('Canvas tidak tersedia di perangkat ini.')
 
@@ -585,9 +1148,8 @@ export async function createShareImage({
       document.fonts.load(`60px "Scheherazade New"`)
     ])
   }
-  const templateImage = selectedTheme.template ? await loadImage(selectedTheme.template) : null
   const [quranLogo, cigatasLogo] = await Promise.all([
-    templateImage ? Promise.resolve(null) : loadImage('/icons/icon-192-v2.png'),
+    loadImage('/icons/icon-512-v2.png'),
     loadImage('/cigatas-identity.png')
   ])
 
@@ -598,65 +1160,10 @@ export async function createShareImage({
   if (!ctx) throw new Error('Tidak dapat membuat gambar bacaan.')
   ctx.scale(SCALE, SCALE)
 
-  // Template pengguna dipakai sebagai latar penuh; jalur ilustrasi Canvas tetap menjadi fallback.
-  if (templateImage) {
-    ctx.fillStyle = palette.backgroundStart
-    ctx.fillRect(0, 0, WIDTH, HEIGHT)
-    drawCoverTemplate(ctx, templateImage)
-    if (palette.contentScrim) drawContentScrim(ctx)
-  } else {
-    // Latar dan bingkai digambar penuh agar tidak ada piksel transparan di tepi.
-    const background = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT)
-    background.addColorStop(0, palette.backgroundStart)
-    background.addColorStop(1, palette.backgroundEnd)
-    ctx.fillStyle = background
-    ctx.fillRect(0, 0, WIDTH, HEIGHT)
-    drawRosette(ctx, 22, 22, 42, palette.ornament, 0.5)
-    drawRosette(ctx, WIDTH - 22, 22, 42, palette.ornament, 0.5)
-    drawRosette(ctx, 22, HEIGHT - 22, 42, palette.ornament, 0.5)
-    drawRosette(ctx, WIDTH - 22, HEIGHT - 22, 42, palette.ornament, 0.5)
-
-    roundRect(ctx, 24, 24, WIDTH - 48, HEIGHT - 48, 30)
-    ctx.fillStyle = palette.card
-    ctx.fill()
-    ctx.strokeStyle = palette.frame
-    ctx.lineWidth = 2
-    ctx.stroke()
-    roundRect(ctx, 32, 32, WIDTH - 64, HEIGHT - 64, 25)
-    ctx.strokeStyle = palette.innerFrame
-    ctx.lineWidth = 1
-    ctx.stroke()
-
-    // Panel QuranKu di bagian atas, lentera dan bintang digambar simetris pada semua tema.
-    roundRect(ctx, 42, 42, WIDTH - 84, 184, 23)
-    const header = ctx.createLinearGradient(42, 42, WIDTH - 42, 226)
-    header.addColorStop(0, palette.headerStart)
-    header.addColorStop(1, palette.headerEnd)
-    ctx.fillStyle = header
-    ctx.fill()
-    drawLantern(ctx, 84, 124, 39, palette.accent, 0.78)
-    drawLantern(ctx, WIDTH - 84, 124, 39, palette.accent, 0.78)
-    drawStar(ctx, 131, 67, 4.5, palette.subtitle, 0.74)
-    drawStar(ctx, WIDTH - 131, 67, 4.5, palette.subtitle, 0.74)
-    drawStar(ctx, 139, 190, 3.5, palette.accent, 0.7)
-    drawStar(ctx, WIDTH - 139, 190, 3.5, palette.accent, 0.7)
-    if (quranLogo) ctx.drawImage(quranLogo, WIDTH / 2 - 41, 47, 82, 82)
-    ctx.direction = 'ltr'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'alphabetic'
-    ctx.fillStyle = palette.subtitle
-    ctx.font = `600 13px ${LATIN_FAMILY}`
-    ctx.fillText('Al-Qur’an Digital', WIDTH / 2, 153)
-    ctx.fillStyle = palette.title
-    let headingSize = 12
-    const cleanHeading = clean(heading) || 'RENUNGAN AL-QUR’AN'
-    ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
-    while (ctx.measureText(cleanHeading).width > WIDTH - 180 && headingSize > 10) {
-      headingSize--
-      ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
-    }
-    ctx.fillText(cleanHeading, WIDTH / 2, 179)
-  }
+  // Latar dan seluruh ornamen dibuat lokal di Canvas tanpa teks yang menyatu di background.
+  drawThemeBackground(ctx, selectedTheme)
+  drawBodyScrim(ctx, palette)
+  drawBrandHeader(ctx, palette, quranLogo, heading)
 
   // Garis identitas memakai ikon masjid-bulan-bintang dengan ruang lega dari header dan chip.
   ctx.save()
@@ -667,24 +1174,22 @@ export async function createShareImage({
   const ref = clean(reference)
   if (ref) {
     let referenceSize = 15
-    const maxReferenceWidth = templateImage ? WIDTH - 180 : WIDTH - 112
+    const maxReferenceWidth = WIDTH - 160
     ctx.font = `600 ${referenceSize}px ${LATIN_FAMILY}`
     while (ctx.measureText(ref).width > maxReferenceWidth && referenceSize > 10) {
       referenceSize--
       ctx.font = `600 ${referenceSize}px ${LATIN_FAMILY}`
     }
-    const chipWidth = Math.min(WIDTH - 96, ctx.measureText(ref).width + (templateImage ? 76 : 32))
+    const chipWidth = Math.min(WIDTH - 80, ctx.measureText(ref).width + 56)
     const chipX = (WIDTH - chipWidth) / 2
     roundRect(ctx, chipX, 260, chipWidth, 38, 19)
     ctx.fillStyle = palette.chip
     ctx.fill()
     ctx.strokeStyle = palette.innerFrame
-    ctx.lineWidth = templateImage ? 1.8 : 1
+    ctx.lineWidth = 1.4
     ctx.stroke()
-    if (templateImage) {
-      drawRosette(ctx, chipX + 18, 279, 13, palette.accent, 0.92)
-      drawRosette(ctx, chipX + chipWidth - 18, 279, 13, palette.accent, 0.92)
-    }
+    drawRosette(ctx, chipX + 17, 279, 12, palette.accent, 0.88)
+    drawRosette(ctx, chipX + chipWidth - 17, 279, 12, palette.accent, 0.88)
     ctx.fillStyle = palette.chipText
     ctx.textAlign = 'center'
     ctx.font = `600 ${referenceSize}px ${LATIN_FAMILY}`
@@ -692,50 +1197,16 @@ export async function createShareImage({
   }
 
   const layout = measureShareBlocks(ctx, contentBlocks)
+  if (layout.contentHeight > BODY_HEIGHT) throw new Error('Konten terlalu panjang untuk satu gambar 9:16. Bagi menjadi beberapa bagian agar tidak ada teks yang terpotong.')
   const bodyY = Math.round(BODY_TOP + Math.max(0, (BODY_HEIGHT - layout.contentHeight) / 2))
-  if (!templateImage) drawBodyStars(ctx, bodyY, layout.contentHeight, palette)
+  drawBodyStars(ctx, bodyY, layout.contentHeight, palette)
   drawContent(ctx, layout, bodyY, palette)
 
   ctx.shadowColor = 'transparent'
   ctx.shadowBlur = 0
   ctx.shadowOffsetX = 0
   ctx.shadowOffsetY = 0
-  if (templateImage) {
-    drawTemplateFooter(ctx, palette, cigatasLogo, sourceUrl, selectedTheme.id === 'ramadan')
-  } else {
-    // Identitas Cigatas tetap di kiri bawah; QuranKu sudah berada di panel atas.
-    const footerDividerY = 1080
-    ctx.strokeStyle = palette.divider
-    ctx.lineWidth = 1.2
-    ctx.beginPath()
-    ctx.moveTo(50, footerDividerY)
-    ctx.lineTo(WIDTH - 50, footerDividerY)
-    ctx.stroke()
-    drawStar(ctx, WIDTH / 2, footerDividerY, 5, palette.accent, 0.9)
-    if (cigatasLogo) ctx.drawImage(cigatasLogo, 44, 1098, 162, 108)
-    else {
-      ctx.direction = 'ltr'
-      ctx.textAlign = 'left'
-      ctx.fillStyle = palette.brand
-      ctx.font = `700 16px ${LATIN_FAMILY}`
-      ctx.fillText('Cigatas', 48, 1158)
-      ctx.font = `11px ${LATIN_FAMILY}`
-      ctx.fillText('#TongEureunNgaji', 48, 1178)
-    }
-    if (selectedTheme.id === 'ramadan') drawRamadanFooter(ctx, palette)
-
-    const source = String(sourceUrl ?? '').replace(/^https?:\/\//i, '')
-    ctx.direction = 'ltr'
-    ctx.textAlign = 'right'
-    ctx.fillStyle = palette.secondary
-    let sourceSize = 11
-    ctx.font = `${sourceSize}px ${LATIN_FAMILY}`
-    while (ctx.measureText(source).width > WIDTH - 390 && sourceSize > 8) {
-      sourceSize--
-      ctx.font = `${sourceSize}px ${LATIN_FAMILY}`
-    }
-    ctx.fillText(source, WIDTH - 48, 1234)
-  }
+  drawShareFooter(ctx, palette, cigatasLogo, sourceUrl, selectedTheme.scene)
 
   // Ratakan latar belakang kedua sebagai pengaman PNG/JPG di WebView dan aplikasi berbagi.
   ctx.save()

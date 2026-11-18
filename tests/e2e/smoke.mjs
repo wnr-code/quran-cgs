@@ -440,7 +440,7 @@ await step('Ayat pilihan: bagikan sebagai teks atau PNG; salin adalah tindakan t
 
   await page.$eval('[data-ayah-share]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open [data-image-create]')
-  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 4)
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 16)
   await page.$eval('.sheet-wrap.open [data-image-create]', (b) => b.click())
   await page.waitForFunction(() => {
     const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
@@ -682,7 +682,7 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
   assert.match(hrefs[1], /^https:\/\/t\.me\/share\/url/)
   assert.match(hrefs[2], /facebook\.com\/sharer/)
   assert.match(hrefs[3], /twitter\.com\/intent\/tweet/)
-  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 4, 'tema gambar tersedia untuk doa')
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 16, '12 tema baru dan 4 tema lama tersedia untuk doa')
   assert.equal(await page.$eval('.sheet-wrap.open .share-image-section', (section) => section.getAttribute('aria-label')), 'Buat pratinjau gambar doa')
   assert.equal(await page.$eval('.sheet-wrap.open [data-image-preview]', (image) => image.alt), 'Pratinjau gambar doa untuk Status WhatsApp')
   await page.$eval('.sheet-wrap.open [data-image-create]', (b) => b.click())

@@ -6,7 +6,7 @@ import {
 } from '../utils/helpers.js'
 import { APP } from '../config.js'
 import { shareContent, shareUrl, shareLinks } from '../utils/doa-share.js'
-import { AYAH_IMAGE_THEMES } from '../utils/ayah-image.js'
+import { AYAH_IMAGE_THEMES, DEFAULT_AYAH_IMAGE_THEME_ID } from '../utils/ayah-image.js'
 
 /** Ikon font (subset Font Awesome Free, lihat public/fonts). */
 export const fi = (name, brand) => `<i class="fi fi-${name}${brand ? ' fib' : ''}" aria-hidden="true"></i>`
@@ -18,10 +18,10 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
   const text = shareContent(p)
   const imageKind = what === 'doa' ? 'doa' : 'ayat'
   const opt = (cls, href, ic, label) => `<a class="share-opt ${cls}" href="${esc(href)}" target="_blank" rel="noopener" data-net="${cls}"><span class="share-ic">${fi(ic, true)}</span>${label}</a>`
-  const selectedTheme = image?.theme || (document.documentElement.dataset.theme === 'ramadan' ? 'ramadan' : AYAH_IMAGE_THEMES[0].id)
+  const selectedTheme = image?.theme || (document.documentElement.dataset.theme === 'ramadan' ? 'ramadan-lentera' : DEFAULT_AYAH_IMAGE_THEME_ID)
   const themeOptions = image
     ? AYAH_IMAGE_THEMES.map((theme) => `<button type="button" class="share-theme-opt" data-image-theme="${esc(theme.id)}" aria-pressed="${theme.id === selectedTheme}">
-        <span class="share-theme-swatch" style="--share-swatch:${theme.swatch}"></span><span>${esc(theme.label)}</span>
+        <span class="share-theme-swatch" style="--share-swatch:${esc(theme.swatch)};--share-accent:${esc(theme.colors.accent)}"></span><span>${esc(theme.label)}</span>
       </button>`).join('')
     : ''
   const imageOption = image

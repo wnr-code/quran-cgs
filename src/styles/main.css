@@ -4625,7 +4625,11 @@ button.cal-cell:focus-visible {
   height: 26px;
   border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
   border-radius: 8px;
-  background: var(--share-swatch);
+  background:
+    radial-gradient(circle at 18% 30%, var(--share-accent) 0 2px, transparent 3px),
+    radial-gradient(circle at 82% 72%, var(--share-accent) 0 2px, transparent 3px),
+    repeating-linear-gradient(135deg, transparent 0 9px, color-mix(in srgb, var(--share-accent) 22%, transparent) 10px 11px),
+    linear-gradient(135deg, color-mix(in srgb, var(--share-swatch) 72%, #fff), var(--share-swatch) 54%, color-mix(in srgb, var(--share-swatch) 74%, #000));
 }
 .share-format-row {
   display: grid;
