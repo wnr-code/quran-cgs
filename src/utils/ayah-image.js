@@ -20,7 +20,7 @@ function makeTheme(id, label, scene, options) {
     swatch = backgroundEnd, textShadow, bodyScrim, template = null
   } = options
   const textColor = ink || (light ? '#31473f' : '#fff7e7')
-  const safeBodyScrim = bodyScrim || withAlpha(light ? '#fff8ed' : '#081b20', light ? 0.94 : 0.9)
+  const safeBodyScrim = bodyScrim || withAlpha(light ? '#fff8ed' : '#081b20', light ? 0.42 : 0.48)
   const arabicColor = arabic || textColor
   const latinColor = latin || (light ? '#66746a' : '#d9e3df')
   const translationColor = translation || textColor
@@ -41,8 +41,8 @@ function makeTheme(id, label, scene, options) {
   }
 }
 
-// The supplied JPEGs are retained in public/share-templates for compatibility, but are not
-// used as backgrounds: those files contain fixed branding. These share themes are text-free art.
+// The first 12 themes are drawn as original Canvas scenes. The last four retain their legacy IDs
+// and use the supplied poster images directly as backgrounds, preserving those original assets.
 export const AYAH_IMAGE_THEMES = [
   makeTheme('zamrud-premium', 'Zamrud Premium', 'emerald-premium', {
     backgroundStart: '#061b19', backgroundEnd: '#0c493b', accent: '#d9ac91', frame: '#dfc883',
@@ -88,7 +88,7 @@ export const AYAH_IMAGE_THEMES = [
   makeTheme('gurun-senja', 'Gurun Senja', 'sunset-desert', {
     backgroundStart: '#392c45', backgroundEnd: '#d58a56', accent: '#f5d28b', frame: '#e3b66e',
     footer: '#382c39', glow: '#ffc779', motif: '#efd19a', swatch: '#9b5d52',
-    textShadow: 'rgba(34, 23, 38, 0.88)', bodyScrim: 'rgba(45, 31, 45, 0.9)'
+    textShadow: 'rgba(34, 23, 38, 0.88)', bodyScrim: 'rgba(45, 31, 45, 0.48)'
   }),
   makeTheme('ramadan-ketupat', 'Ramadan Ketupat', 'ketupat-night', {
     backgroundStart: '#05272d', backgroundEnd: '#126065', accent: '#e6c875', frame: '#dbbd72',
@@ -603,9 +603,14 @@ function drawThemeFrame(ctx, palette) {
   }
 }
 
-/** Draw one text-free, offline Canvas illustration for a selected theme. */
-function drawThemeBackground(ctx, theme) {
+/** Draw a supplied full poster template, or the original text-free Canvas scene. */
+function drawThemeBackground(ctx, theme, templateImage = null) {
   const p = theme.colors
+  if (templateImage) {
+    // Preserve every part of the supplied artwork and its baked-in branding within 9:16 output.
+    ctx.drawImage(templateImage, 0, 0, WIDTH, HEIGHT)
+    return
+  }
   const background = ctx.createLinearGradient(0, 0, 0, HEIGHT)
   background.addColorStop(0, p.backgroundStart)
   background.addColorStop(1, p.backgroundEnd)
@@ -850,7 +855,7 @@ function drawThemeBackground(ctx, theme) {
 }
 
 function drawBodyScrim(ctx, palette) {
-  // A quiet inner panel keeps the verse readable over every scene's ornaments and textures.
+  // A translucent inner panel preserves text contrast while keeping the illustrated scene visible.
   ctx.save()
   roundRect(ctx, SIDE, BODY_TOP - 12, WIDTH - SIDE * 2, BODY_HEIGHT + 24, 26)
   ctx.fillStyle = palette.bodyScrim
@@ -861,7 +866,7 @@ function drawBodyScrim(ctx, palette) {
   ctx.restore()
 }
 
-function drawBrandHeader(ctx, palette, quranLogo, heading) {
+function drawBrandHeader(ctx, palette, brandLogo, heading) {
   roundRect(ctx, 38, 32, WIDTH - 76, 180, 24)
   const header = ctx.createLinearGradient(38, 32, WIDTH - 38, 212)
   header.addColorStop(0, palette.headerStart)
@@ -874,35 +879,43 @@ function drawBrandHeader(ctx, palette, quranLogo, heading) {
   drawOctagram(ctx, 56, 51, 14, palette.motif, 0.58)
   drawOctagram(ctx, WIDTH - 56, 51, 14, palette.motif, 0.58)
 
-  // Crop the emblem only: the source app icon also contains the QuranKu wordmark, which is
-  // typeset beside it here so the header does not show the name twice.
-  if (quranLogo) ctx.drawImage(quranLogo, 64, 42, 384, 272, 62, 70, 86, 61)
+  const cleanHeading = clean(heading) || 'RENUNGAN AL-QUR’AN'
+  let headingX = 62
+  let headingY = 158
+  let headingMaxWidth = WIDTH - 126
   ctx.direction = 'ltr'
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
-  ctx.fillStyle = palette.title
-  ctx.font = `700 28px ${LATIN_FAMILY}`
-  ctx.fillText('QuranKu', 160, 99)
-  ctx.fillStyle = palette.subtitle
-  ctx.font = `600 13px ${LATIN_FAMILY}`
-  ctx.fillText('Teman Ibadah Harian', 162, 124)
+  if (brandLogo) {
+    // Use the transparent QuranKu logo supplied by the user, including its own tagline.
+    ctx.drawImage(brandLogo, 48, 38, 252, 168)
+    headingX = 322
+    headingY = 125
+    headingMaxWidth = WIDTH - headingX - 62
+  } else {
+    ctx.fillStyle = palette.title
+    ctx.font = `700 28px ${LATIN_FAMILY}`
+    ctx.fillText('QuranKu', 62, 99)
+    ctx.fillStyle = palette.subtitle
+    ctx.font = `600 13px ${LATIN_FAMILY}`
+    ctx.fillText('Teman Ibadah Harian', 64, 124)
+  }
+
   ctx.fillStyle = palette.accent
-  ctx.font = `700 12px ${LATIN_FAMILY}`
-  const cleanHeading = clean(heading) || 'RENUNGAN AL-QUR’AN'
-  let headingSize = 12
+  let headingSize = brandLogo ? 22 : 12
   ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
-  while (ctx.measureText(cleanHeading).width > WIDTH - 214 && headingSize > 9) {
+  while (ctx.measureText(cleanHeading).width > headingMaxWidth && headingSize > 10) {
     headingSize--
     ctx.font = `700 ${headingSize}px ${LATIN_FAMILY}`
   }
-  ctx.fillText(cleanHeading, 162, 158)
+  ctx.fillText(cleanHeading, headingX, headingY)
   ctx.save()
   ctx.globalAlpha = 0.62
   ctx.strokeStyle = palette.innerFrame
   ctx.lineWidth = 1
   ctx.beginPath()
-  ctx.moveTo(162, 174)
-  ctx.lineTo(WIDTH - 64, 174)
+  ctx.moveTo(headingX, headingY + 18)
+  ctx.lineTo(WIDTH - 64, headingY + 18)
   ctx.stroke()
   ctx.restore()
 }
@@ -1143,10 +1156,13 @@ export async function createShareImage({
       document.fonts.load(`60px "Scheherazade New"`)
     ])
   }
-  const [quranLogo, cigatasLogo] = await Promise.all([
-    loadImage('/icons/icon-512-v2.png'),
-    loadImage('/cigatas-identity.png')
-  ])
+  const templateImage = selectedTheme.template ? await loadImage(selectedTheme.template) : null
+  const [brandLogo, cigatasLogo] = templateImage
+    ? [null, null]
+    : await Promise.all([
+      loadImage('/brand/quranku-logo.png'),
+      loadImage('/cigatas-identity.png')
+    ])
 
   const renderCanvas = document.createElement('canvas')
   renderCanvas.width = WIDTH * SCALE
@@ -1155,10 +1171,12 @@ export async function createShareImage({
   if (!ctx) throw new Error('Tidak dapat membuat gambar bacaan.')
   ctx.scale(SCALE, SCALE)
 
-  // Latar dan seluruh ornamen dibuat lokal di Canvas tanpa teks yang menyatu di background.
-  drawThemeBackground(ctx, selectedTheme)
-  drawBodyScrim(ctx, palette)
-  drawBrandHeader(ctx, palette, quranLogo, heading)
+  // Pilihan lama menggunakan gambar template asli; tema lain dirender sebagai ilustrasi Canvas.
+  drawThemeBackground(ctx, selectedTheme, templateImage)
+  if (!templateImage) {
+    drawBodyScrim(ctx, palette)
+    drawBrandHeader(ctx, palette, brandLogo, heading)
+  }
 
   // Garis identitas memakai ikon masjid-bulan-bintang dengan ruang lega dari header dan chip.
   ctx.save()
@@ -1194,14 +1212,14 @@ export async function createShareImage({
   const layout = measureShareBlocks(ctx, contentBlocks)
   if (layout.contentHeight > BODY_HEIGHT) throw new Error('Konten terlalu panjang untuk satu gambar 9:16. Bagi menjadi beberapa bagian agar tidak ada teks yang terpotong.')
   const bodyY = Math.round(BODY_TOP + Math.max(0, (BODY_HEIGHT - layout.contentHeight) / 2))
-  drawBodyStars(ctx, bodyY, layout.contentHeight, palette)
+  if (!templateImage) drawBodyStars(ctx, bodyY, layout.contentHeight, palette)
   drawContent(ctx, layout, bodyY, palette)
 
   ctx.shadowColor = 'transparent'
   ctx.shadowBlur = 0
   ctx.shadowOffsetX = 0
   ctx.shadowOffsetY = 0
-  drawShareFooter(ctx, palette, cigatasLogo, sourceUrl, selectedTheme.scene)
+  if (!templateImage) drawShareFooter(ctx, palette, cigatasLogo, sourceUrl, selectedTheme.scene)
 
   // Ratakan latar belakang kedua sebagai pengaman PNG/JPG di WebView dan aplikasi berbagi.
   ctx.save()

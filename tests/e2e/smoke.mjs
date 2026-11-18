@@ -699,6 +699,8 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
       return original.call(this, text, ...args)
     }
   })
+  await page.$eval('.sheet-wrap.open [data-image-theme="zamrud"]', (button) => button.click())
+  assert.equal(await page.$eval('.sheet-wrap.open [data-image-theme="zamrud"]', (button) => button.getAttribute('aria-pressed')), 'true')
   await page.$eval('.sheet-wrap.open [data-image-create]', (b) => b.click())
   await page.waitForFunction(() => {
     const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
