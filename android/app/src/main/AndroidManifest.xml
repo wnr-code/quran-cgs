@@ -4,6 +4,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Approximate location is requested only when the user taps “Gunakan lokasi saya”. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Lokasi opsional: jangan sampai Play Store menyaring perangkat tanpa GPS (mis. tablet/TV box). -->
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

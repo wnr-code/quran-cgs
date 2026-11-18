@@ -17,7 +17,8 @@ export function locationPickerHtml() {
   return `<section class="card loc-picker"><p class="eyebrow">Lokasi</p>
     <p class="loc-now">${icon('pin')}${loc ? `<span><strong>${esc(loc.name || 'Lokasi Anda')}</strong><small class="loc-coordinates">${esc(formatCoordinates(loc))}</small></span>` : '<span>Belum dipilih</span>'}</p>
     <div class="btn-row"><button class="btn btn-primary" data-loc-gps>${icon('pin')}Gunakan lokasi saya</button></div>
-    <p class="hint loc-privacy-note">Untuk menampilkan nama kota/kecamatan, koordinat GPS dikirim langsung ke OpenStreetMap Nominatim (bukan ke server QuranKu). Nominatim dapat menerima alamat IP dan informasi teknis permintaan.</p>
+    <p class="hint loc-status" data-loc-status role="status" hidden></p>
+    <p class="hint loc-privacy-note">Untuk menampilkan nama kota/kecamatan, koordinat GPS dikirim langsung ke OpenStreetMap Nominatim (bukan ke server QuranKu); bila Nominatim gagal, permintaan diulang ke Photon (komoot.io). Keduanya dapat menerima alamat IP dan informasi teknis permintaan.</p>
     <label class="field"><span>Atau pilih kota</span><select data-loc-city><option value="">— pilih kota —</option>${CITIES.map((c, i) => `<option value="${i}" ${loc && loc.name === c.name ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>
     <details><summary>Input koordinat manual</summary>
       <form data-loc-manual class="input-row"><input name="lat" placeholder="Lintang, mis. -6.9764" inputmode="decimal" required /><input name="lng" placeholder="Bujur, mis. 108.4836" inputmode="decimal" required /><button class="btn">Simpan</button></form></details>
@@ -27,6 +28,12 @@ export function locationPickerHtml() {
 export function bindLocationPicker(root, onChange) {
   let lookupId = 0
   let gpsPending = false
+  const setStatus = (text) => {
+    const el = root.querySelector('[data-loc-status]')
+    if (!el) return
+    el.hidden = !text
+    el.textContent = text || ''
+  }
   const save = (loc) => {
     saveSettings({ location: loc })
     onChange(loc)
@@ -34,6 +41,7 @@ export function bindLocationPicker(root, onChange) {
   const choose = (loc) => {
     lookupId++
     gpsPending = false
+    setStatus('')
     save(loc)
   }
   const disableGpsButton = (disabled) => {
@@ -47,11 +55,13 @@ export function bindLocationPicker(root, onChange) {
     gpsPending = true
     const id = ++lookupId
     b.disabled = true
+    setStatus('Mencari sinyal GPS… biasanya 5–20 detik.')
     try {
       const position = await getCurrentPosition()
       if (id !== lookupId) return
       // Simpan dan tampilkan koordinat segera; nama kota/kecamatan diperbarui setelah reverse geocoding.
       save({ ...position, name: approximatePlaceName(position) })
+      setStatus('')
       disableGpsButton(true)
       toast('Koordinat diperoleh, sedang mencari nama wilayah…', 3000)
       try {
@@ -64,7 +74,11 @@ export function bindLocationPicker(root, onChange) {
         toast('Koordinat tersimpan; nama wilayah belum dapat dimuat')
       }
     } catch (err) {
-      if (id === lookupId) toast(err.message)
+      if (id === lookupId) {
+        // Pesan berisi langkah lanjutan (izin, Play Services, sinyal) supaya tidak sekadar "gagal".
+        setStatus(err?.message || 'Lokasi belum berhasil dibaca.')
+        toast('Lokasi GPS belum berhasil', 2600)
+      }
     } finally {
       if (id === lookupId) {
         gpsPending = false

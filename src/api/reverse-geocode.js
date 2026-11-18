@@ -4,6 +4,8 @@ import { CITIES } from '../data/cities.js'
 import { APP } from '../config.js'
 
 const ENDPOINT = 'https://nominatim.openstreetmap.org/reverse'
+// Cadangan bila Nominatim menolak/memblokir permintaan dari WebView (Referer https://localhost).
+const PHOTON_ENDPOINT = 'https://photon.komoot.io/reverse'
 const EARTH_RADIUS_KM = 6371
 
 function usable(value) {
@@ -77,19 +79,52 @@ export async function reverseGeocode(loc, { fetchImpl = globalThis.fetch, timeou
   url.searchParams.set('addressdetails', '1')
   url.searchParams.set('accept-language', 'id')
 
+  const photonUrl = new URL(PHOTON_ENDPOINT)
+  photonUrl.searchParams.set('lat', lat.toFixed(4))
+  photonUrl.searchParams.set('lon', lng.toFixed(4))
+  photonUrl.searchParams.set('lang', 'id')
+
+  let lastError = null
+  try {
+    const name = formatPlaceName(await fetchJson(fetchImpl, url.href, timeout))
+    if (name) return name
+    lastError = new Error('Nama wilayah tidak ditemukan')
+  } catch (error) {
+    lastError = error
+  }
+
+  // Nominatim bisa menolak permintaan tanpa Referer yang sah dari WebView; coba layanan lain sekali.
+  try {
+    const name = formatPhotonPlaceName(await fetchJson(fetchImpl, photonUrl.href, timeout))
+    if (name) return name
+  } catch (error) {
+    lastError = error
+  }
+  throw lastError || new Error('Nama wilayah tidak ditemukan')
+}
+
+/** Susun nama administrasi dari hasil Photon (cadangan). Alamat jalan tetap tidak dipakai. */
+export function formatPhotonPlaceName(result) {
+  const props = result && result.features && result.features[0] && result.features[0].properties
+  if (!props || typeof props !== 'object') return ''
+  const settlement = [props.city, props.town, props.village, props.district, props.locality].map(usable).find(Boolean)
+  const district = [props.county, props.state].map(usable).find((part) => part && part.toLocaleLowerCase('id-ID') !== settlement?.toLocaleLowerCase('id-ID'))
+  const province = usable(props.state)
+  return uniqueParts([settlement, district, province]).join(', ')
+}
+
+async function fetchJson(fetchImpl, url, timeout) {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeout)
   try {
-    const response = await fetchImpl(url.href, {
+    const response = await fetchImpl(url, {
       signal: controller.signal,
       referrer: `${APP.origin}/`,
       referrerPolicy: 'strict-origin-when-cross-origin',
       headers: { Accept: 'application/json' }
     })
     if (!response.ok) throw new Error(`Pencarian nama wilayah gagal (HTTP ${response.status})`)
-    const name = formatPlaceName(await response.json())
-    if (!name) throw new Error('Nama wilayah tidak ditemukan')
-    return name
+    return await response.json()
   } finally {
     clearTimeout(timer)
   }
