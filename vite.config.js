@@ -16,6 +16,7 @@ function serviceWorkerPlugin() {
     p === 'theme-init.js' ||
     p === 'splash.js' ||
     p === 'cigatas-identity.png' ||
+    p === 'brand/quranku-logo.png' ||
     /^share-templates\/.+\.jpe?g$/.test(p) ||
     /^assets\/.+\.(js|css)$/.test(p) ||
     /^fonts\/.+\.woff2$/.test(p) ||

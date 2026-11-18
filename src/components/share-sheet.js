@@ -6,7 +6,7 @@ import {
 } from '../utils/helpers.js'
 import { APP } from '../config.js'
 import { shareContent, shareUrl, shareLinks } from '../utils/doa-share.js'
-import { AYAH_IMAGE_THEMES } from '../utils/ayah-image.js'
+import { AYAH_IMAGE_THEMES, DEFAULT_AYAH_IMAGE_THEME_ID } from '../utils/ayah-image.js'
 
 /** Ikon font (subset Font Awesome Free, lihat public/fonts). */
 export const fi = (name, brand) => `<i class="fi fi-${name}${brand ? ' fib' : ''}" aria-hidden="true"></i>`
@@ -16,18 +16,19 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
   const L = shareLinks(p, APP.origin)
   const url = shareUrl(p, APP.origin)
   const text = shareContent(p)
-  const imageKind = what === 'doa' ? 'doa' : 'ayat'
+  const normalizedWhat = String(what).toLowerCase()
+  const imageKind = normalizedWhat === 'doa' ? 'doa' : normalizedWhat.includes('asmaul') ? 'Asmaul Husna' : 'ayat'
   const opt = (cls, href, ic, label) => `<a class="share-opt ${cls}" href="${esc(href)}" target="_blank" rel="noopener" data-net="${cls}"><span class="share-ic">${fi(ic, true)}</span>${label}</a>`
-  const selectedTheme = image?.theme || (document.documentElement.dataset.theme === 'ramadan' ? 'ramadan' : AYAH_IMAGE_THEMES[0].id)
+  const selectedTheme = image?.theme || (document.documentElement.dataset.theme === 'ramadan' ? 'ramadan-lentera' : DEFAULT_AYAH_IMAGE_THEME_ID)
   const themeOptions = image
     ? AYAH_IMAGE_THEMES.map((theme) => `<button type="button" class="share-theme-opt" data-image-theme="${esc(theme.id)}" aria-pressed="${theme.id === selectedTheme}">
-        <span class="share-theme-swatch" style="--share-swatch:${theme.swatch}"></span><span>${esc(theme.label)}</span>
+        <span class="share-theme-swatch" style="--share-swatch:${esc(theme.swatch)};--share-accent:${esc(theme.colors.accent)}"></span><span>${esc(theme.label)}</span>
       </button>`).join('')
     : ''
   const imageOption = image
     ? `<section class="share-image-section" aria-label="Buat pratinjau gambar ${imageKind}">
         <p class="share-mode-label">Gambar untuk Status WhatsApp</p>
-        <p class="share-image-intro">Pilih tema dan format. Pratinjau yang tampil akan sama persis dengan berkas yang dibagikan atau diunduh.</p>
+        <p class="share-image-intro">Geser pilihan tema untuk melihat semua gaya, lalu pilih format. Pratinjau akan sama dengan berkas yang dibagikan atau diunduh.</p>
         <div class="share-theme-grid" role="group" aria-label="Tema gambar">${themeOptions}</div>
         <div class="share-format-row" role="group" aria-label="Format gambar">
           <button type="button" class="share-format-opt" data-image-format="png" aria-pressed="true">PNG</button>
@@ -72,6 +73,14 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
       const createButton = el.querySelector('[data-image-create]')
       const downloadButton = el.querySelector('[data-image-download]')
       const status = el.querySelector('[data-image-status]')
+      const themePicker = el.querySelector('.share-theme-grid')
+      const selectedThemeChip = themePicker?.querySelector('[data-image-theme][aria-pressed="true"]')
+      if (themePicker && selectedThemeChip) {
+        const pickerRect = themePicker.getBoundingClientRect()
+        const chipRect = selectedThemeChip.getBoundingClientRect()
+        const centerOffset = chipRect.left - pickerRect.left - (pickerRect.width - chipRect.width) / 2
+        themePicker.scrollLeft = Math.max(0, themePicker.scrollLeft + centerOffset)
+      }
       const filenameFor = (format) => {
         const base = String(image?.filename || 'quranku-ayat').replace(/\.(?:png|jpe?g)$/i, '')
         return `${base}.${format === 'jpg' ? 'jpg' : 'png'}`

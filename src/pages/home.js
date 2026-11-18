@@ -202,7 +202,9 @@ export default async function home(root) {
               ayahNumber: aNo,
               arabic: a.teksArab,
               latin: a.teksLatin,
-              translation: a.teksIndonesia || 'Terjemahan tidak tersedia.',
+              translation: a.teksIndonesia,
+              showLatin: false,
+              showTranslation: Boolean(a.teksIndonesia),
               reference: ref,
               sourceUrl: url
             })

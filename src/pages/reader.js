@@ -552,6 +552,8 @@ export default async function reader(root, { params, query, initial }) {
           const verse = surah.ayat[a - 1]
           const reference = `QS. ${surah.namaLatin} ${n}:${a}`
           const sourceUrl = `${APP.origin}/#/surah/${n}/${a}`
+          const display = getSettings().reader
+          const inTextMode = display.mode === 'focus'
           openShare(
             { title: reference, text: ayahShareText(surah, verse), url: sourceUrl },
             {
@@ -563,6 +565,8 @@ export default async function reader(root, { params, query, initial }) {
                 arabic: verse.teksArab,
                 latin: verse.teksLatin,
                 translation: verse.teksIndonesia,
+                showLatin: inTextMode && display.showLatin,
+                showTranslation: inTextMode && display.showTranslation,
                 reference,
                 sourceUrl,
                 heading: 'AYAT AL-QUR’AN'

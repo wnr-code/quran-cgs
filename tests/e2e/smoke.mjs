@@ -241,13 +241,13 @@ await step('Lembar ayat: tafsir dan catatan tersedia tanpa meninggalkan bacaan',
   await page.$eval('.mushaf-flow .ayah[data-a="1"] .ayah-num', (el) => el.click())
   await page.waitForSelector('.sheet-wrap.open .ayah-sheet-actions')
   assert.equal(await page.$eval('.sheet-wrap.open .ayah-sheet-tafsir', (el) => el.hidden), true)
-  await page.click('.sheet-wrap.open [data-act="tafsir"]')
+  await page.$eval('.sheet-wrap.open [data-act="tafsir"]', (button) => button.click())
   await page.waitForSelector('.sheet-wrap.open .ayah-sheet-tafsir-copy')
   assert.match(await text('.sheet-wrap.open .ayah-sheet-tafsir-copy'), /\[TEKS UJI\] tafsir ayat 1/)
   assert.match(await text('.sheet-wrap.open .ayah-sheet-tafsir-source'), /Tafsir Kementerian Agama RI/)
   assert.equal(await page.$eval('.sheet-wrap.open [data-act="tafsir"]', (el) => el.getAttribute('aria-expanded')), 'true')
   assert.equal(await page.$eval('.sheet-wrap.open .ayah-sheet-notes', (el) => el.open), false)
-  await page.click('.sheet-wrap.open .ayah-sheet-notes > summary')
+  await page.$eval('.sheet-wrap.open .ayah-sheet-notes > summary', (summary) => summary.click())
   await page.waitForFunction(() => document.querySelector('.ayah-sheet-notes')?.open)
   await page.click('.sheet-wrap.open .sheet-head [data-close]')
   await page.waitForFunction(() => !document.querySelector('.sheet-wrap'))
@@ -440,7 +440,7 @@ await step('Ayat pilihan: bagikan sebagai teks atau PNG; salin adalah tindakan t
 
   await page.$eval('[data-ayah-share]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open [data-image-create]')
-  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 4)
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 19)
   await page.$eval('.sheet-wrap.open [data-image-create]', (b) => b.click())
   await page.waitForFunction(() => {
     const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
@@ -682,15 +682,36 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
   assert.match(hrefs[1], /^https:\/\/t\.me\/share\/url/)
   assert.match(hrefs[2], /facebook\.com\/sharer/)
   assert.match(hrefs[3], /twitter\.com\/intent\/tweet/)
-  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 4, 'tema gambar tersedia untuk doa')
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 19, '15 tema Canvas dan 4 tema template tersedia untuk doa')
   assert.equal(await page.$eval('.sheet-wrap.open .share-image-section', (section) => section.getAttribute('aria-label')), 'Buat pratinjau gambar doa')
   assert.equal(await page.$eval('.sheet-wrap.open [data-image-preview]', (image) => image.alt), 'Pratinjau gambar doa untuk Status WhatsApp')
+  const hiddenDoaText = await page.$eval('.dzikir[data-card="0"]', (card) => ({
+    latin: card.querySelector('.ayah-latin')?.textContent.trim() || '',
+    translation: card.querySelector('.ayah-id')?.textContent.trim() || ''
+  }))
+  await page.$eval('[data-view="arti"]', (button) => button.click())
+  await page.$eval('[data-view="latin"]', (button) => button.click())
+  await page.evaluate(() => {
+    window.__posterCanvasText = []
+    const original = CanvasRenderingContext2D.prototype.fillText
+    CanvasRenderingContext2D.prototype.fillText = function (text, ...args) {
+      if (this.canvas.width === 1440 && this.canvas.height === 2560) window.__posterCanvasText.push(String(text))
+      return original.call(this, text, ...args)
+    }
+  })
+  await page.$eval('.sheet-wrap.open [data-image-theme="zamrud"]', (button) => button.click())
+  assert.equal(await page.$eval('.sheet-wrap.open [data-image-theme="zamrud"]', (button) => button.getAttribute('aria-pressed')), 'true')
   await page.$eval('.sheet-wrap.open [data-image-create]', (b) => b.click())
   await page.waitForFunction(() => {
     const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
     return image && image.complete && image.naturalWidth === 720 && !document.querySelector('.sheet-wrap.open [data-image-preview-wrap]').hidden
   })
   assert.deepEqual(await page.$eval('.sheet-wrap.open [data-image-preview]', (image) => [image.naturalWidth, image.naturalHeight]), [720, 1280])
+  const posterText = await page.evaluate(() => window.__posterCanvasText.join(' ').trim().replace(/\s+/g, ' '))
+  const normalizeText = (value) => String(value).trim().replace(/\s+/g, ' ')
+  assert.ok(!posterText.includes(normalizeText(hiddenDoaText.latin)), 'Latin yang disembunyikan dari bacaan tidak masuk gambar')
+  assert.ok(!posterText.includes(normalizeText(hiddenDoaText.translation)), 'arti yang disembunyikan dari bacaan tidak masuk gambar')
+  assert.doesNotMatch(posterText, /\b(?:LATIN|ARTI \/ TERJEMAHAN|TERJEMAHAN)\b/)
   await page.$eval('.sheet-wrap.open [data-image-share]', (b) => b.click())
   await page.waitForFunction(() => window.__shareCalls.some((payload) => payload.files?.length))
   const doaImage = await page.evaluate(async () => {
@@ -790,6 +811,8 @@ await step('Doa harian per kategori, cari lintas kategori, tanpa duplikat', asyn
 await step('Asmaul Husna: bagikan ke media sosial', async () => {
   await go('/asmaul-husna')
   await page.waitForSelector('.asma')
+  const themeBefore = await page.$eval(':root', (root) => root.dataset.theme)
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'ramadan' })
   assert.equal(await count('.src-foot'), 1)
   await page.$eval('.asma[data-id="1"]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open [data-share]')
@@ -805,6 +828,50 @@ await step('Asmaul Husna: bagikan ke media sosial', async () => {
   assert.match(hrefs[3], /twitter\.com\/intent\/tweet/)
   await new Promise((r) => setTimeout(r, 400))
   await shot('33-asmaul-bagikan')
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 19, 'semua 19 tema tersedia untuk Asmaul Husna')
+  assert.equal(await page.$eval('.sheet-wrap.open .share-image-section', (section) => section.getAttribute('aria-label')), 'Buat pratinjau gambar Asmaul Husna')
+  const themePicker = await page.$eval('.sheet-wrap.open .share-theme-grid', (picker) => ({
+    display: getComputedStyle(picker).display,
+    height: picker.getBoundingClientRect().height,
+    clientWidth: picker.clientWidth,
+    scrollWidth: picker.scrollWidth
+  }))
+  assert.equal(themePicker.display, 'flex', 'tema diringkas dalam pita horizontal')
+  assert.ok(themePicker.height < 55 && themePicker.scrollWidth > themePicker.clientWidth, 'tema ringkas dan dapat digeser, bukan bertumpuk')
+  assert.equal(await page.$eval('.share-theme-grid [aria-pressed="true"]', (button) => button.dataset.imageTheme), 'ramadan-lentera')
+  assert.equal(await page.$eval('.share-theme-grid', (picker) => {
+    const selected = picker.querySelector('[aria-pressed="true"]').getBoundingClientRect()
+    const bounds = picker.getBoundingClientRect()
+    return selected.left >= bounds.left && selected.right <= bounds.right
+  }), true, 'tema aktif terlihat saat pemilih horizontal dibuka')
+  await page.evaluate(() => {
+    window.__asmaPosterText = []
+    const original = CanvasRenderingContext2D.prototype.fillText
+    CanvasRenderingContext2D.prototype.fillText = function (text, ...args) {
+      if (this.canvas.width === 1440 && this.canvas.height === 2560) window.__asmaPosterText.push(String(text))
+      return original.call(this, text, ...args)
+    }
+  })
+  await page.$eval('.sheet-wrap.open [data-image-theme="teratai-fajar"]', (button) => button.click())
+  assert.equal(await page.$eval('.sheet-wrap.open [data-image-theme="teratai-fajar"]', (button) => button.getAttribute('aria-pressed')), 'true')
+  await page.$eval('.sheet-wrap.open [data-image-create]', (button) => button.click())
+  await page.waitForFunction(() => {
+    const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
+    return image && image.complete && image.naturalWidth === 720 && !document.querySelector('.sheet-wrap.open [data-image-preview-wrap]').hidden
+  })
+  const asmaPoster = await page.evaluate(() => ({
+    alt: document.querySelector('.sheet-wrap.open [data-image-preview]').alt,
+    text: window.__asmaPosterText.join(' ').trim().replace(/\s+/g, ' ')
+  }))
+  assert.match(asmaPoster.alt, /Asmaul Husna.*teratai-fajar/)
+  assert.match(asmaPoster.text, /ASMAUL HUSNA.*Ar-Rahmaan.*Yang Maha Pengasih/)
+  assert.match(asmaPoster.text, /Sumber: quran\.cgs\.my\.id\/#\/asmaul-husna/)
+  await shot('34-asmaul-poster')
+  await page.$eval('.sheet-wrap.open .share-grid', (grid) => grid.closest('.sheet-wrap').querySelector('[data-close]').click())
+  await page.waitForFunction(() => !document.querySelector('.share-grid'))
+  await page.$eval('.sheet-wrap.open button[data-close]', (button) => button.click())
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap'))
+  await page.evaluate((theme) => { document.documentElement.dataset.theme = theme }, themeBefore)
 })
 await step('Membaca tanpa gangguan: sentuh teks ayat tidak membuka apa pun, nomor ayat membuka aksi', async () => {
   for (const mode of ['continuous', 'page']) {
