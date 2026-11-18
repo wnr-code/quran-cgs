@@ -6,8 +6,8 @@ Ringkasan ini mengikuti APK Android Capacitor saat ini. Tinjau lagi setiap kali 
 
 | Pertanyaan | Jawaban yang disarankan | Alasan |
 |---|---|---|
-| Apakah aplikasi mengumpulkan atau membagikan data pengguna? | **Ada transmisi opsional saat pengguna memakai pencarian nama lokasi atau infaq** | Koordinat lokasi dikirim langsung dari perangkat ke OpenStreetMap Nominatim hanya saat pengguna meminta nama wilayah; data transaksi infaq dikirim ke Trakteer/mitranya dan server QuranKu. Cocokkan klasifikasi lokasi dan transaksi/donasi dengan definisi Data Safety terbaru. Tidak ada iklan atau pelacak iklan/analitik. |
-| Lokasi | Lokasi perkiraan, opsional | `ACCESS_COARSE_LOCATION` diminta setelah tindakan pengguna. Koordinat dipakai lokal untuk jadwal salat/kiblat; saat pengguna meminta pencarian nama wilayah, perangkat mengirim koordinat langsung ke Nominatim. Koordinat tidak dikirim ke server QuranKu oleh APK. APK tidak mendaftar Web Push. |
+| Apakah aplikasi mengumpulkan atau membagikan data pengguna? | **Ada transmisi opsional saat pengguna memakai pencarian nama lokasi atau infaq** | Koordinat lokasi dikirim langsung dari perangkat ke OpenStreetMap Nominatim (cadangannya Photon/komoot.io) hanya saat pengguna meminta nama wilayah; data transaksi infaq dikirim ke Trakteer/mitranya dan server QuranKu. Cocokkan klasifikasi lokasi dan transaksi/donasi dengan definisi Data Safety terbaru. Tidak ada iklan atau pelacak iklan/analitik. |
+| Lokasi | Lokasi perkiraan, opsional | `ACCESS_COARSE_LOCATION` diminta setelah tindakan pengguna. Koordinat dipakai lokal untuk jadwal salat/kiblat; saat pengguna meminta pencarian nama wilayah, perangkat mengirim koordinat langsung ke Nominatim (bila gagal, sekali ke Photon/komoot.io). Koordinat tidak dikirim ke server QuranKu oleh APK. APK tidak mendaftar Web Push. |
 | Informasi yang dikirim untuk infaq | Nama dan informasi transaksi/pembelian, hanya bila pengguna memilih berinfaq | Nama tampilan dan nominal ditampilkan di papan donatur. Data pembayaran diproses oleh Trakteer dan mitranya; QuranKu tidak menerima nomor kartu/rekening/dompet digital. Lihat kebijakan privasi. |
 | Data dienkripsi saat transit | Ya | Koneksi ke API dan layanan pembayaran memakai HTTPS. |
 | Pengguna dapat meminta penghapusan | Ya | Data lokal dihapus dari Pengaturan; langganan push web dihapus saat dimatikan (fitur PWA, bukan APK). Penghapusan data papan donatur dapat diminta melalui kontak privasi. |
@@ -33,7 +33,7 @@ Untuk formulir Play, tinjau kategori lokasi (untuk permintaan nama wilayah) dan 
 | Target usia | 13 tahun ke atas disarankan (menghindari persyaratan tambahan program Keluarga) |
 | Akses aplikasi | Fitur tersedia tanpa login; infaq opsional |
 | Aplikasi berita / kesehatan / keuangan / pemerintah | Bukan |
-| Izin Android | `INTERNET`; `ACCESS_COARSE_LOCATION` (opsional, diminta setelah tindakan pengguna; tidak ada lokasi latar); `POST_NOTIFICATIONS` (izin runtime untuk notifikasi); `SCHEDULE_EXACT_ALARM` (akses khusus untuk alarm tepat); `RECEIVE_BOOT_COMPLETED` (memulihkan jadwal setelah reboot) |
+| Izin Android | `INTERNET`; `ACCESS_COARSE_LOCATION` (opsional, diminta setelah tindakan pengguna; tidak ada lokasi latar); `POST_NOTIFICATIONS` (izin runtime untuk notifikasi); `SCHEDULE_EXACT_ALARM` (akses khusus untuk alarm tepat); `RECEIVE_BOOT_COMPLETED` (memulihkan jadwal setelah reboot); `WRITE_EXTERNAL_STORAGE` hanya untuk Android 9 ke bawah saat menyimpan gambar ke Galeri |
 
 ## Alur pengujian
 

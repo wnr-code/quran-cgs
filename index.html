@@ -43,10 +43,8 @@
       #splash::before{content:'';position:absolute;inset:0;opacity:.9;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23c9a961' stroke-opacity='.16' stroke-width='1'%3E%3Crect x='22' y='22' width='28' height='28'/%3E%3Crect x='22' y='22' width='28' height='28' transform='rotate(45 36 36)'/%3E%3Cpath d='M0 36h16M56 36h16M36 0v16M36 56v16'/%3E%3C/g%3E%3C/svg%3E");-webkit-mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 75%);mask-image:radial-gradient(circle at 50% 40%,#000 0%,transparent 75%)}
       #splash>*{position:relative}
       #splash.hide{opacity:0;transform:scale(1.04);visibility:hidden;pointer-events:none}
-      .sp-logo{position:relative;width:104px;height:104px;margin-bottom:18px;animation:sp-pop .7s cubic-bezier(.2,.9,.3,1.25) both}
-      .sp-logo img{width:100%;height:100%;border-radius:26px;box-shadow:0 14px 40px rgba(0,0,0,.35)}
-      .sp-logo::before,.sp-logo::after{content:'';position:absolute;inset:-12px;border-radius:36px;border:1px solid rgba(201,169,97,.55);animation:sp-ring 2.2s ease-out infinite}
-      .sp-logo::after{animation-delay:1.1s}
+      .sp-logo{position:relative;width:min(300px,76vw);margin-bottom:18px;animation:sp-pop .7s cubic-bezier(.2,.9,.3,1.25) both}
+      .sp-logo img{position:relative;display:block;width:100%;height:auto;filter:drop-shadow(0 14px 30px rgba(0,0,0,.42))}
       .sp-salam{margin:0;font-family:'Scheherazade New','Amiri Quran','Noto Naskh Arabic',serif;font-size:2.3rem;line-height:1.9;color:#f4e3b5;animation:sp-up .6s .25s ease both}
       .sp-latin{margin:0;font-size:1.02rem;font-weight:700;letter-spacing:.01em;animation:sp-up .6s .4s ease both}
       .sp-greet{margin:2px 0 0;min-height:1.4em;font-size:.84rem;opacity:.78;animation:sp-up .6s .52s ease both}
@@ -57,7 +55,6 @@
       .sp-foot{position:absolute!important;bottom:calc(22px + env(safe-area-inset-bottom,0px));left:0;right:0;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
       @keyframes sp-pop{from{opacity:0;transform:scale(.6)}}
       @keyframes sp-up{from{opacity:0;transform:translateY(12px)}}
-      @keyframes sp-ring{0%{opacity:.9;transform:scale(.92)}100%{opacity:0;transform:scale(1.28)}}
       @keyframes sp-dot{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
       @keyframes sp-bye{to{opacity:0;visibility:hidden;pointer-events:none}}
       @media (prefers-reduced-motion:reduce){#splash,#splash *,#splash *::before,#splash *::after{animation:none!important;transition:opacity .2s!important}#splash{animation:sp-bye .2s 8s forwards!important}}
@@ -65,7 +62,7 @@
   </head>
   <body>
     <div id="splash" role="status" aria-label="Memuat QuranKu">
-      <div class="sp-logo"><img src="/icons/icon-192-v2.png" width="104" height="104" alt="" /></div>
+      <div class="sp-logo"><img src="/brand/quranku-logo.png" width="300" height="200" alt="QuranKu" fetchpriority="high" decoding="async" /></div>
       <p class="sp-salam" lang="ar" dir="rtl">اَلسَّلَامُ عَلَيْكُمْ</p>
       <p class="sp-latin">Assalamu’alaikum</p>
       <p class="sp-greet" id="splash-greet"></p>

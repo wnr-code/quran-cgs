@@ -118,6 +118,32 @@ jobs:
           emulator-boot-timeout: 600
           disable-animations: true
           script: cd android && ./gradlew --no-daemon --stacktrace :app:connectedDebugAndroidTest
+      - name: Report instrumented test failure details
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import glob
+          import xml.etree.ElementTree as ET
+
+          files = sorted(glob.glob('android/app/build/outputs/androidTest-results/connected/**/*.xml', recursive=True))
+          found = False
+          for path in files:
+              try:
+                  root = ET.parse(path).getroot()
+              except Exception:
+                  continue
+              for case in root.iter('testcase'):
+                  for failure in list(case.findall('failure')) + list(case.findall('error')):
+                      details = failure.get('message') or failure.text or 'No failure message in instrumented test report.'
+                      details = ' '.join(details.split())
+                      title = f"{case.get('classname', 'Instrumented test')}.{case.get('name', 'failure')}"
+                      safe = details[:1000].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                      print(f'::error title={title}::{safe}')
+                      found = True
+          if not found:
+              print('::notice title=Instrumented test diagnostics::No instrumented test report was found; the emulator likely failed to boot or Gradle stopped before running tests.')
+          PY
+
       - name: Prepare Play upload-key signing
         id: release_signing
         env:

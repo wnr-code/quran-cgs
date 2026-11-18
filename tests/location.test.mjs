@@ -1,8 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { formatPlaceName, approximatePlaceName, reverseGeocode } from '../src/api/reverse-geocode.js'
-import { getPrayerTimes } from '../src/api/prayer-api.js'
+import { formatPlaceName, formatPhotonPlaceName, approximatePlaceName, reverseGeocode } from '../src/api/reverse-geocode.js'
+import { getPrayerTimes, locationErrorMessage, recoverableLocationError, firstFixFromWatch, withDeadline } from '../src/api/prayer-api.js'
 import { formatCoordinate, formatCoordinates } from '../src/utils/location.js'
 
 test('reverse geocoding menyusun nama wilayah dan tidak membuka alamat jalan', () => {
@@ -44,6 +44,109 @@ test('reverse geocoding meminta nama berbahasa Indonesia dengan koordinat GPS ya
   assert.ok(requestedOptions.signal instanceof AbortSignal)
   assert.equal(name, 'Kuningan, Kabupaten Kuningan, Jawa Barat')
   await assert.rejects(reverseGeocode({ lat: 91, lng: 0 }, { fetchImpl: () => assert.fail('tidak boleh meminta lokasi invalid') }), /Koordinat lokasi tidak valid/)
+})
+
+test('nama wilayah dicari ulang di layanan cadangan bila Nominatim menolak permintaan WebView', async () => {
+  const urls = []
+  const name = await reverseGeocode(
+    { lat: -6.9764, lng: 108.4836 },
+    {
+      timeout: 1000,
+      fetchImpl: async (url) => {
+        urls.push(url)
+        if (urls.length === 1) throw new Error('HTTP 403')
+        return {
+          ok: true,
+          json: async () => ({
+            features: [{ properties: { name: 'Kuningan', city: 'Kuningan', county: 'Kabupaten Kuningan', state: 'Jawa Barat', street: 'Jalan Contoh' } }]
+          })
+        }
+      }
+    }
+  )
+  assert.equal(urls.length, 2, 'Nominatim dicoba sekali lalu layanan cadangan')
+  const photon = new URL(urls[1])
+  assert.equal(photon.hostname, 'photon.komoot.io')
+  assert.equal(photon.searchParams.get('lat'), '-6.9764')
+  assert.equal(photon.searchParams.get('lang'), 'id')
+  assert.equal(name, 'Kuningan, Kabupaten Kuningan, Jawa Barat')
+  assert.equal(formatPhotonPlaceName({ features: [{ properties: { city: 'Kuningan', state: 'Jawa Barat' } }] }), 'Kuningan, Jawa Barat')
+  assert.equal(formatPhotonPlaceName({ features: [] }), '')
+})
+
+test('kegagalan kedua layanan dilaporkan, bukan diam-diam sukses', async () => {
+  await assert.rejects(
+    reverseGeocode(
+      { lat: -6.9764, lng: 108.4836 },
+      { timeout: 1000, fetchImpl: async () => { throw new Error('jaringan mati') } }
+    ),
+    /jaringan mati/
+  )
+})
+
+test('pesan error lokasi GPS memberi langkah lanjutan sesuai kode plugin Android', () => {
+  assert.match(locationErrorMessage({ code: 'OS-PLUG-GLOC-0003' }), /Izin lokasi ditolak/)
+  assert.match(locationErrorMessage({ code: 'OS-PLUG-GLOC-0007' }), /Lokasi\/GPS/)
+  assert.match(locationErrorMessage({ code: 'OS-PLUG-GLOC-0010' }), /area terbuka/)
+  assert.match(locationErrorMessage({ code: 'OS-PLUG-GLOC-0014' }), /Play Store/)
+  assert.match(locationErrorMessage({ code: 'OS-PLUG-GLOC-0015' }), /Play Store/)
+  assert.match(locationErrorMessage({ code: 1 }), /Izin lokasi ditolak/)
+  assert.match(locationErrorMessage({ code: 3 }), /area terbuka/)
+  assert.match(locationErrorMessage(new Error('apa saja')), /pilih kota\/koordinat manual/)
+  assert.equal(recoverableLocationError({ code: 'OS-PLUG-GLOC-0010' }), true)
+  assert.equal(recoverableLocationError({ code: 'OS-PLUG-GLOC-0003' }), true)
+  assert.equal(recoverableLocationError({ code: 'OS-PLUG-GLOC-0007' }), false, 'lokasi mati tidak perlu diulang otomatis')
+  assert.equal(recoverableLocationError({ code: 'OS-PLUG-GLOC-0018' }), false)
+})
+
+test('alur GPS native memakai izin perkiraan, batas waktu lebih longgar, dan fallback watchPosition', () => {
+  const source = readFileSync('src/api/prayer-api.js', 'utf8')
+  assert.match(source, /enableHighAccuracy: false/, 'tetap izin perkiraan, bukan presisi')
+  assert.match(source, /timeout: 20000/, 'batas waktu dinaikkan dari 15 detik')
+  assert.match(source, /maximumAge: 60000/, 'lokasi cache tidak dipakai lebih dari 1 menit')
+  assert.match(source, /watchPosition/, 'ada fallback watchPosition saat GPS dingin')
+  assert.match(source, /checkPermissions/, 'izin diperiksa sebelum mencoba ulang')
+  assert.match(source, /clearWatch/, 'watch fallback selalu dibersihkan')
+  const picker = readFileSync('src/components/location-picker.js', 'utf8')
+  assert.match(picker, /data-loc-status/, 'petunjuk kegagalan GPS ditampilkan di kartu lokasi')
+  const manifest = readFileSync('android/app/src/main/AndroidManifest.xml', 'utf8')
+  assert.match(manifest, /android\.hardware\.location\.gps" android:required="false"/)
+  assert.match(manifest, /ACCESS_COARSE_LOCATION/)
+})
+
+test('fallback watchPosition mengambil perbaikan pertama lalu selalu berhenti menonton', async () => {
+  const calls = { watch: 0, cleared: [] }
+  const fake = {
+    watchPosition: (options, callback) => {
+      calls.watch++
+      assert.equal(options.maximumAge, 0, 'abaikan cache saat fallback')
+      setTimeout(() => callback({ coords: { latitude: -6.9764, longitude: 108.4836 } }), 5)
+      setTimeout(() => callback(null, { code: 'OS-PLUG-GLOC-0002' }), 10)
+      return Promise.resolve('watch-1')
+    },
+    clearWatch: async ({ id }) => calls.cleared.push(id)
+  }
+  const fix = await firstFixFromWatch(fake, 800)
+  assert.equal(fix.coords.latitude, -6.9764)
+  assert.equal(calls.watch, 1)
+  assert.deepEqual(calls.cleared, ['watch-1'], 'watch dibersihkan setelah perbaikan pertama')
+
+  const stuck = {
+    watchPosition: () => Promise.resolve('watch-2'),
+    clearWatch: async ({ id }) => calls.cleared.push(id)
+  }
+  await assert.rejects(firstFixFromWatch(stuck, 40), (error) => error.code === 'OS-PLUG-GLOC-0010')
+  assert.deepEqual(calls.cleared, ['watch-1', 'watch-2'], 'watch yang timeout juga dibersihkan')
+})
+
+test('batas waktu lokasi memastikan UI tidak menggantung saat plugin tidak menjawab', async () => {
+  assert.equal(await withDeadline(Promise.resolve('ok'), 200), 'ok')
+  await assert.rejects(withDeadline(new Promise(() => {}), 30), (error) => {
+    assert.equal(error.code, 'OS-PLUG-GLOC-0010')
+    assert.match(error.message, /area terbuka/)
+    return true
+  })
+  await assert.rejects(withDeadline(Promise.reject(new Error('izin ditolak')), 200), /izin ditolak/)
 })
 
 test('nama perkiraan GPS tetap jujur saat reverse geocoding offline', () => {
