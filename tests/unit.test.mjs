@@ -1636,6 +1636,23 @@ test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache'
   assert.match(readFileSync('src/app.js', 'utf8'), /showFirstRunOnboarding\(\)/)
 })
 
+test('layar pembuka memakai wordmark brand tanpa mengubah ikon aplikasi', () => {
+  const html = readFileSync('index.html', 'utf8')
+  assert.match(html, /<div class="sp-logo"><img src="\/brand\/quranku-logo\.png"/)
+  assert.doesNotMatch(html, /sp-logo[\s\S]{0,240}icons\/icon-192-v2\.png/, 'splash tidak lagi memakai ikon aplikasi')
+  assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'brand\/quranku-logo\.png'/, 'logo splash ikut precache')
+  assert.ok(existsSync('public/brand/quranku-logo.png'))
+  const styles = readFileSync('android/app/src/main/res/values/styles.xml', 'utf8')
+  assert.match(styles, /windowSplashScreenAnimatedIcon">@drawable\/splash_brand</)
+  assert.doesNotMatch(styles, /windowSplashScreenAnimatedIcon">@mipmap\/ic_launcher/, 'splash tidak memakai ikon launcher')
+  assert.ok(existsSync('android/app/src/main/res/drawable/splash_brand.png'))
+  const gen = readFileSync('scripts/gen-icons.mjs', 'utf8')
+  assert.match(gen, /const SPLASH_LOGO = readFileSync\(root \+ 'public\/brand\/quranku-logo\.png'\)/)
+  assert.match(gen, /logoAny\(Math\.round\(48 \* k\), `\$\{dir}\/ic_launcher\.png`\)/, 'ikon launcher tetap dari logo aplikasi')
+  assert.match(gen, /logoFull\(512, 'public\/icons\/maskable-512-v2\.png'/, 'ikon PWA tetap dari logo aplikasi')
+  assert.match(gen, /splashArt\(Math\.round\(160 \* k\)/, 'drawable splash memakai wordmark')
+})
+
 test('pengenalan pertama: tiga langkah, navigasi, dan penanda selesai tersimpan', async () => {
   const { ONBOARDING_KEY, ONBOARDING_SLIDES, hasCompletedOnboarding, markOnboardingComplete, renderOnboardingSlide } = await import('../src/services/onboarding.js')
   assert.equal(ONBOARDING_SLIDES.length, 3)

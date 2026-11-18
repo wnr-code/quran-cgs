@@ -281,6 +281,13 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Push PWA menyimpan/menautkan item meski aplikasi belum terbuka; notifikasi native Android mencatat hingga 100 item dan menyimpan riwayat baca. Buka notifikasi menandai item sebagai dibaca sebelum aplikasi dibawa ke depan.
 - **Validasi lokal:** `npm test` lulus 72/72 dan `npm run cap:sync` berhasil; tidak ada JDK/Android SDK untuk menjalankan Gradle secara lokal. Secara terpisah, Android CI run 44012564187 pada commit kode `092afa714a1ea65b9b4255611c61060bb35d7b6e` lulus dan mengunggah APK/AAB bertanda tangan; hasil remote bukan build lokal. Rincian dan tautan unduhan ada di [panduan Android](ANDROID.md).
 
+## Logo layar pembuka (wordmark)
+
+- Splash web (`#splash`) dan splash Android kini memakai wordmark resmi `public/brand/quranku-logo.png` (768×512, latar transparan) sesuai permintaan; splash web menampilkan logo selebar `min(300px, 76vw)` tanpa bingkai kotak agar proporsi 3:2 utuh, dan splash Android memakai `@drawable/splash_brand` (kanvas transparan 512×512, konten di dalam lingkaran aman 2/3) sebagai `windowSplashScreenAnimatedIcon`.
+- **Hanya splash yang berubah:** ikon launcher, adaptive icon, ikon notifikasi, ikon PWA (`public/icons/*-v2.png`), `apple-touch-icon`, dan materi Play Store tetap diturunkan dari `assets/logo-source.png`. `scripts/gen-icons.mjs` memisahkan `LOGO` (ikon aplikasi) dan `SPLASH_LOGO = public/brand/quranku-logo.png` (splash) sehingga regenerasi tidak menimpa ikon aplikasi.
+- `drawable-*/splash.png`, `drawable-land-*`, `drawable-port-*`, dan `drawable/splash.png` yang dipakai jalur splash Capacitor juga memakai wordmark; berkasnya diregenerasi dengan `npm run gen:icons` (hanya berkas splash yang berubah saat regenerasi).
+- Uji: `npm test` **101 lulus** termasuk assertion bahwa splash memakai `/brand/quranku-logo.png`, manifest splash Android memakai `@drawable/splash_brand`, dan ikon aplikasi tetap berasal dari `assets/logo-source.png`; `npm run build` lulus dan `/brand/quranku-logo.png` ikut precache Service Worker.
+
 ## 1.4.32 — Simpan gambar ke Galeri Android
 
 - Tombol **Unduh** pada berkas gambar (ayat, doa, Asmaul Husna) di APK sebelumnya hanya memicu tautan `download` di WebView lalu langsung mengumumkan keberhasilan, tanpa bukti gambar tersimpan. Kini APK memakai plugin native `ImageGallery` (`android/.../ImageGalleryPlugin.java`, didaftarkan `MainActivity`) yang menulis berkas ke `Pictures/QuranKu` melalui MediaStore dengan `IS_PENDING` pada Android 10 ke atas, dan lewat folder publik + `MediaScannerConnection` pada Android 9 ke bawah (izin `WRITE_EXTERNAL_STORAGE` dibatasi `maxSdkVersion="28"`).

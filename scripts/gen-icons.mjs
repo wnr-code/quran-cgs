@@ -40,6 +40,9 @@ const png = (src, size, out) => sharp(Buffer.from(src)).resize(size, size).png({
 // bila ALAMAT ikon di manifest berubah (berkas bernama sama dianggap tidak berubah oleh peramban).
 // Logo resmi (assets/logo-source.png, 1254×1254, sudut transparan). Semua ikon aplikasi diturunkan dari berkas ini.
 const LOGO = readFileSync(root + 'assets/logo-source.png')
+// Layar pembuka memakai wordmark terpisah (public/brand/quranku-logo.png, 768×512, latar transparan).
+// Ikon launcher, ikon notifikasi, dan materi Play Store tetap diturunkan dari LOGO di atas.
+const SPLASH_LOGO = readFileSync(root + 'public/brand/quranku-logo.png')
 const out = (img, file) => img.png({ compressionLevel: 9, palette: false }).toFile(root + file)
 /** Logo apa adanya (sudut membulat transparan). */
 const logoAny = (size, file) => out(sharp(LOGO).resize(size, size), file)
@@ -61,12 +64,37 @@ async function androidSplash(width, height, file) {
     <pattern id="ornament" width="72" height="72" patternUnits="userSpaceOnUse"><g fill="none" stroke="${GOLD}" stroke-opacity=".14"><rect x="22" y="22" width="28" height="28"/><rect x="22" y="22" width="28" height="28" transform="rotate(45 36 36)"/><path d="M0 36h16M56 36h16M36 0v16M36 56v16"/></g></pattern></defs>
     <rect width="100%" height="100%" fill="url(#bg)"/><rect width="100%" height="100%" fill="url(#ornament)"/>
   </svg>`
-  const iconSize = Math.round(Math.min(width, height) * 0.52)
-  const icon = await sharp(LOGO).resize(iconSize, iconSize).png().toBuffer()
+  const logo = await sharp(SPLASH_LOGO).resize({ width: Math.round(Math.min(width, height) * 0.62), fit: 'inside' }).png().toBuffer()
+  const logoMeta = await sharp(logo).metadata()
   return sharp(Buffer.from(background))
-    .composite([{ input: icon, left: Math.round((width - iconSize) / 2), top: Math.round((height - iconSize) / 2) }])
+    .composite([{ input: logo, left: Math.round((width - logoMeta.width) / 2), top: Math.round((height - logoMeta.height) / 2) }])
     .png({ compressionLevel: 9 })
     .toFile(root + file)
+}
+
+/** Kanvas persegi transparan berisi wordmark splash, dipakai drawable splash berdensitas. */
+async function splashArt(size, file) {
+  const logo = await sharp(SPLASH_LOGO).resize({ width: Math.round(size * 0.92), fit: 'inside' }).png().toBuffer()
+  const logoMeta = await sharp(logo).metadata()
+  return out(
+    sharp({ create: { width: size, height: size, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: logo, left: Math.round((size - logoMeta.width) / 2), top: Math.round((size - logoMeta.height) / 2) }]),
+    file
+  )
+}
+
+/**
+ * Ikon splash sistem Android 12+ (windowSplashScreenAnimatedIcon). Konten dibatasi ke lingkaran aman
+ * 2/3 kanvas supaya wordmark tidak terpotong mask bulat, dan tetap transparan di luar logo.
+ */
+async function splashBrand(size, file) {
+  const logo = await sharp(SPLASH_LOGO).resize({ width: Math.round(size * 0.62), fit: 'inside' }).png().toBuffer()
+  const logoMeta = await sharp(logo).metadata()
+  return out(
+    sharp({ create: { width: size, height: size, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: logo, left: Math.round((size - logoMeta.width) / 2), top: Math.round((size - logoMeta.height) / 2) }]),
+    file
+  )
 }
 
 await logoAny(192, 'public/icons/icon-192-v2.png')
@@ -88,12 +116,13 @@ for (const [d, k] of Object.entries(dens)) {
   await logoFull(Math.round(108 * k), `${dir}/ic_launcher_foreground.png`, 0.66)
   const ddir = `android/app/src/main/res/drawable-${d}`
   mkdirSync(root + ddir, { recursive: true })
-  await logoAny(Math.round(160 * k), `${ddir}/splash.png`)
+  await splashArt(Math.round(160 * k), `${ddir}/splash.png`)
   await png(badge, Math.round(24 * k), `${ddir}/ic_notification_icon.png`)
   await androidSplash(Math.round(480 * k), Math.round(320 * k), `android/app/src/main/res/drawable-land-${d}/splash.png`)
   await androidSplash(Math.round(320 * k), Math.round(480 * k), `android/app/src/main/res/drawable-port-${d}/splash.png`)
 }
 await androidSplash(480, 320, 'android/app/src/main/res/drawable/splash.png')
+await splashBrand(512, 'android/app/src/main/res/drawable/splash_brand.png')
 
 // Feature graphic 1024×500 (teks diubah menjadi path agar tidak bergantung font sistem)
 const font = opentype.parse(readFileSync(root + 'node_modules/@fontsource/scheherazade-new/files/scheherazade-new-latin-700-normal.woff').buffer)
