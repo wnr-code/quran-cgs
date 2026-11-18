@@ -390,8 +390,8 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
       assert.equal(translationRows.map((row) => row.text).join(' '), verse.translation, `${sample.label}: seluruh terjemahan terjaga`)
       assert.ok(arabicRows.every((row) => row.y < 1080) && translationRows.every((row) => row.y < 1080), `${sample.label}: teks tidak menabrak footer`)
       assert.ok(quranLogo, `${sample.label}: logo QuranKu kiriman pengguna dirender pada header`)
-      assert.deepEqual(quranLogo.slice(1, 5), [48, 52, 180, 120], `${sample.label}: logo QuranKu terbaru diperkecil di header`)
-      assert.deepEqual(cigatasLogo?.slice(1, 5), [24, 1154, 108, 72], `${sample.label}: logo Cigatas kecil di kiri footer`)
+      assert.deepEqual(quranLogo.slice(1, 5), [48, 62, 144, 96], `${sample.label}: logo QuranKu diperkecil lagi di header`)
+      assert.deepEqual(cigatasLogo?.slice(1, 5), [24, 1162, 84, 56], `${sample.label}: logo Cigatas diperkecil lagi di footer`)
       assert.ok(sourceLink && sourceLink.y > Math.max(...arabicRows.map((row) => row.y), ...translationRows.map((row) => row.y)), `${sample.label}: tautan sumber tampil tepat di bawah bacaan`)
       assert.equal(sourceLink.color, palette.secondary, `${sample.label}: tautan sumber memakai warna kontras`)
       assert.deepEqual([websiteDivider?.text, websiteDivider?.x, websiteDivider?.y, websiteDivider?.align], ['|', 24, 1250, 'left'], `${sample.label}: pemisah vertikal kembali sebelum ikon globe`)
@@ -540,9 +540,9 @@ test('gambar doa: Arab, latin, arti, identitas kecil, dan footer unduh', async (
     assert.equal(translationRows.map((row) => row.text).join(' '), blocks.map((block) => block.translation).join(' '))
     assert.ok(!ctx.texts.some((row) => ['LATIN', 'ARTI / TERJEMAHAN', 'TERJEMAHAN'].includes(row.text)), 'judul Latin/Arti tidak dicetak di poster')
     assert.ok(ctx.texts.some((row) => row.text === 'Doa Perjalanan'))
-    assert.ok(ctx.images.some((args) => args[0] === ramadan.getImage('/brand/quranku-logo.png') && args[1] === 48 && args[2] === 52 && args[3] === 180 && args[4] === 120))
+    assert.ok(ctx.images.some((args) => args[0] === ramadan.getImage('/brand/quranku-logo.png') && args[1] === 48 && args[2] === 62 && args[3] === 144 && args[4] === 96))
     const cigatasImage = ctx.images.find((args) => args[0] === ramadan.getImage('/cigatas-identity.png'))
-    assert.deepEqual(cigatasImage?.slice(1, 5), [24, 1154, 108, 72], 'logo Cigatas kecil di kiri footer')
+    assert.deepEqual(cigatasImage?.slice(1, 5), [24, 1162, 84, 56], 'logo Cigatas diperkecil lagi di kiri footer')
     assert.ok(!ramadan.images.some((image) => image.src.includes('/share-templates/')))
     assert.ok(ctx.texts.some((row) => row.text === 'Sumber: quran.cgs.my.id/#/doa/harian'), 'sumber bacaan terletak di bawah teks')
     assert.ok(ctx.texts.some((row) => row.text === 'Unduh APK') && ctx.texts.some((row) => row.text === 'Google Play · QuranKu'), 'ajakan unduh ada sejajar di kanan footer')
@@ -651,7 +651,7 @@ test('dzikir salat terpanjang tetap utuh dengan font Arab adaptif', async () => 
   }
 })
 
-test('seluruh 19 tema merender ayat panjang utuh pada kanvas 720×1280 yang opak', async () => {
+test('seluruh 22 tema merender ayat panjang utuh pada kanvas 720×1280 yang opak', async () => {
   const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
   const surah = quranImageFixtures[1]
   const verse = surah.verses[281]
@@ -685,8 +685,8 @@ test('seluruh 19 tema merender ayat panjang utuh pada kanvas 720×1280 yang opak
       const quranLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/brand/quranku-logo.png'))
       const cigatasLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/cigatas-identity.png'))
       const sourceLink = renderCtx.texts.find((row) => row.text === 'Sumber: quran.cgs.my.id/#/surah/2/282')
-      assert.deepEqual(quranLogo?.slice(1, 5), [48, 52, 180, 120], `${theme.id}: logo QuranKu kecil dan terbaru`)
-      assert.deepEqual(cigatasLogo?.slice(1, 5), [24, 1154, 108, 72], `${theme.id}: logo Cigatas kecil di kiri footer`)
+      assert.deepEqual(quranLogo?.slice(1, 5), [48, 62, 144, 96], `${theme.id}: logo QuranKu diperkecil di header`)
+      assert.deepEqual(cigatasLogo?.slice(1, 5), [24, 1162, 84, 56], `${theme.id}: logo Cigatas diperkecil di kiri footer`)
       assert.equal(sourceLink?.color, theme.colors.secondary, `${theme.id}: tautan sumber kontras di bawah ayat`)
       assert.ok(renderCtx.texts.some((row) => row.text === 'Unduh APK'), `${theme.id}: ajakan unduh di footer`)
       if (theme.template) {
@@ -700,7 +700,7 @@ test('seluruh 19 tema merender ayat panjang utuh pada kanvas 720×1280 yang opak
         canvasSignatures.add(JSON.stringify(renderCtx.pathCommands))
       }
     }
-    assert.equal(canvasSignatures.size, 15, '15 tema Canvas memiliki ilustrasi yang berbeda')
+    assert.equal(canvasSignatures.size, 18, '18 tema Canvas memiliki ilustrasi yang berbeda')
     assert.equal(suppliedBackgrounds.size, 3, 'ketiga gambar template kiriman pengguna dipakai sebagai background')
   } finally {
     if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
@@ -708,24 +708,25 @@ test('seluruh 19 tema merender ayat panjang utuh pada kanvas 720×1280 yang opak
   }
 })
 
-test('15 tema Canvas baru dan 4 tema lama beserta metadata template tetap tersedia', () => {
+test('18 tema Canvas baru dan 4 tema lama beserta metadata template tetap tersedia', () => {
   const requestedLabels = [
     'Zamrud Premium', 'Malam Berbintang', 'Galaksi Islami', 'Ramadan Lentera',
     'Masjid Emas', 'Rose Gold Luxury', 'Fajar Damai', 'Taman Islami',
     'Ottoman Blue', 'Champagne Minimalis', 'Gurun Senja', 'Ramadan Ketupat',
-    'Senja Andalusia', 'Menara Safir', 'Teratai Fajar'
+    'Senja Andalusia', 'Menara Safir', 'Teratai Fajar', 'Nuansa Pantai Sore',
+    'Pantai Ombak', 'Nuansa Percikan Hujan'
   ]
-  assert.equal(AYAH_IMAGE_THEMES.length, 19)
-  assert.deepEqual(AYAH_IMAGE_THEMES.slice(0, 15).map((theme) => theme.label), requestedLabels)
-  assert.equal(new Set(AYAH_IMAGE_THEMES.map((theme) => theme.id)).size, 19, 'semua pilihan punya ID unik')
-  assert.equal(new Set(AYAH_IMAGE_THEMES.map((theme) => theme.label)).size, 19, 'label tidak duplikat')
-  assert.equal(new Set(AYAH_IMAGE_THEMES.map((theme) => theme.scene)).size, 19, 'setiap tema memiliki ilustrasi berbeda')
+  assert.equal(AYAH_IMAGE_THEMES.length, 22)
+  assert.deepEqual(AYAH_IMAGE_THEMES.slice(0, 18).map((theme) => theme.label), requestedLabels)
+  assert.equal(new Set(AYAH_IMAGE_THEMES.map((theme) => theme.id)).size, 22, 'semua pilihan punya ID unik')
+  assert.equal(new Set(AYAH_IMAGE_THEMES.map((theme) => theme.label)).size, 22, 'label tidak duplikat')
+  assert.equal(new Set(AYAH_IMAGE_THEMES.map((theme) => theme.scene)).size, 22, 'setiap tema memiliki ilustrasi berbeda')
   const renderer = readFileSync('src/utils/ayah-image.js', 'utf8')
   for (const theme of AYAH_IMAGE_THEMES) {
     assert.ok(theme.scene, `${theme.id}: scene Canvas tersedia`)
     assert.ok(renderer.includes(`case '${theme.scene}':`), `${theme.id}: scene punya ilustrasi khusus, bukan default`)
   }
-  assert.ok(AYAH_IMAGE_THEMES.slice(0, 15).every((theme) => !theme.template), '15 tema memakai latar Canvas bebas tulisan')
+  assert.ok(AYAH_IMAGE_THEMES.slice(0, 18).every((theme) => !theme.template), '18 tema memakai latar Canvas bebas tulisan')
   const retainedTemplates = Object.fromEntries(AYAH_IMAGE_THEMES.filter((theme) => theme.template).map(({ id, template }) => [id, template]))
   assert.deepEqual(retainedTemplates, {
     zamrud: '/share-templates/emerald-courtyard.jpg',
@@ -734,7 +735,7 @@ test('15 tema Canvas baru dan 4 tema lama beserta metadata template tetap tersed
     ramadan: '/share-templates/emerald-courtyard.jpg'
   }, 'mapping template lama tetap tersedia untuk kompatibilitas')
   assert.deepEqual(
-    AYAH_IMAGE_THEMES.slice(15).map(({ id, label }) => [id, label]),
+    AYAH_IMAGE_THEMES.slice(18).map(({ id, label }) => [id, label]),
     [['zamrud', 'Zamrud'], ['malam', 'Malam'], ['pasir', 'Pasir'], ['ramadan', 'Ramadan']],
     'ID dan nama empat tema lama tetap kompatibel'
   )
@@ -773,7 +774,7 @@ test('Asmaul Husna menyediakan pemilih tema dan pembuat poster gambar', () => {
   assert.match(asmaul, /heading: 'ASMAUL HUSNA'/)
   assert.match(asmaul, /create: \(\{ theme, format \}\) => createShareImage/)
   assert.match(shareSheet, /normalizedWhat\.includes\('asmaul'\) \? 'Asmaul Husna'/)
-  assert.equal(AYAH_IMAGE_THEMES.length, 19, 'semua tema tersedia untuk poster Asmaul Husna')
+  assert.equal(AYAH_IMAGE_THEMES.length, 22, 'semua tema tersedia untuk poster Asmaul Husna')
 })
 
 test('gambar ayat mengikuti visibilitas di beranda dan pengaturan pembaca', () => {
@@ -1564,7 +1565,7 @@ test('layar pembuka: ada di index.html, salam Arab, dan berkasnya ikut precache'
   assert.match(html, /<div id="splash"/)
   assert.ok(html.normalize('NFC').includes('اَلسَّلَامُ عَلَيْكُمْ'.normalize('NFC')))
   assert.match(html, /Buat poster 9:16 dari ayat, doa, atau Asmaul Husna\./, 'splash menjelaskan fitur poster')
-  assert.match(html, /Pilih satu dari 19 tema, lalu simpan atau bagikan\./)
+  assert.match(html, /Pilih satu dari 22 tema, lalu simpan atau bagikan\./)
   assert.match(html, /<script src="\/splash\.js"><\/script>/)
   assert.match(html, /sp-bye [^;]*8s/) // menutup sendiri bila aplikasi gagal dimuat
   assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'splash\.js'/)

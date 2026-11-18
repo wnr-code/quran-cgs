@@ -440,7 +440,7 @@ await step('Ayat pilihan: bagikan sebagai teks atau PNG; salin adalah tindakan t
 
   await page.$eval('[data-ayah-share]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open [data-image-create]')
-  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 19)
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 22)
   await page.$eval('.sheet-wrap.open [data-image-create]', (b) => b.click())
   await page.waitForFunction(() => {
     const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
@@ -682,7 +682,7 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
   assert.match(hrefs[1], /^https:\/\/t\.me\/share\/url/)
   assert.match(hrefs[2], /facebook\.com\/sharer/)
   assert.match(hrefs[3], /twitter\.com\/intent\/tweet/)
-  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 19, '15 tema Canvas dan 4 tema template tersedia untuk doa')
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 22, '18 tema Canvas dan 4 tema template tersedia untuk doa')
   assert.equal(await page.$eval('.sheet-wrap.open .share-image-section', (section) => section.getAttribute('aria-label')), 'Buat pratinjau gambar doa')
   assert.equal(await page.$eval('.sheet-wrap.open [data-image-preview]', (image) => image.alt), 'Pratinjau gambar doa untuk Status WhatsApp')
   const hiddenDoaText = await page.$eval('.dzikir[data-card="0"]', (card) => ({
@@ -828,7 +828,7 @@ await step('Asmaul Husna: bagikan ke media sosial', async () => {
   assert.match(hrefs[3], /twitter\.com\/intent\/tweet/)
   await new Promise((r) => setTimeout(r, 400))
   await shot('33-asmaul-bagikan')
-  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 19, 'semua 19 tema tersedia untuk Asmaul Husna')
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 22, 'semua 22 tema tersedia untuk Asmaul Husna')
   assert.equal(await page.$eval('.sheet-wrap.open .share-image-section', (section) => section.getAttribute('aria-label')), 'Buat pratinjau gambar Asmaul Husna')
   const themePicker = await page.$eval('.sheet-wrap.open .share-theme-grid', (picker) => ({
     display: getComputedStyle(picker).display,
