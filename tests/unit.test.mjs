@@ -275,7 +275,7 @@ function makeAyahCanvasHarness({ failImages = [] } = {}) {
       }
       const canvas = { width: 0, height: 0 }
       const ctx = {
-        font: '10px sans-serif', fillStyle: '#000', direction: 'ltr', operations: [], texts: [], images: [], pathCommands: [],
+        font: '10px sans-serif', fillStyle: '#000', direction: 'ltr', textAlign: 'left', operations: [], texts: [], images: [], pathCommands: [],
         measureText(text) {
           const size = Number(/(?:^|\s)(\d+(?:\.\d+)?)px\b/.exec(this.font)?.[1]) || 10
           const factor = /Amiri|Scheherazade/.test(this.font) ? 0.42 : 0.52
@@ -290,7 +290,7 @@ function makeAyahCanvasHarness({ failImages = [] } = {}) {
           this.operations.push({ kind: 'fillRect', x, y, width, height, fillStyle: this.fillStyle, composite: this.globalCompositeOperation })
         },
         drawImage(...args) { this.images.push(args); this.operations.push({ kind: 'drawImage', args }) },
-        fillText(text, x, y) { this.texts.push({ text, x, y, font: this.font, color: this.fillStyle }) }
+        fillText(text, x, y, maxWidth) { this.texts.push({ text, x, y, font: this.font, color: this.fillStyle, align: this.textAlign, maxWidth }) }
       }
       canvas.getContext = (type, options) => {
         ctx.contextOptions = options
@@ -308,6 +308,26 @@ function makeAyahCanvasHarness({ failImages = [] } = {}) {
   }
   return { doc, canvases, contexts, images, getImage: (path) => images.find((image) => image.src.endsWith(path)) }
 }
+
+test('ayat Arab panjang mengecil hingga muat dan Canvas membatasi lebar teks', async () => {
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
+  const harness = makeAyahCanvasHarness()
+  const arabic = 'ب'.repeat(80)
+  try {
+    Object.defineProperty(globalThis, 'document', { configurable: true, value: harness.doc })
+    await createShareImage({ arabic })
+    const ctx = harness.contexts[0]
+    const row = ctx.texts.find((item) => item.text === arabic)
+    assert.ok(row, 'teks Arab utuh tetap dirender')
+    assert.ok(Number.parseFloat(row.font) < 60, 'font Arab otomatis mengecil untuk teks tanpa spasi yang panjang')
+    assert.equal(row.maxWidth, 588, 'kanvas membatasi baris di dalam panel teks')
+    ctx.font = row.font
+    assert.ok(ctx.measureText(row.text).width <= row.maxWidth, 'baris Arab panjang tidak melewati border panel')
+  } finally {
+    if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
+    else delete globalThis.document
+  }
+})
 
 test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 720×1280', async () => {
   const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
@@ -343,6 +363,9 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
       const quranLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/brand/quranku-logo.png'))
       const cigatasLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/cigatas-identity.png'))
       const sourceLink = renderCtx.texts.find((row) => row.text === `Sumber: quran.cgs.my.id/#/surah/${sample.surah}/${sample.ayah}`)
+      const websiteDivider = renderCtx.texts.find((row) => row.text === '|')
+      const websiteLink = renderCtx.texts.find((row) => row.text === 'quran.cgs.my.id')
+      const playStoreLine = renderCtx.texts.find((row) => row.text === 'Google Play · QuranKu')
 
       assert.equal(png.type, 'image/png', `${sample.label}: PNG`)
       assert.deepEqual([exportCanvas.width, exportCanvas.height], [720, 1280], `${sample.label}: ukuran Status WhatsApp 9:16`)
@@ -353,6 +376,17 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
       assert.ok(backgroundIndex >= 0 && compositeIndex > backgroundIndex, `${sample.label}: latar digambar sebelum artwork diratakan`)
       assert.equal(arabicRows.map((row) => row.text).join(' '), verse.text, `${sample.label}: seluruh tulisan Arab terjaga`)
       assert.match(arabicRows[0].font, /Amiri Quran|Scheherazade New/, `${sample.label}: font Arab tersetel`)
+      assert.ok(arabicRows.every((row) => {
+        renderCtx.font = row.font
+        return row.maxWidth === 588 && renderCtx.measureText(row.text).width <= row.maxWidth
+      }), `${sample.label}: baris Arab menyusut dan tetap di dalam border`)
+      const bodyMosque = renderCtx.pathCommands.findIndex((command, index, commands) =>
+        command[0] === 'moveTo' && command[1] === 248 &&
+        commands[index + 1]?.[0] === 'lineTo' && commands[index + 1]?.[1] === 335 && command[2] === commands[index + 1]?.[2]
+      )
+      assert.ok(bodyMosque >= 0, `${sample.label}: pembatas masjid dirender di bawah ayat`)
+      const mosqueTop = renderCtx.pathCommands[bodyMosque][2] - 28
+      assert.ok(mosqueTop - Math.max(...arabicRows.map((row) => row.y)) > 8, `${sample.label}: pembatas masjid tidak menempel pada teks Arab`)
       assert.equal(translationRows.map((row) => row.text).join(' '), verse.translation, `${sample.label}: seluruh terjemahan terjaga`)
       assert.ok(arabicRows.every((row) => row.y < 1080) && translationRows.every((row) => row.y < 1080), `${sample.label}: teks tidak menabrak footer`)
       assert.ok(quranLogo, `${sample.label}: logo QuranKu kiriman pengguna dirender pada header`)
@@ -360,6 +394,15 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
       assert.deepEqual(cigatasLogo?.slice(1, 5), [24, 1154, 108, 72], `${sample.label}: logo Cigatas kecil di kiri footer`)
       assert.ok(sourceLink && sourceLink.y > Math.max(...arabicRows.map((row) => row.y), ...translationRows.map((row) => row.y)), `${sample.label}: tautan sumber tampil tepat di bawah bacaan`)
       assert.equal(sourceLink.color, palette.secondary, `${sample.label}: tautan sumber memakai warna kontras`)
+      assert.deepEqual([websiteDivider?.text, websiteDivider?.x, websiteDivider?.y, websiteDivider?.align], ['|', 24, 1250, 'left'], `${sample.label}: pemisah vertikal kembali sebelum ikon globe`)
+      assert.equal(websiteLink?.y, 1250, `${sample.label}: alamat situs kembali di bawah logo Cigatas`)
+      assert.equal(websiteLink?.align, 'left')
+      assert.deepEqual([playStoreLine?.x, playStoreLine?.y, playStoreLine?.align], [696, 1205, 'right'], `${sample.label}: ajakan Play Store rata kanan dengan margin logo kiri`)
+      const footerDivider = renderCtx.pathCommands.findIndex((command, index, commands) =>
+        command[0] === 'moveTo' && command[1] === 360 && command[2] === 1164 &&
+        commands[index + 1]?.[0] === 'lineTo' && commands[index + 1]?.[1] === 360 && commands[index + 1]?.[2] === 1252
+      )
+      assert.ok(footerDivider >= 0, `${sample.label}: garis tengah memisahkan identitas kiri dan kanan`)
       assert.ok(fullText.includes('Unduh APK') && fullText.includes('Google Play · QuranKu'), `${sample.label}: ajakan Play Store tampil di sisi kanan footer`)
       assert.ok(harness.images.some((image) => image.src.endsWith('/brand/quranku-logo.png')))
       assert.ok(harness.images.some((image) => image.src.endsWith('/cigatas-identity.png')))
@@ -507,7 +550,7 @@ test('gambar doa: Arab, latin, arti, identitas kecil, dan footer unduh', async (
     const shareFooter = renderer.split('function drawShareFooter(ctx, palette, cigatasLogo) {')[1].split('\n}\n\n/**')[0]
     assert.doesNotMatch(shareFooter, /roundRect\(ctx,\s*426,\s*1155,\s*270,\s*72/)
     assert.doesNotMatch(shareFooter, /withAlpha\('#ffffff',\s*0\.09\)/)
-    assert.match(shareFooter, /drawPlayStoreMark\(ctx,\s*452,\s*1180,\s*24\)/, 'ikon Play Store diperkecil tanpa kartu latar')
+    assert.match(shareFooter, /drawPlayStoreMark\(ctx,\s*550,\s*1180,\s*24\)/, 'ikon Play Store kecil dan digeser ke kolom kanan')
   } finally {
     if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
     else delete globalThis.document

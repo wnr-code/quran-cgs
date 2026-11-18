@@ -1069,13 +1069,15 @@ function measureShareBlocks(ctx, blocks) {
     }
     const segments = []
     let height = 0
+    let widthFits = true
     const addText = (kind, value, direction, maxWidth) => {
       if (!value) return
       ctx.direction = direction
       ctx.font = `${kind === 'label' ? '700 ' : ''}${sizes[kind]}px ${kind === 'arabic' ? ARABIC_FAMILY : LATIN_FAMILY}`
       const lines = wrapCanvasText(ctx, value, maxWidth)
       if (!lines.length) return
-      segments.push({ kind, lines, fontSize: sizes[kind], lineHeight: lineHeights[kind], offset: height })
+      if (lines.some((line) => ctx.measureText(line).width > maxWidth)) widthFits = false
+      segments.push({ kind, lines, fontSize: sizes[kind], lineHeight: lineHeights[kind], maxWidth, offset: height })
       height += lines.length * lineHeights[kind]
     }
 
@@ -1092,7 +1094,8 @@ function measureShareBlocks(ctx, blocks) {
       if (block.arabic) {
         addText('arabic', block.arabic, 'rtl', INNER_WIDTH - 28)
         if (block.latin || block.translation) {
-          const dividerHeight = dense ? 12 : compact ? 22 : 38
+          // The mosque silhouette extends 28px above its line; reserve a real gap after Arabic.
+          const dividerHeight = 68
           segments.push({ kind: 'mosque-divider', offset: height, segmentHeight: dividerHeight })
           height += dividerHeight
         }
@@ -1106,8 +1109,8 @@ function measureShareBlocks(ctx, blocks) {
         addText('translation', block.translation, 'ltr', INNER_WIDTH - 52)
       }
     })
-    best = { sizes, lineHeights, segments, contentHeight: height, scale }
-    if (height <= BODY_HEIGHT) return best
+    best = { sizes, lineHeights, segments, contentHeight: height, scale, widthFits }
+    if (height <= BODY_HEIGHT && widthFits) return best
   }
   return best
 }
@@ -1144,7 +1147,7 @@ function drawContent(ctx, layout, bodyY, palette) {
     ctx.font = `${segment.kind === 'label' ? '700 ' : ''}${segment.fontSize}px ${segment.kind === 'arabic' ? ARABIC_FAMILY : LATIN_FAMILY}`
     segment.lines.forEach((line, index) => {
       const baseline = segment.kind === 'label' ? 0.82 : segment.kind === 'arabic' ? 0.84 : 0.82
-      ctx.fillText(line, WIDTH / 2, bodyY + segment.offset + Math.round(segment.lineHeight * (index + baseline)))
+      ctx.fillText(line, WIDTH / 2, bodyY + segment.offset + Math.round(segment.lineHeight * (index + baseline)), segment.maxWidth)
     })
   }
 }
@@ -1238,15 +1241,49 @@ function drawShareFooter(ctx, palette, cigatasLogo) {
     ctx.fillText('#TongEureunNgaji', 28, 1208)
   }
 
-  drawPlayStoreMark(ctx, 452, 1180, 24)
+  // Site identity stays directly below Cigatas, with the requested divider before the globe.
+  ctx.save()
   ctx.direction = 'ltr'
   ctx.textAlign = 'left'
   ctx.fillStyle = footerInk
+  ctx.font = `600 10px ${LATIN_FAMILY}`
+  ctx.fillText('|', 24, 1250)
+  ctx.strokeStyle = footerInk
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.arc(38, 1246, 5, 0, Math.PI * 2)
+  ctx.moveTo(33, 1246)
+  ctx.lineTo(43, 1246)
+  ctx.moveTo(38, 1241)
+  ctx.lineTo(38, 1251)
+  ctx.moveTo(38, 1241)
+  ctx.quadraticCurveTo(32, 1246, 38, 1251)
+  ctx.moveTo(38, 1241)
+  ctx.quadraticCurveTo(44, 1246, 38, 1251)
+  ctx.stroke()
+  ctx.fillText('quran.cgs.my.id', 47, 1250)
+  ctx.restore()
+
+  // A slim vertical rule balances the two footer identities.
+  ctx.save()
+  ctx.strokeStyle = withAlpha(palette.frame, 0.72)
+  ctx.lineWidth = 1.2
+  ctx.beginPath()
+  ctx.moveTo(WIDTH / 2, 1164)
+  ctx.lineTo(WIDTH / 2, 1252)
+  ctx.stroke()
+  ctx.restore()
+
+  // Right-align the Play Store invitation to the same 24px outer margin as the Cigatas mark.
+  drawPlayStoreMark(ctx, 550, 1180, 24)
+  ctx.direction = 'ltr'
+  ctx.textAlign = 'right'
+  ctx.fillStyle = footerInk
   ctx.font = `700 13px ${LATIN_FAMILY}`
-  ctx.fillText('Unduh APK', 487, 1187)
+  ctx.fillText('Unduh APK', WIDTH - 24, 1187)
   ctx.fillStyle = palette.light ? '#f1e6cf' : palette.subtitle
   ctx.font = `600 10px ${LATIN_FAMILY}`
-  ctx.fillText('Google Play · QuranKu', 487, 1205)
+  ctx.fillText('Google Play · QuranKu', WIDTH - 24, 1205)
   ctx.restore()
 }
 
