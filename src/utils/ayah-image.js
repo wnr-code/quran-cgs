@@ -927,13 +927,13 @@ async function loadImage(path) {
   }
 }
 
-function normalizeBlocks({ blocks, arabic, latin, translation, text }) {
+function normalizeBlocks({ blocks, arabic, latin, translation, text, showLatin = true, showTranslation = true }) {
   const source = Array.isArray(blocks) && blocks.length ? blocks : [{ arabic, latin, translation: translation || text }]
   return source.map((block) => ({
     label: clean(block?.label || block?.title),
     arabic: clean(block?.arabic || block?.ar),
-    latin: clean(block?.latin),
-    translation: clean(block?.translation || block?.arti || block?.text)
+    latin: showLatin ? clean(block?.latin) : '',
+    translation: showTranslation ? clean(block?.translation || block?.arti || block?.text) : ''
   })).filter((block) => block.label || block.arabic || block.latin || block.translation)
 }
 
@@ -985,14 +985,11 @@ function measureShareBlocks(ctx, blocks) {
         }
       }
       if (block.latin) {
-        addText('label', 'LATIN', 'ltr', INNER_WIDTH - 76)
-        height += dense ? 0 : 1
         addText('latin', block.latin, 'ltr', INNER_WIDTH - 52)
         height += dense ? 1 : compact ? 2 : 4
       }
       if (block.translation) {
-        addText('label', block.latin ? 'ARTI / TERJEMAHAN' : 'TERJEMAHAN', 'ltr', INNER_WIDTH - 76)
-        height += dense ? 0 : 1
+        if (block.latin) height += dense ? 1 : compact ? 2 : 4
         addText('translation', block.translation, 'ltr', INNER_WIDTH - 52)
       }
     })
@@ -1081,21 +1078,22 @@ function drawShareFooter(ctx, palette, cigatasLogo, sourceUrl, scene) {
   ctx.quadraticCurveTo(466, 1176, WIDTH, 1134)
   ctx.stroke()
 
-  if (cigatasLogo) ctx.drawImage(cigatasLogo, 18, 1135, 210, 140)
+  // Compact identity at the footer's left; put the bold website label directly beneath it.
+  if (cigatasLogo) ctx.drawImage(cigatasLogo, 22, 1140, 150, 100)
   else {
     ctx.textAlign = 'left'
     ctx.fillStyle = palette.title
-    ctx.font = `700 18px ${LATIN_FAMILY}`
-    ctx.fillText('Cigatas', 28, 1191)
-    ctx.font = `700 11px ${LATIN_FAMILY}`
-    ctx.fillText('#TongEureunNgaji', 28, 1211)
+    ctx.font = `700 15px ${LATIN_FAMILY}`
+    ctx.fillText('Cigatas', 26, 1180)
+    ctx.font = `700 9px ${LATIN_FAMILY}`
+    ctx.fillText('#TongEureunNgaji', 26, 1197)
   }
 
-  const globeX = 495
-  const globeY = 1204
-  const globeRadius = 15
+  const globeX = 35
+  const globeY = 1253
+  const globeRadius = 10
   ctx.strokeStyle = palette.title
-  ctx.lineWidth = 1.5
+  ctx.lineWidth = 1.4
   ctx.beginPath()
   ctx.arc(globeX, globeY, globeRadius, 0, Math.PI * 2)
   ctx.moveTo(globeX - globeRadius, globeY)
@@ -1103,19 +1101,15 @@ function drawShareFooter(ctx, palette, cigatasLogo, sourceUrl, scene) {
   ctx.moveTo(globeX, globeY - globeRadius)
   ctx.lineTo(globeX, globeY + globeRadius)
   ctx.moveTo(globeX, globeY - globeRadius)
-  ctx.quadraticCurveTo(globeX - 18, globeY, globeX, globeY + globeRadius)
+  ctx.quadraticCurveTo(globeX - 12, globeY, globeX, globeY + globeRadius)
   ctx.moveTo(globeX, globeY - globeRadius)
-  ctx.quadraticCurveTo(globeX + 18, globeY, globeX, globeY + globeRadius)
-  ctx.stroke()
-  ctx.beginPath()
-  ctx.moveTo(520, 1183)
-  ctx.lineTo(520, 1225)
+  ctx.quadraticCurveTo(globeX + 12, globeY, globeX, globeY + globeRadius)
   ctx.stroke()
   ctx.direction = 'ltr'
   ctx.textAlign = 'left'
   ctx.fillStyle = palette.title
-  ctx.font = `600 18px ${LATIN_FAMILY}`
-  ctx.fillText('quran.cgs.my.id', 533, 1211)
+  ctx.font = `700 16px ${LATIN_FAMILY}`
+  ctx.fillText('quran.cgs.my.id', 53, 1259)
 
   if (['lantern-arch', 'ketupat-night', 'ramadan-green'].includes(scene)) {
     drawKetupat(ctx, 288, 1200, 24, palette.accent)
@@ -1131,11 +1125,12 @@ function drawShareFooter(ctx, palette, cigatasLogo, sourceUrl, scene) {
  */
 export async function createShareImage({
   arabic, latin, translation, text, blocks, reference, sourceUrl,
+  showLatin = true, showTranslation = true,
   heading = 'RENUNGAN AL-QUR’AN', theme = DEFAULT_AYAH_IMAGE_THEME_ID, format = 'png'
 } = {}) {
   if (typeof document === 'undefined') throw new Error('Canvas tidak tersedia di perangkat ini.')
 
-  const contentBlocks = normalizeBlocks({ blocks, arabic, latin, translation, text })
+  const contentBlocks = normalizeBlocks({ blocks, arabic, latin, translation, text, showLatin, showTranslation })
   if (!contentBlocks.length) throw new Error('Teks bacaan belum tersedia.')
   const selectedTheme = resolveTheme(theme)
   const palette = selectedTheme.colors
@@ -1241,11 +1236,14 @@ export async function createShareImage({
 export const createAyahImage = createShareImage
 
 /** Opsi gambar untuk satu ayat, dipakai bersama oleh pembaca dan Beranda. */
-export function ayahImageOption({ surahNumber, ayahNumber, arabic, latin, translation, reference, sourceUrl, heading = 'AYAT PILIHAN HARI INI' }) {
+export function ayahImageOption({
+  surahNumber, ayahNumber, arabic, latin, translation, reference, sourceUrl,
+  showLatin = true, showTranslation = true, heading = 'AYAT PILIHAN HARI INI'
+}) {
   return {
     filename: `quranku-ayat-${surahNumber}-${ayahNumber}.png`,
     create: ({ theme, format }) => createShareImage({
-      arabic, latin, translation, reference, sourceUrl, heading, theme, format
+      arabic, latin, translation, showLatin, showTranslation, reference, sourceUrl, heading, theme, format
     })
   }
 }

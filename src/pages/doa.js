@@ -406,6 +406,8 @@ export default function doa(root, { params = {} } = {}) {
             heading: p.heading || 'DOA & DZIKIR',
             reference: p.ref || p.title,
             sourceUrl: shareUrl(p, APP.origin),
+            showLatin: view.latin,
+            showTranslation: view.arti,
             theme,
             format
           })

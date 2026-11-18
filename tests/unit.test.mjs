@@ -342,6 +342,8 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
       const backgroundIndex = exportCtx.operations.findIndex((op) => op.kind === 'fillRect' && op.x === 0 && op.y === 0 && op.width === 720 && op.height === 1280)
       const quranLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/icons/icon-512-v2.png'))
       const cigatasLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/cigatas-identity.png'))
+      const websiteLink = renderCtx.texts.find((row) => row.text === 'quran.cgs.my.id')
+      const globe = renderCtx.pathCommands.find((command) => command[0] === 'arc' && command[1] === 35 && command[2] === 1253 && command[3] === 10)
 
       assert.equal(png.type, 'image/png', `${sample.label}: PNG`)
       assert.deepEqual([exportCanvas.width, exportCanvas.height], [720, 1280], `${sample.label}: ukuran Status WhatsApp 9:16`)
@@ -356,7 +358,9 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
       assert.ok(arabicRows.every((row) => row.y < 1080) && translationRows.every((row) => row.y < 1080), `${sample.label}: teks tidak menabrak footer`)
       assert.ok(quranLogo, `${sample.label}: logo QuranKu dirender pada header`)
       assert.deepEqual(quranLogo.slice(5, 9), [62, 70, 86, 61], `${sample.label}: crop ikon emblem tanpa duplikasi wordmark`)
-      assert.ok(cigatasLogo && cigatasLogo[1] < 240 && cigatasLogo[2] > 1080, `${sample.label}: logo Cigatas berada di kiri bawah`)
+      assert.deepEqual(cigatasLogo?.slice(1, 5), [22, 1140, 150, 100], `${sample.label}: logo Cigatas diperkecil di kiri bawah`)
+      assert.ok(websiteLink && websiteLink.x === 53 && websiteLink.y === 1259 && /700 16px/.test(websiteLink.font), `${sample.label}: tautan tebal tepat di bawah logo`)
+      assert.ok(globe, `${sample.label}: simbol globe menemani tautan website`)
       assert.ok(harness.images.some((image) => image.src.endsWith('/icons/icon-512-v2.png')))
       assert.ok(harness.images.some((image) => image.src.endsWith('/cigatas-identity.png')))
       assert.ok(!harness.images.some((image) => image.src.includes('/share-templates/')), 'latar bertulisan tidak digunakan sebagai background')
@@ -460,16 +464,52 @@ test('gambar doa: Arab, latin, arti, logo Cigatas, dan dekorasi Ramadan', async 
     assert.equal(arabicRows.map((row) => row.text).join(' '), blocks.map((block) => block.arabic).join(' '))
     assert.equal(latinRows.map((row) => row.text).join(' '), blocks.map((block) => block.latin).join(' '))
     assert.equal(translationRows.map((row) => row.text).join(' '), blocks.map((block) => block.translation).join(' '))
+    assert.ok(!ctx.texts.some((row) => ['LATIN', 'ARTI / TERJEMAHAN', 'TERJEMAHAN'].includes(row.text)), 'judul Latin/Arti tidak dicetak di poster')
     assert.ok(ctx.texts.some((row) => row.text === 'Doa Perjalanan'))
     assert.ok(ctx.images.some((args) => args[0] === ramadan.getImage('/icons/icon-512-v2.png') && args[5] === 62 && args[6] === 70))
-    assert.ok(ctx.images.some((args) => args[0] === ramadan.getImage('/cigatas-identity.png') && args[1] < 240 && args[2] > 1080))
+    const cigatasImage = ctx.images.find((args) => args[0] === ramadan.getImage('/cigatas-identity.png'))
+    assert.deepEqual(cigatasImage?.slice(1, 5), [22, 1140, 150, 100], 'logo Cigatas lebih kecil di kiri bawah')
     assert.ok(!ramadan.images.some((image) => image.src.includes('/share-templates/')))
-    assert.ok(ctx.texts.some((row) => row.text === 'quran.cgs.my.id'))
+    const websiteLink = ctx.texts.find((row) => row.text === 'quran.cgs.my.id')
+    assert.ok(websiteLink && websiteLink.x === 53 && websiteLink.y === 1259 && /700 16px/.test(websiteLink.font), 'tautan bold berada di bawah logo')
+    assert.ok(ctx.pathCommands.some((command) => command[0] === 'arc' && command[1] === 35 && command[2] === 1253 && command[3] === 10), 'ikon globe terlihat di samping tautan')
     assert.ok(ctx.texts.some((row) => row.text === 'quran.cgs.my.id/#/doa/harian'))
 
     Object.defineProperty(globalThis, 'document', { configurable: true, value: plain.doc })
     await createShareImage({ heading: 'DOA & DZIKIR', blocks, reference: 'Doa Perjalanan', theme: 'zamrud' })
     assert.ok(ctx.pathCommands.length > plain.contexts[0].pathCommands.length, 'tema Ramadan menambahkan ketupat dan bedug di area bawah')
+  } finally {
+    if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
+    else delete globalThis.document
+  }
+})
+
+test('poster hanya menyertakan Latin dan terjemahan yang diaktifkan di tampilan', async () => {
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
+  const arabic = 'اللَّهُمَّ اهْدِنِي وَسَدِّدْنِي'
+  const latin = 'Allaahumma ihdinii wa saddidnii'
+  const translation = 'Ya Allah, berilah aku petunjuk dan luruskanlah.'
+  const cases = [
+    { showLatin: false, showTranslation: false },
+    { showLatin: false, showTranslation: true },
+    { showLatin: true, showTranslation: false }
+  ]
+  try {
+    for (const visibility of cases) {
+      const harness = makeAyahCanvasHarness()
+      Object.defineProperty(globalThis, 'document', { configurable: true, value: harness.doc })
+      await createShareImage({ arabic, latin, translation, ...visibility })
+      const theme = AYAH_IMAGE_THEMES[0]
+      const bodyRows = harness.contexts[0].texts.filter((row) => row.y >= 312 && row.y < 1080)
+      const arabicRows = bodyRows.filter((row) => /Amiri Quran|Scheherazade New/.test(row.font))
+      const latinRows = bodyRows.filter((row) => row.color === theme.colors.latin)
+      const translationRows = bodyRows.filter((row) => row.color === theme.colors.translation && !/Amiri Quran|Scheherazade New/.test(row.font))
+
+      assert.equal(arabicRows.map((row) => row.text).join(' '), arabic)
+      assert.equal(latinRows.map((row) => row.text).join(' '), visibility.showLatin ? latin : '')
+      assert.equal(translationRows.map((row) => row.text).join(' '), visibility.showTranslation ? translation : '')
+      assert.ok(!harness.contexts[0].texts.some((row) => ['LATIN', 'ARTI / TERJEMAHAN', 'TERJEMAHAN'].includes(row.text)), 'tanpa label Latin/arti')
+    }
   } finally {
     if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
     else delete globalThis.document
@@ -626,6 +666,22 @@ test('semua alur Bagikan Doa menyiapkan pratinjau gambar', () => {
   assert.match(doa, /imageBlocks:\s*d\.parts\.map/)
   assert.match(doa, /const blocks = p\.imageBlocks \|\| \[\{ arabic: p\.ar, latin: p\.latin, translation: p\.arti \|\| p\.text \}\]/)
   assert.match(doa, /image:\s*\{[\s\S]*create:\s*\(\{ theme, format \}\) => createShareImage/)
+  assert.match(doa, /showLatin:\s*view\.latin/)
+  assert.match(doa, /showTranslation:\s*view\.arti/)
+})
+
+test('gambar ayat mengikuti visibilitas di beranda dan pengaturan pembaca', () => {
+  const home = readFileSync('src/pages/home.js', 'utf8')
+  const reader = readFileSync('src/pages/reader.js', 'utf8')
+  const ayahCard = readFileSync('src/components/ayah-card.js', 'utf8')
+  assert.match(home, /showLatin:\s*false/)
+  assert.match(home, /showTranslation:\s*Boolean\(a\.teksIndonesia\)/)
+  for (const source of [reader, ayahCard]) {
+    assert.match(source, /const display = getSettings\(\)\.reader/)
+    assert.match(source, /const inTextMode = display\.mode === 'focus'/)
+    assert.match(source, /showLatin:\s*inTextMode && display\.showLatin/)
+    assert.match(source, /showTranslation:\s*inTextMode && display\.showTranslation/)
+  }
 })
 
 test('hijriah (Umm al-Qura)', () => {

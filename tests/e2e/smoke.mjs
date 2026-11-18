@@ -685,12 +685,31 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
   assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 16, '12 tema baru dan 4 tema lama tersedia untuk doa')
   assert.equal(await page.$eval('.sheet-wrap.open .share-image-section', (section) => section.getAttribute('aria-label')), 'Buat pratinjau gambar doa')
   assert.equal(await page.$eval('.sheet-wrap.open [data-image-preview]', (image) => image.alt), 'Pratinjau gambar doa untuk Status WhatsApp')
+  const hiddenDoaText = await page.$eval('.dzikir[data-card="0"]', (card) => ({
+    latin: card.querySelector('.ayah-latin')?.textContent.trim() || '',
+    translation: card.querySelector('.ayah-id')?.textContent.trim() || ''
+  }))
+  await page.$eval('[data-view="arti"]', (button) => button.click())
+  await page.$eval('[data-view="latin"]', (button) => button.click())
+  await page.evaluate(() => {
+    window.__posterCanvasText = []
+    const original = CanvasRenderingContext2D.prototype.fillText
+    CanvasRenderingContext2D.prototype.fillText = function (text, ...args) {
+      if (this.canvas.width === 1440 && this.canvas.height === 2560) window.__posterCanvasText.push(String(text))
+      return original.call(this, text, ...args)
+    }
+  })
   await page.$eval('.sheet-wrap.open [data-image-create]', (b) => b.click())
   await page.waitForFunction(() => {
     const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
     return image && image.complete && image.naturalWidth === 720 && !document.querySelector('.sheet-wrap.open [data-image-preview-wrap]').hidden
   })
   assert.deepEqual(await page.$eval('.sheet-wrap.open [data-image-preview]', (image) => [image.naturalWidth, image.naturalHeight]), [720, 1280])
+  const posterText = await page.evaluate(() => window.__posterCanvasText.join(' ').trim().replace(/\s+/g, ' '))
+  const normalizeText = (value) => String(value).trim().replace(/\s+/g, ' ')
+  assert.ok(!posterText.includes(normalizeText(hiddenDoaText.latin)), 'Latin yang disembunyikan dari bacaan tidak masuk gambar')
+  assert.ok(!posterText.includes(normalizeText(hiddenDoaText.translation)), 'arti yang disembunyikan dari bacaan tidak masuk gambar')
+  assert.doesNotMatch(posterText, /\b(?:LATIN|ARTI \/ TERJEMAHAN|TERJEMAHAN)\b/)
   await page.$eval('.sheet-wrap.open [data-image-share]', (b) => b.click())
   await page.waitForFunction(() => window.__shareCalls.some((payload) => payload.files?.length))
   const doaImage = await page.evaluate(async () => {

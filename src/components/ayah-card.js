@@ -12,6 +12,7 @@ import { mapTajweedRanges } from '../utils/tajweed.js'
 import { openShare } from './share-sheet.js'
 import { ayahImageOption } from '../utils/ayah-image.js'
 import { getTafsir } from '../api/api-adapter.js'
+import { getSettings } from '../services/storage.js'
 
 const numHtml = (n) => `<span class="ayah-num" aria-label="Ayat ${n}">${ayahMarker(n)}</span>`
 const sajdaHtml = (s, a) => (isSajda(s, a) ? '<span class="sajda" title="Ayat sajdah">۩</span>' : '')
@@ -213,6 +214,8 @@ export async function openAyahSheet(surah, ayahNo, { onChange, onMarkLast } = {}
         } else if (act === 'share') {
           const shareUrl = `${APP.origin}/#/surah/${n}/${ayahNo}`
           const shareRef = `QS. ${surah.namaLatin} ${ref}`
+          const display = getSettings().reader
+          const inTextMode = display.mode === 'focus'
           openShare(
             { title: shareRef, text: ayahShareText(surah, a), url: shareUrl },
             {
@@ -224,6 +227,8 @@ export async function openAyahSheet(surah, ayahNo, { onChange, onMarkLast } = {}
                 arabic: a.teksArab,
                 latin: a.teksLatin,
                 translation: a.teksIndonesia,
+                showLatin: inTextMode && display.showLatin,
+                showTranslation: inTextMode && display.showTranslation,
                 reference: shareRef,
                 sourceUrl: shareUrl,
                 heading: 'AYAT AL-QUR’AN'
