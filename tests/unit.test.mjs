@@ -7,7 +7,7 @@ import { qiblaBearing, distanceToKaaba } from '../src/services/qibla.js'
 import { stripBasmalah } from '../src/api/alqurancloud.js'
 import { mapDetail, mapSummary } from '../src/api/equran.js'
 import { esc, stripHtml, shareText, shareImage } from '../src/utils/helpers.js'
-import { createAyahImage, wrapCanvasText, AYAH_IMAGE_THEMES } from '../src/utils/ayah-image.js'
+import { createAyahImage, createShareImage, wrapCanvasText, AYAH_IMAGE_THEMES } from '../src/utils/ayah-image.js'
 import { toHijri } from '../src/utils/hijri.js'
 import { mapLocalDetail } from '../src/api/local-data.js'
 import { SOURCES } from '../src/data/sources.js'
@@ -255,27 +255,29 @@ test('bungkus teks gambar tanpa memotong isi', () => {
 function makeAyahCanvasHarness() {
   const canvases = []
   const contexts = []
-  let brandImage
+  const images = []
   const gradient = { addColorStop() {} }
   const doc = {
     baseURI: 'https://quran.cgs.my.id/',
     fonts: { load: async () => [] },
     createElement(tag) {
       if (tag === 'img') {
-        brandImage = { naturalWidth: 192, src: '', decode: async () => {} }
-        return brandImage
+        const image = { naturalWidth: 192, src: '', decode: async () => {} }
+        images.push(image)
+        return image
       }
       const canvas = { width: 0, height: 0 }
       const ctx = {
-        font: '10px sans-serif', fillStyle: '#000', direction: 'ltr', operations: [], texts: [], images: [],
+        font: '10px sans-serif', fillStyle: '#000', direction: 'ltr', operations: [], texts: [], images: [], pathCommands: [],
         measureText(text) {
-          const size = Number.parseFloat(this.font) || 10
+          const size = Number(/(?:^|\s)(\d+(?:\.\d+)?)px\b/.exec(this.font)?.[1]) || 10
           const factor = /Amiri|Scheherazade/.test(this.font) ? 0.42 : 0.52
           return { width: [...String(text)].length * size * factor }
         },
         createLinearGradient: () => gradient,
-        scale() {}, beginPath() {}, moveTo() {}, lineTo() {}, quadraticCurveTo() {}, closePath() {},
-        fill() {}, stroke() {}, strokeRect() {}, save() {}, translate() {}, rotate() {}, restore() {}, arc() {},
+        scale() {}, beginPath() {}, moveTo(...args) { this.pathCommands.push(['moveTo', ...args]) }, lineTo(...args) { this.pathCommands.push(['lineTo', ...args]) },
+        quadraticCurveTo(...args) { this.pathCommands.push(['quadraticCurveTo', ...args]) }, closePath() { this.pathCommands.push(['closePath']) },
+        fill() {}, stroke() {}, strokeRect() {}, save() {}, translate() {}, rotate() {}, restore() {}, arc(...args) { this.pathCommands.push(['arc', ...args]) },
         fillRect(x, y, width, height) {
           this.operations.push({ kind: 'fillRect', x, y, width, height, fillStyle: this.fillStyle, composite: this.globalCompositeOperation })
         },
@@ -296,7 +298,7 @@ function makeAyahCanvasHarness() {
       return canvas
     }
   }
-  return { doc, canvases, contexts, getBrandImage: () => brandImage }
+  return { doc, canvases, contexts, images, getImage: (path) => images.find((image) => image.src.endsWith(path)) }
 }
 
 test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 720×1280', async () => {
@@ -329,7 +331,8 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
       const backgroundFill = exportCtx.operations.find((op) => op.kind === 'fillRect' && op.x === 0 && op.y === 0 && op.width === 720 && op.height === 1280)
       const compositeIndex = exportCtx.operations.findIndex((op) => op.kind === 'drawImage')
       const backgroundIndex = exportCtx.operations.findIndex((op) => op.kind === 'fillRect' && op.x === 0 && op.y === 0 && op.width === 720 && op.height === 1280)
-      const logo = renderCtx.images.find((args) => args[0] === harness.getBrandImage())
+      const quranLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/icons/icon-192-v2.png'))
+      const cigatasLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/cigatas-identity.png'))
 
       assert.equal(png.type, 'image/png', `${sample.label}: PNG`)
       assert.deepEqual([exportCanvas.width, exportCanvas.height], [720, 1280], `${sample.label}: ukuran Status WhatsApp 9:16`)
@@ -341,11 +344,13 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
       assert.equal(arabicRows.map((row) => row.text).join(' '), verse.text, `${sample.label}: seluruh tulisan Arab terjaga`)
       assert.match(arabicRows[0].font, /Amiri Quran|Scheherazade New/, `${sample.label}: font Arab tersetel`)
       assert.equal(translationRows.map((row) => row.text).join(' '), verse.translation, `${sample.label}: seluruh terjemahan terjaga`)
-      assert.ok(arabicRows.every((row) => row.y < 1120) && translationRows.every((row) => row.y < 1120), `${sample.label}: teks tidak menabrak footer`)
-      assert.ok(logo && logo[1] < 360 && logo[2] > 1100, `${sample.label}: logo di kiri bawah, terpisah dari ayat`)
+      assert.ok(arabicRows.every((row) => row.y < 1080) && translationRows.every((row) => row.y < 1080), `${sample.label}: teks tidak menabrak footer`)
+      assert.ok(quranLogo && quranLogo[2] < 150, `${sample.label}: logo QuranKu berada di bagian atas`)
+      assert.ok(cigatasLogo && cigatasLogo[1] < 240 && cigatasLogo[2] > 1080, `${sample.label}: logo Cigatas berada di kiri bawah`)
+      assert.ok(harness.images.some((image) => image.src.endsWith('/cigatas-identity.png')))
+      assert.ok(fullText.includes('Al-Qur’an Digital'), `${sample.label}: slogan QuranKu tetap di bagian atas`)
       assert.ok(fullText.includes(`QS. ${surah.transliteration} ${sample.surah}:${sample.ayah}`))
       assert.ok(fullText.includes(`quran.cgs.my.id/#/surah/${sample.surah}/${sample.ayah}`))
-      assert.ok(fullText.includes('QuranKu'))
       arabicSizes.push(Number.parseFloat(arabicRows[0].font))
     }
     assert.ok(arabicSizes[2] < arabicSizes[0], 'ayat panjang mengecil secara proporsional; ayat pendek tetap besar')
@@ -379,6 +384,66 @@ test('gambar JPG: tema terpilih, latar tetap opak, dan resolusi konsisten', asyn
     if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
     else delete globalThis.document
   }
+})
+
+test('gambar doa: Arab, latin, arti, logo Cigatas, dan dekorasi Ramadan', async () => {
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
+  const ramadan = makeAyahCanvasHarness()
+  const plain = makeAyahCanvasHarness()
+  const blocks = [
+    {
+      label: 'Doa Naik Kendaraan',
+      arabic: 'سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَٰذَا',
+      latin: 'Subhaanal-ladzii sakhkhara lanaa haadzaa',
+      translation: 'Mahasuci Allah yang telah menundukkan semua ini bagi kami.'
+    },
+    {
+      label: 'Doa Bepergian',
+      arabic: 'اللَّهُمَّ هَوِّنْ عَلَيْنَا سَفَرَنَا هَذَا',
+      latin: 'Allaahumma hawwin alainaa safaranaa haadzaa',
+      translation: 'Ya Allah, mudahkanlah perjalanan kami ini.'
+    }
+  ]
+  try {
+    Object.defineProperty(globalThis, 'document', { configurable: true, value: ramadan.doc })
+    const png = await createShareImage({
+      heading: 'DOA & DZIKIR',
+      blocks,
+      reference: 'Doa Perjalanan',
+      sourceUrl: 'https://quran.cgs.my.id/#/doa/harian',
+      theme: 'ramadan'
+    })
+    const [renderCanvas, exportCanvas] = ramadan.canvases
+    const ctx = ramadan.contexts[0]
+    const palette = AYAH_IMAGE_THEMES.find((item) => item.id === 'ramadan').colors
+    const byColor = (color) => ctx.texts.filter((row) => row.color === color).map((row) => row.text).join(' ')
+    assert.equal(png.type, 'image/png')
+    assert.deepEqual([exportCanvas.width, exportCanvas.height], [720, 1280])
+    assert.equal(ctx.contextOptions.alpha, false)
+    assert.equal(byColor(palette.arabic), blocks.map((block) => block.arabic).join(' '))
+    assert.equal(byColor(palette.latin), blocks.map((block) => block.latin).join(' '))
+    assert.equal(byColor(palette.translation), blocks.map((block) => block.translation).join(' '))
+    assert.ok(ctx.texts.some((row) => row.text === 'Al-Qur’an Digital'))
+    assert.ok(ctx.texts.some((row) => row.text === 'Doa Perjalanan'))
+    assert.ok(ctx.images.some((args) => args[0] === ramadan.getImage('/icons/icon-192-v2.png') && args[2] < 150))
+    assert.ok(ctx.images.some((args) => args[0] === ramadan.getImage('/cigatas-identity.png') && args[1] < 240 && args[2] > 1080))
+    assert.ok(ctx.texts.some((row) => row.text === 'quran.cgs.my.id/#/doa/harian'))
+
+    Object.defineProperty(globalThis, 'document', { configurable: true, value: plain.doc })
+    await createShareImage({ heading: 'DOA & DZIKIR', blocks, reference: 'Doa Perjalanan', theme: 'zamrud' })
+    assert.ok(ctx.pathCommands.length > plain.contexts[0].pathCommands.length, 'tema Ramadan menambahkan ketupat dan bedug di area bawah')
+  } finally {
+    if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument)
+    else delete globalThis.document
+  }
+})
+
+test('semua alur Bagikan Doa menyiapkan pratinjau gambar', () => {
+  const doa = readFileSync('src/pages/doa.js', 'utf8')
+  assert.match(doa, /createShareImage/)
+  assert.match(doa, /imageBlocks:\s*d\.parts\.map/)
+  assert.match(doa, /const blocks = p\.imageBlocks \|\| \[\{ arabic: p\.ar, latin: p\.latin, translation: p\.arti \|\| p\.text \}\]/)
+  assert.match(doa, /image:\s*\{[\s\S]*create:\s*\(\{ theme, format \}\) => createShareImage/)
 })
 
 test('hijriah (Umm al-Qura)', () => {
@@ -963,6 +1028,7 @@ test('Beranda menampilkan teks Cigatas beranimasi tanpa gambar; logo tetap di Te
   const logo = readFileSync('public/cigatas-identity.png')
   assert.deepEqual([...logo.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10], 'PNG yang sah')
   assert.equal(logo[25], 6, 'PNG RGBA dengan kanal transparansi')
+  assert.deepEqual([logo.readUInt32BE(16), logo.readUInt32BE(20)], [1536, 1024], 'identitas memakai gambar Cigatas baru')
   const home = readFileSync('src/pages/home.js', 'utf8')
   const about = readFileSync('src/pages/about.js', 'utf8')
   const styles = readFileSync('src/styles/redesign.css', 'utf8')
@@ -976,7 +1042,7 @@ test('Beranda menampilkan teks Cigatas beranimasi tanpa gambar; logo tetap di Te
   assert.match(styles, /@keyframes cigatas-tagline-glow/)
   assert.match(styles, /\.cigatas-signature-motto\.is-changing/)
   assert.match(styles, /prefers-reduced-motion:\s*reduce[\s\S]*?\.cigatas-signature-hashtag/)
-  assert.match(about, /class="card about-identity-card"[\s\S]*src="\/cigatas-identity\.png"/)
+  assert.match(about, /class="card about-identity-card"[\s\S]*src="\/cigatas-identity\.png" width="1536" height="1024"/)
   assert.match(about, /Cigatas · #TongEureunNgaji/)
   assert.match(readFileSync('vite.config.js', 'utf8'), /p === 'cigatas-identity\.png'/, 'ikut precache untuk pemakaian offline di Tentang')
 })

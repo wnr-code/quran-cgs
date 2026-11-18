@@ -440,7 +440,7 @@ await step('Ayat pilihan: bagikan sebagai teks atau PNG; salin adalah tindakan t
 
   await page.$eval('[data-ayah-share]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open [data-image-create]')
-  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 3)
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 4)
   await page.$eval('.sheet-wrap.open [data-image-create]', (b) => b.click())
   await page.waitForFunction(() => {
     const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
@@ -456,10 +456,14 @@ await step('Ayat pilihan: bagikan sebagai teks atau PNG; salin adalah tindakan t
   })
   await page.$eval('.sheet-wrap.open [data-image-share]', (b) => b.click())
   await page.waitForFunction(() => window.__shareCalls.some((payload) => payload.files?.length))
-  const imageShare = await page.evaluate(() => window.__shareCalls.find((payload) => payload.files?.length))
-  assert.equal(imageShare.files[0].type, 'image/png')
-  assert.match(imageShare.files[0].name, /^quranku-ayat-\d+-\d+\.png$/)
-  assert.ok(imageShare.files[0].size > 1000, 'berkas gambar PNG berisi hasil render canvas')
+  const imageShare = await page.evaluate(() => {
+    const payload = window.__shareCalls.find((candidate) => candidate.files?.length)
+    const file = payload.files[0]
+    return { name: file.name, type: file.type, size: file.size, text: payload.text }
+  })
+  assert.equal(imageShare.type, 'image/png')
+  assert.match(imageShare.name, /^quranku-ayat-\d+-\d+\.png$/)
+  assert.ok(imageShare.size > 1000, 'berkas gambar PNG berisi hasil render canvas')
   const imageInspection = await page.evaluate(async () => {
     const file = window.__shareCalls.find((payload) => payload.files?.length).files[0]
     const fileDigest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer())
@@ -678,6 +682,32 @@ await step('Doa: sembunyikan arti/latin, ukuran Arab, bagikan ke media sosial', 
   assert.match(hrefs[1], /^https:\/\/t\.me\/share\/url/)
   assert.match(hrefs[2], /facebook\.com\/sharer/)
   assert.match(hrefs[3], /twitter\.com\/intent\/tweet/)
+  assert.equal(await page.$$eval('.sheet-wrap.open [data-image-theme]', (buttons) => buttons.length), 4, 'tema gambar tersedia untuk doa')
+  assert.equal(await page.$eval('.sheet-wrap.open .share-image-section', (section) => section.getAttribute('aria-label')), 'Buat pratinjau gambar doa')
+  assert.equal(await page.$eval('.sheet-wrap.open [data-image-preview]', (image) => image.alt), 'Pratinjau gambar doa untuk Status WhatsApp')
+  await page.$eval('.sheet-wrap.open [data-image-create]', (b) => b.click())
+  await page.waitForFunction(() => {
+    const image = document.querySelector('.sheet-wrap.open [data-image-preview]')
+    return image && image.complete && image.naturalWidth === 720 && !document.querySelector('.sheet-wrap.open [data-image-preview-wrap]').hidden
+  })
+  assert.deepEqual(await page.$eval('.sheet-wrap.open [data-image-preview]', (image) => [image.naturalWidth, image.naturalHeight]), [720, 1280])
+  await page.$eval('.sheet-wrap.open [data-image-share]', (b) => b.click())
+  await page.waitForFunction(() => window.__shareCalls.some((payload) => payload.files?.length))
+  const doaImage = await page.evaluate(async () => {
+    const file = window.__shareCalls.find((payload) => payload.files?.length).files[0]
+    const bitmap = await createImageBitmap(file)
+    const result = { name: file.name, type: file.type, width: bitmap.width, height: bitmap.height, size: file.size }
+    bitmap.close()
+    return result
+  })
+  assert.match(doaImage.name, /^quranku-doa-salat-0\.png$/)
+  assert.equal(doaImage.type, 'image/png')
+  assert.deepEqual([doaImage.width, doaImage.height], [720, 1280], 'doa dapat dibagikan sebagai gambar 9:16')
+  assert.ok(doaImage.size > 1000)
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap.open'))
+  await page.evaluate(() => { window.__shareCalls = [] })
+  await page.$eval('.dzikir[data-card="0"] [data-share]', (b) => b.click())
+  await page.waitForSelector('.sheet-wrap.open .share-grid')
   await new Promise((r) => setTimeout(r, 400))
   await shot('29-doa-bagikan')
   assert.equal(await page.$eval('.sheet-wrap.open [data-copyshare]', (b) => b.textContent.trim()), 'Salin teks')

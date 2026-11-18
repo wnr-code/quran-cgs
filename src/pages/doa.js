@@ -3,7 +3,9 @@ import { icon } from '../components/icons.js'
 import { DOA_QURAN } from '../data/ayat-pilihan.js'
 import { getSurah, friendlyError } from '../api/api-adapter.js'
 import { $, esc, debounce, copyText, toast } from '../utils/helpers.js'
-import { doaText } from '../utils/doa-share.js'
+import { doaText, shareUrl } from '../utils/doa-share.js'
+import { createShareImage } from '../utils/ayah-image.js'
+import { APP } from '../config.js'
 import { fi, openShare } from '../components/share-sheet.js'
 import { ayahMarker } from '../utils/arabic-numbers.js'
 import DZIKIR from '../data/dzikir.json'
@@ -126,7 +128,14 @@ export default function doa(root, { params = {} } = {}) {
         const d = c.items.find((x) => x.id === id)
         if (d) {
           if (!Array.isArray(d.parts) || !d.parts.length) return null
-          return { title: d.title, ar: d.parts.map((x) => x.ar).join('\n'), latin: d.parts.map((x) => x.latin).join('\n'), arti: d.parts.map((x) => x.arti).join('\n'), tab: 'harian' }
+          return {
+            title: d.title,
+            ar: d.parts.map((x) => x.ar).join('\n'),
+            latin: d.parts.map((x) => x.latin).join('\n'),
+            arti: d.parts.map((x) => x.arti).join('\n'),
+            imageBlocks: d.parts.map((x) => ({ label: x.title, arabic: x.ar, latin: x.latin, translation: x.arti })),
+            tab: 'harian'
+          }
         }
       }
       return null
@@ -135,7 +144,14 @@ export default function doa(root, { params = {} } = {}) {
     if (!d) return null
     if (d.surah) {
       const ref = `QS. Yā-Sīn ${d.surah}:1–83`
-      return { title: d.title, text: `Bacaan lengkap Surah Yasin tersedia di mushaf QuranKu.\n${ref}`, ref, path: `/surah/${d.surah}/1`, tab: k }
+      return {
+        title: d.title,
+        text: `Bacaan lengkap Surah Yasin tersedia di mushaf QuranKu.\n${ref}`,
+        imageBlocks: [{ translation: 'Bacaan lengkap Surah Yasin tersedia di mushaf QuranKu.' }],
+        ref,
+        path: `/surah/${d.surah}/1`,
+        tab: k
+      }
     }
     return { title: d.title, ar: d.arabic, latin: d.latin, arti: d.translation, tab: k }
   }
@@ -375,8 +391,26 @@ export default function doa(root, { params = {} } = {}) {
     }
     const sh = e.target.closest('[data-share]')
     if (sh) {
-      const p = payload(sh.dataset.share)
-      return p && openShare(p)
+      const key = sh.dataset.share
+      const p = payload(key)
+      if (!p) return
+      const blocks = p.imageBlocks || [{ arabic: p.ar, latin: p.latin, translation: p.arti || p.text }]
+      const name = key.replace(/[^a-zA-Z0-9_-]/g, '-')
+      return openShare(p, {
+        title: 'Bagikan doa',
+        what: 'doa',
+        image: {
+          filename: `quranku-doa-${name}.png`,
+          create: ({ theme, format }) => createShareImage({
+            blocks,
+            heading: p.heading || 'DOA & DZIKIR',
+            reference: p.ref || p.title,
+            sourceUrl: shareUrl(p, APP.origin),
+            theme,
+            format
+          })
+        }
+      })
     }
     const c = e.target.closest('[data-copyz],[data-copyn],[data-copyq]')
     if (c) {

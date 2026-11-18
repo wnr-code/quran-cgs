@@ -43,7 +43,7 @@ export default function about(root) {
 
     <section class="card about-identity-card">
       <figure>
-        <img src="/cigatas-identity.png" width="1212" height="512" loading="lazy" decoding="async" alt="Cigatas — #TongEureunNgaji" />
+        <img src="/cigatas-identity.png" width="1536" height="1024" loading="lazy" decoding="async" alt="Cigatas — #TongEureunNgaji" />
         <figcaption>Cigatas · #TongEureunNgaji</figcaption>
       </figure>
     </section>

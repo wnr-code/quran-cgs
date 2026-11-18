@@ -13,7 +13,7 @@ import { qnum, ayahRef } from '../utils/arabic-numbers.js'
 import { $, esc, on, toast, copyText } from '../utils/helpers.js'
 import { playAyah } from '../services/audio.js'
 import { ayahShareText } from '../components/ayah-card.js'
-import { createAyahImage } from '../utils/ayah-image.js'
+import { ayahImageOption } from '../utils/ayah-image.js'
 import { rerender } from '../router.js'
 import { APP } from '../config.js'
 import { openShare } from '../components/share-sheet.js'
@@ -197,17 +197,15 @@ export default async function home(root) {
           {
             title: 'Bagikan ayat',
             what: 'ayat',
-            image: {
-              filename: `quranku-ayat-${sNo}-${aNo}.png`,
-              create: ({ theme, format }) => createAyahImage({
-                arabic: a.teksArab,
-                translation: a.teksIndonesia || 'Terjemahan tidak tersedia.',
-                reference: ref,
-                sourceUrl: url,
-                theme,
-                format
-              })
-            }
+            image: ayahImageOption({
+              surahNumber: sNo,
+              ayahNumber: aNo,
+              arabic: a.teksArab,
+              latin: a.teksLatin,
+              translation: a.teksIndonesia || 'Terjemahan tidak tersedia.',
+              reference: ref,
+              sourceUrl: url
+            })
           }
         )
       }

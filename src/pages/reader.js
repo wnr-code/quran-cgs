@@ -7,6 +7,7 @@ import { applyReaderStyle, openReaderSettings, openJumpSheet } from '../componen
 import { openSheet } from '../components/modal.js'
 import { initSelectionMenu } from '../components/selection-menu.js'
 import { openShare } from '../components/share-sheet.js'
+import { ayahImageOption } from '../utils/ayah-image.js'
 import { getSettings, saveSettings } from '../services/storage.js'
 import { savePosition, getLastRead, addHistory } from '../services/reading-position.js'
 import { markRead } from '../services/progress.js'
@@ -547,11 +548,28 @@ export default async function reader(root, { params, query, initial }) {
         else if (act === 'bookmark') toggleBookmark(a)
         else if (act === 'more') openAyahSheet(surah, a, sheetOpts)
         else if (act === 'copy') copyText(ayahShareText(surah, surah.ayat[a - 1])).then((ok) => toast(ok ? `Ayat ${a} disalin` : 'Gagal menyalin'))
-        else if (act === 'share')
+        else if (act === 'share') {
+          const verse = surah.ayat[a - 1]
+          const reference = `QS. ${surah.namaLatin} ${n}:${a}`
+          const sourceUrl = `${APP.origin}/#/surah/${n}/${a}`
           openShare(
-            { title: `QS. ${surah.namaLatin} ${n}:${a}`, text: ayahShareText(surah, surah.ayat[a - 1]), url: `${APP.origin}/#/surah/${n}/${a}` },
-            { title: 'Bagikan ayat', what: 'ayat' }
+            { title: reference, text: ayahShareText(surah, verse), url: sourceUrl },
+            {
+              title: 'Bagikan ayat',
+              what: 'ayat',
+              image: ayahImageOption({
+                surahNumber: n,
+                ayahNumber: a,
+                arabic: verse.teksArab,
+                latin: verse.teksLatin,
+                translation: verse.teksIndonesia,
+                reference,
+                sourceUrl,
+                heading: 'AYAT AL-QUR’AN'
+              })
+            }
           )
+        }
         return
       }
       if (actions[act]) {
