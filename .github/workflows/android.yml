@@ -234,7 +234,27 @@ jobs:
             RELEASE_SHA256=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/release-signature.txt" | head -1 | tr -d '\r')
             RELEASE_SHA256_FMT=$(printf '%s' "$RELEASE_SHA256" | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g; s/:$//')
             if [ -n "$RELEASE_SHA256_FMT" ]; then
-              echo "::notice title=APK release certificate SHA-256::$RELEASE_SHA256_FMT"
+              echo "::notice title=Upload key certificate SHA-256 (APK/AAB release)::$RELEASE_SHA256_FMT"
+            fi
+            ASSETLINKS_SHA256=$(node -p "JSON.parse(require('fs').readFileSync('public/.well-known/assetlinks.json','utf8'))[0].target.sha256_cert_fingerprints[0]" 2>/dev/null || true)
+            {
+              echo ''
+              echo '### Sidik jari sertifikat'
+              echo ''
+              echo '| Kunci | SHA-256 |'
+              echo '|---|---|'
+              echo "| Upload key (menandatangani APK & AAB release) | \`${RELEASE_SHA256_FMT:-tidak terbaca}\` |"
+              echo "| \`public/.well-known/assetlinks.json\` | \`${ASSETLINKS_SHA256:-tidak terbaca}\` |"
+              echo ''
+              echo 'Bandingkan **upload key** dengan *Upload key certificate* di Play Console → Test and release → Setup → App signing.'
+              echo 'Bila berbeda, Play akan menolak AAB dengan pesan tanda tangan salah; reset upload key di Play Console.'
+              echo ''
+              echo 'Bandingkan **assetlinks.json** dengan *App signing key certificate* di halaman yang sama.'
+              echo 'Bila Play App Signing aktif, Google menandatangani ulang APK, jadi nilai di assetlinks harus sidik jari kunci Google — bukan upload key.'
+              echo 'Bila berbeda, tautan `quran.cgs.my.id` tidak akan terbuka di aplikasi.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            if [ -n "$RELEASE_SHA256_FMT" ] && [ -n "$ASSETLINKS_SHA256" ] && [ "$ASSETLINKS_SHA256" != "$RELEASE_SHA256_FMT" ]; then
+              echo "::warning title=assetlinks.json berbeda dari upload key::assetlinks=$ASSETLINKS_SHA256 uploadKey=$RELEASE_SHA256_FMT. Normal bila Play App Signing aktif (assetlinks harus berisi kunci app signing milik Google), tetapi App Links gagal bila keduanya tidak sama dengan APK yang terpasang."
             fi
           else
             echo 'Release outputs skipped because upload-key secrets are not configured; only the debug test APK is available.' >> "$GITHUB_STEP_SUMMARY"

@@ -218,12 +218,34 @@ Artefak `QuranKu-APK-untuk-dipasang` berisi **dua** APK. Keduanya tidak bisa sal
 
 Memasang APK debug menghasilkan pesan **"Aplikasi tidak diinstal karena paket ini bentrok dengan paket yang sudah ada"** (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Itu bukan bug, melainkan perlindungan Android: aplikasi dengan nama paket sama (`id.cgs.quranku`) wajib memakai sertifikat yang sama.
 
-Bila APK release **juga** ditolak, artinya aplikasi di ponsel ditandatangani **app-signing key milik Google** (Play App Signing), bukan upload key. Memeriksanya di Play Console: **Test and release → Setup → App signing**, lihat sidik jari SHA-256 *App signing key certificate*, lalu bandingkan dengan sidik jari APK release di ringkasan workflow (**Actions → run → Summary**, tertulis di `Signed release APK`). Bila berbeda:
+### Bukti untuk kasus ini
+
+Dua sidik jari yang tercatat di repository memang **berbeda**:
+
+| Sumber | SHA-256 |
+|---|---|
+| Upload key yang menandatangani APK/AAB release (dari GitHub Secrets, tercetak di ringkasan workflow) | `18:A6:5D:42:52:3D:17:11:3D:83:CF:FB:1B:F3:F1:B6:0B:39:43:80:BB:99:BA:40:B7:09:BE:A4:4E:DC:4A:6E` |
+| `public/.well-known/assetlinks.json` (kunci aplikasi yang sudah terpasang dari Play) | `56:45:F6:54:3C:D6:9E:43:30:B3:92:1C:91:C4:03:9C:50:3E:9A:5F:F9:23:CE:DF:43:BE:08:51:1B:DE:03:66` |
+
+Karena berbeda, APK release pun **tidak akan bisa dipasang menimpa** aplikasi dari Play. Ini bukan salah pilih berkas. Kemungkinan besar Play App Signing aktif: Google memegang app-signing key (`56:45:F6:…`), sedangkan CI hanya memegang upload key (`18:A6:5D:…`).
+
+**Cek di Play Console → Test and release → Setup → App signing:**
+
+| Yang dibaca | Nilai yang diharapkan | Arti bila cocok |
+|---|---|---|
+| *App signing key certificate* | `56:45:F6:…:03:66` | Play App Signing aktif; Google menandatangani ulang APK yang dipasang pengguna |
+| *Upload key certificate* | `18:A6:5D:…:4A:6E` | Keempat secret GitHub memang kunci yang terdaftar di Play |
+
+Bila *Upload key certificate* **tidak** sama dengan `18:A6:5D:…`, AAB dari workflow akan **ditolak** Play dengan pesan tanda tangan tidak cocok. Solusinya: reset upload key di Play Console memakai keystore yang sama dengan secret GitHub, atau ganti keempat secret dengan keystore yang terdaftar.
+
+Bila *App signing key certificate* **tidak** sama dengan `56:45:F6:…`, perbarui `public/.well-known/assetlinks.json` dengan nilai dari Play Console — kalau tidak, tautan `quran.cgs.my.id` tidak akan terbuka di aplikasi.
+
+Langkah bila aplikasi di ponsel ditandatangani kunci berbeda dari APK release:
 
 - **Paling aman:** jangan pasang APK manual. Pakai jalur 7.2 (Internal testing) — Play yang memperbarui aplikasi, data pengguna tetap utuh.
 - **Bila tetap ingin APK manual:** cadangkan dulu lewat aplikasi (**Lainnya → Pengaturan → Ekspor cadangan**), lalu copot QuranKu dan pasang APK release. Data lokal (bookmark, catatan, riwayat, progres tilawah) **hilang** bila tidak dicadangkan.
 
-Sidik jari yang sama juga dipakai App Links di `public/.well-known/assetlinks.json` (`56:45:F6:…:03:66`). Bila sidik jari *App signing key* di Play Console berbeda dari nilai itu, tautan `quran.cgs.my.id` tidak akan terbuka di aplikasi — keduanya perlu diperbaiki bersamaan.
+Sidik jari app-signing key juga dipakai App Links di `public/.well-known/assetlinks.json`; keduanya harus berisi nilai yang sama dengan sertifikat APK yang benar-benar terpasang di ponsel pengguna.
 
 ### 7.5 Peringatan Data safety
 
