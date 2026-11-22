@@ -84,7 +84,7 @@ async function shellFirst(request) {
   try {
     return await fetchWithMirror(request)
   } catch {
-    return (await caches.match('/offline.html')) || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } })
+    return (await caches.match('/offline-fallback.html')) || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } })
   }
 }
 
@@ -111,7 +111,7 @@ async function cacheFirst(request) {
     }
     return res
   } catch (e) {
-    if (request.mode === 'navigate') return (await caches.match('/offline.html')) || Response.error()
+    if (request.mode === 'navigate') return (await caches.match('/offline-fallback.html')) || Response.error()
     return Response.error()
   }
 }
@@ -149,7 +149,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin === self.location.origin) {
     if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/data/') || url.pathname === '/sw.js' || url.pathname === '/version.json') return // selalu jaringan (data disimpan aplikasi di IndexedDB)
     // Semua navigasi memakai shell yang sama: URL bersih (/surah/2/255) dibuka tanpa jaringan
-    // maupun saat offline, asalkan halaman itu bukan berkas statis (privacy.html, offline.html).
+    // maupun saat offline, asalkan halaman itu bukan berkas statis (privacy.html, offline-fallback.html).
     if (request.mode === 'navigate' && !/\.[a-z0-9]+$/i.test(url.pathname)) {
       event.respondWith(shellFirst(request))
       return

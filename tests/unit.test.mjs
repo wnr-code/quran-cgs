@@ -1537,27 +1537,25 @@ test('worker: CORS hanya untuk alamat resmi + preflight', async () => {
 })
 
 test('tidak ada berkas statis yang menutupi rute aplikasi', () => {
-  // Cloudflare memetakan x.html → /x. Bila /x juga rute aplikasi, aset menang dan
-  // pengguna mendapat halaman yang salah (kasus /offline). Setiap bentrok harus
-  // diselesaikan di worker (SHELL_PATHS) — tes ini menjaga agar tidak ada yang terlewat.
+  // Cloudflare memetakan x.html → /x dan menyajikan aset SEBELUM Worker. Bila /x juga rute
+  // aplikasi, aset menang dan pengguna mendapat halaman yang salah (kasus /offline pada 1.4.41).
+  // Karena Worker tidak bisa mencegahnya, satu-satunya perbaikan adalah mengganti nama berkas.
   const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8')
   const routes = new Set([...app.matchAll(/addRoute\('([^']*)'/g)].map((m) => m[1]).filter((r) => !r.includes(':') && r !== '/'))
   const staticPages = readdirSync(new URL('../public', import.meta.url))
     .filter((f) => f.endsWith('.html'))
-    .map((f) => '/' + f.replace(/\.html$/, ''))
-  const clashes = staticPages.filter((p) => routes.has(p))
-  const worker = readFileSync(new URL('../worker/index.js', import.meta.url), 'utf8')
-  const handled = [...worker.matchAll(/SHELL_PATHS = new Set\(\[([^\]]*)\]\)/g)].flatMap((m) => [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]))
-  for (const c of clashes) assert.ok(handled.includes(c), `${c}.html bentrok dengan rute aplikasi dan harus ada di SHELL_PATHS worker`)
-  // Kebijakan privasi wajib tetap statis (Play Store menautkannya di luar aplikasi).
-  assert.ok(staticPages.includes('/privacy'))
-  assert.ok(!handled.includes('/privacy'), '/privacy tidak boleh dialihkan ke shell')
+    .map((f) => [f, '/' + f.replace(/\.html$/, '')])
+  for (const [file, path] of staticPages) {
+    assert.ok(!routes.has(path), `${file} bentrok dengan rute aplikasi ${path}; ganti nama berkasnya`)
+  }
+  // Kebijakan privasi wajib tetap ada sebagai halaman statis.
+  assert.ok(staticPages.some(([, p]) => p === '/privacy'))
 })
 
-test('worker: /offline tetap halaman Kelola Offline, bukan offline.html', async () => {
+test('worker: /offline memakai shell aplikasi, halaman darurat bernama offline-fallback', async () => {
   const { default: worker } = await import('../worker/index.js')
-  // Cloudflare menyajikan aset sebelum Worker dan memetakan offline.html → /offline.
-  // Tanpa pengecualian, rute aplikasi /offline tertutupi halaman darurat "Anda sedang offline".
+  // Aset statis dilayani SEBELUM Worker, jadi Worker tidak bisa menyelamatkan nama yang bentrok.
+  // Solusinya: berkas darurat tidak boleh bernama sama dengan rute aplikasi.
   const calls = []
   const env = {
     ASSETS: {
@@ -1570,13 +1568,15 @@ test('worker: /offline tetap halaman Kelola Offline, bukan offline.html', async 
   const offline = await worker.fetch(new Request('https://quran.cgs.my.id/offline'), env, { waitUntil() {} })
   assert.equal(await offline.text(), 'shell')
   assert.deepEqual(calls, ['/index.html'], '/offline harus memakai shell aplikasi')
-  // Kebijakan privasi harus tetap terbuka sebagai halaman statis (syarat Play Store).
+  // /privacy (tanpa ekstensi) bukan rute aplikasi; Cloudflare yang melayani berkas privacy.html.
+  // Di lapisan Worker ia hanya boleh diteruskan ke aset, bukan diganti shell.
   calls.length = 0
-  await worker.fetch(new Request('https://quran.cgs.my.id/privacy'), env, { waitUntil() {} })
-  assert.deepEqual(calls, ['/privacy'], '/privacy harus diteruskan ke aset, bukan shell')
+  await worker.fetch(new Request('https://quran.cgs.my.id/privacy.html'), env, { waitUntil() {} })
+  assert.deepEqual(calls, ['/privacy.html'], 'berkas kebijakan privasi tetap disajikan sebagai aset')
+  // Berkas darurat offline tersedia dengan nama yang tidak bentrok.
   calls.length = 0
-  await worker.fetch(new Request('https://quran.cgs.my.id/offline.html'), env, { waitUntil() {} })
-  assert.deepEqual(calls, ['/offline.html'], 'berkas offline.html sendiri tetap disajikan sebagai aset')
+  await worker.fetch(new Request('https://quran.cgs.my.id/offline-fallback.html'), env, { waitUntil() {} })
+  assert.deepEqual(calls, ['/offline-fallback.html'])
 })
 
 test('cuplikan tautan: tag Open Graph/Twitter lengkap & gambar 1200×630', async () => {
