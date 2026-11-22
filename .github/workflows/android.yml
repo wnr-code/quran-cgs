@@ -254,7 +254,7 @@ jobs:
               echo 'Bila berbeda, tautan `quran.cgs.my.id` tidak akan terbuka di aplikasi.'
             } >> "$GITHUB_STEP_SUMMARY"
             if [ -n "$RELEASE_SHA256_FMT" ] && [ -n "$ASSETLINKS_SHA256" ] && [ "$ASSETLINKS_SHA256" != "$RELEASE_SHA256_FMT" ]; then
-              echo "::warning title=assetlinks.json berbeda dari upload key::assetlinks=$ASSETLINKS_SHA256 uploadKey=$RELEASE_SHA256_FMT. Normal bila Play App Signing aktif (assetlinks harus berisi kunci app signing milik Google), tetapi App Links gagal bila keduanya tidak sama dengan APK yang terpasang."
+              echo "::notice title=assetlinks.json berisi app signing key Play (bukan upload key)::assetlinks=$ASSETLINKS_SHA256 uploadKey=$RELEASE_SHA256_FMT. Ini kondisi yang benar saat Play App Signing aktif: Google menandatangani ulang APK, jadi assetlinks harus berisi kunci Google. Tidak perlu tindakan. Ubah hanya bila App Links ternyata tidak berfungsi; verifikasi dengan 'npm run cert:fp -- <sertifikat dari Play Console>'."
             fi
           else
             echo 'Release outputs skipped because upload-key secrets are not configured; only the debug test APK is available.' >> "$GITHUB_STEP_SUMMARY"
