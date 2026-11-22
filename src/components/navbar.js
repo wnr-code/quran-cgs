@@ -12,8 +12,8 @@ const ITEMS = [
 export function renderNavbar(el) {
   el.innerHTML = ITEMS.map((item) =>
     item.fab
-      ? `<a href="#${item.path}" data-path="${item.path}" class="nav-item nav-fab" aria-label="Quran — Baca Al-Qur'an"><span class="fab-disc">${icon(item.icon)}</span><span>${item.label}</span></a>`
-      : `<a href="#${item.path}" data-path="${item.path}" class="nav-item">${icon(item.icon)}<span>${item.label}</span></a>`
+      ? `<a href="${item.path}" data-path="${item.path}" class="nav-item nav-fab" aria-label="Quran — Baca Al-Qur'an"><span class="fab-disc">${icon(item.icon)}</span><span>${item.label}</span></a>`
+      : `<a href="${item.path}" data-path="${item.path}" class="nav-item">${icon(item.icon)}<span>${item.label}</span></a>`
   ).join('')
 }
 

@@ -66,7 +66,7 @@ export default async function home(root) {
     <section class="card goal-card" data-goal></section>
 
     <section class="home-shortcuts" aria-label="Pintasan"><p class="section-title">Akses cepat</p><div class="shortcut-grid">
-      ${SHORTCUTS.map(([p, i, l]) => `<a class="shortcut" href="#${p}"><span class="shortcut-ic">${icon(i)}</span><span>${l}</span></a>`).join('')}
+      ${SHORTCUTS.map(([p, i, l]) => `<a class="shortcut" href="${p}"><span class="shortcut-ic">${icon(i)}</span><span>${l}</span></a>`).join('')}
     </div></section>
 
     <section class="card prayer-mini" data-prayer hidden></section>
@@ -114,7 +114,7 @@ export default async function home(root) {
       'afterend',
       `<div class="install-banner" data-install-banner>
         <span class="shortcut-ic">${icon('download')}</span>
-        <span class="install-banner-text"><strong>Pasang QuranKu</strong><small>Layar penuh & bisa offline</small></span>
+        <span class="install-banner-text"><strong>Pasang QuranKu</strong><small>Gratis di Google Play</small></span>
         <button class="btn btn-primary btn-sm" data-install-now>Pasang</button>
         <button class="icon-btn" data-install-close aria-label="Tutup ajakan pasang">${icon('close')}</button>
       </div>`

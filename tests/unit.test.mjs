@@ -1887,3 +1887,31 @@ test('router URL bersih: /surah/2/255, bentuk #/ lama, dan halaman statis', asyn
     else delete globalThis.location
   }
 })
+
+test('ajakan pasang mengutamakan Play Store di Android, PWA tetap tersedia di peramban lain', async () => {
+  const { readFileSync } = await import('node:fs')
+  const install = readFileSync('src/services/install.js', 'utf8')
+  const config = readFileSync('src/config.js', 'utf8')
+  assert.match(config, /playStoreUrl: 'https:\/\/play\.google\.com\/store\/apps\/details\?id=id\.cgs\.quranku'/, 'URL Play Store satu sumber di config')
+  assert.match(install, /export const PLAY_URL = APP\.playStoreUrl/)
+  assert.match(install, /if \(detectBrowser\(\)\.android\) \{\s*\n\s*openExternal\(PLAY_URL\)/, 'Android diarahkan ke Play Store lebih dulu')
+  // Panduan PWA hanya untuk non-Android.
+  assert.match(install, /return 'store'/)
+})
+
+test('halaman Tentang menautkan Play Store; APK memakai market://', async () => {
+  const { readFileSync } = await import('node:fs')
+  const about = readFileSync('src/pages/about.js', 'utf8')
+  assert.match(about, /APP\.playStoreUrl/, 'tautan Play Store pada web')
+  assert.match(about, /market:\/\/details\?id=\$\{esc\(APP\.packageId\)\}/, 'APK membuka Play Store aplikasi sendiri')
+  assert.match(about, /Buka di Google Play/)
+})
+
+test('menu utama memakai URL bersih tanpa tanda # di semua tautan', async () => {
+  const { readFileSync } = await import('node:fs')
+  for (const f of ['src/components/navbar.js', 'src/pages/home.js', 'src/pages/more.js']) {
+    const s = readFileSync(f, 'utf8')
+    assert.ok(!/href="#\$\{/.test(s), `${f}: tautan menu tidak lagi memakai #`)
+    assert.ok(!/href="#\//.test(s), `${f}: tidak ada tautan #/`)
+  }
+})

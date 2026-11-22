@@ -16,6 +16,8 @@ export const APP = {
   /** Contoh: "1.0.0 (build 261115.1112 · a1b2c3d)" */
   versionLabel: `${build.version} (build ${build.number}${build.commit ? ' · ' + build.commit : ''})`,
   packageId: 'id.cgs.quranku',
+  /** Halaman Play Store; dipakai ajakan pasang dan bagian Tentang. */
+  playStoreUrl: 'https://play.google.com/store/apps/details?id=id.cgs.quranku',
   origin: 'https://quran.cgs.my.id',
   repo: 'https://github.com/wnr-code/quran-cgs',
   license: 'MIT',

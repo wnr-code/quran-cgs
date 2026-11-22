@@ -9,7 +9,10 @@ export default function about(root) {
   root.innerHTML = `<div class="page">${pageHeader('Tentang QuranKu')}
     <section class="card about-hero">${LOGO_SVG}<h2>${APP.name}</h2><p class="muted">Versi <span data-version>${esc(APP.versionLabel)}</span><br />${APP.packageId}</p>
       <p>Aplikasi Al-Qur'an digital berbahasa Indonesia: gratis, tanpa iklan, tanpa akun, dan sumber terbuka.</p>
-      <p class="muted">${esc(APP.copyright)} · Lisensi ${esc(APP.license)}</p></section>
+      <p class="muted">${esc(APP.copyright)} · Lisensi ${esc(APP.license)}</p>
+      <div class="btn-row about-store-actions">${native
+        ? `<a class="btn" href="market://details?id=${esc(APP.packageId)}" rel="noopener noreferrer">${icon('download')}Beri rating di Play Store</a>`
+        : `<a class="btn" href="${esc(APP.playStoreUrl)}" target="_blank" rel="noopener noreferrer">${icon('download')}Buka di Google Play</a>`}</div></section>
 
     <section class="card"><p class="eyebrow">Fitur</p>
       <ul class="about-list">

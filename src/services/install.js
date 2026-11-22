@@ -2,11 +2,14 @@
 // Safari, peramban dalam aplikasi) tidak — untuk mereka ditampilkan panduan langkah demi langkah.
 import { openSheet } from '../components/modal.js'
 import { icon } from '../components/icons.js'
-import { isStandalone, copyText, toast } from '../utils/helpers.js'
+import { isStandalone, copyText, toast, openExternal } from '../utils/helpers.js'
 import { isNativePlatform } from './platform.js'
+import { APP } from '../config.js'
 
 const DISMISS_KEY = 'quranku:install-dismissed'
 const SITE = 'quran.cgs.my.id'
+/** Aplikasi sudah tayang di Play Store, jadi Android ditawari lewat Play lebih dulu. */
+export const PLAY_URL = APP.playStoreUrl
 
 /** Kenali peramban dari user agent (hanya untuk memilih teks panduan). */
 export function detectBrowser(ua = navigator.userAgent) {
@@ -73,6 +76,10 @@ export async function installApp() {
     } catch {
       window.__installPrompt = null
     }
+  }
+  if (detectBrowser().android) {
+    openExternal(PLAY_URL)
+    return 'store'
   }
   openSheet({
     title: 'Pasang QuranKu',
