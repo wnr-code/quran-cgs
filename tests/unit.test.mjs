@@ -1934,3 +1934,11 @@ test('router memakai History API, bukan hash', () => {
   assert.ok(!/location\.hash = path/.test(routerSrc), 'navigasi tidak lagi memakai location.hash')
   assert.match(routerSrc, /dispatchEvent\(new Event\('qk:route'\)\)/, 'sheet menutup saat rute berubah')
 })
+
+test('tes instrumentasi startup memberi tenggang cukup untuk emulator lambat', async () => {
+  const { readFileSync } = await import('node:fs')
+  const java = readFileSync('android/app/src/androidTest/java/id/cgs/quranku/CapacitorStartupTest.java', 'utf8')
+  assert.match(java, /attempt < 200/, 'cukup percobaan untuk WebView cold start')
+  assert.match(java, /evaluated\.await\(500, TimeUnit\.MILLISECONDS\)/)
+  assert.match(java, /text\.contains\("QuranKu"\) && text\.contains\("Assalamu"\)/, 'tunggu kedua penanda')
+})
