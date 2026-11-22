@@ -12,8 +12,9 @@
 
 import http from 'node:http'
 import { readFile, stat } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { extname, join, normalize } from 'node:path'
+import { platform } from 'node:process'
 
 const ROOT = new URL('../dist/', import.meta.url).pathname
 const OUT = new URL('../store/screenshots/', import.meta.url).pathname
@@ -106,16 +107,67 @@ const puppeteer = await import(process.env.PUPPETEER_PATH || 'puppeteer-core').t
   process.exit(1)
 })
 
+/** Cari Chrome/Chromium yang sudah terpasang tanpa perlu mengatur CHROME_PATH manual. */
+function findChrome() {
+  if (process.env.CHROME_PATH && existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH
+  const candidates = {
+    darwin: [
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '/Applications/Chromium.app/Contents/MacOS/Chromium',
+      '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+      '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser'
+    ],
+    win32: [
+      'C:/Program Files/Google/Chrome/Application/chrome.exe',
+      'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+      'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+      'C:/Program Files/Microsoft/Edge/Application/msedge.exe'
+    ],
+    linux: [
+      '/usr/bin/google-chrome',
+      '/usr/bin/google-chrome-stable',
+      '/usr/bin/chromium',
+      '/usr/bin/chromium-browser',
+      '/snap/bin/chromium',
+      '/usr/bin/microsoft-edge'
+    ]
+  }[platform] || []
+  const found = candidates.find((f) => existsSync(f))
+  if (found) return found
+  // Cache unduhan resmi puppeteer: ~/.cache/puppeteer/chrome/<versi>/chrome-<platform>/chrome
+  const cacheRoot = join(process.env.HOME || '', '.cache/puppeteer/chrome')
+  if (existsSync(cacheRoot)) {
+    for (const dir of readdirSync(cacheRoot)) {
+      const rel = platform === 'darwin' ? 'chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'
+        : platform === 'win32' ? 'chrome-win64/chrome.exe'
+        : 'chrome-linux64/chrome'
+      const bin = join(cacheRoot, dir, rel)
+      if (existsSync(bin)) return bin
+    }
+  }
+  return null
+}
+
+const executablePath = findChrome()
+if (!executablePath) {
+  console.error('Chrome/Chromium tidak ditemukan.')
+  console.error('Pasang Google Chrome, atau jalankan: npx @puppeteer/browsers install chrome@stable')
+  console.error('Lalu set CHROME_PATH ke berkas chrome/chromium bila lokasinya tidak standar.')
+  server.close()
+  process.exit(1)
+}
+console.log(`Peramban: ${executablePath}`)
+
 let browser
 try {
   browser = await puppeteer.launch({
-    executablePath: process.env.CHROME_PATH || undefined,
+    executablePath,
     headless: true,
     args: ['--no-sandbox', '--disable-gpu', '--hide-scrollbars']
   })
 } catch (e) {
   console.error('Gagal membuka Chromium:', e.message)
-  console.error('Pasang Chrome lalu set CHROME_PATH, atau: npx @puppeteer/browsers install chrome@stable')
+  console.error('Bila muncul galat pustaka (libnss3/libnspr4), pasang dependensi sistem Chromium terlebih dahulu.')
   server.close()
   process.exit(1)
 }

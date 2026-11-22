@@ -129,12 +129,13 @@ Screenshot yang sekarang terpasang (17 Nov 2026) berasal dari versi 1.3.x — ma
 
 ```bash
 npm ci
-npm i -D puppeteer-core          # sekali saja
 npm run build
-npm run gen:shots                # → store/screenshots/10-infaq.png, 13-infaq-akad.png, 14-infaq-papan.png
+npm run gen:shots   # → store/screenshots/10-infaq.png, 13-infaq-akad.png, 14-infaq-papan.png
 ```
 
-Skrip `scripts/gen-play-screenshots.mjs` menjalankan `dist/` dengan `/api/donors` tiruan (tanpa wrangler/D1) dan mengambil screenshot ukuran 824×1830. Bila Chrome tidak ditemukan, set `CHROME_PATH` atau jalankan `npx @puppeteer/browsers install chrome@stable`.
+`puppeteer-core` sudah tercatat sebagai devDependency, jadi `npm ci` cukup. Skrip `scripts/gen-play-screenshots.mjs` menjalankan `dist/` dengan `/api/donors` tiruan (tanpa wrangler/D1) dan mengambil screenshot ukuran 824×1830. Skrip mencari Chrome secara otomatis (Chrome, Chromium, Edge, Brave di lokasi standar; macOS/Windows/Linux). Bila tidak ditemukan: pasang Chrome, jalankan `npx @puppeteer/browsers install chrome@stable`, atau set `CHROME_PATH`.
+
+> Catatan: unduhan Chromium memerlukan akses ke `storage.googleapis.com`, yang diblokir di sandbox pengembangan otomatis. Jalankan perintah ini di komputer/CI yang punya Chrome.
 
 Untuk screenshot di luar halaman Infaq, berkas lama masih akurat kecuali yang menampilkan UI yang berubah. Untuk screenshot di luar halaman Infaq, berkas lama masih akurat kecuali yang menampilkan UI berubah.
 
