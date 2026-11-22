@@ -3383,6 +3383,33 @@ body.has-player {
   border-radius: 14px;
   background: var(--surface-2);
   border: 1px solid var(--border);
+  /* Muncul bertahap sekali saat papan dirender. Dijeda per indeks oleh --i (maks. 6 kartu). */
+  animation: doa-in 0.5s ease both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+/* Doa yang baru masuk sejak muat sebelumnya: sorot emas singkat, bukan animasi terus-menerus. */
+.infaq-page .doa-item.is-new {
+  animation: doa-in 0.5s ease both, doa-glow 2.4s ease-out 0.2s;
+}
+@keyframes doa-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes doa-glow {
+  0% {
+    background: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
+    border-color: var(--accent);
+  }
+  70% {
+    background: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
+    border-color: var(--accent);
+  }
+  100% {
+    background: var(--surface-2);
+    border-color: var(--border);
+  }
 }
 .infaq-page .doa-msg {
   margin: 0;
@@ -3395,6 +3422,13 @@ body.has-player {
   margin-top: 8px;
   color: var(--muted);
   font-size: 0.74rem;
+}
+/* Gerak adalah hiasan: bila pengguna memintanya dikurangi, tampilkan langsung tanpa animasi. */
+@media (prefers-reduced-motion: reduce) {
+  .infaq-page .doa-item,
+  .infaq-page .doa-item.is-new {
+    animation: none;
+  }
 }
 .infaq-empty {
   display: grid;

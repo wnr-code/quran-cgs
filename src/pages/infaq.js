@@ -79,6 +79,9 @@ export default function infaq(root) {
   let data = null
   let overlay = null
   let refreshTimers = []
+  // Waktu doa terbaru yang sudah pernah tampil. Dipakai sekali untuk menyorot doa baru;
+  // bukan penanda "sudah bayar", hanya hiasan tampilan.
+  let seenLatest = 0
 
   // ---------- Popup Trakteer ----------
   function openOverlay() {
@@ -184,10 +187,16 @@ export default function infaq(root) {
       if (!alive) return
       statsEl.hidden = !data.totals.count
       statsEl.innerHTML = `<div class="infaq-stat"><small>Kebaikan tercatat</small><b>${data.totals.count}×</b></div><div class="infaq-stat"><small>Doa & ucapan</small><b>${data.totals.doaCount} doa</b></div>`
+      // Doa yang `at`-nya lebih baru dari render sebelumnya diberi sorotan singkat (sekali saja).
+      // Pada muat pertama seenLatest = 0 sehingga tidak ada yang disorot.
+      const latest = data.doa.reduce((m, r) => Math.max(m, r.at), 0)
+      const markNew = seenLatest > 0 && latest > seenLatest
+      seenLatest = Math.max(seenLatest, latest)
       doaEl.innerHTML = data.doa.length
         ? `<ul class="doa-list" aria-label="Doa & ucapan">${data.doa
             .map(
-              (r) => `<li class="doa-item"><blockquote class="doa-msg">${esc(r.message)}</blockquote><small class="doa-meta">Hamba Allah · ${formatDateTime(r.at)}</small></li>`
+              (r, i) =>
+                `<li class="doa-item${markNew && r.at > 0 && r.at === latest ? ' is-new' : ''}" style="--i:${Math.min(i, 6)}"><blockquote class="doa-msg">${esc(r.message)}</blockquote><small class="doa-meta">Hamba Allah · ${formatDateTime(r.at)}</small></li>`
             )
             .join('')}</ul>`
         : `<div class="infaq-empty">${icon('heart')}<p>Belum ada doa yang dibagikan.<br />Tulis doa atau pesan Anda di formulir infaq — ia akan tampil di sini tanpa nama & nominal.</p></div>`

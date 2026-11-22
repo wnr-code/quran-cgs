@@ -896,9 +896,46 @@ test('halaman infaq: dinding doa anonim tanpa nama, nominal, podium, atau tab pe
   assert.match(page, /Hamba Allah · \$\{formatDateTime\(r\.at\)\}/)
   assert.doesNotMatch(page, /formatRupiah|podium|data-p=|PERIODS/)
   // Kelas dinding doa di-scope agar tidak bentrok dengan akordeon .doa di halaman Doa Harian.
-  assert.match(page, /class="doa-item"/)
+  assert.match(page, /doa-item/)
   assert.match(css, /\.infaq-page \.doa-item \{/)
   assert.doesNotMatch(css, /^\.doa \{/m)
+  // Animasi hanya hiasan: muncul bertahap + sorotan sekali, dan selalu dimatikan untuk reduced motion.
+  assert.match(css, /@keyframes doa-in \{/)
+  assert.match(css, /@keyframes doa-glow \{/)
+  const rm = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce) {\n  .infaq-page .doa-item'))
+  assert.ok(rm.startsWith('@media'), 'aturan reduced-motion untuk dinding doa ada')
+  assert.match(rm.slice(0, 220), /\.infaq-page \.doa-item\.is-new \{\s*animation: none;/)
+  // Tidak memakai marquee/auto-scroll: teks doa tidak boleh bergerak terus-menerus.
+  assert.doesNotMatch(css, /doaMarquee|doaFloat|marquee/)
+  assert.doesNotMatch(page, /setInterval/)
+  // Blok dinding doa tidak boleh memakai animasi berulang (hanya sekali jalan per render).
+  const block = css.slice(css.indexOf('.infaq-page .doa-list {'), css.indexOf('.infaq-empty {'))
+  assert.ok(block.length > 200)
+  assert.doesNotMatch(block, /infinite|animation-play-state|auto/)
+  assert.match(block, /animation: doa-in 0\.5s ease both/)
+})
+
+test('dinding doa: sorotan hanya untuk doa yang benar-benar baru sejak render sebelumnya', () => {
+  // Meniru aturan di src/pages/infaq.js tanpa DOM.
+  const mark = (seenLatest, doa) => {
+    const latest = doa.reduce((m, r) => Math.max(m, r.at), 0)
+    const markNew = seenLatest > 0 && latest > seenLatest
+    return { markNew, latest, index: markNew ? doa.findIndex((r) => r.at === latest) : -1, seen: Math.max(seenLatest, latest) }
+  }
+  const a = { message: 'a', at: 1_000 }
+  const b = { message: 'b', at: 2_000 }
+  // Muat pertama: tidak ada sorotan walau daftar sudah berisi.
+  assert.equal(mark(0, [b, a]).markNew, false)
+  // Muat ulang tanpa doa baru: tidak ada sorotan.
+  assert.equal(mark(2_000, [b, a]).markNew, false)
+  // Ada doa baru: hanya entri terbaru yang disorot, dan hanya sekali.
+  const fresh = { message: 'c', at: 3_000 }
+  const first = mark(2_000, [fresh, b, a])
+  assert.equal(first.markNew, true)
+  assert.equal(first.index, 0)
+  assert.equal(mark(first.seen, [fresh, b, a]).markNew, false, 'sorotan tidak diulang pada muat berikutnya')
+  // Daftar kosong (mis. papan belum punya doa) tidak membuat sorotan palsu.
+  assert.equal(mark(0, []).markNew, false)
 })
 
 test('data lokal (cadangan terakhir): 114 surah lolos validasi yang sama dengan API', { skip: !existsSync('public/data/surah/1.json') && 'jalankan npm run gen:local' }, () => {

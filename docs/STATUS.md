@@ -313,3 +313,9 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - `npm test` **108 lulus, 0 gagal** (termasuk penjaga regresi markup anonim Papan Kebaikan); `npm run build` berhasil (61 berkas precache).
 - E2E `tests/e2e/infaq.mjs` diperbarui untuk memeriksa dinding doa, label “Hamba Allah”, serta tidak adanya nama/nominal/podium; belum dijalankan di sandbox ini (perlu `wrangler dev` + peramban).
 - Batas: donasi lama tanpa pesan tidak muncul di dinding; pesan hanya dari formulir Trakteer (dibatasi 280 karakter).
+
+## 1.4.35 — Animasi dinding doa (muncul bertahap + sorotan doa baru)
+
+- Animasi `doa-in` (0,5 dtk, stagger 55 ms) dan `doa-glow` (2,4 dtk) pada `.infaq-page .doa-item`; kelas `.is-new` hanya untuk doa yang lebih baru dari render sebelumnya.
+- Keduanya dimatikan pada `prefers-reduced-motion: reduce`. Tidak ada marquee/auto-scroll.
+- Verifikasi: `npm test` **109 lulus, 0 gagal** (termasuk tes logika sorotan sekali-jalan dan larangan animasi berulang); `npm run build` berhasil (61 berkas precache); render nyata di jsdom memastikan `--i` bertahap, `.is-new` hanya sekali, dan tidak ada sorotan pada muat pertama.

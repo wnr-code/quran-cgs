@@ -154,3 +154,10 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Kelas CSS dinding doa di-*scope* ke `.infaq-page` (`.doa-item`, `.doa-msg`, `.doa-meta`, `.doa-ayat`) agar tidak bentrok dengan komponen akordeon `.doa` di halaman Doa Harian.
 - Uji regresi baru di `tests/unit.test.mjs` memastikan halaman/klien API tidak pernah merender `name`/`amount`/podium dan kelas `.doa-item` tetap di-scope ke `.infaq-page`.
 - **Tangkapan layar Play Store `store/screenshots/14-infaq-papan.png` (dan `10-infaq.png`) masih versi lama** (papan donatur bernama & bernominal / isian nominal di aplikasi). Perlu dibuat ulang dengan `SHOTS_DIR=store/screenshots node tests/e2e/infaq.mjs` pada mesin yang punya peramban + `wrangler dev`.
+
+## 1.4.35 — Animasi dinding doa (halus, bukan teks berjalan)
+
+- Doa muncul bertahap saat papan dirender (`doa-in`: opacity + naik 8px, 0,5 dtk, jeda 55 ms per kartu, maksimal 6 kartu). Sekali jalan per render; tidak ada animasi berulang.
+- Doa yang benar-benar baru sejak muat sebelumnya mendapat sorotan emas singkat (`doa-glow`, 2,4 dtk) lewat kelas `.is-new`. Sorotan hanya sekali: state `seenLatest` di halaman menyimpan waktu doa terbaru yang sudah pernah tampil. Muat pertama tidak menyorot apa pun.
+- **Sengaja tidak memakai** marquee/teks berjalan atau auto-scroll: doa jadi sulit dibaca, terkesan seperti iklan, merebut kendali gulir dari pengguna, dan boros GPU/baterai di HP kelas bawah.
+- `@media (prefers-reduced-motion: reduce)` mematikan kedua animasi. Test `tests/unit.test.mjs` menjaga agar blok dinding doa tidak pernah memakai `infinite`/`animation-play-state` dan aturan reduced-motion tetap ada.
