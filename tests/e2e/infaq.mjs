@@ -92,7 +92,8 @@ await step('Tombol INFAQ sesuai identitas sematan; nama penyedia tidak tampil', 
   await page.waitForFunction(() => !document.querySelector('.sheet-wrap'), T)
   for (const w of [
     /hibah, bukan jual beli/i,
-    /WNR Code \(AEP Saepulloh\)/,
+    /WNR Code, pengelola resmi aplikasi QuranKu/,
+    /dapat diverifikasi lewat kontak pengelola di halaman Tentang/,
     /Kanal pembayaran:\s*Lanteraku/,
     /Penerimaan \(qabul\)/,
     /Bukan zakat, fidyah, kafarah, atau nazar/i,

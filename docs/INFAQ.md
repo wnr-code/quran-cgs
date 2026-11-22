@@ -164,7 +164,7 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 
 ## 1.4.36 — Telaah akad infaq (fikih & nada)
 
-- **Penerima diperjelas.** Sebelumnya akad menyebut "pengelola QuranKu" saja — nama aplikasi, bukan pihak yang cakap menerima hibah. Kini: **WNR Code (AEP Saepulloh)** sebagai pengelola resmi, dengan **Lanteraku** disebut terpisah sebagai *kanal pembayaran* (akun Trakteer) yang **tidak** menjadi penerima dana.
+- **Penerima diperjelas.** Sebelumnya akad menyebut "pengelola QuranKu" saja — nama aplikasi, bukan pihak yang cakap menerima hibah. Kini: **WNR Code** sebagai pengelola resmi (nama publik yang dipakai pengembang; nama asli sengaja tidak dimuat), dengan **Lanteraku** disebut terpisah sebagai *kanal pembayaran* (akun Trakteer) yang **tidak** menjadi penerima dana.
 - **Qabul dinyatakan.** Ditambahkan: penerimaan terjadi karena tersedianya kanal pembayaran (*qabul fi'li*), bukan klaim sepihak.
 - **Nafkah wajib diutamakan.** Tambahan sesuai hadis Ka'b bin Malik: sedekah sunnah tidak boleh dengan berutang atau mengurangi nafkah keluarga yang wajib.
 - **Bukan zakat, fidyah, kafarah, atau nazar** — sebelumnya hanya zakat.
@@ -174,3 +174,4 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - **Nada:** "Kami membuka kesempatan…" diganti "QuranKu tidak mewajibkan apa pun"; "kebutuhan hidup pengelolanya" → "penghidupan pengelola".
 - Uji: `tests/unit.test.mjs` menjaga istilah kunci akad dan melarang frasa yang terkesan meminta; `tests/e2e/infaq.mjs` memeriksa hasil render sesungguhnya.
 - Batas: disusun dari kaidah umum fikih muamalah, **belum ditinjau ustaz/ahli fikih**. Sebaiknya direview sebelum rilis besar.
+- **Nama asli tidak dimuat.** Penerima ditulis **WNR Code** (nama publik pengembang). Identitas penerima dapat diverifikasi lewat kontak di halaman Tentang dan data pengembang pada listing Play (`id.cgs.quranku`). Bila kelak ada badan usaha/lembaga resmi, ganti nama penerima di `akadHtml` dan perbarui test.
