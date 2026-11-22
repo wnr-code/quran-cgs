@@ -10,7 +10,7 @@ function serviceWorkerPlugin() {
   const walk = (dir) => readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : [join(dir, f)]))
   const wanted = (p) =>
     p === 'index.html' ||
-    p === 'offline.html' ||
+    p === 'offline-fallback.html' ||
     p === 'privacy.html' ||
     p === 'manifest.webmanifest' ||
     p === 'theme-init.js' ||

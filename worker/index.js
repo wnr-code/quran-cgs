@@ -24,14 +24,13 @@ const isAssetPath = (path) =>
   path.startsWith('/.well-known/')
 
 /**
- * Halaman statis dibuat dari berkas .html, dan Cloudflare menyajikan aset TANPA ekstensi
- * (/x.html → /x). Beberapa di antaranya bentrok dengan rute aplikasi: `/offline` adalah
- * halaman Kelola Offline, bukan offline.html; `/privacy` adalah kebijakan privasi, bukan
- * rute aplikasi. Jalur di bawah harus SELALU dilayani shell aplikasi.
+ * PENTING: Cloudflare menyajikan aset statis SEBELUM Worker, dan memetakan berkas x.html → /x.
+ * Karena itu kode di sini TIDAK pernah menerima permintaan yang cocok dengan berkas statis.
+ * Jangan memberi nama berkas statis sama dengan rute aplikasi: `public/offline.html` pernah
+ * membuat rute `/offline` (halaman Kelola Offline) tertutupi halaman darurat "Anda sedang
+ * offline" di produksi. Halaman darurat kini bernama `offline-fallback.html`, dan tes
+ * "tidak ada berkas statis yang menutupi rute aplikasi" menjaga agar tidak terulang.
  */
-const SHELL_PATHS = new Set(['/offline'])
-/** Berkas statis yang tetap harus terbuka apa adanya (kebijakan privasi dari Play Store). */
-const STATIC_PATHS = new Set(['/privacy'])
 
 /** Ambil shell (index.html) dari aset statis untuk jalur aplikasi. */
 async function serveShell(request, env) {
@@ -76,9 +75,7 @@ const app = {
       return json({ ok: false, error: 'server_error' }, 500)
     }
     // Jalur aplikasi tanpa ekstensi (/, /surah/2/255, /infaq, ...) → shell yang sama.
-    // SHELL_PATHS didahulukan karena berkas offline.html juga tersedia sebagai /offline
-    // di tingkat aset, dan aset dilayani sebelum Worker.
-    if ((m === 'GET' || m === 'HEAD') && !STATIC_PATHS.has(p) && (SHELL_PATHS.has(p) || (!hasFileExtension(p) && !isAssetPath(p) && !p.startsWith('/api/')))) {
+    if ((m === 'GET' || m === 'HEAD') && !hasFileExtension(p) && !isAssetPath(p) && !p.startsWith('/api/')) {
       // Struktur lama yang masih dipakai peta situs / tautan luar: /surat → /quran, /doa → /doa/harian.
       const legacy = { '/surat': '/quran', '/surah': '/quran', '/doa': '/doa/harian', '/jadwal': '/salat' }[p]
       if (legacy) return Response.redirect(new URL(legacy + url.search, url.origin).toString(), 301)
