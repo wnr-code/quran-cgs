@@ -193,10 +193,31 @@ Bila belum, workflow hanya menghasilkan APK debug (tidak bisa dipakai untuk Play
 
 ### 7.2 Unggah ke Play Console
 
+**Status: sudah dilakukan pada 22 November 2026.** AAB versi 1.4.38 berhasil diunggah ke **Internal testing** dan diterima Play tanpa penolakan tanda tangan. Ini membuktikan keempat secret upload key di GitHub memang cocok dengan upload key yang terdaftar di Play Console — tidak perlu reset upload key.
+
+Langkah yang dipakai (untuk rilis berikutnya):
+
 1. **Play Console → QuranKu → Testing → Internal testing** (lebih aman untuk percobaan pertama) atau **Production**.
 2. **Create new release** → unggah `.aab`.
 3. Isi **What's new** dengan teks di bagian 5.
 4. **Review release** → pastikan tidak ada error → **Start rollout**.
+
+Setelah rilis diterima, **jangan unggah AAB dengan `versionCode` lebih kecil** — Play akan menolak. `versionCode` dihitung dari nomor run workflow (`github.run_number * 10`), jadi selalu naik selama build dari workflow.
+
+### 7.2.1 Checklist uji setelah terpasang dari Internal testing
+
+Pasang lewat tautan *Internal testing* di Play (bukan APK manual) supaya data lama tetap ada.
+
+| Yang diuji | Cara | Hasil yang benar |
+|---|---|---|
+| Pembaruan tanpa copot | Buka Play → perbarui QuranKu | Aplikasi tetap ada, bookmark & catatan utuh |
+| Akad infaq sekali | Infaq → baca akad → setujui → tutup → tekan Infaq lagi | Akad tidak muncul lagi, langsung ke formulir |
+| Akad bisa dibatalkan | Infaq → status akad → "Batalkan persetujuan" | Akad muncul lagi saat Infaq berikutnya |
+| Akad tampil ulang bila teks berubah | (otomatis, tidak bisa diuji manual) | Versi teks di-hash; teks baru = akad tampil lagi |
+| Papan Kebaikan anonim | Infaq → kirim doa → lihat Papan Kebaikan | Hanya doa + tanggal, **tanpa nama dan tanpa nominal** |
+| Doa selalu tersimpan | Kirim doa lewat formulir | Doa langsung muncul di papan |
+| Animasi & kurangi gerakan | Nyalakan "kurangi gerakan" di pengaturan | Doa tidak beranimasi, tetap terbaca |
+| App Links | Ketuk `https://quran.cgs.my.id/#/surah/2/255` dari WhatsApp | Terbuka di aplikasi, bukan di Chrome |
 
 ### 7.3 Perbarui materi listing
 
@@ -233,18 +254,18 @@ Halaman **Penandatanganan aplikasi** di Play Console hanya menampilkan **kunci a
 
 > **Jangan sentuh "Upgrade kunci penandatanganan aplikasi"** (di layar Anda muncul sebagai *Dapat mengupgrade lagi mulai 16 November 2027*). Mengganti kunci app signing membuat aplikasi yang sudah terpasang **tidak bisa menerima pembaruan** dalam jangka panjang, dan memaksa setiap pengguna memasang ulang. Kunci post-quantum (beta) juga tidak perlu diaktifkan untuk rilis ini.
 
-Satu-satunya yang belum pasti adalah apakah upload key di Play Console sama dengan `18:A6:5D:…`. Halaman yang Anda buka tidak menampilkannya — cek di **Test and release → Setup → App signing → Upload key certificate** (bagian bawah halaman), atau langsung coba unggah AAB: bila kuncinya salah, Play menolak dengan pesan tanda tangan tidak cocok, dan penolakan itu tidak merusak apa pun.
+**Sudah terjawab:** AAB 1.4.38 berhasil diunggah ke Internal testing (22 November 2026), jadi upload key di GitHub Secrets memang sama dengan yang terdaftar di Play Console. Bagian ini disimpan sebagai rujukan bila suatu saat upload key direset.
 
-**Cek di Play Console → Test and release → Setup → App signing:**
+Tabel di bawah tetap berguna untuk satu hal: memahami mengapa APK manual tidak bisa menimpa aplikasi dari Play. Halaman **Penandatanganan aplikasi** hanya menampilkan app signing key, jadi bandingkan *App signing key certificate* dengan `56:45:F6:…` hanya bila App Links bermasalah.
+
+**Jangan bandingkan dengan kunci post-quantum.** Bila suatu saat App Links bermasalah, yang dibandingkan hanya:
 
 | Yang dibaca | Nilai yang diharapkan | Arti bila cocok |
 |---|---|---|
-| *App signing key certificate* | `56:45:F6:…:03:66` | Play App Signing aktif; Google menandatangani ulang APK yang dipasang pengguna |
-| *Upload key certificate* | `18:A6:5D:…:4A:6E` | Keempat secret GitHub memang kunci yang terdaftar di Play |
+| *App signing key certificate* (Kunci klasik) | `56:45:F6:…:03:66` | App Links sehat — inilah kunci yang menandatangani APK di ponsel pengguna |
+| *Upload key certificate* | `18:A6:5D:…:4A:6E` | Terbukti cocok: AAB 1.4.38 diterima Play |
 
-Bila *Upload key certificate* **tidak** sama dengan `18:A6:5D:…`, AAB dari workflow akan **ditolak** Play dengan pesan tanda tangan tidak cocok. Solusinya: reset upload key di Play Console memakai keystore yang sama dengan secret GitHub, atau ganti keempat secret dengan keystore yang terdaftar.
-
-Bila *App signing key certificate* **tidak** sama dengan `56:45:F6:…`, perbarui `public/.well-known/assetlinks.json` dengan nilai dari Play Console — kalau tidak, tautan `quran.cgs.my.id` tidak akan terbuka di aplikasi.
+Bila *App signing key certificate* **tidak** sama dengan `56:45:F6:…`, perbarui `public/.well-known/assetlinks.json` dengan nilai dari Play Console — kalau tidak, tautan `quran.cgs.my.id` tidak akan terbuka di aplikasi. Cara menghitung sidik jari sertifikat yang diunduh: `npm run cert:fp -- <berkas>`.
 
 Langkah bila aplikasi di ponsel ditandatangani kunci berbeda dari APK release:
 
