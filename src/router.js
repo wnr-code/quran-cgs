@@ -128,8 +128,21 @@ export function startRouter(el, changeCb) {
   onChange = changeCb
   migrateLegacyHash()
   addEventListener('popstate', render)
-  // Tombol kembali generik
+  // Tautan internal ditangani router (tanpa reload). Tautan luar, berkas statis,
+  // target="_blank", dan klik dengan tombol pengubah dibiarkan seperti biasa.
   document.addEventListener('click', (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    const a = e.target.closest?.('a[href]')
+    if (a) {
+      const href = a.getAttribute('href') || ''
+      const opensElsewhere = a.target && a.target !== '_self'
+      if (href.startsWith('/') && !opensElsewhere && !a.hasAttribute('download') && !/\.[a-z0-9]+$/i.test(href.split('?')[0])) {
+        e.preventDefault()
+        navigate(href)
+        return
+      }
+    }
+    // Tombol kembali generik
     const b = e.target.closest('[data-back]')
     if (b) {
       e.preventDefault()

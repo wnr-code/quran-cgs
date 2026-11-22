@@ -1915,3 +1915,22 @@ test('menu utama memakai URL bersih tanpa tanda # di semua tautan', async () => 
     assert.ok(!/href="#\//.test(s), `${f}: tidak ada tautan #/`)
   }
 })
+
+test('router mencegat klik tautan internal tanpa reload, dan membiarkan tautan luar/statis', () => {
+  const routerSrc = readFileSync('src/router.js', 'utf8')
+  assert.match(routerSrc, /e\.target\.closest\?\.\('a\[href\]'\)/, 'klik pada tautan ditangkap')
+  assert.match(routerSrc, /href\.startsWith\('\/'\)/, 'hanya jalur internal')
+  assert.match(routerSrc, /!\/\\\.\[a-z0-9\]\+\$\/i\.test\(href\.split\('\?'\)\[0\]\)/, 'berkas statis tidak dicegat')
+  assert.match(routerSrc, /e\.metaKey \|\| e\.ctrlKey \|\| e\.shiftKey \|\| e\.altKey/, 'klik dengan tombol pengubah dibiarkan')
+  assert.match(routerSrc, /a\.target && a\.target !== '_self'/, 'target=_blank dibiarkan')
+  assert.match(routerSrc, /if \(e\.defaultPrevented \|\| e\.button !== 0/, 'klik kanan/klik yang sudah dicegah diabaikan')
+})
+
+test('router memakai History API, bukan hash', () => {
+  const routerSrc = readFileSync('src/router.js', 'utf8')
+  assert.match(routerSrc, /history\.pushState/)
+  assert.match(routerSrc, /history\.replaceState/)
+  assert.match(routerSrc, /addEventListener\('popstate'/, 'tombol kembali peramban ditangani')
+  assert.ok(!/location\.hash = path/.test(routerSrc), 'navigasi tidak lagi memakai location.hash')
+  assert.match(routerSrc, /dispatchEvent\(new Event\('qk:route'\)\)/, 'sheet menutup saat rute berubah')
+})
