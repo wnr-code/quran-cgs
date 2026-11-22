@@ -1,10 +1,13 @@
-// Papan donatur publik: donatur terbaru + top donatur harian / mingguan / bulanan / sepanjang waktu.
-// Yang dibuka: nama tampilan, jumlah, waktu, dan pesan/doa yang ditulis donatur di formulir Trakteer.
+// Papan Kebaikan publik: hitungan kebaikan + dinding doa/ucapan donatur (anonim).
+// Yang dibuka ke publik HANYA: jumlah kebaikan tercatat, jumlah doa, dan teks pesan/doa + waktu.
+// Nama donatur dan nominal (amount) TIDAK dikirim ke publik demi menjaga keikhlasan & privasi.
+// Kolom `amount`/`name` tetap disimpan di D1 untuk pencocokan niat infaq di sisi server.
 import { ensureSchema } from '../lib/db.js'
 
 const WIB = 7 * 3600 * 1000
 
-/** Awal hari, awal minggu (Senin), dan awal bulan menurut WIB, dalam epoch ms (UTC). */
+/** Awal hari, awal minggu (Senin), dan awal bulan menurut WIB, dalam epoch ms (UTC).
+ * Dipertahankan untuk statistik periode & uji; papan publik tidak lagi memakai peringkat. */
 export function periodStarts(now = Date.now()) {
   const d = new Date(now + WIB)
   const dayStart = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
@@ -17,32 +20,23 @@ export function periodStarts(now = Date.now()) {
   }
 }
 
-const TOP_SQL = `SELECT MIN(name) AS name, SUM(amount) AS amount, COUNT(*) AS count, MAX(created_at) AS at
-  FROM donations WHERE is_test = 0 AND created_at >= ?1 GROUP BY LOWER(name) ORDER BY amount DESC, at ASC LIMIT 20`
-
 const json = (obj, status = 200, cache = 'no-store') => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': cache, 'X-Content-Type-Options': 'nosniff' } })
 
 export async function onRequestGet({ env }) {
   if (!env.DB) return json({ ok: false, error: 'not_configured' }, 503)
   try {
     await ensureSchema(env.DB)
-    const starts = periodStarts()
-    const top = env.DB.prepare(TOP_SQL)
-    const [daily, weekly, monthly, all, latest, totals] = await env.DB.batch([
-      top.bind(starts.daily),
-      top.bind(starts.weekly),
-      top.bind(starts.monthly),
-      top.bind(starts.all),
-      env.DB.prepare('SELECT name, amount, unit, quantity, message, created_at AS at FROM donations WHERE is_test = 0 ORDER BY created_at DESC LIMIT 30'),
-      env.DB.prepare('SELECT COALESCE(SUM(amount), 0) AS amount, COUNT(*) AS count FROM donations WHERE is_test = 0')
+    const [totals, doa] = await env.DB.batch([
+      env.DB.prepare(`SELECT COUNT(*) AS count, COALESCE(SUM(CASE WHEN TRIM(message) <> '' THEN 1 ELSE 0 END), 0) AS doaCount FROM donations WHERE is_test = 0`),
+      env.DB.prepare(`SELECT message, created_at AS at FROM donations WHERE is_test = 0 AND TRIM(message) <> '' ORDER BY created_at DESC LIMIT 30`)
     ])
+    const t = totals.results[0] || { count: 0, doaCount: 0 }
     return json(
       {
         ok: true,
         updatedAt: Date.now(),
-        top: { daily: daily.results, weekly: weekly.results, monthly: monthly.results, all: all.results },
-        latest: latest.results,
-        totals: totals.results[0] || { amount: 0, count: 0 }
+        totals: { count: Number(t.count) || 0, doaCount: Number(t.doaCount) || 0 },
+        doa: (doa.results || []).map((r) => ({ message: String(r.message || '').slice(0, 280), at: Number(r.at) || 0 }))
       },
       200,
       'public, max-age=60'

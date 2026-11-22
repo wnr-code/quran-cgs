@@ -57,7 +57,7 @@ export default function more(root) {
       </div>
     </section>
     <button type="button" class="card install-card" data-install>${icon('download')}<span><strong>Pasang QuranKu</strong><small>Tambahkan ke layar utama agar terbuka layar penuh & bisa offline</small></span></button>
-    <a class="more-infaq" href="#/infaq"><span class="more-infaq-ic" aria-hidden="true">${icon('heart')}</span><span><strong>Infaq Pengembang</strong><small>Dukung QuranKu & lihat papan donatur</small></span><span class="more-go" aria-hidden="true">›</span></a>
+    <a class="more-infaq" href="#/infaq"><span class="more-infaq-ic" aria-hidden="true">${icon('heart')}</span><span><strong>Infaq Pengembang</strong><small>Dukung QuranKu & lihat papan kebaikan</small></span><span class="more-go" aria-hidden="true">›</span></a>
     ${GROUPS.map(([g, items], index) => `<h3 class="section-title" id="more-group-${index}">${g}</h3><div class="menu-grid tone-${g.toLowerCase()}" role="group" aria-labelledby="more-group-${index}">${items.map(([p, i, t, s]) => `<a class="menu-item" href="#${p}"><span class="shortcut-ic" aria-hidden="true">${icon(i)}</span><span><strong>${t}</strong><small>${s}</small></span></a>`).join('')}</div>`).join('')}
   </div>`
 

@@ -884,6 +884,23 @@ test('infaq: periode WIB & webhook Trakteer', async () => {
   assert.equal((await onRequestPost({ request: req('rahasia', '{}'), env: {} })).status, 503)
 })
 
+test('halaman infaq: dinding doa anonim tanpa nama, nominal, podium, atau tab periode', () => {
+  const page = readFileSync('src/pages/infaq.js', 'utf8')
+  const api = readFileSync('src/api/donors-api.js', 'utf8')
+  const css = readFileSync('src/styles/main.css', 'utf8')
+  // API klien hanya memetakan pesan + waktu, tidak pernah nama/nominal.
+  assert.match(api, /cleanDoa/)
+  assert.doesNotMatch(api, /r\.name|r\.amount|totals\.amount/)
+  // Halaman hanya merender pesan ter-escape + atribusi "Hamba Allah".
+  assert.match(page, /esc\(r\.message\)/)
+  assert.match(page, /Hamba Allah · \$\{formatDateTime\(r\.at\)\}/)
+  assert.doesNotMatch(page, /formatRupiah|podium|data-p=|PERIODS/)
+  // Kelas dinding doa di-scope agar tidak bentrok dengan akordeon .doa di halaman Doa Harian.
+  assert.match(page, /class="doa-item"/)
+  assert.match(css, /\.infaq-page \.doa-item \{/)
+  assert.doesNotMatch(css, /^\.doa \{/m)
+})
+
 test('data lokal (cadangan terakhir): 114 surah lolos validasi yang sama dengan API', { skip: !existsSync('public/data/surah/1.json') && 'jalankan npm run gen:local' }, () => {
   let total = 0
   for (let n = 1; n <= 114; n++) {
@@ -1479,7 +1496,7 @@ test('tema Ramadan: palet, animasi lentera, dan gerakan berkurang', () => {
   assert.match(nativeShell, /theme === 'dark' \|\| theme === 'ramadan'/)
 })
 
-test('kebijakan privasi menjelaskan pelacak, lokasi, Web Push, dan data papan donatur', () => {
+test('kebijakan privasi menjelaskan pelacak, lokasi, Web Push, dan data papan kebaikan anonim', () => {
   const policy = readFileSync('public/privacy.html', 'utf8')
   const about = readFileSync('src/pages/about.js', 'utf8')
   assert.match(policy, /tidak memasang pelacak iklan atau analitik/)
@@ -1491,7 +1508,9 @@ test('kebijakan privasi menjelaskan pelacak, lokasi, Web Push, dan data papan do
   assert.match(policy, /WhatsApp, Telegram, Facebook, X \(Twitter\), atau aplikasi tujuan lain/)
   assert.match(policy, /hitungan tasbih, bookmark, catatan, riwayat, dan progres tilawah/)
   assert.doesNotMatch(policy, /Kami tidak menyimpan alamat email maupun pesan dukungan Anda/)
-  assert.match(about, /nama tampilan dan ucapan yang Anda kirim dapat ditampilkan/)
+  assert.match(policy, /nama dan nominal tidak ditampilkan secara publik/)
+  assert.doesNotMatch(policy, /papan donatur/)
+  assert.match(about, /nama dan nominal tidak ditampilkan, hanya doa\/ucapan yang Anda kirim yang dibagikan/)
   assert.match(about, /layanan atau aplikasi yang dipilih menerima konten yang Anda pilih/)
 })
 

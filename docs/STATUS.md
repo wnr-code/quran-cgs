@@ -30,14 +30,14 @@ Terakhir diperbarui: 14 November 2026.
 - Pencarian `2:255`, `juz 30`, kata terjemahan.
 - Halaman Asmaul Husna (99), jadwal salat, kiblat, tasbih, kalender, target, offline, infaq, pengaturan, tentang terbuka tanpa error JavaScript.
 - Service worker: shell, daftar surah, surah tersimpan, dan bookmark tersedia offline; surah yang belum tersimpan menampilkan pesan error yang jelas.
-- Papan donatur: token salah → 401, payload rusak → 400, tanpa D1 → 503; kiriman ganda tidak menggandakan baris; nama digabung tanpa beda huruf besar/kecil; transaksi tes disembunyikan; periode WIB.
+- Papan kebaikan (anonim): token salah → 401, payload rusak → 400, tanpa D1 → 503; kiriman ganda tidak menggandakan baris; transaksi tes disembunyikan; respons publik tidak memuat nama maupun nominal; hitungan doa hanya untuk baris berpesan; pesan dari `supporter_message` (webhook) dan `support_message` (Public API) tersimpan.
 
 ## Belum teruji — mohon diuji setelah deploy
 | Hal | Catatan |
 |---|---|
 | Cloudflare Workers, domain, proxy `/api/quran` | Build/deploy Worker produksi pada `main` setelah PR #32 berhasil ([build `10dfd674-f8f8-4da0-b995-66195485be0c`](https://dash.cloudflare.com/880c5e424f64b605d1f118776956fd0b/workers/services/view/quran-cgs/production/builds/10dfd674-f8f8-4da0-b995-66195485be0c), version `138dfdb7-303a-4c13-817e-a8976c426c9b`). Check Cloudflare pada branch PR sebelumnya gagal tanpa log terperinci, tetapi check produksi terbaru sukses. `wrangler deploy --dry-run` lokal juga berhasil. Permintaan langsung ke domain publik dan proxy `/api/quran` belum diuji dari sandbox ini. |
 | Infaq terhadap Trakteer & D1 sungguhan | Alur aplikasi, webhook, sinkronisasi Public API, dan klaim ID transaksi teruji secara lokal (SQLite + `wrangler dev`). Belum pernah dijalankan terhadap Trakteer atau D1 produksi. Mode QRIS langsung tidak resmi dan belum terverifikasi; lihat [INFAQ.md](INFAQ.md). |
-| Nominal pada papan donatur | Lihat catatan `price` di [INFAQ.md](INFAQ.md). |
+| Nominal pada papan kebaikan | Nominal tidak lagi ditampilkan di publik; lihat catatan `price` di [INFAQ.md](INFAQ.md). |
 | Notifikasi/adzan dan kompas berbasis sensor | PWA/Web Push perlu validasi pada peramban/perangkat sasaran. Android memiliki scheduler AlarmManager native bergulir 14 hari untuk azan/imsak/pengingat pra-salat; unit test Gradle memeriksa konversi jam/tanggal lokal, tetapi pengiriman alarm nyata, izin exact-alarm, pemulihan saat reboot, Doze, dan kebijakan OEM belum diuji pada perangkat. Uji emulator CI hanya smoke test UI. Kiblat memakai bearing koordinat, tanpa sensor kompas. |
 | Android APK/AAB | Android CI [run 44012564187](https://github.com/wnr-code/quran-cgs/actions/runs/44012564187) pada commit kode `092afa714a1ea65b9b4255611c61060bb35d7b6e` lulus unit test Gradle, smoke test emulator Android 12/16, serta build/verifikasi tanda tangan APK dan AAB release. Artefaknya (`QuranKu-APK-untuk-dipasang` dan `quranku-play-store-aab-signed`) tersedia pada halaman run GitHub Actions, tidak diunduh ke checkout atau diterbitkan otomatis ke Play. Workflow menghasilkan release bertanda tangan hanya bila seluruh empat upload-key secrets valid; tanpa secret hanya APK debug dan tidak ada AAB unsigned, sedangkan konfigurasi parsial/tidak valid membuat workflow gagal. Perangkat fisik dan migrasi end-to-end dari instalasi Compose lama belum diuji. Build Gradle lokal tidak tersedia karena sandbox tidak memiliki Java/Android SDK. Lihat [ANDROID.md](ANDROID.md). |
 | Instalasi PWA di ponsel, Lighthouse, iOS Safari | Belum diuji. |
@@ -305,3 +305,11 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Jalur berbagi gambar (bagikan lewat lembar sistem) tidak berubah; hanya bila berbagi berkas tidak tersedia, fallback unduhan pada Android ikut menyimpan ke Galeri, bukan menekan tautan WebView.
 - Uji: tiga tes unit baru untuk `downloadImage` (browser, Android berhasil, Android gagal), satu tes pemetaan jembatan native, dan tes instrumentasi `ImageGallerySaveTest` yang memanggil plugin dari WebView lalu memeriksa baris MediaStore di `Pictures/QuranKu` serta penolakan payload tidak valid. Emulator API 31 dan 36 lulus.
 - Batas: belum diuji pada HP fisik maupun Android 9 ke bawah (jalur legacy hanya terjaga secara kode); folder `Pictures/QuranKu` baru terlihat di Galeri setelah pemindaian MediaStore selesai. Dokumen izin (`docs/ANDROID.md`, `store/data-safety.md`) dan kebijakan privasi diperbarui.
+
+## 1.4.34 — Papan Kebaikan anonim (tanpa nama & nominal)
+
+- Halaman Infaq tidak lagi menampilkan total nominal, podium, maupun daftar donatur bernominal. Yang tampil: jumlah kebaikan tercatat, jumlah doa, dan dinding doa/ucapan terbaru dengan label “Hamba Allah” + tanggal.
+- `GET /api/donors` tidak mengirim `name`/`amount`; `mapSupport` kini ikut menyimpan pesan dari Public API. Uji unit memastikan nama dan nominal tidak bocor pada respons publik.
+- `npm test` **108 lulus, 0 gagal** (termasuk penjaga regresi markup anonim Papan Kebaikan); `npm run build` berhasil (61 berkas precache).
+- E2E `tests/e2e/infaq.mjs` diperbarui untuk memeriksa dinding doa, label “Hamba Allah”, serta tidak adanya nama/nominal/podium; belum dijalankan di sandbox ini (perlu `wrangler dev` + peramban).
+- Batas: donasi lama tanpa pesan tidak muncul di dinding; pesan hanya dari formulir Trakteer (dibatasi 280 karakter).

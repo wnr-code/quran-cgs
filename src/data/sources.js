@@ -182,7 +182,7 @@ export const SOURCES = [
     items: [
       {
         name: 'Cloudflare Workers & D1',
-        use: 'Hosting aplikasi, proxy cadangan API, penjadwal pemberitahuan adzan, serta penyimpanan papan donatur dan langganan pemberitahuan.',
+        use: 'Hosting aplikasi, proxy cadangan API, penjadwal pemberitahuan adzan, serta penyimpanan papan kebaikan (anonim) dan langganan pemberitahuan.',
         note: 'Alamat utama quran.cgs.my.id; alamat cadangan quran-cgs.appwnr.workers.dev dipakai otomatis bila alamat utama tidak dapat dijangkau.',
         url: 'https://workers.cloudflare.com',
         host: 'workers.cloudflare.com'

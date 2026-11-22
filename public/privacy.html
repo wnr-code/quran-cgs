@@ -52,7 +52,7 @@
         <tr><td>Al Quran Cloud (alquran.cloud, cdn.islamic.network)</td><td>Sumber cadangan teks dan audio bila sumber utama tidak tersedia.</td></tr>
         <tr><td>mp3quran.net dan cdn.mp3quran.net</td><td>Streaming murottal qari tambahan saat dipilih.</td></tr>
         <tr><td>AlAdhan (cdn.aladhan.com)</td><td>Streaming rekaman adzan saat Anda mengaktifkan dan memutar suara adzan.</td></tr>
-        <tr><td>Cloudflare Workers &amp; D1</td><td>Menyajikan aplikasi dan proxy, papan donatur, webhook infaq, serta penjadwalan Web Push Adzan. Data yang disebutkan di bagian terkait disimpan di layanan ini.</td></tr>
+        <tr><td>Cloudflare Workers &amp; D1</td><td>Menyajikan aplikasi dan proxy, papan kebaikan, webhook infaq, serta penjadwalan Web Push Adzan. Data yang disebutkan di bagian terkait disimpan di layanan ini.</td></tr>
         <tr><td>Layanan push peramban (mis. Google FCM, Mozilla, Apple)</td><td>Meneruskan Web Push Adzan hanya bila Anda mengaktifkannya di PWA; payload pemberitahuan dienkripsi.</td></tr>
         <tr><td>WhatsApp, Telegram, Facebook, X (Twitter), atau aplikasi tujuan lain</td><td>Hanya saat Anda memilih fitur Bagikan: perangkat membuka layanan yang dipilih dengan konten yang Anda pilih (misalnya doa, ayat, atau tautan audio) dan/atau tautan QuranKu yang sudah disiapkan. Layanan tersebut memproses permintaan sesuai kebijakannya; Anda tetap menentukan apakah akan mengirim atau memublikasikannya.</td></tr>
         <tr><td>Trakteer (trakteer.id) dan mitra pembayarannya</td><td>Gambar tombol infaq dimuat di halaman Infaq. Formulir pembayaran hanya dibuka setelah Anda menekan tombol INFAQ; Trakteer dan mitranya memproses data formulir dan pembayaran.</td></tr>
@@ -61,16 +61,16 @@
       <h2>5. Audio</h2>
       <p>Murottal diputar secara streaming dari server sumber. Berkas audio hanya disimpan di perangkat bila Anda menekan tombol unduh, dan dapat dihapus kapan saja dari menu Kelola Offline. Aplikasi tidak merekam suara dan tidak mengakses mikrofon.</p>
 
-      <h2>6. Infaq dan papan donatur</h2>
-      <p>Infaq bersifat sukarela. Pada versi aplikasi saat ini, setelah Anda membaca akad dan menekan tombol INFAQ, formulir Trakteer dibuka di dalam aplikasi. Trakteer beserta mitra pembayarannya memproses data formulir dan pembayaran; QuranKu tidak menerima atau menyimpan nomor rekening, kartu, atau dompet digital. Trakteer mengirim catatan transaksi ke server QuranKu agar status pembayaran dan papan donatur dapat diperbarui.</p>
-      <p>Server QuranKu menyimpan ID transaksi, nama tampilan, unit dan jumlah unit, nominal, jenis serta waktu transaksi, dan pesan/ucapan bila dikirim. Nama, nominal, waktu, dan pesan dapat ditampilkan secara publik pada papan donatur. Trakteer dapat menerima alamat IP dan data teknis permintaan ketika gambar atau formulirnya dimuat, sesuai kebijakannya; formulir pembayaran hanya dibuka setelah Anda menekan tombol INFAQ. Agar nama asli tidak tampil, gunakan “Hamba Allah” atau nama samaran. Untuk meminta penghapusan catatan papan donatur, hubungi kami melalui kontak di bawah.</p>
+      <h2>6. Infaq dan papan kebaikan</h2>
+      <p>Infaq bersifat sukarela. Pada versi aplikasi saat ini, setelah Anda membaca akad dan menekan tombol INFAQ, formulir Trakteer dibuka di dalam aplikasi. Trakteer beserta mitra pembayarannya memproses data formulir dan pembayaran; QuranKu tidak menerima atau menyimpan nomor rekening, kartu, atau dompet digital. Trakteer mengirim catatan transaksi ke server QuranKu agar status pembayaran dan papan kebaikan dapat diperbarui.</p>
+      <p>Server QuranKu menyimpan ID transaksi, nama tampilan, unit dan jumlah unit, nominal, jenis serta waktu transaksi, dan pesan/ucapan bila dikirim. Untuk menjaga keikhlasan dan privasi, nama dan nominal tidak ditampilkan secara publik; hanya pesan/ucapan (bila dikirim) dan waktu yang dibagikan pada papan kebaikan, tanpa nama. Trakteer dapat menerima alamat IP dan data teknis permintaan ketika gambar atau formulirnya dimuat, sesuai kebijakannya; formulir pembayaran hanya dibuka setelah Anda menekan tombol INFAQ. Untuk meminta penghapusan catatan papan kebaikan, hubungi kami melalui kontak di bawah.</p>
       <p><strong>Catatan endpoint lama.</strong> API niat pembayaran QuranKu yang lama tidak dipakai oleh halaman Infaq versi saat ini. Jika endpoint tersebut dipanggil oleh klien lama, server dapat menyimpan nama, jumlah unit, nominal, mode/referensi pembayaran, dan hash berkunci dari alamat IP untuk pembatasan penyalahgunaan serta pencocokan pembayaran; alamat IP mentah tidak disimpan oleh endpoint itu.</p>
 
       <h2>7. Menghapus data Anda</h2>
       <ul>
         <li>Di aplikasi: <em>Lainnya → Pengaturan → Hapus semua data saya</em> menghapus seluruh data lokal.</li>
         <li>Di Android: <em>Setelan → Aplikasi → QuranKu → Penyimpanan → Hapus data</em>, atau hapus instalasi aplikasi. Di peramban: hapus data situs quran.cgs.my.id.</li>
-        <li>Data papan donatur: ajukan permintaan penghapusan melalui kontak di bawah.</li>
+        <li>Data papan kebaikan: ajukan permintaan penghapusan melalui kontak di bawah.</li>
       </ul>
 
       <h2>8. Cadangan</h2>

@@ -41,7 +41,7 @@ OFFLINE & NOTIFIKASI
 Surah yang dibuka tersimpan di perangkat. Dari Kelola Offline, pilih surah atau unduh teks seluruh 114 surah; tafsir dan audio pilihan juga dapat disimpan. Unduhan pertama memerlukan internet. Kotak masuk lokal menyimpan pengumuman, pembaruan aplikasi, dan riwayat pengingat.
 
 PRIVASI
-Tanpa akun, iklan, pelacak iklan, atau analitik. Bookmark, catatan, progres, dan pengaturan tersimpan di perangkat. Jika Anda memilih Gunakan lokasi saya untuk mencari nama wilayah, koordinat dikirim langsung ke OpenStreetMap Nominatim, bukan ke server QuranKu. Infaq bersifat sukarela; formulir/pembayaran ditangani Trakteer dan mitranya. Catatan transaksi yang diterima server QuranKu dapat menampilkan nama, nominal, dan ucapan di papan donatur. Lihat kebijakan privasi untuk rinciannya.
+Tanpa akun, iklan, pelacak iklan, atau analitik. Bookmark, catatan, progres, dan pengaturan tersimpan di perangkat. Jika Anda memilih Gunakan lokasi saya untuk mencari nama wilayah, koordinat dikirim langsung ke OpenStreetMap Nominatim, bukan ke server QuranKu. Infaq bersifat sukarela; formulir/pembayaran ditangani Trakteer dan mitranya. Server QuranKu menyimpan catatan transaksi, tetapi nama dan nominal tidak ditampilkan di publik; hanya doa/ucapan yang Anda kirim yang dibagikan anonim di Papan Kebaikan. Lihat kebijakan privasi untuk rinciannya.
 
 Di Android, alarm dan pengingat dijadwalkan di perangkat. Notifikasi memerlukan izin; akses alarm tepat khusus Android 12 ke atas dapat diminta. Penghemat baterai, force-stop, atau kebijakan perangkat dapat menunda pengiriman. Streaming murottal dan rekaman azan memerlukan internet; audio hanya tersedia offline setelah diunduh.
 

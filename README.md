@@ -66,7 +66,7 @@ Perintah `npm run cap:sync` menjalankan build web lalu menyalin aset yang sama k
 - **Kotak masuk notifikasi**: lonceng dan badge hanya di Lainnya; pengumuman konten, versi aplikasi, dan pengingat tersimpan lokal, dapat ditandai sudah dibaca.
 - **PWA**: dapat dipasang dari peramban apa pun (panduan per peramban), pembaruan versi otomatis, app shell + font + daftar surah tersedia offline; surah tersimpan saat dibuka; halaman Kelola Offline.
 - **Alamat cadangan otomatis**: bila alamat utama mati, data diambil dari alamat cadangan tanpa tindakan pengguna.
-- **Infaq pengembang** di dalam aplikasi (nominal mulai Rp1.000 → halaman pembayaran/QRIS → menunggu → terima kasih), papan donatur Harian / Mingguan / Bulanan / Sepanjang waktu → [docs/INFAQ.md](docs/INFAQ.md).
+- **Infaq pengembang** di dalam aplikasi (nominal mulai Rp1.000 → halaman pembayaran/QRIS → menunggu → terima kasih), Papan Kebaikan anonim berisi doa/ucapan tanpa nama & nominal → [docs/INFAQ.md](docs/INFAQ.md).
 
 ## Struktur
 
@@ -84,9 +84,9 @@ src/components/       navbar, modal, kartu ayat, toolbar baca, pemutar audio
 src/utils/            angka Arab-Indic, metadata juz/halaman, Hijriah, validasi
 src/data/             metadata Quran (hasil scripts/gen-meta.mjs), Asmaul Husna, dzikir, qari, kota, daftar sumber
 src/styles/           design tokens, tema, komponen, reader, responsif
-functions/            handler API: proxy EQuran, infaq (buat/status/klaim), webhook, papan donatur, push PWA
+functions/            handler API: proxy EQuran, infaq (buat/status/klaim), webhook, papan kebaikan, push PWA
 worker/               entry Cloudflare Worker (merutekan /api/* + aset statis)
-migrations/           skema D1 (papan donatur, langganan push)
+migrations/           skema D1 (infaq/papan kebaikan, langganan push)
 capacitor.config.json konfigurasi Capacitor untuk app yang sama
 android/              cangkang Android Capacitor + migrasi data lokal Compose lama
 store/                materi Google Play (deskripsi, grafis, screenshot, Data Safety)
@@ -125,7 +125,7 @@ Tidak ada ayat, tafsir, doa, atau nomor halaman yang dibuat oleh aplikasi. Satu 
 
 - [docs/DEPLOY-CLOUDFLARE.md](docs/DEPLOY-CLOUDFLARE.md) — deploy ke Cloudflare + domain
 - [docs/ANDROID.md](docs/ANDROID.md) — build APK/AAB, signing, asset links, Play Console
-- [docs/INFAQ.md](docs/INFAQ.md) — alur infaq, webhook + Public API, papan donatur (D1)
+- [docs/INFAQ.md](docs/INFAQ.md) — alur infaq, webhook + Public API, papan kebaikan anonim (D1)
 - [docs/STATUS.md](docs/STATUS.md) — **apa yang sudah diuji, apa yang belum, dan batasan**
 - [store/](store/) — materi listing Google Play
 
