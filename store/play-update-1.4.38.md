@@ -204,6 +204,8 @@ Langkah yang dipakai (untuk rilis berikutnya):
 
 Setelah rilis diterima, **jangan unggah AAB dengan `versionCode` lebih kecil** — Play akan menolak. `versionCode` dihitung dari nomor run workflow (`github.run_number * 10`), jadi selalu naik selama build dari workflow.
 
+> **Catatan 22 November 2026:** AAB 1.4.38 yang sudah diunggah dibuat sebelum URL bersih tanpa `#` ditambahkan. Setelah PR #65 di-merge, build berikutnya (run ≥ 217) akan berisi routing baru dan `versionCode` ≥ 2170 — aman diunggah sebagai pembaruan. Perlu build Android baru karena `android/app/src/main/AndroidManifest.xml` berubah (filter App Links).
+
 ### 7.2.1 Checklist uji setelah terpasang dari Internal testing
 
 Pasang lewat tautan *Internal testing* di Play (bukan APK manual) supaya data lama tetap ada.
