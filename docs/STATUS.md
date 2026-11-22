@@ -322,6 +322,6 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 
 ## 1.4.36 — Telaah akad infaq
 
-- Akad memuat: jenis pemberian (hibah), penerima jelas (WNR Code), kanal pembayaran terpisah (Lanteraku), qabul, larangan riba, bukan zakat/fidyah/kafarah/nazar, nafkah wajib lebih utama, dan klausul pengembalian 7 hari.
+- Akad memuat: jenis pemberian (hibah), penerima jelas (Aep / WNR Code), kanal pembayaran terpisah (Lanteraku), qabul, larangan riba, bukan zakat/fidyah/kafarah/nazar, nafkah wajib lebih utama, dan klausul pengembalian 7 hari.
 - `npm test` **110 lulus, 0 gagal**; `npm run build` berhasil.
 - Batas: **belum ditinjau ustaz/ahli fikih**; teks disusun dari kaidah umum hibah/sedekah.

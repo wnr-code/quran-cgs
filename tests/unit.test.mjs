@@ -919,10 +919,10 @@ test('akad infaq: penerima jelas, qabul dinyatakan, tanpa klaim imbalan, nafkah 
   const page = readFileSync('src/pages/infaq.js', 'utf8')
   const akad = page.slice(page.indexOf('const akadHtml'), page.indexOf('export default function infaq'))
   // Penerima harus pihak yang jelas (bukan hanya nama aplikasi) dan dipisahkan dari kanal pembayaran.
-  assert.match(akad, /WNR Code, pengelola resmi aplikasi QuranKu/)
+  assert.match(akad, /Aep \(WNR Code\), pengembang dan pengelola resmi aplikasi QuranKu/)
   // Nama asli sengaja tidak dimuat; identitas diverifikasi lewat kontak Tentang & listing.
   assert.match(akad, /Identitas penerima<\/b> dapat diverifikasi lewat kontak pengelola di halaman Tentang/)
-  assert.doesNotMatch(akad, /AEP Saepulloh/)
+  assert.doesNotMatch(akad, /AEP Saepulloh/, 'nama lengkap tidak dimuat; hanya nama depan')
   assert.match(akad, /Kanal pembayaran:<\/b> Lanteraku/)
   assert.match(akad, /tidak menjadi penerima dana/)
   // Qabul dinyatakan lewat tersedianya kanal pembayaran.
