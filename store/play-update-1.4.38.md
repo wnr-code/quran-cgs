@@ -177,8 +177,11 @@ Perbaikan: doa yang dikirim lewat formulir kini selalu tersimpan.
 ### 7.1 Unduh AAB yang sudah ditandatangani
 
 1. Buka repo → **Actions** → workflow **Android build**.
-2. Pilih run terbaru pada branch ini (atau pada `main` setelah PR di-merge).
+2. Pilih run terbaru **pada `main`** (jangan run dari branch PR — nomor versinya lebih kecil dan bisa bentrok).
 3. Unduh artifact **`quranku-play-store-aab-signed`**.
+4. Ekstrak. Nama berkasnya kini memuat versi dan kode versi, mis. **`QuranKu-1.4.39-2250.aab`**. Cocokkan angkanya dengan ringkasan run.
+
+> **Jangan pakai berkas bernama `app-release.aab` dari folder Unduhan.** Nama itu berasal dari unduhan run lama; mengunggahnya membuat Play menolak dengan *"Kode versi 1880 sudah digunakan"* (1880 = run #188). Artefak lama tetap bisa diunduh dan berkas di dalamnya tetap bernama `app-release.aab`, sehingga tidak ada cara membedakannya tanpa membuka ringkasan run asalnya. Selalu unduh ulang dari run yang benar.
 
 Artifact ini hanya muncul bila keempat secret upload key sudah diatur di GitHub:
 

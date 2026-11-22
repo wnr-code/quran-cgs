@@ -229,8 +229,23 @@ jobs:
               echo '::error::The release AAB signature could not be verified.'
               exit 1
             fi
-            cp "$AAB" "$RUNNER_TEMP/aab/"
+            # Nama berkas memuat versi + kode versi: berkas dari run lain tidak bisa tertukar lagi.
+            cp "$AAB" "$RUNNER_TEMP/aab/QuranKu-$VER-$QURANKU_VERSION_CODE.aab"
             echo 'Release APK and AAB signatures verified. The AAB is available as a GitHub artifact only; this workflow does not publish it to Google Play.' >> "$GITHUB_STEP_SUMMARY"
+            {
+              echo ''
+              echo "### AAB untuk Play Console"
+              echo ''
+              echo "File di artifact \`quranku-play-store-aab-signed\`: \`QuranKu-$VER-$QURANKU_VERSION_CODE.aab\`"
+              echo ''
+              echo "| Dibaca Play Console | Nilai yang benar |"
+              echo '|---|---|'
+              echo "| Kode versi | **$QURANKU_VERSION_CODE** |"
+              echo "| Nama versi | **$VER** |"
+              echo ''
+              echo "Kalau Play menolak dengan *\"Kode versi ... sudah digunakan\"*, berkas yang diunggah berasal dari run lain —"
+              echo "unduh ulang dari halaman run ini, jangan dari unduhan lama di folder Unduhan."
+            } >> "$GITHUB_STEP_SUMMARY"
             RELEASE_SHA256=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/release-signature.txt" | head -1 | tr -d '\r')
             RELEASE_SHA256_FMT=$(printf '%s' "$RELEASE_SHA256" | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g; s/:$//')
             if [ -n "$RELEASE_SHA256_FMT" ]; then
