@@ -67,6 +67,9 @@ const app = {
     }
     // Jalur aplikasi tanpa ekstensi (/, /surah/2/255, /infaq, ...) → shell yang sama.
     if ((m === 'GET' || m === 'HEAD') && !hasFileExtension(p) && !isAssetPath(p) && !p.startsWith('/api/')) {
+      // Struktur lama yang masih dipakai peta situs / tautan luar: /surat → /quran, /doa → /doa/harian.
+      const legacy = { '/surat': '/quran', '/surah': '/quran', '/doa': '/doa/harian', '/jadwal': '/salat' }[p]
+      if (legacy) return Response.redirect(new URL(legacy + url.search, url.origin).toString(), 301)
       return serveShell(request, env)
     }
     return env.ASSETS.fetch(request)

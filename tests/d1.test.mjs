@@ -79,3 +79,19 @@ test('worker: rute /api/* ke handler, selain itu ke aset statis', async () => {
   assert.equal((await hook({ 'X-Webhook-Token': 'trhook-abc124' }, sample)).status, 401)
   assert.equal((await call('/api/tidak-ada')).status, 404)
 })
+
+test('worker: jalur lama dialihkan permanen ke URL bersih', async () => {
+  const worker = (await import('../worker/index.js')).default
+  const env = { DB: fakeD1(), ASSETS: { fetch: async (r) => new Response('ASET ' + new URL(r.url).pathname) } }
+  const ctx = { waitUntil() {} }
+  const call = (path) => worker.fetch(new Request('https://quran.cgs.my.id' + path), env, ctx)
+  for (const [from, to] of [['/surat', '/quran'], ['/surah', '/quran'], ['/doa', '/doa/harian'], ['/jadwal', '/salat']]) {
+    const res = await call(from)
+    assert.equal(res.status, 301, `${from} dialihkan`)
+    assert.equal(new URL(res.headers.get('location')).pathname, to, `${from} → ${to}`)
+  }
+  const withQuery = await call('/doa?tab=quran')
+  assert.equal(new URL(withQuery.headers.get('location')).search, '?tab=quran', 'query dipertahankan')
+  // /doa/harian tetap dilayani shell (bukan dialihkan).
+  assert.equal(await (await call('/doa/harian')).text(), 'ASET /index.html')
+})
