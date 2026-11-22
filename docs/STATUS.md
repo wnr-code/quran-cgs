@@ -1,13 +1,13 @@
 # Status fitur — teruji, belum teruji, dan batasan
 
-Terakhir diperbarui: 14 November 2026.
+Terakhir diperbarui: 22 November 2026 (versi 1.4.40).
 
 ## Pengujian implementasi Capacitor
 
-- **Validasi lokal:** `npm test` — **100 lulus, 0 gagal**, termasuk assertion penyimpanan gambar ke Galeri (MediaStore) dan jalur unduh peramban; `npm run build` berhasil. Pemeriksaan `AndroidManifest.xml`, sintaks Java plugin native, dan `git diff --check` juga lulus. Plugin resmi yang terdeteksi: App, Browser, Filesystem, Geolocation, Local Notifications, Share, Splash Screen, dan Status Bar. `PrayerNotifications` dan `ImageGallery` adalah plugin native lokal yang didaftarkan langsung oleh `MainActivity`.
+- **Validasi lokal:** `npm test` — **130 lulus, 0 gagal**, termasuk assertion penyimpanan gambar ke Galeri (MediaStore) dan jalur unduh peramban; `npm run build` berhasil. Pemeriksaan `AndroidManifest.xml`, sintaks Java plugin native, dan `git diff --check` juga lulus. Plugin resmi yang terdeteksi: App, Browser, Filesystem, Geolocation, Local Notifications, Share, Splash Screen, dan Status Bar. `PrayerNotifications` dan `ImageGallery` adalah plugin native lokal yang didaftarkan langsung oleh `MainActivity`.
 - **Batas validasi lokal:** tidak ada JDK/Android SDK di sandbox, jadi Gradle, tes Java, emulator, dan build APK/AAB tidak dijalankan secara lokal. Tes Gradle dan smoke test emulator baru terverifikasi di workflow GitHub Actions.
 - **Validasi jarak jauh:** pada commit kode `38fe77a` (wordmark splash) Android CI [run 44246267128](https://github.com/wnr-code/quran-cgs/actions/runs/44246267128) lulus build debug, unit test Gradle, tes instrumentasi, dan smoke test emulator Android 12/API 31 serta Android 16/API 36, termasuk kompilasi resource `@drawable/splash_brand`. Pada commit kode `7c4faabbd1cb288d9f4ea67288f08f3a624a3b1e` (penyimpanan galeri): Web CI [run 44242630215](https://github.com/wnr-code/quran-cgs/actions/runs/44242630215) lulus `npm test` dan `npm run build`; Android CI [run 44242630217](https://github.com/wnr-code/quran-cgs/actions/runs/44242630217) lulus unit test Gradle, tes instrumentasi penyimpanan galeri, smoke test emulator Android 12/API 31 dan Android 16/API 36, build release, serta verifikasi tanda tangan APK/AAB. CI mengunggah `QuranKu-APK-untuk-dipasang` (APK debug dan APK release bertanda tangan) serta `quranku-play-store-aab-signed` (AAB bertanda tangan). Artefak tersimpan di GitHub Actions, tidak di repository.
-- `npm audit` melaporkan **4 vulnerability high** yang semuanya berasal dari rantai build `vite` → `tinyglobby`/`fdir` → `picomatch` (ReDoS); tidak ada paket runtime aplikasi yang terdampak dan belum ada perbaikan versi yang diterapkan. `quran-json@3.1.2` deprecated/tidak terawat; paket hanya digunakan saat build untuk teks Arab cadangan, terjemahan/transliterasi tidak disalin. Ada perbedaan metadata lisensi (lihat README dan Sumber Data).
+- `npm audit` kini melaporkan **0 kerentanan** (sebelumnya 4 high dari rantai build `vite` → `tinyglobby`/`fdir` → `picomatch`; sudah teratasi oleh versi paket sekarang). `quran-json@3.1.2` deprecated/tidak terawat; paket hanya digunakan saat build untuk teks Arab cadangan, terjemahan/transliterasi tidak disalin. Ada perbedaan metadata lisensi (lihat README dan Sumber Data).
 - Uji migrasi yang lulus memeriksa pemetaan/validasi cache surah, bukan perpindahan end-to-end dari APK lama pada perangkat.
 - Web CI (`ci.yml`) menjalankan `npm test` dan `npm run build`; Android workflow menjalankan tes Gradle dan startup smoke test emulator.
 
@@ -85,6 +85,21 @@ Bentuk hash tidak lagi **ditulis** oleh aplikasi — semua tautan bagikan, menu,
 - **Menguji apakah sudah tayang**: `npm run check:deploy` memeriksa situs produksi dan menyebut URL bersih sudah/belum aktif. Jalankan setelah merge. URL bersih pada situs produksi **tidak akan berfungsi sebelum PR di-merge dan Cloudflare selesai deploy**, meskipun build lokal sudah lulus — menghasilkan 404.
 - **Belum diuji**: pembukaan tautan bersih dari WhatsApp ke APK di perangkat fisik. Uji manual: kirim `https://quran.cgs.my.id/surah/2/255` ke diri sendiri, ketuk, pastikan terbuka di aplikasi. Bila WhatsApp tetap membuka peramban dalam aplikasinya, ketuk banner **Buka di aplikasi** di beranda — jalur itu memakai `intent://` sehingga tidak bergantung pada App Links.
 - **Catatan 22 November 2026**: AAB 1.4.38 di Play dibuat dari commit `4863179` (run Android #202) yang manifest-nya **hanya** mengklaim beranda (`path="/"`), jadi `/surah/2/255` memang tidak mungkin terbuka di aplikasi — bukan kesalahan pengaturan HP. Diperbaiki pada 1.4.39: filter lengkap + `pathPrefix`, dan banner "Buka di aplikasi" untuk peramban dalam aplikasi.
+
+### Audit 22 November 2026 (1.4.40) — perbaikan setelah audit menyeluruh
+
+Delapan cacat ditemukan dan diperbaiki; semuanya punya tes regresi di `tests/unit.test.mjs` (130 tes lulus).
+
+| Cacat | Akibat sebelum diperbaiki | Perbaikan |
+|---|---|---|
+| `appLinkRoute` membuang query | `/salat?adzan=subuh` dan `/surah/2?resume=1` dari WhatsApp terbuka di halaman yang benar tetapi tanpa maksudnya — adzan tidak berbunyi, posisi bacaan tidak dilanjutkan. | Query dipertahankan; `?adzan=` tetap dibuang khusus setelah dipakai. |
+| `?adzan=` hanya dibaca sekali saat aplikasi start | Di APK, tautan App Link tiba lewat `appUrlOpen` **setelah** modul dievaluasi — adzan tidak pernah diputar dari tautan. | Diperiksa juga pada setiap `qk:route`; hanya parameter `adzan` yang dihapus, query lain (`inboxOpen`) utuh. |
+| `manifest.webmanifest` pintasan masih `/#/lanjut` | Pintasan PWA memakai bentuk hash lama padahal router sudah History API; rawan berhenti bekerja. | Semua pintasan memakai URL bersih (`/lanjut`, `/quran`, `/murottal`, `/salat`); tes memastikan tiap pintasan adalah rute nyata. |
+| `sw.js` membuka notifikasi di `/#/…` | Ketukan notifikasi (adzan, kotak masuk) memakai URL hash lama; adzan dikirim lewat `#`, bukan `?adzan=`. | Notifikasi membuka URL bersih; adzan diteruskan sebagai `?adzan=<waktu>`. |
+| Tombol tutup bar "Buka di aplikasi" mati setelah navigasi | `render()` mengganti `innerHTML`, sehingga penangan `onclick` pada tombol lama hilang — bar tidak bisa ditutup. | Satu pendengar klik di wadah bar; `attached` baru diset setelah semua syarat lolos. |
+| `decodeURIComponent` melempar pada persen rusak | Tautan terpotong (`/surah/%E0%A4`) menghasilkan halaman **kosong tanpa pesan** karena render berhenti sebelum menggambar apa pun. | `decodeParam()` baru di router; URL rusak tetap merender halaman dengan pesan wajar. |
+| `.btn-ghost` dipakai tetapi tidak ada di CSS | Tombol "Buka di Chrome" pada panduan pemasangan tampil seperti tombol biasa, tak terbedakan dari aksi utama. | Aturan `.btn-ghost` ditambahkan di `main.css`. |
+| Tes E2E memakai `location.hash` | Router tidak lagi mendengarkan `hashchange`; `go()` di smoke test tidak berpindah halaman sehingga tes memberi hasil palsu. | Semua E2E memakai `history.pushState` + `popstate` dan URL bersih. `live.mjs` (dijalankan CI) juga ikut diperbarui. |
 
 ## Pembaruan 1.1.0
 

@@ -25,7 +25,7 @@ const step = async (name, fn) => {
 const js = (sel) => page.$eval(sel, (e) => e.click())
 
 await step('Kalender tampil; ketuk hari besar menampilkan keterangannya', async () => {
-  await page.goto(`${BASE}/#/kalender`, { waitUntil: 'domcontentloaded' })
+  await page.goto(`${BASE}/kalender`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('[data-grid] button.cal-cell', T)
   // Maju sampai ada bulan yang memuat hari besar
   for (let i = 0; i < 14 && !(await page.$('button.cal-cell.event')); i++) await js('[data-m="1"]')

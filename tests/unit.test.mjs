@@ -1376,6 +1376,15 @@ test('tautan peramban dalam aplikasi: halaman perantara membuka aplikasi, bukan 
   assert.equal(appLinkRouteFromRedirect('/surah/2/255'), '/surah/2/255')
   assert.equal(appLinkRouteFromRedirect('https://evil.example/surah/2/255'), null)
   assert.equal(appLinkRouteFromRedirect('/privacy.html'), null)
+  // Query ikut terbawa: tautan notifikasi adzan (?adzan=subuh) dan lanjutkan bacaan (?resume=1)
+  // harus sampai ke router; tanpa query, halaman terbuka tetapi maksud tautannya hilang.
+  assert.equal(appLinkRouteFromRedirect('/salat?adzan=subuh'), '/salat?adzan=subuh')
+  assert.equal(appLinkRouteFromRedirect('https://quran.cgs.my.id/surah/2?resume=1'), '/surah/2?resume=1')
+  assert.equal(appLinkRouteFromRedirect('https://evil.example/salat?adzan=subuh'), null)
+  // Bentuk lama dengan query di depan hash: query ikut pindah, tidak dibuang.
+  assert.equal(appLinkRouteFromRedirect('https://quran.cgs.my.id/?adzan=subuh#/salat'), '/salat?adzan=subuh')
+  assert.equal(appLinkRouteFromRedirect('https://quran.cgs.my.id/#/surah/2/255?resume=1'), '/surah/2/255?resume=1')
+  assert.equal(appLinkRouteFromRedirect('https://quran.cgs.my.id/#/salat'), '/salat')
 
   const page = readFileSync(new URL('../public/buka.html', import.meta.url), 'utf8')
   const script = readFileSync(new URL('../public/buka.js', import.meta.url), 'utf8')
@@ -1384,6 +1393,49 @@ test('tautan peramban dalam aplikasi: halaman perantara membuka aplikasi, bukan 
   assert.match(page, /<script src="\/buka\.js"><\/script>/)
   assert.match(script, /S\.browser_fallback_url/)
   assert.match(script, /id\.cgs\.quranku/)
+  // Alat pemeriksa deploy harus memeriksa manifest + App Links dan mengharapkan JSON
+  // untuk berkas data (bukan text/html), agar tidak melaporkan GAGAL palsu.
+  const deploy = readFileSync(new URL('../scripts/check-deploy.mjs', import.meta.url), 'utf8')
+  assert.match(deploy, /manifest\.webmanifest/)
+  assert.match(deploy, /assetlinks\.json/)
+  assert.match(deploy, /version\.json/)
+  assert.match(deploy, /includes\('json'\)/)
+})
+
+test('tautan adzan (?adzan=) dibaca saat mulai dan saat rute berubah lewat App Link', () => {
+  const adzan = readFileSync(new URL('../src/services/adzan.js', import.meta.url), 'utf8')
+  // Di APK, appUrlOpen tiba SETELAH modul dievaluasi; sekali-periksa saja akan melewatkannya.
+  assert.match(adzan, /addEventListener\('qk:route', consumeAdzanQuery\)/, 'periksa ulang adzan setiap rute berganti')
+  // Hanya parameter adzan yang dibuang; query lain tetap untuk halaman.
+  assert.match(adzan, /params\.delete\('adzan'\)/)
+  assert.doesNotMatch(adzan, /history\.replaceState\(null, '', location\.pathname\)\n\s*if \(NAME\[key\]/, 'jangan membuang seluruh query')
+})
+
+test('parameter rute dengan persen rusak tidak mengosongkan halaman', async () => {
+  const { decodeParam } = await import('../src/router.js')
+  // Tautan yang terpotong (mis. /surah/%E0%A4) membuat decodeURIComponent melempar URIError.
+  assert.equal(decodeParam('%E0%A4%A'), '%E0%A4%A')
+  assert.equal(decodeParam('2'), '2')
+  assert.equal(decodeParam('doa%2Fharian'), 'doa/harian')
+  // Router memakai helper ini, bukan decodeURIComponent langsung.
+  const router = readFileSync(new URL('../src/router.js', import.meta.url), 'utf8')
+  assert.doesNotMatch(router, /params\[k\] = decodeURIComponent\(/, 'parameter harus lewat decodeParam')
+})
+
+test('manifest & notifikasi memakai URL bersih, bukan bentuk hash lama', () => {
+  const m = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8'))
+  for (const s of m.shortcuts) {
+    assert.ok(s.url.startsWith('/'), s.url)
+    assert.doesNotMatch(s.url, /#/, `pintasan ${s.name} memakai URL bersih`)
+  }
+  // Nama rute pintasan harus benar-benar ada di router.
+  const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8')
+  const routes = [...app.matchAll(/addRoute\('([^']*)'/g)].map((x) => x[1])
+  for (const s of m.shortcuts) assert.ok(routes.includes(s.url), `pintasan ${s.url} harus rute nyata`)
+  // Service worker membuka URL bersih saat pemberitahuan diketuk.
+  const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8')
+  assert.doesNotMatch(sw, /openWindow\(`\/#/, 'notifikasi tidak boleh membuka /#/…')
+  assert.match(sw, /routeQuery\.set\('adzan'/, 'adzan diteruskan lewat query, bukan hash')
 })
 
 test('bar "buka di aplikasi": hanya untuk peramban dalam aplikasi Android, menunjuk halaman aktif', async () => {
@@ -1396,6 +1448,9 @@ test('bar "buka di aplikasi": hanya untuk peramban dalam aplikasi Android, menun
   assert.match(opener, /linkOpenerUrl\(path\)/)
   assert.match(opener, /qk:route/)
   assert.match(opener, /Buka di aplikasi QuranKu/)
+  // render() mengganti innerHTML; penangan klik harus menempel di wadah bar, bukan tombol lama.
+  assert.match(opener, /bar\.addEventListener\('click'/)
+  assert.doesNotMatch(opener, /bar\.querySelector\('\[data-opener-close\]'\)\.onclick/, 'penangan tombol tutup tidak boleh hilang saat render ulang')
   // Ajakan Play di beranda tidak diubah (permintaan pengguna: tampilkan unduhan Play di situs).
   const home = readFileSync(new URL('../src/pages/home.js', import.meta.url), 'utf8')
   assert.match(home, /Gratis di Google Play/)

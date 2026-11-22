@@ -40,8 +40,13 @@ page.on('request', (req) => {
   }
   return req.abort()
 })
-const go = async (hash) => {
-  await page.evaluate((h) => (location.hash = h), hash)
+// Router memakai History API: perubahan location.hash tidak lagi memicu render
+// (hanya hashchange, yang tidak didengarkan). Navigasi lewat riwayat peramban.
+const go = async (path) => {
+  await page.evaluate((p) => {
+    history.pushState(null, '', p)
+    dispatchEvent(new PopStateEvent('popstate'))
+  }, path)
   await new Promise((r) => setTimeout(r, 700))
 }
 const openReaderMenu = async () => {
@@ -326,10 +331,10 @@ await step('Tafsir tampil', async () => {
 await step('Pencarian: 2:255, juz 30, kata terjemahan', async () => {
   await go('/cari')
   await page.type('.search-box input', '2:255')
-  await page.waitForSelector('a[href="#/surah/2/255"]')
+  await page.waitForSelector('a[href="/surah/2/255"]')
   await page.$eval('.search-box input', (e) => (e.value = ''))
   await page.type('.search-box input', 'juz 30')
-  await page.waitForSelector('a[href="#/surah/78/1"]')
+  await page.waitForSelector('a[href="/surah/78/1"]')
   await page.$eval('.search-box input', (e) => (e.value = ''))
   await page.type('.search-box input', 'sapi betina')
   await page.waitForSelector('.hit')
@@ -423,20 +428,20 @@ await step('Ayat pilihan: bagikan sebagai teks atau PNG; salin adalah tindakan t
   assert.equal(hrefs.length, 4)
   assert.match(hrefs[0], /^https:\/\/wa\.me\//)
   assert.ok(decodeURIComponent(hrefs[0]).includes('QS. '))
-  assert.ok(decodeURIComponent(hrefs[0]).includes('quran.cgs.my.id/#/surah/'))
+  assert.ok(decodeURIComponent(hrefs[0]).includes('quran.cgs.my.id/surah/'))
   assert.equal(await page.evaluate(() => window.__shareCalls.length), 0, 'Bagikan menampilkan pilihan, bukan langsung membuka share native')
   assert.equal(await page.evaluate(() => window.__copied), '', 'Bagikan tidak menyalin diam-diam')
   await page.$eval('.sheet-wrap.open [data-native]', (b) => b.click())
   await page.waitForFunction(() => window.__shareCalls.length === 1)
   const shared = await page.evaluate(() => window.__shareCalls[0])
   assert.ok(shared.title.startsWith('QS. '))
-  assert.ok(shared.url.includes('#/surah/'))
+  assert.ok(shared.url.includes('/surah/'))
   assert.equal(await page.evaluate(() => window.__copied), '', 'Aplikasi lain tidak menyalin')
   await page.$eval('[data-ayah-share]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open .share-grid')
   await page.$eval('.sheet-wrap.open [data-copyshare]', (b) => b.click())
   await page.waitForFunction(() => window.__copied.length > 0)
-  assert.ok((await page.evaluate(() => window.__copied)).includes('quran.cgs.my.id/#/surah/'))
+  assert.ok((await page.evaluate(() => window.__copied)).includes('quran.cgs.my.id/surah/'))
 
   await page.$eval('[data-ayah-share]', (b) => b.click())
   await page.waitForSelector('.sheet-wrap.open [data-image-create]')
@@ -485,7 +490,7 @@ await step('Ayat pilihan: bagikan sebagai teks atau PNG; salin adalah tindakan t
   assert.equal(imageInspection.transparentPixels, 0, 'latar PNG hasil berbagi terisi penuh dan tidak transparan')
   assert.ok(imageInspection.topLeft[3] === 255, 'piksel sudut memiliki latar yang nyata')
   assert.equal(imageInspection.fingerprint, await page.evaluate(() => window.__previewImageFingerprint), 'berkas berbagi identik dengan pratinjau')
-  assert.ok(imageShare.text.includes('quran.cgs.my.id/#/surah/'))
+  assert.ok(imageShare.text.includes('quran.cgs.my.id/surah/'))
 
   await page.$eval('[data-ayah-next]', (b) => b.click())
   await page.waitForFunction((b) => document.querySelector('.ayah-day .link') && document.querySelector('.ayah-day .link').textContent.trim() !== b, {}, before)
@@ -1041,13 +1046,13 @@ await step('Murottal: bagikan audio tanpa memulai ulang; kontrol pemutar & baris
   const audioLinks = await page.$$eval('.sheet-wrap.open .share-opt[data-net]', (a) => a.map((x) => x.href))
   assert.equal(audioLinks.length, 4)
   assert.ok(decodeURIComponent(audioLinks[0]).includes('Tautan audio: https://audio.test/full/36.mp3'))
-  assert.ok(decodeURIComponent(audioLinks[0]).endsWith('https://quran.cgs.my.id/#/murottal'))
+  assert.ok(decodeURIComponent(audioLinks[0]).endsWith('https://quran.cgs.my.id/murottal'))
   assert.equal(await page.evaluate(() => window.__shareCalls.length), 0, 'Bagikan audio membuka pilihan sosial')
   await page.$eval('.sheet-wrap.open [data-native]', (b) => b.click())
   await page.waitForFunction(() => window.__shareCalls.length === 1)
   const audioShare = await page.evaluate(() => window.__shareCalls[0])
   assert.ok(audioShare.text.includes('Tautan audio:'))
-  assert.ok(audioShare.url.endsWith('/#/murottal'))
+  assert.ok(audioShare.url.endsWith('/murottal'))
   assert.equal(await text('.now-playing h2'), beforeAudio, 'membagikan audio tidak menjalankan aksi play')
   assert.equal(await page.$eval('.now-playing', (e) => e.classList.contains('is-idle')), true)
   await page.select('[data-repeat]', 'none')
@@ -1088,7 +1093,7 @@ await step('Murottal: bagikan audio tanpa memulai ulang; kontrol pemutar & baris
   assert.equal(await text('.asma-detail h3'), 'Ar-Rahiim')
   assert.equal(await count('.asma-sec'), 3)
   assert.match(await text('.asma-sec p'), /Kasih sayang Allah/)
-  assert.equal(await page.$eval('.asma-refs a', (a) => a.getAttribute('href')), '#/surah/33/43')
+  assert.equal(await page.$eval('.asma-refs a', (a) => a.getAttribute('href')), '/surah/33/43')
   await new Promise((r) => setTimeout(r, 350))
   await shot('22-asmaul-husna-detail')
   await page.$eval('.sheet-wrap button[data-close]', (b) => b.click())
@@ -1167,7 +1172,7 @@ await step('Adzan berbunyi otomatis tepat saat masuk waktu salat', async () => {
   }, magrib.getTime() - 20000 - Date.now())
   const reqs = []
   p3.on('request', (r) => r.url().includes('cdn.aladhan.com') && reqs.push(r.url()))
-  await p3.goto(BASE + '/#/salat', { waitUntil: 'domcontentloaded' })
+  await p3.goto(BASE + '/salat', { waitUntil: 'domcontentloaded' })
   await p3.waitForSelector('.adzan-card')
   assert.equal(await p3.$('#adzan-bar.show'), null, 'belum waktunya → belum berbunyi')
   await p3.waitForSelector('#adzan-bar.show', { timeout: 45000 })

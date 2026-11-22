@@ -15,6 +15,16 @@ let attached = false
 
 /** Kenali ponsel Android (termasuk tablet) — intent:// hanya berarti di Android. */
 const isAndroid = (ua = navigator.userAgent) => /Android/i.test(ua)
+/** Jalur aktif saat ini (termasuk query, mis. ?adzan=subuh), aman sebelum router siap. */
+const defaultPath = () => {
+  try {
+    const { path, query } = currentRoute()
+    const qs = new URLSearchParams(query).toString()
+    return qs ? `${path}?${qs}` : path
+  } catch {
+    return '/'
+  }
+}
 
 export const openerDismissed = () => {
   try {
@@ -33,15 +43,16 @@ export const dismissOpener = () => {
 }
 
 /** Tampilkan bar hanya bila halaman sedang dibuka di peramban dalam aplikasi di Android. */
-export function attachAppOpener(getPath = () => currentRoute().path) {
+export function attachAppOpener(getPath = defaultPath) {
   if (attached) return
-  attached = true
   if (!isAndroid() || !isInAppBrowser() || openerDismissed()) return
+  attached = true
   const bar = document.createElement('div')
   bar.className = 'app-opener'
   bar.setAttribute('role', 'region')
   bar.setAttribute('aria-label', 'Buka QuranKu di aplikasi')
   const render = () => {
+    if (!bar.isConnected) return
     const path = getPath()
     bar.innerHTML = `
       <span class="app-opener-ic">${icon('forward')}</span>
@@ -49,15 +60,18 @@ export function attachAppOpener(getPath = () => currentRoute().path) {
       <a class="btn btn-primary btn-sm" data-opener-open href="${esc(linkOpenerUrl(path))}">Buka</a>
       <button class="icon-btn sm" type="button" data-opener-close aria-label="Tutup pemberitahuan">${icon('close')}</button>`
   }
-  render()
-  const close = bar.querySelector('[data-opener-close]')
-  close.onclick = () => {
+  // Satu pendengar untuk seluruh isi bar: render() mengganti innerHTML, jadi penangan yang
+  // ditempel ke tombol lama akan hilang dan tombol tutup berhenti bekerja setelah navigasi.
+  bar.addEventListener('click', (e) => {
+    if (!e.target.closest?.('[data-opener-close]')) return
+    e.preventDefault()
     dismissOpener()
     bar.remove()
-  }
+  })
   const view = document.getElementById('view')
   if (view && view.parentNode) view.parentNode.insertBefore(bar, view)
   else document.body.prepend(bar)
+  render()
   // Jalur berubah saat pengguna menavigasi: perbarui tautan agar tetap menunjuk halaman aktif.
   document.addEventListener('qk:route', render)
 }

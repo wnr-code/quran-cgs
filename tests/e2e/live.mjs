@@ -28,13 +28,14 @@ const step = async (name, fn) => {
   }
   console.log(line)
 }
-const go = (hash) => page.goto(`${BASE}/#${hash}`, { waitUntil: 'domcontentloaded' })
+// URL bersih (tanpa #) — bentuk hash lama hanya kompatibilitas, bukan jalur utama.
+const go = (path) => page.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' })
 const T = { timeout: 45000 }
 
 await step('Daftar 114 surah dari API sungguhan', async () => {
   await go('/quran')
-  await page.waitForSelector('a[href="#/surah/114"]', T)
-  assert.equal(await page.$$eval('a[href^="#/surah/"]', (a) => new Set(a.map((x) => x.getAttribute('href'))).size), 114)
+  await page.waitForSelector('a[href="/surah/114"]', T)
+  assert.equal(await page.$$eval('a[href^="/surah/"]', (a) => new Set(a.map((x) => x.getAttribute('href'))).size), 114)
 })
 await step('Al-Baqarah: 286 ayat dari sumber utama (bukan cadangan), satu basmalah', async () => {
   await go('/surah/2')
