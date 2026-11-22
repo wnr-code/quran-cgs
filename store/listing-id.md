@@ -72,6 +72,9 @@ Play (sisi 320–3840 px, rasio maksimum 2:1, PNG tanpa transparansi, maksimum 8
 | 7 | `07-asmaul-husna.png` | 99 nama Allah dengan kartu arti |
 | 8 | `08-offline.png` | Kelola Offline: penyimpanan, unduh surah |
 
+Play menerima **maksimal 8** screenshot per jenis perangkat, jadi daftar ini berhenti di 8 — skrip
+sebelumnya masih membuat gambar ke-9 (halaman Infaq) sehingga melewati batas.
+
 **Urutan ini disengaja**: Play hanya menampilkan ~2 gambar pertama tanpa digeser, jadi Beranda
 (siapa aplikasi ini) dan daftar surah (isi utamanya) ditaruh paling depan.
 
@@ -81,12 +84,15 @@ Cara membuat ulang:
 npm ci
 npm run build
 npm run gen:shots:app          # butuh Chromium; set CHROME_PATH bila tidak di lokasi standar
-TZ=Asia/Jakarta npm run gen:shots:app   # penting: tanpa TZ, jam salat tampil dalam UTC
 ```
 
-> **Waktu di screenshot.** Jadwal salat dihitung lokal memakai `getHours()`, jadi hasilnya mengikuti zona
-> waktu perangkat yang menjalankan skrip. Di mesin UTC, Subuh tampil 20:57 — angka yang salah untuk pembaca
-> Indonesia. Selalu jalankan dengan `TZ=Asia/Jakarta` (atau zona Indonesia lain yang sesuai).
+> **Zona waktu sudah ditangani skrip.** Jadwal salat dihitung lokal memakai `getHours()`, jadi hasilnya
+> mengikuti zona waktu mesin. Di mesin UTC, Subuh tampil 20:57 dan Magrib 10:50 — angka yang mustahil.
+> Skrip kini menetapkan `process.env.TZ = 'Asia/Jakarta'` sendiri, dan **memeriksa** jam hasil render
+> (Subuh 00:00–08:00, Zuhur 10:00–14:00, Magrib 15:00–20:00, serta urutan wajib yang menaik). Bila
+> pemeriksaan itu gagal, skrip berhenti dengan pesan jelas alih-alih menghasilkan screenshot salah.
+>
+> Mengganti zona: `TZ=Asia/Makassar npm run gen:shots:app` (nilai dari lingkungan tidak ditimpa).
 
 Data screenshot berasal dari `scripts/play-shots-fixture.mjs`: teks Arab asli dari `public/data/`
 (paket `quran-json`), terjemahan contoh untuk beberapa ayat, dan tanpa jaringan sama sekali.
