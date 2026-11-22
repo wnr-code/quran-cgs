@@ -17,6 +17,11 @@ import { existsSync } from 'node:fs'
 import { extname, join, normalize } from 'node:path'
 import { surahDetail, surahList, tafsir } from './play-shots-fixture.mjs'
 
+// Zona waktu WAJIB dipaksa sebelum modul lain memakai `Date`. Jadwal salat dihitung di perangkat
+// dan diformat dengan getHours(), jadi mesin UTC menghasilkan Subuh 20:57 / Magrib 10:50 — angka
+// yang tidak masuk akal untuk pembaca Indonesia. Tanpa baris ini, hasilnya bergantung pada TZ mesin.
+if (!process.env.TZ) process.env.TZ = 'Asia/Jakarta'
+
 const ROOT = new URL('../dist/', import.meta.url).pathname
 const OUT = new URL('../store/screenshots/', import.meta.url).pathname
 const PORT = Number(process.env.PORT || 5182)
@@ -241,7 +246,45 @@ await shot('04-surah-albaqarah.png', '/surah/2', { waitFor: '.ayah, .ayah-card, 
 await shot('05-doa.png', '/doa', { waitFor: 'main' })
 
 // 6 — Jadwal salat.
-await shot('06-jadwal-salat.png', '/salat', { waitFor: 'main' })
+await shot('06-jadwal-salat.png', '/salat', { waitFor: '.prayer-list, main' })
+
+/**
+ * Penjaga: jam salat harus berurutan dalam satu hari dan masuk akal.
+ * Tanpa pemeriksaan ini, screenshot dengan Subuh 20:57 / Magrib 10:50 bisa lolos ke Play Store
+ * hanya karena tampilannya rapi — persis bug yang lolos pada versi sebelumnya.
+ */
+{
+  const jam = await page.$$eval('.prayer-list li', (rows) =>
+    rows.map((li) => {
+      const name = (li.querySelector('span')?.textContent || '').trim()
+      const clock = (li.querySelector('b')?.textContent || '').trim()
+      const m = /^(\d{2}):(\d{2})$/.exec(clock)
+      return { name, clock, minutes: m ? +m[1] * 60 + +m[2] : null }
+    })
+  )
+  console.log('  jam salat:', jam.map((j) => `${j.name} ${j.clock}`).join(' · '))
+  if (jam.length < 5) throw new Error(`jadwal salat tidak lengkap (${jam.length} baris)`)
+  for (const row of jam) {
+    if (row.minutes == null) throw new Error(`jam salat "${row.name}" tidak terbaca: ${row.clock}`)
+  }
+  // Subuh harus pagi (00:00–08:00) dan Magrib harus sore (15:00–20:00) untuk garis lintang Indonesia.
+  const subuh = jam.find((j) => /subuh/i.test(j.name))
+  const magrib = jam.find((j) => /magrib/i.test(j.name))
+  const zuhur = jam.find((j) => /zuhur/i.test(j.name))
+  if (subuh && !(subuh.minutes >= 0 && subuh.minutes <= 8 * 60)) throw new Error(`Subuh ${subuh.clock} tidak masuk akal (zona waktu salah?)`)
+  if (magrib && !(magrib.minutes >= 15 * 60 && magrib.minutes <= 20 * 60)) throw new Error(`Magrib ${magrib.clock} tidak masuk akal (zona waktu salah?)`)
+  if (zuhur && !(zuhur.minutes >= 10 * 60 && zuhur.minutes <= 14 * 60)) throw new Error(`Zuhur ${zuhur.clock} tidak masuk akal (zona waktu salah?)`)
+  // Urutan waktu salat wajib naik dalam satu hari.
+  const wajib = ['subuh', 'zuhur', 'asar', 'magrib', 'isya'].map((k) => jam.find((j) => new RegExp(k, 'i').test(j.name)))
+  if (wajib.every(Boolean)) {
+    for (let i = 1; i < wajib.length; i++) {
+      if (wajib[i].minutes <= wajib[i - 1].minutes) {
+        throw new Error(`urutan salat tidak naik: ${wajib[i - 1].name} ${wajib[i - 1].clock} → ${wajib[i].name} ${wajib[i].clock}`)
+      }
+    }
+  }
+  console.log(`  ✓ jam salat wajar (TZ=${process.env.TZ})`)
+}
 
 // 7 — Asmaul Husna.
 await shot('07-asmaul-husna.png', '/asmaul-husna', { waitFor: 'main' })
@@ -249,11 +292,9 @@ await shot('07-asmaul-husna.png', '/asmaul-husna', { waitFor: 'main' })
 // 8 — Kelola Offline.
 await shot('08-offline.png', '/offline', { waitFor: 'main' })
 
-// 9 — Papan Kebaikan (anonim).
-await shot('09-infaq-papan.png', '/infaq', { waitFor: '.doa-item, main' })
-
-// Play hanya menerima 2–8 screenshot per jenis perangkat, jadi berhenti di 8.
-// Halaman Pengaturan sudah diwakili oleh tema di beranda; tidak difoto agar tetap di dalam batas.
+// Play hanya menerima 2–8 screenshot per jenis perangkat. Berhenti di 8 supaya tidak melewati
+// batas — sebelumnya skrip ini masih menghasilkan 9. Halaman Infaq dan Pengaturan tidak difoto:
+// keduanya bukan fitur utama yang dicari saat memilih aplikasi Al-Qur'an.
 
 await browser.close()
 server.close()

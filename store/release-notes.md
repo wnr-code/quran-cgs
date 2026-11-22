@@ -4,7 +4,7 @@ Teks untuk **Play Console → Test and release → Rilis → "Apa yang baru"** (
 Batas resmi: **500 karakter per bahasa**. Satu catatan per rilis; rilis berikutnya menimpa yang lama,
 jadi catatan ini hanya perlu memuat perubahan sejak versi yang sedang dipakai pengguna.
 
-## 1.4.44 — 22 November 2026 (untuk rilis yang akan datang)
+## 1.4.45 — 22 November 2026 (untuk rilis yang akan datang)
 
 ```
 Tautan quran.cgs.my.id dari WhatsApp kini terbuka langsung di aplikasi, tepat pada surah, ayat, atau jadwal salat yang dituju. Alamat halaman juga lebih bersih tanpa tanda #.
@@ -15,8 +15,8 @@ Perbaikan: Kelola Offline normal, tidak ada halaman kosong pada tautan rusak, no
 
 **429/500 karakter.** Aman bila Play menghitung spasi/baris baru (sebagian penghitung melakukannya).
 
-Perubahan di 1.4.44 hanya dokumen (deskripsi listing & catatan rilis) serta skrip screenshot —
-tidak ada perubahan yang terlihat pengguna, jadi isi catatan rilis tidak berubah dari draf 1.4.43.
+1.4.44–1.4.45 hanya menyentuh dokumen (deskripsi listing, catatan rilis) dan skrip pembuat
+screenshot — tidak ada perubahan yang terlihat pengguna, jadi isinya tidak berubah dari draf 1.4.43.
 
 ### Mengapa kalimatnya begitu
 

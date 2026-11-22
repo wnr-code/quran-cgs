@@ -1141,6 +1141,34 @@ test('ikon: manifest menunjuk berkas berversi yang benar-benar ada', () => {
   for (const [, href] of html.matchAll(/href="(\/icons\/[^"]+)"/g)) assert.ok(existsSync('public' + href), href)
 })
 
+test('skrip screenshot Play: memaksa TZ Indonesia, maksimal 8 gambar, dan memeriksa jam salat', () => {
+  // Dua bug yang lolos ke PR sebelumnya:
+  //  1. Skrip menghasilkan 9 gambar padahal Play hanya menerima 8.
+  //  2. Skrip bergantung pada TZ mesin; di mesin UTC jam salat jadi Subuh 20:57 / Magrib 10:50.
+  // Tes ini membaca sumber skripnya supaya keduanya tidak bisa kembali tanpa ketahuan.
+  const src = readFileSync(new URL('../scripts/gen-play-shots-app.mjs', import.meta.url), 'utf8')
+
+  // Zona waktu dipaksa SEBELUM modul lain memakai Date.
+  const tzAt = src.indexOf("process.env.TZ")
+  const firstImportAfterShebang = src.indexOf('\nimport ')
+  assert.ok(tzAt > 0, 'skrip harus menetapkan process.env.TZ')
+  assert.match(src.slice(tzAt - 200, tzAt + 120), /Asia\/Jakarta/, 'zona waktu default harus Asia/Jakarta')
+  assert.ok(tzAt < src.indexOf('const STATE'), 'TZ harus ditetapkan sebelum state & render apa pun')
+  assert.ok(tzAt < src.indexOf('await shot('), 'TZ harus ditetapkan sebelum screenshot pertama')
+  assert.ok(firstImportAfterShebang < tzAt, 'penetapan TZ boleh setelah blok import (desain Node ESM)')
+
+  // Jumlah gambar yang dihasilkan tidak boleh melebihi batas Play.
+  const shots = [...src.matchAll(/await shot\('(\d{2})-[^']+\.png'/g)].map((m) => Number(m[1]))
+  assert.ok(shots.length <= 8, `skrip menghasilkan ${shots.length} gambar (Play: maksimal 8)`)
+  assert.ok(shots.length >= 2, `skrip menghasilkan ${shots.length} gambar (Play: minimal 2)`)
+  assert.deepEqual(shots, Array.from({ length: shots.length }, (_, i) => i + 1), 'nomor shot harus berurutan 1..n')
+
+  // Harus ada pemeriksaan jam salat yang masuk akal sebelum skrip dianggap selesai.
+  assert.match(src, /\.prayer-list li/, 'skrip harus membaca baris jadwal salat dari DOM')
+  assert.match(src, /tidak masuk akal \(zona waktu salah\?\)/, 'harus ada penjaga jam tidak masuk akal')
+  assert.match(src, /urutan salat tidak naik/, 'harus ada penjaga urutan waktu salat')
+})
+
 test('screenshot Play: 2-8 berkas, 1080x1920, rasio <= 2:1, tanpa alpha', () => {
   // Play menolak screenshot dengan rasio > 2:1. Berkas lama 824x1830 (2,22:1) melanggar aturan itu,
   // jadi screenshot di store/screenshots/ harus lolos pemeriksaan ini sebelum diunggah.
