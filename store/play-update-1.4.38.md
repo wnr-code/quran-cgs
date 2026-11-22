@@ -154,6 +154,10 @@ Untuk screenshot di luar halaman Infaq, berkas lama masih akurat kecuali yang me
 
 ## 5. Catatan rilis untuk versi 1.4.38
 
+> **Sudah basi — jangan dipakai untuk rilis baru.** Catatan rilis terkini ada di
+> [`store/release-notes.md`](release-notes.md) (versi teratas = versi yang akan diunggah).
+> Blok di bawah disimpan sebagai arsip 1.4.38.
+
 Tempel ke Play Console → **Release → What's new** (420/500 karakter):
 
 ```

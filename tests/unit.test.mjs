@@ -1141,6 +1141,31 @@ test('ikon: manifest menunjuk berkas berversi yang benar-benar ada', () => {
   for (const [, href] of html.matchAll(/href="(\/icons\/[^"]+)"/g)) assert.ok(existsSync('public' + href), href)
 })
 
+test('catatan rilis Play: <= 500 karakter, satu blok per versi, tanpa larangan', () => {
+  const notes = readFileSync(new URL('../store/release-notes.md', import.meta.url), 'utf8')
+  const versi = [...notes.matchAll(/^## (\d+\.\d+\.\d+) — /gm)].map((m) => m[1])
+  assert.ok(versi.length >= 1, 'minimal satu catatan rilis')
+  // Bagian "1.4.x — tanggal" harus urut dari terbaru dan versinya cocok dengan package.json.
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+  assert.equal(versi[0], pkg.version, `catatan teratas harus versi terpasang (${pkg.version})`)
+  const blok = [...notes.matchAll(/^## ([^\n]+)\n\n```\n([\s\S]*?)\n```/gm)]
+  assert.equal(blok.length, versi.length, 'setiap versi punya satu blok teks siap tempel')
+  for (const [, judul, teks] of blok) {
+    assert.ok(teks.length <= 500, `${judul}: ${teks.length}/500 karakter`)
+    assert.ok(teks.trim().split('\n').length <= 5, `${judul}: maksimal 5 baris`)
+    // Google: What's new dipakai untuk memberi tahu perubahan — bukan promosi dan bukan
+    // meminta pengguna melakukan sesuatu (rating, unduh, bagikan). Menyebut nama aplikasi lain
+    // sebagai konteks ("tautan dari WhatsApp") TIDAK dilarang.
+    assert.doesNotMatch(
+      teks,
+      /beri(kan)? ?(rating|ulasan|bintang)|rating 5|ulasan positif|unduh sekarang|pasang sekarang|segera perbarui|update sekarang|bagikan ke teman/i,
+      `${judul}: What's new tidak untuk promosi atau meminta pengguna bertindak`
+    )
+    assert.doesNotMatch(teks, /\b(rating|ulasan)\b/i, `${judul}: jangan membahas rating/ulasan di What's new`)
+    assert.doesNotMatch(teks, /\?{2,}|TODO|xxx/i, `${judul}: teks belum selesai`)
+  }
+})
+
 test('listing Play Store: angka & klaim cocok dengan kode', async () => {
   const listing = readFileSync(new URL('../store/listing-id.md', import.meta.url), 'utf8')
   const [nama, singkat, lengkap] = (() => {
