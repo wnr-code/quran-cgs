@@ -1141,6 +1141,45 @@ test('ikon: manifest menunjuk berkas berversi yang benar-benar ada', () => {
   for (const [, href] of html.matchAll(/href="(\/icons\/[^"]+)"/g)) assert.ok(existsSync('public' + href), href)
 })
 
+test('listing Play Store: angka & klaim cocok dengan kode', async () => {
+  const listing = readFileSync(new URL('../store/listing-id.md', import.meta.url), 'utf8')
+  const [nama, singkat, lengkap] = (() => {
+    const n = /\*\*Nama aplikasi \(maks\. 30\):\*\* (.+)/.exec(listing)[1].trim()
+    const sh = /\*\*Deskripsi singkat \(maks\. 80\):\*\*\n(.+)/.exec(listing)[1].trim()
+    const i = listing.indexOf('**Deskripsi lengkap (maks. 4000):**') + '**Deskripsi lengkap (maks. 4000):**'.length
+    return [n, sh, listing.slice(i, listing.indexOf('**Kategori:**')).trim()]
+  })()
+  // Batas resmi Play Console.
+  assert.ok(nama.length <= 30, `nama ${nama.length}/30`)
+  assert.ok(singkat.length <= 80, `deskripsi singkat ${singkat.length}/80`)
+  assert.ok(lengkap.length <= 4000, `deskripsi lengkap ${lengkap.length}/4000`)
+
+  // Angka di deskripsi harus sama dengan data aplikasi — "Tahlil 28 langkah" pernah salah.
+  const { TAHLIL } = await import('../src/data/tahlil.json', { with: { type: 'json' } }).then((m) => ({ TAHLIL: m.default }))
+  const { AYAH_IMAGE_THEMES } = await import('../src/utils/ayah-image.js')
+  const { QARI, QARI_AYAH } = await import('../src/config.js')
+  const asmaul = JSON.parse(readFileSync(new URL('../src/data/asmaul-husna.json', import.meta.url), 'utf8'))
+  // Angka yang boleh muncul: batas Play Store/resolusi/versi Android, contoh referensi ayat,
+  // dan angka yang benar-benar diuji di bawah terhadap data aplikasi.
+  const DIIZINKAN = new Set([2, 6, 9, 12, 16, 22, 29, 30, 31, 99, 114, 255, 720, 1280, 4000])
+  const disebut = new Set([...lengkap.matchAll(/\b(\d{1,4})\b/g)].map((m) => +m[1]))
+  for (const n of disebut) {
+    assert.ok(DIIZINKAN.has(n), `angka ${n} di deskripsi belum diverifikasi terhadap data aplikasi`)
+  }
+  assert.equal(TAHLIL.items.length, 29, 'Tahlil berisi 29 bacaan')
+  assert.ok(lengkap.includes(`${TAHLIL.items.length} bacaan`), 'jumlah bacaan Tahlil harus dari data')
+  assert.equal(AYAH_IMAGE_THEMES.length, 22)
+  assert.ok(lengkap.includes(`${AYAH_IMAGE_THEMES.length} tema`), 'jumlah tema poster harus dari data')
+  assert.equal(Object.keys(QARI).length, 31)
+  assert.equal(Object.keys(QARI_AYAH).length, 6)
+  assert.ok(lengkap.includes(`${Object.keys(QARI).length} pilihan qari`), 'jumlah qari harus dari data')
+  assert.equal(asmaul.items.length, 99)
+  // Klaim privasi tidak boleh menyangkal adanya transmisi (lihat data-safety.md).
+  assert.doesNotMatch(lengkap, /tidak mengumpulkan data apa pun/i)
+  assert.match(lengkap, /Trakteer/, 'infaq & pemroses pembayaran disebut')
+  assert.match(lengkap, /Nominatim/, 'pencarian nama wilayah disebut')
+})
+
 test('Asmaul Husna v2: 99 nama lengkap dengan makna, faedah, dan rujukan ayat yang sah', async () => {
   const { readFileSync } = await import('node:fs')
   const data = JSON.parse(readFileSync(new URL('../src/data/asmaul-husna.json', import.meta.url), 'utf8'))

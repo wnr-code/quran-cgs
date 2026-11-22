@@ -32,9 +32,13 @@ JADWAL SALAT & IBADAH
 • Arah kiblat dan kalender Hijriah, termasuk hari besar, catatan, serta pengingat pribadi pada tanggal pilihan.
 • Tasbih digital.
 
+POSTER AYAT & BERBAGI
+• Buat poster 9:16 (720 × 1280) dari ayat, doa, atau Asmaul Husna — pilih dari 22 tema, lalu simpan sebagai PNG/JPG atau bagikan ke Status WhatsApp.
+• Bagikan teks ayat atau doa beserta tautan halaman yang bisa langsung dibuka penerima, atau salin ke papan klip.
+
 DOA & ZIKIR
 • Doa harian berdasarkan kategori, doa wudhu, serta wirid dan doa usai salat.
-• Tahlil & Doa Arwah versi Lengkap dalam 28 langkah.
+• Tahlil & Doa Arwah versi Lengkap: 29 bacaan berurutan, dari Tawassul hingga doa penutup.
 • Asmaul Husna: 99 nama beserta arti, makna, faedah, dan rujukan ayat.
 
 OFFLINE & NOTIFIKASI
@@ -51,6 +55,14 @@ Sumber data: EQuran.id dan Al Quran Cloud (teks, terjemahan, tafsir, dan audio);
 **Tag:** Al-Qur'an, Islam, Murottal, Jadwal Salat
 **Kebijakan privasi:** https://quran.cgs.my.id/privacy.html
 **Situs:** https://quran.cgs.my.id
+
+## Catatan penulisan deskripsi
+
+- **Setiap angka harus bisa dicek ke kode.** Pernah tertulis "Tahlil 28 langkah" padahal `src/data/tahlil.json` berisi **29** bacaan. Angka lain yang aman dikutip: 114 surah, 30 juz, 99 Asmaul Husna, 31 qari (6 per ayat + 25 surah penuh), 22 tema poster, poster 720 × 1280 (9:16).
+- **Jangan menyebut fitur yang belum ada.** Play menghapus listing yang deskripsinya menjanjikan fitur tidak nyata. Sebelum menambah klaim, buka kodenya: rute ada di `src/app.js`, data di `src/data/`, teks fitur di `src/pages/`.
+- **Jangan pernah menulis "tidak mengumpulkan data apa pun"** — lihat `store/data-safety.md`; ada transmisi opsional (nama wilayah ke Nominatim, infaq, Web Push di PWA).
+- **Kata kunci alami, tanpa penumpukan.** Sebut istilah yang benar-benar dicari orang: Al-Qur'an, murottal/qari, tafsir, jadwal salat, azan/adzan, kiblat, doa harian, Tahlil, Asmaul Husna, offline. Jangan mengulang satu kata kunci berkali-kali; itu alasan umum listing ditolak.
+- **Deskripsi singkat (80 karakter)** muncul di hasil pencarian — bagian awal harus memuat manfaat, bukan nama fitur internal.
 
 ## Aset
 | Aset | Berkas |
