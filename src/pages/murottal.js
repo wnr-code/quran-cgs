@@ -193,11 +193,16 @@ export default async function murottal(root) {
       return
     }
     if (e.target.closest('[data-share-audio]')) {
+      // Jangan berhenti ketika audio belum diketahui: daftar surah dari sumber cadangan tidak
+      // menyertakan audioFull (dan proxy /api/quran memang tidak meneruskannya), sehingga
+      // pickSurahAudio() mengembalikan null dan tombol bagikan tampak mati. Halaman Murottal
+      // tetap bermakna untuk dibagikan, jadi teruskan tautannya dengan keterangan seadanya.
       const pick = audio.pickSurahAudio(s)
-      if (!pick) return toast('Audio surah tidak tersedia untuk dibagikan.')
-      const qari = QARI[pick.qari] || 'Murottal'
-      const title = `${s.namaLatin} — Murottal ${qari}`
-      const text = `Dengarkan murottal Surah ${s.namaLatin} oleh ${qari}.\nTautan audio: ${pick.url}`
+      const qari = pick ? QARI[pick.qari] || 'Murottal' : ''
+      const title = pick ? `${s.namaLatin} — Murottal ${qari}` : `${s.namaLatin} — Murottal`
+      const text = pick
+        ? `Dengarkan murottal Surah ${s.namaLatin} oleh ${qari}.\nTautan audio: ${pick.url}`
+        : `Dengarkan murottal Surah ${s.namaLatin} di QuranKu.`
       openShare(
         { title, text, url: `${APP.origin}/murottal` },
         { title: 'Bagikan audio', what: 'audio', hint: 'Bagikan tautan audio langsung dan halaman Murottal melalui media sosial atau aplikasi lain.' }
