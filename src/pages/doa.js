@@ -166,11 +166,11 @@ export default function doa(root, { params = {} } = {}) {
   async function fillQuran(det) {
     const d = DOA_QURAN[+det.dataset.i]
     const slot = $('[data-slot]', det)
-    if (slot.dataset.done) return
+    if (slot.dataset.loaded) return
     try {
       const surah = await getSurah(d.s)
       const ay = surah.ayat.slice(d.from - 1, d.to)
-      slot.dataset.done = '1'
+      slot.dataset.loaded = '1'
       const ref = `QS. ${surah.namaLatin} ${d.s}:${d.from}${d.to !== d.from ? '–' + d.to : ''}`
       quranData.set(+det.dataset.i, { title: d.title, ar: ay.map((a) => a.teksArab).join(' '), latin: ay.map((a) => a.teksLatin || '').join(' ').trim(), arti: ay.map((a) => a.teksIndonesia || '').join(' ').trim(), ref, tab: 'quran' })
       slot.innerHTML = `<p class="ayah-ar" lang="ar" dir="rtl">${ay.map((a) => `${esc(a.teksArab)} <span class="ayah-num">${ayahMarker(a.nomorAyat)}</span>`).join(' ')}</p>
@@ -184,13 +184,13 @@ export default function doa(root, { params = {} } = {}) {
 
   async function fillYasin(det) {
     const slot = $('[data-yasin-slot]', det)
-    if (!slot || slot.dataset.done === '1' || slot.dataset.loading === '1') return
+    if (!slot || slot.dataset.loaded === '1' || slot.dataset.loading === '1') return
     slot.dataset.loading = '1'
     slot.innerHTML = `<p class="muted doa-yasin-loading">${icon('refresh')}Memuat 83 ayat…</p>`
     try {
       const surah = await getSurah(Number(det.dataset.yasin))
       if (!det.isConnected) return
-      slot.dataset.done = '1'
+      slot.dataset.loaded = '1'
       slot.dataset.loading = '0'
       const verses = surah.ayat
       const latin = verses.some((a) => a.teksLatin)
@@ -305,6 +305,10 @@ export default function doa(root, { params = {} } = {}) {
     $('[data-reset]', box).hidden = n === 0
   }
   function setDone(kind, i, val) {
+    // Tab "Al-Qur'an" tidak punya daftar "sudah dibaca". Tanpa penjaga ini,
+    // klik apa pun di dalam kartu ayat (Bagikan/Salin) yang tertangkap cabang
+    // [data-done] akan melempar TypeError dan menghentikan handler.
+    if (!done[kind]) return
     done[kind][val ? 'add' : 'delete'](i)
     const card = $(`[data-card="${i}"]`, body)
     if (card) {
