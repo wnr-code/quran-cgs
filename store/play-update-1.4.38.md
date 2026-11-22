@@ -196,7 +196,7 @@ Bila belum, workflow hanya menghasilkan APK debug (tidak bisa dipakai untuk Play
 
 ### 7.2 Unggah ke Play Console
 
-**Status: sudah dilakukan pada 22 November 2026.** AAB versi 1.4.38 berhasil diunggah ke **Internal testing** dan diterima Play tanpa penolakan tanda tangan. Ini membuktikan keempat secret upload key di GitHub memang cocok dengan upload key yang terdaftar di Play Console — tidak perlu reset upload key.
+**Status: sudah dilakukan pada 22 November 2026.** AAB 1.4.38 (kode versi 2020) dan kemudian **1.4.39 (kode versi 2250)** berhasil diunggah ke **Internal testing** dan diterima Play tanpa penolakan tanda tangan. Percobaan pertama sempat ditolak dengan *"Kode versi 1880 sudah digunakan"* karena berkas dari run Android #188 yang terunggah; sejak itu artefak AAB dinamai `QuranKu-<versi>-<versionCode>.aab` agar tidak tertukar. Ini membuktikan keempat secret upload key di GitHub memang cocok dengan upload key yang terdaftar di Play Console — tidak perlu reset upload key.
 
 Langkah yang dipakai (untuk rilis berikutnya):
 
@@ -208,6 +208,22 @@ Langkah yang dipakai (untuk rilis berikutnya):
 Setelah rilis diterima, **jangan unggah AAB dengan `versionCode` lebih kecil** — Play akan menolak. `versionCode` dihitung dari nomor run workflow (`github.run_number * 10`), jadi selalu naik selama build dari workflow.
 
 > **Catatan 22 November 2026:** AAB 1.4.38 yang sudah diunggah dibuat dari commit `4863179` (run #202), **sebelum** URL bersih ditambahkan — dan manifest-nya hanya mengklaim halaman beranda, sehingga tautan `https://quran.cgs.my.id/surah/2/255` dari WhatsApp pasti terbuka di peramban, bukan di aplikasi. Build **1.4.39** (run ≥ 223) memperbaiki itu: routing URL bersih, filter App Links lengkap (`android:path` per rute satu segmen + `android:pathPrefix` untuk `/surah/`, `/tafsir/`, `/doa/`), serta banner "Buka di aplikasi" yang memakai `intent://` untuk peramban dalam aplikasi seperti WhatsApp. `versionCode` build baru = nomor run × 10 sehingga selalu lebih besar dari 2020 dan aman diunggah sebagai pembaruan.
+
+### 7.2.0 Peringatan "Pengoptimalan kode DEX" di Play Console
+
+Setelah AAB diterima, Play Console menampilkan kartu seperti **"App bundle: 2250 (1.4.39)"** dengan tanda merah pada *Pengoptimalan kode DEX: Rendah* dan *Persentase obfuscation: 1%*. **Ini bukan error dan tidak menghalangi rilis** — Play hanya menyarankan optimasi ukuran/kecepatan.
+
+Penyebabnya `android/app/build.gradle`:
+
+```gradle
+release {
+    minifyEnabled false   // tidak ada R8/ProGuard → obfuscation 0–1%
+}
+```
+
+Sengaja begitu. Menyalakan R8 (`minifyEnabled true` + `shrinkResources true`) memerlukan aturan keep untuk Capacitor dan seluruh plugin Native yang dipakai (App, Browser, Filesystem, Geolocation, Local Notifications, Share, Splash Screen, Status Bar, plus plugin lokal `PrayerNotifications` dan `ImageGallery`). Risikonya *runtime crash* yang tidak tertangkap tes instrumentasi, dengan imbalan penghematan kecil — tidak sepadan untuk aplikasi WebView yang ukurannya didominasi aset web. Saran "upgrade ke AGP 9.0 + R8" juga bukan syarat; proyek memakai AGP 8.13.0 yang didukung penuh.
+
+**Tindakan: abaikan saja.** Prioritaskan Data safety dan uji §7.2.1. Bila suatu saat ingin mengecilkan ukuran, kerjakan R8 di PR tersendiri dengan pengujian penuh di perangkat fisik.
 
 ### 7.2.1 Checklist uji setelah terpasang dari Internal testing
 
