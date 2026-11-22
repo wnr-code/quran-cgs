@@ -1942,3 +1942,14 @@ test('tes instrumentasi startup memberi tenggang cukup untuk emulator lambat', a
   assert.match(java, /evaluated\.await\(500, TimeUnit\.MILLISECONDS\)/)
   assert.match(java, /text\.contains\("QuranKu"\) && text\.contains\("Assalamu"\)/, 'tunggu kedua penanda')
 })
+
+test('alat check:deploy tersedia dan melaporkan status URL bersih', async () => {
+  const { readFileSync } = await import('node:fs')
+  const script = readFileSync('scripts/check-deploy.mjs', 'utf8')
+  assert.match(script, /\/surah\/2\/255/, 'memeriksa URL bersih')
+  assert.match(script, /URL bersih SUDAH aktif/)
+  assert.match(script, /URL bersih BELUM aktif/)
+  assert.match(script, /process\.exit\(bersih\?\.ok \? 0 : 1\)/, 'exit code dipakai untuk CI')
+  const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
+  assert.equal(pkg.scripts['check:deploy'], 'node scripts/check-deploy.mjs')
+})

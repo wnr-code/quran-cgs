@@ -69,6 +69,7 @@ Sejak 1.4.38, rute aplikasi memakai History API: `https://quran.cgs.my.id/surah/
 - **Android**: `AndroidManifest.xml` memakai dua `<intent-filter>` terpisah — `android:path="/"` untuk beranda dan `android:pathPattern="/.*/.*"` untuk jalur dua segmen ke atas. Digabung dalam satu filter, Android memperlakukannya sebagai perkalian silang. `/privacy.html` tidak cocok dengan pola mana pun sehingga tetap terbuka di peramban.
 - **Tautan bagikan & teks "Sumber:" pada gambar** ikut memakai bentuk bersih, mis. `Sumber: quran.cgs.my.id/surah/2/255`.
 - **Konsekuensi**: URL tanpa `#` memerlukan server yang mengembalikan `index.html` untuk jalur apa pun. Hosting statis murni (tanpa Worker/rewrite) akan memberi 404 pada muat langsung `/surah/2/255`. Konfigurasi Cloudflare proyek ini sudah memakai Worker dengan aset, jadi aman; `vite preview` dan `wrangler dev` juga melakukannya.
+- **Menguji apakah sudah tayang**: `npm run check:deploy` memeriksa situs produksi dan menyebut URL bersih sudah/belum aktif. Jalankan setelah merge. URL bersih pada situs produksi **tidak akan berfungsi sebelum PR di-merge dan Cloudflare selesai deploy**, meskipun build lokal sudah lulus — menghasilkan 404.
 - **Belum diuji**: pembukaan tautan bersih dari WhatsApp ke APK di perangkat fisik (App Links perlu verifikasi ulang karena filter intent berubah). Uji manual: kirim `https://quran.cgs.my.id/surah/2/255` ke diri sendiri, ketuk, pastikan terbuka di aplikasi.
 
 ## Pembaruan 1.1.0
