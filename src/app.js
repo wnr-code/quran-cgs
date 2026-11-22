@@ -23,6 +23,7 @@ import { isStandalone } from './utils/helpers.js'
 import { isAndroidApp } from './services/platform.js'
 import { showFirstRunOnboarding } from './services/onboarding.js'
 import { initInbox } from './services/inbox.js'
+import { attachAppOpener } from './services/app-opener.js'
 
 installFetchFailover()
 
@@ -67,6 +68,8 @@ renderNavbar(nav)
 initMiniPlayer(document.getElementById('mini-player'))
 watchConnectivity()
 initInbox()
+// Peramban dalam aplikasi (WhatsApp/Instagram): tawarkan jalan keluar ke aplikasi di halaman mana pun.
+attachAppOpener()
 
 /**
  * Durasi minimum layar pembuka terlihat penuh, dihitung sejak splash native Android ditutup.
