@@ -188,3 +188,10 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - **Bukan penanda "sudah bayar".** Persetujuan akad hanya menyimpan `{versi, tanggal}` di `localStorage['quranku:akad-infaq']`; status pembayaran tetap hanya dari webhook/Public API.
 - **Aman saat localStorage tidak tersedia** (mode privat ketat): persetujuan tidak tersimpan dan akad tampil setiap kali — tidak ada galat.
 - Uji: unit test untuk versi/hash, penolakan versi lama, data rusak, dan pembatalan; e2e untuk alur lengkap (akad → setuju → langsung formulir → batalkan → akad lagi).
+
+## Android & PWA: satu implementasi
+
+- Android **tidak** punya salinan kode infaq. `npm run cap:sync` membangun `dist/` yang sama lalu membungkusnya dengan Capacitor; tidak ada baris `infaq` di folder `android/`.
+- WebView berjalan di `https://localhost` sehingga `localStorage` aktif normal. Konsekuensinya: persetujuan akad **terpisah per perangkat/aplikasi** (PWA dan APK tidak berbagi), dan itu memang disengaja — keridhaan dinyatakan di perangkat yang dipakai.
+- Tombol **Hapus semua data saya** memanggil `localStorage.clear()`, jadi persetujuan akad ikut terhapus dan akad tampil lagi. Ini disengaja.
+- Diawasi tes instrumentasi `InfaqAkadConsentTest` pada emulator API 31 & 36.

@@ -2,7 +2,7 @@
 
 Ringkasan jawaban: **update deskripsi listing tidak wajib dan bukan yang mendesak.**
 Yang mendesak adalah **Data safety** (ada pernyataan yang bertentangan dengan praktik aplikasi) dan **screenshot** (masih versi lama).
-Isi berkas ini disalin langsung dari repo supaya konsisten dengan aplikasi versi 1.4.35.
+Isi berkas ini disalin langsung dari repo supaya konsisten dengan aplikasi versi 1.4.38.
 
 ---
 
@@ -11,8 +11,8 @@ Isi berkas ini disalin langsung dari repo supaya konsisten dengan aplikasi versi
 | # | Item | Status di Play (17 Nov 2026) | Tindakan | Risiko bila dibiarkan |
 |---|---|---|---|---|
 | 1 | **Data safety** | "Tidak ada data dikumpulkan" + "Tidak ada data dibagikan" | **Perbaiki sekarang** (lihat bagian 3) | Tinggi — bertentangan dengan perilaku aplikasi & penanda "Membagikan Lokasi" dari Play |
-| 2 | **Screenshot** | Versi 1.3.x: ada isian nominal, "Nama (tampil di papan donatur)", podium nama+nominal | **Ganti** setelah build 1.4.35 diunggah | Sedang — calon pengguna melihat fitur yang sudah tidak ada |
-| 3 | **Build baru** | Terakhir update 17 Nov 2026 | Unggah AAB 1.4.35 dari GitHub Actions | Sedang — pengguna belum menerima Papan Kebaikan anonim & animasi doa |
+| 2 | **Screenshot** | Versi 1.3.x: ada isian nominal, "Nama (tampil di papan donatur)", podium nama+nominal | **Ganti** setelah build 1.4.38 diunggah | Sedang — calon pengguna melihat fitur yang sudah tidak ada |
+| 3 | **Build baru** | Terakhir update 17 Nov 2026 | Unggah AAB 1.4.38 dari GitHub Actions | Sedang — pengguna belum menerima Papan Kebaikan anonim & animasi doa |
 | 4 | **Nama aplikasi** | `QuranKu-Ofline` (kemungkinan typo "Offline") | Ganti (opsional, tapi disarankan) | Rendah — hanya kualitas kesan pertama |
 | 5 | **Deskripsi** | Versi pendek, ada typo "Bisa Ofline." | Tempel versi baru (bagian 2) | Rendah — tidak melanggar kebijakan |
 
@@ -152,17 +152,16 @@ Untuk screenshot di luar halaman Infaq, berkas lama masih akurat kecuali yang me
 
 ---
 
-## 5. Catatan rilis untuk versi 1.4.35
+## 5. Catatan rilis untuk versi 1.4.38
 
-Tempel ke Play Console → **Release → What's new** (maks. 500 karakter):
+Tempel ke Play Console → **Release → What's new** (420/500 karakter):
 
 ```
-Papan Kebaikan kini anonim: nama dan nominal tidak lagi ditampilkan. Yang dibagikan hanya doa & ucapan, tanpa nama.
-Doa muncul dengan animasi halus, dan doa terbaru disorot singkat. Animasi otomatis nonaktif bila Anda mengaktifkan "kurangi gerakan" di perangkat.
-Perbaikan: doa yang dikirim lewat formulir kini selalu tersimpan walau pembayaran terkonfirmasi lewat jalur cadangan.
+Papan Kebaikan kini anonim: nama dan nominal tidak ditampilkan. Yang dibagikan hanya doa & ucapan, tanpa nama.
+Doa muncul dengan animasi halus; doa terbaru disorot singkat. Animasi otomatis nonaktif bila "kurangi gerakan" diaktifkan.
+Akad infaq diperjelas: penerima, penggunaan dana, dan hak Anda. Akad cukup dibaca sekali dan bisa dibatalkan kapan saja.
+Perbaikan: doa yang dikirim lewat formulir kini selalu tersimpan.
 ```
-
----
 
 ## 6. Yang TIDAK perlu diubah
 
@@ -170,3 +169,52 @@ Perbaikan: doa yang dikirim lewat formulir kini selalu tersimpan walau pembayara
 - **Rating konten** (Semua Umur) — sesuai; Papan Kebaikan tidak menambah konten baru yang perlu dinilai ulang (tetap tanpa nama, tanpa nominal).
 - **Kebijakan privasi** — sudah diperbarui di repo (bagian "Infaq dan papan kebaikan"), otomatis dipakai listing karena URL-nya menunjuk ke `quran.cgs.my.id/privacy.html`.
 - **Ikon & feature graphic** — tidak berubah.
+
+---
+
+## 7. Mengunggah versi baru (langkah per langkah)
+
+### 7.1 Unduh AAB yang sudah ditandatangani
+
+1. Buka repo → **Actions** → workflow **Android build**.
+2. Pilih run terbaru pada branch ini (atau pada `main` setelah PR di-merge).
+3. Unduh artifact **`quranku-play-store-aab-signed`**.
+
+Artifact ini hanya muncul bila keempat secret upload key sudah diatur di GitHub:
+
+| Secret | Isi |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | keystore upload key dalam base64 |
+| `ANDROID_KEYSTORE_PASSWORD` | password keystore |
+| `ANDROID_KEY_ALIAS` | alias kunci |
+| `ANDROID_KEY_PASSWORD` | password kunci |
+
+Bila belum, workflow hanya menghasilkan APK debug (tidak bisa dipakai untuk Play).
+
+### 7.2 Unggah ke Play Console
+
+1. **Play Console → QuranKu → Testing → Internal testing** (lebih aman untuk percobaan pertama) atau **Production**.
+2. **Create new release** → unggah `.aab`.
+3. Isi **What's new** dengan teks di bagian 5.
+4. **Review release** → pastikan tidak ada error → **Start rollout**.
+
+### 7.3 Perbarui materi listing
+
+| Item | Rujukan |
+|---|---|
+| Deskripsi lengkap | dokumen ini bagian 2 |
+| Deskripsi singkat | bagian 1 |
+| **Data safety** | bagian 3 — **wajib**, lihat peringatan di bawah |
+| Screenshot Infaq | `npm run gen:shots` (bagian 4) |
+
+### 7.4 Peringatan Data safety
+
+Listing saat ini menyatakan **"Tidak ada data dikumpulkan"** & **"Tidak ada data dibagikan"**, padahal aplikasi mengirim koordinat ke OpenStreetMap Nominatim saat Anda menekan "Gunakan lokasi saya", dan mengirim data transaksi ke Trakteer serta server QuranKu saat berinfaq. Play sendiri sudah menampilkan badge **"Membagikan Lokasi"** di listing.
+
+Mengunggah versi baru **tidak** otomatis memperbaiki ini; formulir Data safety harus diperbarui terpisah di **Policy → App content → Data safety**. Rincian jawaban ada di bagian 3 dokumen ini.
+
+### 7.5 Setelah rilis
+
+- Versi build memakai `QURANKU_VERSION_CODE = github.run_number * 10`, jadi selalu naik di setiap run.
+- Cek **Android vitals** beberapa hari setelah rilis.
+- Perbarui `store/screenshots/` dan commit bila sudah memakai berkas baru.

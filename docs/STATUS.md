@@ -332,3 +332,14 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Tombol "Batalkan persetujuan" tersedia; setelah dibatalkan akad tampil lagi.
 - `npm test` **111 lulus, 0 gagal**; `npm run build` berhasil; alur diuji nyata dengan jsdom (6 skenario).
 - Batas: e2e `tests/e2e/infaq.mjs` sudah diperbarui namun belum dijalankan di sandbox (tanpa peramban).
+
+## 1.4.38 — Tes instrumentasi akad + siap rilis Play
+
+- **Tes instrumentasi baru** `android/app/src/androidTest/java/id/cgs/quranku/InfaqAkadConsentTest.java`:
+  - `localStorage` benar-benar bisa ditulis di WebView Android (origin `https://localhost`).
+  - Persetujuan akad bertahan setelah WebView dimuat ulang.
+  - Pembatalan lewat jalur aplikasi menghapus kunci `quranku:akad-infaq`.
+  - Layar Infaq merender tombol INFAQ, akad menyebut penerima **Aep (WNR Code)**, dan memuat klausul qabul.
+  - Berjalan di emulator CI Android 12 (API 31) dan Android 16 (API 36) lewat `connectedDebugAndroidTest`.
+- Kunci dibersihkan sebelum & sesudah tes sehingga tidak mengubah keadaan aplikasi.
+- Batas: hasil sesungguhnya baru diketahui setelah workflow Android di GitHub Actions selesai (sandbox tidak punya JDK/Android SDK).
