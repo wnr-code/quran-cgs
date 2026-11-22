@@ -88,7 +88,7 @@ Bentuk hash tidak lagi **ditulis** oleh aplikasi — semua tautan bagikan, menu,
 
 ### Audit 22 November 2026 (1.4.40) — perbaikan setelah audit menyeluruh
 
-Delapan cacat ditemukan dan diperbaiki; semuanya punya tes regresi di `tests/unit.test.mjs` (130 tes lulus).
+Delapan cacat ditemukan dan diperbaiki; semuanya punya tes regresi di `tests/unit.test.mjs` (132 tes lulus).
 
 | Cacat | Akibat sebelum diperbaiki | Perbaikan |
 |---|---|---|
@@ -100,6 +100,7 @@ Delapan cacat ditemukan dan diperbaiki; semuanya punya tes regresi di `tests/uni
 | `decodeURIComponent` melempar pada persen rusak | Tautan terpotong (`/surah/%E0%A4`) menghasilkan halaman **kosong tanpa pesan** karena render berhenti sebelum menggambar apa pun. | `decodeParam()` baru di router; URL rusak tetap merender halaman dengan pesan wajar. |
 | `.btn-ghost` dipakai tetapi tidak ada di CSS | Tombol "Buka di Chrome" pada panduan pemasangan tampil seperti tombol biasa, tak terbedakan dari aksi utama. | Aturan `.btn-ghost` ditambahkan di `main.css`. |
 | Tes E2E memakai `location.hash` | Router tidak lagi mendengarkan `hashchange`; `go()` di smoke test tidak berpindah halaman sehingga tes memberi hasil palsu. | Semua E2E memakai `history.pushState` + `popstate` dan URL bersih. `live.mjs` (dijalankan CI) juga ikut diperbarui. |
+| `/offline` tertutupi `offline.html` | **Ditemukan di produksi** saat verifikasi pasca-merge: Cloudflare memetakan `offline.html` → `/offline` dan aset dilayani sebelum Worker, jadi halaman Kelola Offline menampilkan halaman darurat "Anda sedang offline" — pengguna tidak bisa mengunduh surah untuk offline. | `SHELL_PATHS` di `worker/index.js` memaksa `/offline` ke shell aplikasi; `/privacy` tetap statis. Tes menjaga agar setiap bentrok berkas statis vs rute aplikasi terdaftar. |
 
 ## Pembaruan 1.1.0
 
