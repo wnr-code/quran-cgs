@@ -9,7 +9,10 @@ export default function about(root) {
   root.innerHTML = `<div class="page">${pageHeader('Tentang QuranKu')}
     <section class="card about-hero">${LOGO_SVG}<h2>${APP.name}</h2><p class="muted">Versi <span data-version>${esc(APP.versionLabel)}</span><br />${APP.packageId}</p>
       <p>Aplikasi Al-Qur'an digital berbahasa Indonesia: gratis, tanpa iklan, tanpa akun, dan sumber terbuka.</p>
-      <p class="muted">${esc(APP.copyright)} · Lisensi ${esc(APP.license)}</p></section>
+      <p class="muted">${esc(APP.copyright)} · Lisensi ${esc(APP.license)}</p>
+      <div class="btn-row about-store-actions">${native
+        ? `<a class="btn" href="market://details?id=${esc(APP.packageId)}" rel="noopener noreferrer">${icon('download')}Beri rating di Play Store</a>`
+        : `<a class="btn" href="${esc(APP.playStoreUrl)}" target="_blank" rel="noopener noreferrer">${icon('download')}Buka di Google Play</a>`}</div></section>
 
     <section class="card"><p class="eyebrow">Fitur</p>
       <ul class="about-list">
@@ -25,7 +28,7 @@ export default function about(root) {
 
     <section class="card"><p class="eyebrow">Sumber data</p>
       <p>Seluruh teks ayat, terjemahan, tafsir, doa, audio, dan data lain berasal dari pihak yang kami sebutkan satu per satu. Terima kasih kepada semuanya — <i>jazakumullahu khairan</i>.</p>
-      <div class="btn-row"><a class="btn" href="#/sumber">${icon('book')}Lihat Sumber Data</a></div></section>
+      <div class="btn-row"><a class="btn" href="/sumber">${icon('book')}Lihat Sumber Data</a></div></section>
 
     <section class="card" id="lisensi"><p class="eyebrow">Lisensi</p>
       <p><b>QuranKu adalah perangkat lunak sumber terbuka berlisensi MIT.</b> Siapa pun boleh memakai, menyalin, mengubah, dan menyebarkan kode aplikasi ini, termasuk untuk tujuan komersial, selama menyertakan pemberitahuan hak cipta dan teks lisensi. Perangkat lunak disediakan “apa adanya” tanpa jaminan apa pun.</p>
@@ -39,7 +42,7 @@ export default function about(root) {
       <p class="about-privacy-copy">${native ? 'APK Android tidak mendaftar Web Push. Alarm salat/imsak, pengingat pra-salat, tilawah, target, dan catatan kalender dijadwalkan di perangkat melalui AlarmManager dalam jendela bergulir 14 hari. Notifikasi memerlukan izin; tanpa akses alarm tepat, Doze, force-stop, atau kebijakan OEM, pengiriman dapat tertunda atau terhambat. Rekaman azan panjang di-streaming dan memerlukan internet.' : 'Jika Web Push Adzan diaktifkan di PWA, langganan push, lokasi yang dibulatkan sekitar ±1 km, dan pilihan jadwal disimpan di server untuk mengirim pemberitahuan. Mematikan fitur menghapus langganan tersebut; Web Push tetap bergantung pada browser dan layanan push, bukan alarm presisi.'}</p>
       <p class="about-privacy-copy">Jika Anda membuka formulir infaq, Trakteer dan mitra pembayarannya menangani data formulir/pembayaran. Server QuranKu menerima data transaksi untuk Papan Kebaikan; nama dan nominal tidak ditampilkan, hanya doa/ucapan yang Anda kirim yang dibagikan di sana.</p>
       <p class="about-privacy-copy">Jika Anda memakai fitur Bagikan, layanan atau aplikasi yang dipilih menerima konten yang Anda pilih (misalnya doa, ayat, atau tautan audio) beserta tautan terkait dari QuranKu.</p>
-      <div class="btn-row about-privacy-actions"><a class="btn" href="/privacy.html" target="_blank" rel="noopener noreferrer">${icon('shield')}Kebijakan Privasi</a><a class="btn" href="#/infaq">${icon('heart')}Donasi</a></div></section>
+      <div class="btn-row about-privacy-actions"><a class="btn" href="/privacy.html" target="_blank" rel="noopener noreferrer">${icon('shield')}Kebijakan Privasi</a><a class="btn" href="/infaq">${icon('heart')}Donasi</a></div></section>
 
     <section class="card about-identity-card">
       <figure>

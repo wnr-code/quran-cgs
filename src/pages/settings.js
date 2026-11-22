@@ -54,10 +54,10 @@ export default function settings(root) {
         <div class="btn-row"><button class="btn" data-export>${icon('download')}Ekspor cadangan</button><button class="btn" data-import>${icon('upload')}Impor cadangan</button></div></section>
       <section class="card"><p class="eyebrow">Lainnya</p>
         <div class="menu-list">
-          <a href="#/target">${icon('target')}<span>Target & pengingat tilawah</span>${icon('forward')}</a>
-          <a href="#/offline">${icon('download')}<span>Kelola penyimpanan offline</span>${icon('forward')}</a>
-          <a href="#/tentang">${icon('info')}<span>Tentang & privasi</span>${icon('forward')}</a>
-          <a href="#/sumber">${icon('book')}<span>Sumber data</span>${icon('forward')}</a>
+          <a href="/target">${icon('target')}<span>Target & pengingat tilawah</span>${icon('forward')}</a>
+          <a href="/offline">${icon('download')}<span>Kelola penyimpanan offline</span>${icon('forward')}</a>
+          <a href="/tentang">${icon('info')}<span>Tentang & privasi</span>${icon('forward')}</a>
+          <a href="/sumber">${icon('book')}<span>Sumber data</span>${icon('forward')}</a>
         </div></section>
       <section class="card danger-zone"><p class="eyebrow">Hapus data</p>
         <p class="muted">Menghapus seluruh data QuranKu di perangkat ini: bookmark, catatan, riwayat, progres, pengaturan, lokasi, teks & audio tersimpan.</p>

@@ -109,8 +109,8 @@ export default async function reader(root, { params, query, initial }) {
       ${showBasmalah ? `<p class="basmalah basmalah-cartouche" lang="ar" dir="rtl">${BASMALAH}</p>` : ''}
       <div class="mushaf" id="reader-mode-panel" data-content role="tabpanel" tabindex="0"></div>
       <nav class="surah-nav">
-        ${n > 1 ? `<a class="btn" href="#/surah/${n - 1}">${icon('back')}Surah sebelumnya</a>` : '<span></span>'}
-        ${n < 114 ? `<a class="btn" href="#/surah/${n + 1}">Surah berikutnya${icon('forward')}</a>` : '<span></span>'}
+        ${n > 1 ? `<a class="btn" href="/surah/${n - 1}">${icon('back')}Surah sebelumnya</a>` : '<span></span>'}
+        ${n < 114 ? `<a class="btn" href="/surah/${n + 1}">Surah berikutnya${icon('forward')}</a>` : '<span></span>'}
       </nav>
       <p class="edition-note">Teks: ${esc(surah.edition ? surah.edition.text : '-')}<br/>Terjemahan: ${esc(surah.edition ? surah.edition.translation : '-')}<br/>Juz & halaman: Mushaf Madinah (604 hlm).</p>
     </div>
@@ -143,7 +143,7 @@ export default async function reader(root, { params, query, initial }) {
           <button class="reader-fab-action" data-act="more">${icon('more')}<span>Aksi ayat ini</span></button>
           <button class="reader-fab-action" data-act="immersive">${icon('expand')}<span data-immersive-label>Mode membaca</span></button>
           <button class="reader-fab-action" data-act="play-surah">${icon('headphones')}<span>Putar surah</span></button>
-          <a class="reader-fab-action" href="#/tafsir/${n}">${icon('book')}<span>Tafsir</span></a>
+          <a class="reader-fab-action" href="/tafsir/${n}">${icon('book')}<span>Tafsir</span></a>
           <button class="reader-fab-action" data-act="info">${icon('info')}<span>Info surah</span></button>
           <button class="reader-fab-action" data-act="settings">${icon('type')}<span>Tampilan</span></button>
           <button class="reader-fab-action" data-act="tajweed" aria-pressed="${getSettings().reader.tajweed}">${icon('beads')}<span data-tajweed-label>Tajwid: ${getSettings().reader.tajweed ? 'Aktif' : 'Nonaktif'}</span></button>
@@ -551,7 +551,7 @@ export default async function reader(root, { params, query, initial }) {
         else if (act === 'share') {
           const verse = surah.ayat[a - 1]
           const reference = `QS. ${surah.namaLatin} ${n}:${a}`
-          const sourceUrl = `${APP.origin}/#/surah/${n}/${a}`
+          const sourceUrl = `${APP.origin}/surah/${n}/${a}`
           const display = getSettings().reader
           const inTextMode = display.mode === 'focus'
           openShare(

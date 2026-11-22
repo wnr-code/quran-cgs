@@ -231,12 +231,38 @@ jobs:
             fi
             cp "$AAB" "$RUNNER_TEMP/aab/"
             echo 'Release APK and AAB signatures verified. The AAB is available as a GitHub artifact only; this workflow does not publish it to Google Play.' >> "$GITHUB_STEP_SUMMARY"
+            RELEASE_SHA256=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/release-signature.txt" | head -1 | tr -d '\r')
+            RELEASE_SHA256_FMT=$(printf '%s' "$RELEASE_SHA256" | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g; s/:$//')
+            if [ -n "$RELEASE_SHA256_FMT" ]; then
+              echo "::notice title=Upload key certificate SHA-256 (APK/AAB release)::$RELEASE_SHA256_FMT"
+            fi
+            ASSETLINKS_SHA256=$(node -p "JSON.parse(require('fs').readFileSync('public/.well-known/assetlinks.json','utf8'))[0].target.sha256_cert_fingerprints[0]" 2>/dev/null || true)
+            {
+              echo ''
+              echo '### Sidik jari sertifikat'
+              echo ''
+              echo '| Kunci | SHA-256 |'
+              echo '|---|---|'
+              echo "| Upload key (menandatangani APK & AAB release) | \`${RELEASE_SHA256_FMT:-tidak terbaca}\` |"
+              echo "| \`public/.well-known/assetlinks.json\` | \`${ASSETLINKS_SHA256:-tidak terbaca}\` |"
+              echo ''
+              echo 'Bandingkan **upload key** dengan *Upload key certificate* di Play Console → Test and release → Setup → App signing.'
+              echo 'Bila berbeda, Play akan menolak AAB dengan pesan tanda tangan salah; reset upload key di Play Console.'
+              echo ''
+              echo 'Bandingkan **assetlinks.json** dengan *App signing key certificate* di halaman yang sama.'
+              echo 'Bila Play App Signing aktif, Google menandatangani ulang APK, jadi nilai di assetlinks harus sidik jari kunci Google — bukan upload key.'
+              echo 'Bila berbeda, tautan `quran.cgs.my.id` tidak akan terbuka di aplikasi.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            if [ -n "$RELEASE_SHA256_FMT" ] && [ -n "$ASSETLINKS_SHA256" ] && [ "$ASSETLINKS_SHA256" != "$RELEASE_SHA256_FMT" ]; then
+              echo "::notice title=assetlinks.json berisi app signing key Play (bukan upload key)::assetlinks=$ASSETLINKS_SHA256 uploadKey=$RELEASE_SHA256_FMT. Ini kondisi yang benar saat Play App Signing aktif: Google menandatangani ulang APK, jadi assetlinks harus berisi kunci Google. Tidak perlu tindakan. Ubah hanya bila App Links ternyata tidak berfungsi; verifikasi dengan 'npm run cert:fp -- <sertifikat dari Play Console>'."
+            fi
           else
             echo 'Release outputs skipped because upload-key secrets are not configured; only the debug test APK is available.' >> "$GITHUB_STEP_SUMMARY"
           fi
 
           {
-            echo "### Android APK for testing: QuranKu-$VER-uji.apk"
+            echo "### Android APK debug (hanya untuk uji cepat, bukan untuk dipasang menimpa aplikasi terpasang)"
+            echo "File: QuranKu-$VER-uji.apk"
             echo '```'
             "$BT/aapt2" dump badging "$DEBUG_APK" | grep -E "^package:|^sdkVersion|^targetSdkVersion|^application-label:"
             ls -lh "$RUNNER_TEMP/apk/QuranKu-$VER-uji.apk" | awk '{print "size: " $5}'
@@ -245,11 +271,25 @@ jobs:
           if [ "$SIGNED" = true ]; then
             {
               echo "### Signed release APK: QuranKu-$VER.apk"
+              echo "Pasang **APK ini** untuk menguji rilis. Jangan pakai file bernama QuranKu-$VER-uji.apk / *-uji.apk:"
+              echo "itu APK debug — ditandatangani kunci debug, jadi **tidak bisa dipasang menimpa** aplikasi yang sudah ada"
+              echo "(pesan Android: \"paket ini bentrok dengan paket yang sudah ada\")."
               echo '```'
               "$BT/aapt2" dump badging "$RELEASE_APK" | grep -E "^package:|^sdkVersion|^targetSdkVersion|^application-label:"
               ls -lh "$RUNNER_TEMP/apk/QuranKu-$VER.apk" | awk '{print "size: " $5}'
               echo 'AAB signature verification: passed'
               echo '```'
+              echo ''
+              echo "**Sidik jari sertifikat APK ini** — bandingkan dengan *App signing key certificate* di Play Console → Test and release → Setup → App signing:"
+              if [ -n "$RELEASE_SHA256_FMT" ]; then
+                echo '```'
+                echo "$RELEASE_SHA256_FMT"
+                echo '```'
+              else
+                echo '_Sidik jari SHA-256 tidak terbaca dari keluaran apksigner; lihat langkah "Verify APK and prepare install artifacts"._'
+              fi
+              echo "Sama? APK ini bisa dipasang menimpa aplikasi dari Play. **Berbeda?** Play memakai app-signing key milik Google,"
+              echo "jadi APK manual tidak akan pernah bisa menimpa — pakai *Internal testing* agar Play yang memperbarui aplikasi (data aman)."
             } >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Remove temporary upload keystore

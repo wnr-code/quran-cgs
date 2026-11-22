@@ -47,12 +47,12 @@ export default async function offline(root) {
         <div class="bar" data-dlbar hidden><i style="width:0%"></i></div><p class="hint" data-dlmsg></p></section>
 
       <section class="card"><p class="eyebrow">Surah tersimpan (${saved.length})</p>
-        ${saved.length ? `<div class="list compact">${saved.map((s) => `<div class="row-link with-del"><a href="#/surah/${s.nomor}"><span><strong>${s.nomor}. ${esc(s.namaLatin)}</strong><small>${s.jumlahAyat} ayat · ${esc(s.source === 'equran' ? 'EQuran.id' : 'Al Quran Cloud')}</small></span></a><button class="icon-btn sm" data-del-surah="${s.nomor}" aria-label="Hapus surah ${esc(s.namaLatin)}">${icon('trash')}</button></div>`).join('')}</div>
+        ${saved.length ? `<div class="list compact">${saved.map((s) => `<div class="row-link with-del"><a href="/surah/${s.nomor}"><span><strong>${s.nomor}. ${esc(s.namaLatin)}</strong><small>${s.jumlahAyat} ayat · ${esc(s.source === 'equran' ? 'EQuran.id' : 'Al Quran Cloud')}</small></span></a><button class="icon-btn sm" data-del-surah="${s.nomor}" aria-label="Hapus surah ${esc(s.namaLatin)}">${icon('trash')}</button></div>`).join('')}</div>
         <div class="btn-row"><button class="btn btn-danger" data-clear-text>${icon('trash')}Hapus semua teks & tafsir</button></div>` : '<p class="muted">Belum ada surah tersimpan. Surah otomatis disimpan saat dibuka.</p>'}</section>
 
       <section class="card"><p class="eyebrow">Audio diunduh (${audios.length})</p>
         ${audios.length ? `<div class="list compact">${audios.map((a) => `<div class="row-link with-del"><span><strong>${esc(a.surahName || 'Surah ' + a.surah)}${a.kind === 'ayah' ? ' · ayat ' + a.ayah : ''}</strong><small>${esc(QARI[a.qari] || '')} · ${a.opaque ? 'ukuran tidak diketahui' : formatBytes(a.size)}</small></span><button class="icon-btn sm" data-del-audio="${esc(a.url)}" aria-label="Hapus audio">${icon('trash')}</button></div>`).join('')}</div>
-        <div class="btn-row"><button class="btn btn-danger" data-clear-audio>${icon('trash')}Hapus semua audio</button></div>` : '<p class="muted">Belum ada audio diunduh. Unduh dari halaman <a class="link" href="#/murottal">Murottal</a>.</p>'}</section>
+        <div class="btn-row"><button class="btn btn-danger" data-clear-audio>${icon('trash')}Hapus semua audio</button></div>` : '<p class="muted">Belum ada audio diunduh. Unduh dari halaman <a class="link" href="/murottal">Murottal</a>.</p>'}</section>
 
       <section class="card"><p class="eyebrow">Cache aplikasi</p>
         <p class="muted">Menghapus cache aset (tampilan, font). Akan diunduh ulang saat online. Data pribadi tidak terhapus.</p>

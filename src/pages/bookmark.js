@@ -62,19 +62,19 @@ export default async function bookmark(root) {
       const items = cat ? all.filter((b) => b.category === cat) : all
       body.innerHTML = all.length
         ? `<div class="chips"><button class="chip ${cat ? '' : 'on'}" data-cat="">Semua (${all.length})</button>${cats.map((c) => `<button class="chip ${c === cat ? 'on' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`).join('')}</div>
-          <div class="list">${items.map((b) => item(b.type === 'tafsir' ? `#/tafsir/${b.surah}/${b.ayah}` : `#/surah/${b.surah}/${b.ayah}`, `${esc(b.surahName || 'Surah ' + b.surah)} <span class="ref">${b.surah}:${b.ayah}</span>`, `${b.type === 'tafsir' ? 'Tafsir · ' : ''}${esc(b.category)} · ${formatDateTime(b.createdAt)}`, '', `data-del-bm="${esc(b.id)}"`)).join('')}</div>`
-        : emptyState('bookmark', 'Belum ada bookmark', 'Sentuh ayat saat membaca lalu pilih Bookmark.', '<a class="btn btn-primary" href="#/quran">Buka Al-Qur’an</a>')
+          <div class="list">${items.map((b) => item(b.type === 'tafsir' ? `/tafsir/${b.surah}/${b.ayah}` : `/surah/${b.surah}/${b.ayah}`, `${esc(b.surahName || 'Surah ' + b.surah)} <span class="ref">${b.surah}:${b.ayah}</span>`, `${b.type === 'tafsir' ? 'Tafsir · ' : ''}${esc(b.category)} · ${formatDateTime(b.createdAt)}`, '', `data-del-bm="${esc(b.id)}"`)).join('')}</div>`
+        : emptyState('bookmark', 'Belum ada bookmark', 'Sentuh ayat saat membaca lalu pilih Bookmark.', '<a class="btn btn-primary" href="/quran">Buka Al-Qur’an</a>')
     } else if (tab === 'notes') {
       const all = await noteRepo.all()
       body.innerHTML = all.length
-        ? `<div class="list">${all.map((x) => item(`#/surah/${x.surah}/${x.ayah}`, `${esc(x.surahName || 'Surah ' + x.surah)} <span class="ref">${x.surah}:${x.ayah}</span>`, formatDateTime(x.updatedAt), `<p class="note-text">${esc(x.text)}</p>`, `data-del-note="${esc(x.id)}"`)).join('')}</div>`
+        ? `<div class="list">${all.map((x) => item(`/surah/${x.surah}/${x.ayah}`, `${esc(x.surahName || 'Surah ' + x.surah)} <span class="ref">${x.surah}:${x.ayah}</span>`, formatDateTime(x.updatedAt), `<p class="note-text">${esc(x.text)}</p>`, `data-del-note="${esc(x.id)}"`)).join('')}</div>`
         : emptyState('note', 'Belum ada catatan', 'Catatan pribadi hanya tersimpan di perangkat ini.')
     } else {
       const [all, last] = await Promise.all([historyRepo.all(), getLastRead()])
       body.innerHTML =
-        (last ? `<a class="card last-card" href="#/surah/${last.surah}?resume=1"><p class="eyebrow">Bacaan terakhir</p><h2>${esc(last.surahName || '')} · Ayat <span class="qn">${qnum(last.ayah)}</span></h2><p class="muted">${formatDateTime(last.at)}</p></a>` : '') +
+        (last ? `<a class="card last-card" href="/surah/${last.surah}?resume=1"><p class="eyebrow">Bacaan terakhir</p><h2>${esc(last.surahName || '')} · Ayat <span class="qn">${qnum(last.ayah)}</span></h2><p class="muted">${formatDateTime(last.at)}</p></a>` : '') +
         (all.length
-          ? `<div class="list">${all.map((h) => item(`#/surah/${h.surah}/${h.ayah}`, `${esc(h.surahName || 'Surah ' + h.surah)} <span class="ref">${h.surah}:${h.ayah}</span>`, formatDateTime(h.at))).join('')}</div><div class="btn-row"><button class="btn btn-danger" data-clear-history>${icon('trash')}Hapus riwayat</button></div>`
+          ? `<div class="list">${all.map((h) => item(`/surah/${h.surah}/${h.ayah}`, `${esc(h.surahName || 'Surah ' + h.surah)} <span class="ref">${h.surah}:${h.ayah}</span>`, formatDateTime(h.at))).join('')}</div><div class="btn-row"><button class="btn btn-danger" data-clear-history>${icon('trash')}Hapus riwayat</button></div>`
           : emptyState('clock', 'Riwayat kosong', 'Surah yang Anda buka akan muncul di sini.'))
     }
   }

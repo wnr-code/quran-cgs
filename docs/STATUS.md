@@ -39,7 +39,8 @@ Terakhir diperbarui: 14 November 2026.
 | Infaq terhadap Trakteer & D1 sungguhan | Alur aplikasi, webhook, sinkronisasi Public API, dan klaim ID transaksi teruji secara lokal (SQLite + `wrangler dev`). Belum pernah dijalankan terhadap Trakteer atau D1 produksi. Mode QRIS langsung tidak resmi dan belum terverifikasi; lihat [INFAQ.md](INFAQ.md). |
 | Nominal pada papan kebaikan | Nominal tidak lagi ditampilkan di publik; lihat catatan `price` di [INFAQ.md](INFAQ.md). |
 | Notifikasi/adzan dan kompas berbasis sensor | PWA/Web Push perlu validasi pada peramban/perangkat sasaran. Android memiliki scheduler AlarmManager native bergulir 14 hari untuk azan/imsak/pengingat pra-salat; unit test Gradle memeriksa konversi jam/tanggal lokal, tetapi pengiriman alarm nyata, izin exact-alarm, pemulihan saat reboot, Doze, dan kebijakan OEM belum diuji pada perangkat. Uji emulator CI hanya smoke test UI. Kiblat memakai bearing koordinat, tanpa sensor kompas. |
-| Android APK/AAB | Android CI [run 44012564187](https://github.com/wnr-code/quran-cgs/actions/runs/44012564187) pada commit kode `092afa714a1ea65b9b4255611c61060bb35d7b6e` lulus unit test Gradle, smoke test emulator Android 12/16, serta build/verifikasi tanda tangan APK dan AAB release. Artefaknya (`QuranKu-APK-untuk-dipasang` dan `quranku-play-store-aab-signed`) tersedia pada halaman run GitHub Actions, tidak diunduh ke checkout atau diterbitkan otomatis ke Play. Workflow menghasilkan release bertanda tangan hanya bila seluruh empat upload-key secrets valid; tanpa secret hanya APK debug dan tidak ada AAB unsigned, sedangkan konfigurasi parsial/tidak valid membuat workflow gagal. Perangkat fisik dan migrasi end-to-end dari instalasi Compose lama belum diuji. Build Gradle lokal tidak tersedia karena sandbox tidak memiliki Java/Android SDK. Lihat [ANDROID.md](ANDROID.md). |
+| Rilis Play 1.4.38 | AAB 1.4.38 (dari commit `4863179`, run Android #202) **sudah diunggah ke Internal testing Play Console dan diterima** pada 22 November 2026. Tidak ada penolakan tanda tangan, jadi keempat secret upload key cocok dengan upload key yang terdaftar di Play. Play **memakai app signing key milik Google** (`56:45:F6:…:03:66`) untuk menandatangani APK yang sampai ke pengguna, sedangkan workflow hanya memegang upload key (`18:A6:5D:…:4A:6E`); karena itu APK manual tidak bisa dipasang menimpa aplikasi dari Play — gunakan Internal testing. Rollout ke Production belum dilakukan. |
+| Android APK/AAB | Android CI [run terbaru](https://github.com/wnr-code/quran-cgs/actions/runs?query=branch%3Aarena%2Fe3463461-quran-cgs) (#213, commit `e747b38`) lulus unit test Gradle, tes instrumentasi persetujuan akad di emulator Android 12/16, serta build/verifikasi tanda tangan APK dan AAB release. Ringkasan run mencetak tabel sidik jari SHA-256 **upload key** (penanda tangan APK/AAB) dan nilai di `public/.well-known/assetlinks.json`. Keduanya memang berbeda — upload key `18:A6:5D:…:4A:6E` vs assetlinks `56:45:F6:…:03:66` — dan itu **kondisi yang benar** saat Play App Signing aktif: Google menandatangani ulang APK dengan app signing key miliknya. Run #206 tidak lagi memberi warning untuk perbedaan ini, hanya notice. Konsekuensinya APK release tidak bisa dipasang menimpa aplikasi dari Play; gunakan Internal testing. Artefaknya (`QuranKu-APK-untuk-dipasang` dan `quranku-play-store-aab-signed`) tersedia pada halaman run GitHub Actions, tidak diunduh ke checkout atau diterbitkan otomatis ke Play. Workflow menghasilkan release bertanda tangan hanya bila seluruh empat upload-key secrets valid; tanpa secret hanya APK debug dan tidak ada AAB unsigned, sedangkan konfigurasi parsial/tidak valid membuat workflow gagal. Perangkat fisik dan migrasi end-to-end dari instalasi Compose lama belum diuji. Build Gradle lokal tidak tersedia karena sandbox tidak memiliki Java/Android SDK. Lihat [ANDROID.md](ANDROID.md). |
 | Instalasi PWA di ponsel, Lighthouse, iOS Safari | Belum diuji. |
 
 ## Belum dikerjakan / berbeda dari spesifikasi
@@ -52,11 +53,37 @@ Terakhir diperbarui: 14 November 2026.
 - **Mode imersif:** PWA tab mencoba Fullscreen API bila didukung; PWA terpasang dan APK Capacitor menyembunyikan UI browser melalui mode standalone tetapi tidak meminta immersive Android khusus.
 - **Audio unduhan** disimpan sebagai respons *opaque* karena server audio EQuran tidak mengirim header CORS. Pemutaran offline berfungsi, tetapi ukuran berkas tidak dapat dibaca aplikasi dan peramban menghitung kuota penyimpanan lebih besar daripada ukuran asli.
 - Beranda memiliki dua pintasan tambahan di luar enam yang diminta: Arah Kiblat dan Infaq.
-- **Screenshot di `store/screenshots/`** dibuat dari API tiruan (edisi teks `quran-json`). Ambil ulang dari situs produksi sebelum diunggah ke Play Store.
+- **Screenshot di `store/screenshots/`** dibuat dari API tiruan (edisi teks `quran-json`). Ambil ulang dari situs produksi sebelum diunggah ke Play Store. Screenshot halaman Infaq dapat dibuat ulang tanpa wrangler/D1: `npm run build && npm run gen:shots` (`scripts/gen-play-screenshots.mjs`).
 
 ## Yang harus Anda isi
-1. Sidik jari SHA-256 di `public/.well-known/assetlinks.json`.
+1. **App Links (opsional, tidak memblokir rilis).** `public/.well-known/assetlinks.json` berisi `56:45:F6:…:03:66`. Di Play Console, halaman **Penandatanganan aplikasi** (Test and release → Setup → App signing) hanya menampilkan **kunci app signing milik Google** dengan status "Sedang digunakan" — kunci itu yang menandatangani APK sampai ke pengguna, jadi nilainya yang harus ada di assetlinks. Halaman yang sama juga menampilkan **sertifikat kunci post-quantum (beta)**; jangan pernah memakai sidik jari itu untuk assetlinks. Sebelum mengubah apa pun: tekan **Download sertifikat** pada **Kunci klasik**, hitung sidik jari SHA-256-nya, dan hanya ganti nilai di assetlinks bila berbeda. Mengganti nilai berdasarkan tebakan akan mematikan App Links. Bila tautan `quran.cgs.my.id` memang belum perlu membuka aplikasi, biarkan berkas ini apa adanya — tidak ada dampak pada pemasangan atau pembaruan dari Play. Rincian: [ANDROID.md](ANDROID.md) dan [play-update-1.4.38.md](../store/play-update-1.4.38.md) §7.4.
 2. Secret infaq (`TRAKTEER_WEBHOOK_TOKEN`, `TRAKTEER_API_KEY`) dan pendaftaran webhook; lihat [INFAQ.md](INFAQ.md).
+
+## URL bersih tanpa tanda #
+
+Sejak 1.4.38, rute aplikasi memakai History API: `https://quran.cgs.my.id/surah/2/255`, `/doa/harian`, `/infaq`. Bentuk lama `/#/surah/2/255` tetap diterima dan dirapikan otomatis ke bentuk bersih.
+
+**Kedua bentuk hidup berdampingan.** Yang didukung:
+
+| URL | Hasil |
+|---|---|
+| `/surah/2/255` | jalur bersih dipakai langsung |
+| `/#/surah/2/255` | dikenali, lalu dirapikan ke `/surah/2/255` |
+| `/#/surah/2/255?resume=1` | query di dalam hash dipertahankan |
+| `/?adzan=subuh#/salat` | query di depan hash dipertahankan (notifikasi adzan) |
+| `/surah/2/255#/doa/harian` | hash menang atas jalur |
+| `/surah/2/255?resume=1` | query biasa |
+
+Bentuk hash tidak lagi **ditulis** oleh aplikasi — semua tautan bagikan, menu, dan teks "Sumber:" pada gambar memakai bentuk bersih. Hash hanya dibaca agar tautan yang sudah tersebar tetap berfungsi.
+
+- **Router** (`src/router.js`): `pushState`/`replaceState` + `popstate`, bukan `hashchange`. Klik tautan internal dicegat agar tidak memuat ulang halaman; tautan luar, `target="_blank"`, `Ctrl`/`Cmd`-klik, dan berkas statis dibiarkan.
+- **Worker** (`worker/index.js`): semua jalur tanpa ekstensi berkas dilayani `index.html` dengan `Cache-Control: must-revalidate`; `/surat`, `/surah`, `/doa`, `/jadwal` dialihkan 301 ke jalur baru. Halaman statis (`/privacy.html`) dan aset tidak disentuh.
+- **Service worker** (`sw.js`): setiap navigasi memakai shell, sehingga URL bersih bisa dibuka saat offline.
+- **Android**: `AndroidManifest.xml` memakai dua `<intent-filter>` terpisah — `android:path="/"` untuk beranda dan `android:pathPattern="/.*/.*"` untuk jalur dua segmen ke atas. Digabung dalam satu filter, Android memperlakukannya sebagai perkalian silang. `/privacy.html` tidak cocok dengan pola mana pun sehingga tetap terbuka di peramban.
+- **Tautan bagikan & teks "Sumber:" pada gambar** ikut memakai bentuk bersih, mis. `Sumber: quran.cgs.my.id/surah/2/255`.
+- **Konsekuensi**: URL tanpa `#` memerlukan server yang mengembalikan `index.html` untuk jalur apa pun. Hosting statis murni (tanpa Worker/rewrite) akan memberi 404 pada muat langsung `/surah/2/255`. Konfigurasi Cloudflare proyek ini sudah memakai Worker dengan aset, jadi aman; `vite preview` dan `wrangler dev` juga melakukannya.
+- **Menguji apakah sudah tayang**: `npm run check:deploy` memeriksa situs produksi dan menyebut URL bersih sudah/belum aktif. Jalankan setelah merge. URL bersih pada situs produksi **tidak akan berfungsi sebelum PR di-merge dan Cloudflare selesai deploy**, meskipun build lokal sudah lulus — menghasilkan 404.
+- **Belum diuji**: pembukaan tautan bersih dari WhatsApp ke APK di perangkat fisik (App Links perlu verifikasi ulang karena filter intent berubah). Uji manual: kirim `https://quran.cgs.my.id/surah/2/255` ke diri sendiri, ketuk, pastikan terbuka di aplikasi.
 
 ## Pembaruan 1.1.0
 
@@ -200,7 +227,7 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 ## 1.3.18 — Doa: lafaz saja, ukuran Arab, bagikan, ikon font
 
 - Bilah tampilan di halaman Doa (semua tab): tombol **Arti** dan **Latin** (tampil/sembunyi) serta **Arab: Normal/Besar/Lebih besar**. Pilihan disimpan di `localStorage` `quranku:doa-tampilan`.
-- Tombol **Bagikan** di tiap doa → lembar pilihan WhatsApp, Telegram, Facebook, X, "Lainnya" (menu bagikan bawaan perangkat bila tersedia), dan Salin teks. Teks berisi judul, Arab, Latin, arti, sumber, dan tautan `…/#/doa/<tab>` (`src/utils/doa-share.js`). Facebook hanya menerima tautan, sehingga teks ikut disalin.
+- Tombol **Bagikan** di tiap doa → lembar pilihan WhatsApp, Telegram, Facebook, X, "Lainnya" (menu bagikan bawaan perangkat bila tersedia), dan Salin teks. Teks berisi judul, Arab, Latin, arti, sumber, dan tautan `…/doa/<tab>` (`src/utils/doa-share.js`). Facebook hanya menerima tautan, sehingga teks ikut disalin.
 - Tab Al-Qur'an kini juga punya tombol Salin.
 - Ikon font: subset Font Awesome Free 6.7.2 (13 glif, ±2,5 KB) di `public/fonts/qk-icons-*.woff2`, lisensi di `public/fonts/LICENSE-fontawesome-free.txt`. Dipakai di halaman Doa; bagian lain aplikasi masih memakai ikon SVG.
 - Tautan media sosial tidak dapat diuji sampai terkirim dari sandbox; hanya bentuk URL yang diuji.
@@ -319,3 +346,27 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Animasi `doa-in` (0,5 dtk, stagger 55 ms) dan `doa-glow` (2,4 dtk) pada `.infaq-page .doa-item`; kelas `.is-new` hanya untuk doa yang lebih baru dari render sebelumnya.
 - Keduanya dimatikan pada `prefers-reduced-motion: reduce`. Tidak ada marquee/auto-scroll.
 - Verifikasi: `npm test` **109 lulus, 0 gagal** (termasuk tes logika sorotan sekali-jalan dan larangan animasi berulang); `npm run build` berhasil (61 berkas precache); render nyata di jsdom memastikan `--i` bertahap, `.is-new` hanya sekali, dan tidak ada sorotan pada muat pertama.
+
+## 1.4.36 — Telaah akad infaq
+
+- Akad memuat: jenis pemberian (hibah), penerima jelas (Aep / WNR Code), kanal pembayaran terpisah (Lanteraku), qabul, larangan riba, bukan zakat/fidyah/kafarah/nazar, nafkah wajib lebih utama, dan klausul pengembalian 7 hari.
+- `npm test` **110 lulus, 0 gagal**; `npm run build` berhasil.
+- Batas: **belum ditinjau ustaz/ahli fikih**; teks disusun dari kaidah umum hibah/sedekah.
+
+## 1.4.37 — Akad infaq cukup sekali per versi teks
+
+- Akad diingat di `localStorage` sebagai `{versi, tanggal}`; versi = hash teks akad sehingga perubahan teks membatalkan persetujuan lama.
+- Tombol "Batalkan persetujuan" tersedia; setelah dibatalkan akad tampil lagi.
+- `npm test` **111 lulus, 0 gagal**; `npm run build` berhasil; alur diuji nyata dengan jsdom (6 skenario).
+- Batas: e2e `tests/e2e/infaq.mjs` sudah diperbarui namun belum dijalankan di sandbox (tanpa peramban).
+
+## 1.4.38 — Tes instrumentasi akad + siap rilis Play
+
+- **Tes instrumentasi baru** `android/app/src/androidTest/java/id/cgs/quranku/InfaqAkadConsentTest.java`:
+  - `localStorage` benar-benar bisa ditulis di WebView Android (origin `https://localhost`).
+  - Persetujuan akad bertahan setelah WebView dimuat ulang.
+  - Pembatalan lewat jalur aplikasi menghapus kunci `quranku:akad-infaq`.
+  - Layar Infaq merender tombol INFAQ, akad menyebut penerima **Aep (WNR Code)**, dan memuat klausul qabul.
+  - Berjalan di emulator CI Android 12 (API 31) dan Android 16 (API 36) lewat `connectedDebugAndroidTest`.
+- Kunci dibersihkan sebelum & sesudah tes sehingga tidak mengubah keadaan aplikasi.
+- Batas: hasil sesungguhnya baru diketahui setelah workflow Android di GitHub Actions selesai (sandbox tidak punya JDK/Android SDK).

@@ -44,8 +44,8 @@ export default async function home(root) {
     <header class="home-hero ornament">
       ${ramadanLanterns()}
       <div class="brand">${LOGO_SVG}<div><h1>QuranKu</h1><small>Al-Qur'an Digital</small></div>
-        <a class="icon-btn on-dark" href="#/cari" aria-label="Cari">${icon('search')}</a>
-        <a class="icon-btn on-dark" href="#/pengaturan" aria-label="Pengaturan">${icon('settings')}</a></div>
+        <a class="icon-btn on-dark" href="/cari" aria-label="Cari">${icon('search')}</a>
+        <a class="icon-btn on-dark" href="/pengaturan" aria-label="Pengaturan">${icon('settings')}</a></div>
       <div class="salutation">
         <span class="salutation-label">Assalamu’alaikum</span>
         <p class="salam" lang="ar" dir="rtl" aria-label="Assalamu’alaikum">اَلسَّلَامُ عَلَيْكُمْ</p>
@@ -60,13 +60,13 @@ export default async function home(root) {
 
     <section class="card continue" data-continue>
       <div class="continue-empty"><p class="eyebrow">Mulai membaca</p><h2>Belum ada bacaan terakhir</h2>
-        <a class="btn btn-primary" href="#/surah/1">${icon('book')}Mulai dari Al-Fatihah</a></div>
+        <a class="btn btn-primary" href="/surah/1">${icon('book')}Mulai dari Al-Fatihah</a></div>
     </section>
 
     <section class="card goal-card" data-goal></section>
 
     <section class="home-shortcuts" aria-label="Pintasan"><p class="section-title">Akses cepat</p><div class="shortcut-grid">
-      ${SHORTCUTS.map(([p, i, l]) => `<a class="shortcut" href="#${p}"><span class="shortcut-ic">${icon(i)}</span><span>${l}</span></a>`).join('')}
+      ${SHORTCUTS.map(([p, i, l]) => `<a class="shortcut" href="${p}"><span class="shortcut-ic">${icon(i)}</span><span>${l}</span></a>`).join('')}
     </div></section>
 
     <section class="card prayer-mini" data-prayer hidden></section>
@@ -77,7 +77,7 @@ export default async function home(root) {
     </section>
 
     <footer class="cigatas-signature" aria-label="Ajakan mengaji dari Cigatas">
-      <a class="cigatas-signature-link" href="#/tentang">
+      <a class="cigatas-signature-link" href="/tentang">
         <span class="sr-only">Buka halaman Tentang Cigatas: </span><span class="cigatas-signature-hashtag">#TongEureunNgaji</span>
         <span class="cigatas-signature-motto" data-cigatas-motto aria-hidden="true">Hayu ngaji unggal poé.</span>
       </a>
@@ -87,7 +87,7 @@ export default async function home(root) {
   // Penyemangat acak: potongan terjemahan ayat, berganti tiap beranda dibuka.
   const m = MUTIARA[Math.floor(Math.random() * MUTIARA.length)]
   const mu = root.querySelector('[data-mutiara]')
-  mu.href = `#/surah/${m.s}/${m.a}`
+  mu.href = `/surah/${m.s}/${m.a}`
   mu.innerHTML = `<i class="fi fi-quote" aria-hidden="true"></i><span>${esc(m.t)} <small>${esc(m.r)}</small></span>`
 
   const cigatasMotto = $('[data-cigatas-motto]', root)
@@ -114,7 +114,7 @@ export default async function home(root) {
       'afterend',
       `<div class="install-banner" data-install-banner>
         <span class="shortcut-ic">${icon('download')}</span>
-        <span class="install-banner-text"><strong>Pasang QuranKu</strong><small>Layar penuh & bisa offline</small></span>
+        <span class="install-banner-text"><strong>Pasang QuranKu</strong><small>Gratis di Google Play</small></span>
         <button class="btn btn-primary btn-sm" data-install-now>Pasang</button>
         <button class="icon-btn" data-install-close aria-label="Tutup ajakan pasang">${icon('close')}</button>
       </div>`
@@ -142,7 +142,7 @@ export default async function home(root) {
         ${last.surahNameAr ? `<span class="continue-ar" lang="ar" dir="rtl">${esc(last.surahNameAr)}</span>` : ''}
       </div>
       <div class="bar"><i style="width:${pct}%"></i></div>
-      <a class="btn btn-primary btn-block" href="#/surah/${last.surah}?resume=1">${icon('book')}Lanjutkan membaca</a>`
+      <a class="btn btn-primary btn-block" href="/surah/${last.surah}?resume=1">${icon('book')}Lanjutkan membaca</a>`
   }
 
   const renderGoal = async () => {
@@ -157,7 +157,7 @@ export default async function home(root) {
       <div class="goal-info"><p class="eyebrow">Progres tilawah hari ini</p>
         <h2>${p.pages} / ${target} halaman</h2>
         <p class="muted">${p.ayahs} ayat dibaca · Target: ${esc((GOAL_TYPES[getSettings().goal.type] || GOAL_TYPES.p2).label)}</p>
-        <a class="link" href="#/target">Atur target & lihat statistik ${icon('forward')}</a></div>`
+        <a class="link" href="/target">Atur target & lihat statistik ${icon('forward')}</a></div>`
   }
 
   const renderPrayer = () => {
@@ -167,7 +167,7 @@ export default async function home(root) {
     try {
       const np = nextPrayer(loc, getSettings().prayerMethod)
       el.hidden = false
-      el.innerHTML = `<a href="#/salat" class="prayer-mini-row">${icon('mosque')}<span><small>Salat berikutnya · ${esc(loc.name || '')}</small><strong>${np.name} ${formatClock(np.time)}</strong></span>${icon('forward')}</a>`
+      el.innerHTML = `<a href="/salat" class="prayer-mini-row">${icon('mosque')}<span><small>Salat berikutnya · ${esc(loc.name || '')}</small><strong>${np.name} ${formatClock(np.time)}</strong></span>${icon('forward')}</a>`
     } catch {}
   }
 
@@ -184,14 +184,14 @@ export default async function home(root) {
       el.innerHTML = `${head}
         <p class="ayah-day-ar" lang="ar" dir="rtl">${esc(a.teksArab)}</p>
         ${a.teksIndonesia ? `<p class="ayah-day-tr">${esc(a.teksIndonesia)}</p>` : ''}
-        <div class="ayah-day-foot"><a class="link" href="#/surah/${sNo}/${aNo}">QS. ${esc(surah.namaLatin)} ${ayahRef(sNo, aNo)} ${icon('forward')}</a>
+        <div class="ayah-day-foot"><a class="link" href="/surah/${sNo}/${aNo}">QS. ${esc(surah.namaLatin)} ${ayahRef(sNo, aNo)} ${icon('forward')}</a>
           <span class="ayah-day-acts"><button class="icon-btn sm" data-ayah-play aria-label="Putar ayat">${icon('play')}</button>
           <button class="icon-btn sm" data-ayah-share aria-label="Bagikan ayat">${icon('share')}</button>
           <button class="btn sm" data-ayah-copy aria-label="Salin ayat dan tautan">${icon('copy')}Salin</button></span></div>`
       $('[data-ayah-play]', el).onclick = () => playAyah(surah, aNo)
       $('[data-ayah-share]', el).onclick = () => {
         const ref = `QS. ${surah.namaLatin} ${ayahRef(sNo, aNo)}`
-        const url = `${APP.origin}/#/surah/${sNo}/${aNo}`
+        const url = `${APP.origin}/surah/${sNo}/${aNo}`
         openShare(
           { title: ref, text: ayahShareText(surah, a), url },
           {
@@ -212,11 +212,11 @@ export default async function home(root) {
         )
       }
       $('[data-ayah-copy]', el).onclick = async () => {
-        const payload = `${ayahShareText(surah, a)}\n${APP.origin}/#/surah/${sNo}/${aNo}`
+        const payload = `${ayahShareText(surah, a)}\n${APP.origin}/surah/${sNo}/${aNo}`
         toast((await copyText(payload)) ? 'Ayat & tautan disalin' : 'Gagal menyalin')
       }
     } catch {
-      if (el.isConnected) el.innerHTML = `${head}<p class="muted">Ayat belum dapat dimuat (QS. ${ayahRef(sNo, aNo)}). Sambungkan internet sekali agar tersimpan.</p><a class="link" href="#/surah/${sNo}/${aNo}">Buka ayat ${icon('forward')}</a>`
+      if (el.isConnected) el.innerHTML = `${head}<p class="muted">Ayat belum dapat dimuat (QS. ${ayahRef(sNo, aNo)}). Sambungkan internet sekali agar tersimpan.</p><a class="link" href="/surah/${sNo}/${aNo}">Buka ayat ${icon('forward')}</a>`
     }
     const nextBtn = $('[data-ayah-next]', el)
     if (nextBtn) nextBtn.onclick = () => {

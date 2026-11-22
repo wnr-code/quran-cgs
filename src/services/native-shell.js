@@ -4,7 +4,7 @@ import { Capacitor } from '@capacitor/core'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { StatusBar, Style } from '@capacitor/status-bar'
 import { on } from '../utils/helpers.js'
-import { navigate, parseHash } from '../router.js'
+import { navigate, currentRoute } from '../router.js'
 
 let initialized = false
 
@@ -27,7 +27,7 @@ function handleBackButton() {
     }
   }
 
-  if (parseHash().path !== '/') {
+  if (currentRoute().path !== '/') {
     const navigationCount = Number(sessionStorage.getItem('qk-nav')) || 0
     if (navigationCount > 1 && history.length > 1) history.back()
     else navigate('/')

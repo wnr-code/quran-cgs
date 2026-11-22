@@ -32,7 +32,7 @@ export default function sources(root) {
       ${SOURCES.map((g) => `<div class="card source-group"><p class="eyebrow">${icon(g.icon)}${esc(g.group)}</p><ul class="source-list">${g.items.map(sourceItem).join('')}</ul></div>`).join('')}
       <p class="hint">Urutan pengambilan teks: salinan di perangkat → EQuran.id → Al Quran Cloud → data lokal di server QuranKu. Sumber yang sedang dipakai selalu tertulis di menu Info pada halaman surah. Bila Anda menemukan kekeliruan, mohon laporkan kepada pengembang dan rujuk mushaf cetak resmi.</p>
     </section>
-    <div class="btn-row"><a class="btn" href="#/tentang">${icon('info')}Tentang QuranKu</a></div>
+    <div class="btn-row"><a class="btn" href="/tentang">${icon('info')}Tentang QuranKu</a></div>
   </div>`
   root.addEventListener('click', async (e) => {
     const b = e.target.closest('[data-copy]')

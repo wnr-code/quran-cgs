@@ -1,7 +1,7 @@
 {
   "name": "quranku",
   "private": true,
-  "version": "1.4.35",
+  "version": "1.4.38",
   "description": "QuranKu — Al-Qur'an digital (PWA + Capacitor Android)",
   "license": "MIT",
   "author": "WNR Code (https://github.com/wnr-code)",
@@ -25,11 +25,15 @@
     "cap:sync": "npm run build && cap sync android",
     "cap:open": "cap open android",
     "gen:icons": "node scripts/gen-icons.mjs",
-    "gen:og": "node scripts/gen-og.mjs"
+    "gen:og": "node scripts/gen-og.mjs",
+    "gen:shots": "node scripts/gen-play-screenshots.mjs",
+    "cert:fp": "node scripts/cert-fingerprint.mjs",
+    "check:deploy": "node scripts/check-deploy.mjs"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.6.2",
     "opentype.js": "^2.0.0",
+    "puppeteer-core": "^25.18.1",
     "qrcode-generator": "^2.0.4",
     "quran-json": "^3.1.2",
     "quran-meta": "^7.0.0",

@@ -24,7 +24,9 @@ public final class CapacitorStartupTest {
             scenario.onActivity(activity -> packageName.set(activity.getPackageName()));
             assertEquals("id.cgs.quranku", packageName.get());
 
-            for (int attempt = 0; attempt < 80; attempt++) {
+            // Emulator API 31 kadang lambat menyelesaikan render pertama (WebView cold start),
+            // jadi beri tenggang lebih panjang dan tunggu sampai dua penanda siap.
+            for (int attempt = 0; attempt < 200; attempt++) {
                 CountDownLatch evaluated = new CountDownLatch(1);
                 scenario.onActivity(activity -> {
                     WebView webView = activity.getBridge().getWebView();
@@ -37,9 +39,10 @@ public final class CapacitorStartupTest {
                         }
                     );
                 });
-                evaluated.await(250, TimeUnit.MILLISECONDS);
-                if (homeText.get() != null && homeText.get().contains("QuranKu")) break;
-                Thread.sleep(150);
+                evaluated.await(500, TimeUnit.MILLISECONDS);
+                String text = homeText.get();
+                if (text != null && text.contains("QuranKu") && text.contains("Assalamu")) break;
+                Thread.sleep(200);
             }
             assertNotNull("Bundled home page did not render", homeText.get());
             assertTrue("Expected the shared QuranKu home UI", homeText.get().contains("QuranKu"));

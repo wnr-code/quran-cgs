@@ -46,7 +46,7 @@ function popularCard({ surah, visits, origin }, index) {
   const detail = origin === 'history'
     ? `${qnum(visits)} kunjungan di perangkat ini`
     : `QS ${qnum(surah.nomor)} · ${qnum(surah.jumlahAyat)} ayat`
-  return `<a class="popular-surah-card" href="#/surah/${surah.nomor}" data-surah="${surah.nomor}" data-origin="${origin}" role="listitem" aria-label="Buka Surah ${esc(surah.namaLatin)}, ${qnum(surah.jumlahAyat)} ayat">
+  return `<a class="popular-surah-card" href="/surah/${surah.nomor}" data-surah="${surah.nomor}" data-origin="${origin}" role="listitem" aria-label="Buka Surah ${esc(surah.namaLatin)}, ${qnum(surah.jumlahAyat)} ayat">
     <span class="popular-card-top"><span class="popular-card-index">${String(index + 1).padStart(2, '0')}</span><span class="popular-card-badge">${badge}</span></span>
     <span class="popular-card-copy"><strong>${esc(surah.namaLatin)}</strong><small>${detail}${surah.nomor === 67 ? ' · Al-Mulk' : ''}</small></span>
     <span class="popular-card-bottom"><span class="popular-card-ar" lang="ar" dir="rtl">${esc(surah.nama)}</span><span class="popular-card-arrow">${icon('forward')}</span></span>
@@ -66,7 +66,7 @@ function popularSection(items) {
 
 export default async function quran(root) {
   root.innerHTML = `<div class="page quran-page">
-    ${pageHeader("Al-Qur'an", { back: false, subtitle: '114 surah · 30 juz · Mushaf Madinah', actions: `<a class="icon-btn" href="#/cari" aria-label="Pencarian lengkap">${icon('search')}</a>` })}
+    ${pageHeader("Al-Qur'an", { back: false, subtitle: '114 surah · 30 juz · Mushaf Madinah', actions: `<a class="icon-btn" href="/cari" aria-label="Pencarian lengkap">${icon('search')}</a>` })}
     <div class="search-box">${icon('search')}<input type="search" placeholder="Cari nama atau nomor surah…" aria-label="Cari surah" autocomplete="off" /></div>
     <section class="quran-popular-slot" data-popular hidden aria-labelledby="quran-popular-title"></section>
     <div class="tabs" role="tablist" aria-label="Tampilan daftar Al-Qur'an"><button type="button" id="quran-tab-surah" role="tab" aria-controls="quran-list-panel" data-tab="surah">Surah <small class="tab-count">114</small></button><button type="button" id="quran-tab-juz" role="tab" aria-controls="quran-list-panel" data-tab="juz">Juz <small class="tab-count">30</small></button></div>
@@ -94,14 +94,14 @@ export default async function quran(root) {
     const q = norm(input.value)
     popularEl.hidden = !!q
     const items = q ? list.filter((s) => norm(s.namaLatin).includes(q) || String(s.nomor) === q || norm(s.arti).includes(q) || s.nama.includes(input.value.trim())) : list
-    listEl.innerHTML = items.length ? `<div class="list">${items.map((s) => surahRow(s, { saved: saved.has(s.nomor) })).join('')}</div>` : emptyState('search', 'Surah tidak ditemukan', 'Coba kata kunci lain atau gunakan pencarian lengkap.', '<a class="btn" href="#/cari">Pencarian lengkap</a>')
+    listEl.innerHTML = items.length ? `<div class="list">${items.map((s) => surahRow(s, { saved: saved.has(s.nomor) })).join('')}</div>` : emptyState('search', 'Surah tidak ditemukan', 'Coba kata kunci lain atau gunakan pencarian lengkap.', '<a class="btn" href="/cari">Pencarian lengkap</a>')
   }
   const renderJuz = () => {
     listEl.innerHTML = `<div class="list">${juzList()
       .map((j) => {
         const a = list[j.start[0] - 1]
         const b = list[j.end[0] - 1]
-        return `<a class="surah-row" href="#/surah/${j.start[0]}/${j.start[1]}">
+        return `<a class="surah-row" href="/surah/${j.start[0]}/${j.start[1]}">
           <span class="num-star"><span>${qnum(j.juz)}</span></span>
           <span class="surah-meta"><strong>Juz ${j.juz}</strong>
             <small>${esc(a.namaLatin)} ${j.start[0]}:${j.start[1]} — ${esc(b.namaLatin)} ${j.end[0]}:${j.end[1]} · mulai hlm <span class="qn">${qnum(j.pageStart)}</span></small></span>

@@ -11,6 +11,30 @@ import { onRequestPost as webhookPost, onRequestGet as webhookGet } from '../fun
 
 const json = (obj, status) => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } })
 
+// Rute aplikasi memakai URL bersih (/surah/2/255). Semua jalur tanpa ekstensi berkas dilayani
+// shell yang sama supaya tautan bisa dibuka langsung, di-refresh, dan dibagikan tanpa tanda #.
+const hasFileExtension = (path) => /\.[a-z0-9]+$/i.test(path)
+const isAssetPath = (path) =>
+  path.startsWith('/assets/') ||
+  path.startsWith('/data/') ||
+  path.startsWith('/fonts/') ||
+  path.startsWith('/icons/') ||
+  path.startsWith('/brand') ||
+  path.startsWith('/share-templates/') ||
+  path.startsWith('/.well-known/')
+
+/** Ambil shell (index.html) dari aset statis untuk jalur aplikasi. */
+async function serveShell(request, env) {
+  const url = new URL(request.url)
+  const assetUrl = new URL('/index.html', url.origin)
+  const res = await env.ASSETS.fetch(new Request(assetUrl.toString(), request))
+  const out = new Response(res.body, res)
+  // Shell tidak boleh di-cache lama: versinya berubah setiap deploy.
+  out.headers.set('Cache-Control', 'public, max-age=0, must-revalidate')
+  out.headers.set('Content-Type', 'text/html; charset=utf-8')
+  return out
+}
+
 const app = {
   async fetch(request, env, ctx) {
     const url = new URL(request.url)
@@ -40,6 +64,13 @@ const app = {
       }
     } catch (e) {
       return json({ ok: false, error: 'server_error' }, 500)
+    }
+    // Jalur aplikasi tanpa ekstensi (/, /surah/2/255, /infaq, ...) → shell yang sama.
+    if ((m === 'GET' || m === 'HEAD') && !hasFileExtension(p) && !isAssetPath(p) && !p.startsWith('/api/')) {
+      // Struktur lama yang masih dipakai peta situs / tautan luar: /surat → /quran, /doa → /doa/harian.
+      const legacy = { '/surat': '/quran', '/surah': '/quran', '/doa': '/doa/harian', '/jadwal': '/salat' }[p]
+      if (legacy) return Response.redirect(new URL(legacy + url.search, url.origin).toString(), 301)
+      return serveShell(request, env)
     }
     return env.ASSETS.fetch(request)
   },

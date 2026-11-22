@@ -2,7 +2,7 @@
 export function doaText(p) {
   return [p.title, p.ar, p.latin, p.arti && `Artinya: ${p.arti}`, p.ref && `(${p.ref})`].filter(Boolean).join('\n\n')
 }
-export const shareUrl = (p, origin) => p.url || `${origin}/#${p.path || `/doa/${p.tab}`}`
+export const shareUrl = (p, origin) => p.url || `${origin}${p.path || `/doa/${p.tab}`}`
 export const doaUrl = shareUrl
 export const shareContent = (p) => (typeof p.text === 'string' ? p.text : doaText(p))
 const cut = (t, n) => (t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t)

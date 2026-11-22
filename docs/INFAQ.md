@@ -1,7 +1,7 @@
 # Infaq untuk pengembang
 
 Infaq adalah donasi sukarela; tidak ada barang, fitur, atau konten yang dijual. Seluruh alur berjalan di halaman
-aplikasi sendiri (`#/infaq`); dana diterima lewat akun Trakteer `lanteraku`.
+aplikasi sendiri (`/infaq`); dana diterima lewat akun Trakteer `lanteraku`.
 
 ## Alur
 
@@ -161,3 +161,37 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Doa yang benar-benar baru sejak muat sebelumnya mendapat sorotan emas singkat (`doa-glow`, 2,4 dtk) lewat kelas `.is-new`. Sorotan hanya sekali: state `seenLatest` di halaman menyimpan waktu doa terbaru yang sudah pernah tampil. Muat pertama tidak menyorot apa pun.
 - **Sengaja tidak memakai** marquee/teks berjalan atau auto-scroll: doa jadi sulit dibaca, terkesan seperti iklan, merebut kendali gulir dari pengguna, dan boros GPU/baterai di HP kelas bawah.
 - `@media (prefers-reduced-motion: reduce)` mematikan kedua animasi. Test `tests/unit.test.mjs` menjaga agar blok dinding doa tidak pernah memakai `infinite`/`animation-play-state` dan aturan reduced-motion tetap ada.
+
+## 1.4.36 — Telaah akad infaq (fikih & nada)
+
+- **Penerima diperjelas.** Sebelumnya akad menyebut "pengelola QuranKu" saja — nama aplikasi, bukan pihak yang cakap menerima hibah. Kini: **Aep (WNR Code)** sebagai pengembang & pengelola resmi (hanya nama depan yang dimuat; nama lengkap sengaja tidak ditulis), dengan **Lanteraku** disebut terpisah sebagai *kanal pembayaran* (akun Trakteer) yang **tidak** menjadi penerima dana.
+- **Qabul dinyatakan.** Ditambahkan: penerimaan terjadi karena tersedianya kanal pembayaran (*qabul fi'li*), bukan klaim sepihak.
+- **Nafkah wajib diutamakan.** Tambahan sesuai hadis Ka'b bin Malik: sedekah sunnah tidak boleh dengan berutang atau mengurangi nafkah keluarga yang wajib.
+- **Bukan zakat, fidyah, kafarah, atau nazar** — sebelumnya hanya zakat.
+- **Tanpa imbalan & tanpa hak istimewa** dinyatakan eksplisit (menutup syubhat membeli pengaruh).
+- **Pengembalian** untuk pembayaran ganda/salah nominal/kesalahan teknis: 7 hari.
+- **Urutan ijab diperbaiki**: "menekan tombol INFAQ" → **"menekan 'Bismillah, saya setuju & lanjut'"**, sesuai tombol yang benar-benar ditekan.
+- **Nada:** "Kami membuka kesempatan…" diganti "QuranKu tidak mewajibkan apa pun"; "kebutuhan hidup pengelolanya" → "penghidupan pengelola".
+- Uji: `tests/unit.test.mjs` menjaga istilah kunci akad dan melarang frasa yang terkesan meminta; `tests/e2e/infaq.mjs` memeriksa hasil render sesungguhnya.
+- Batas: disusun dari kaidah umum fikih muamalah, **belum ditinjau ustaz/ahli fikih**. Sebaiknya direview sebelum rilis besar.
+- **Nama depan saja.** Penerima ditulis **Aep (WNR Code)** — nama orang lebih dulu, merek sebagai keterangan. Nama lengkap tidak dimuat. Identitas penerima dapat diverifikasi lewat kontak di halaman Tentang dan data pengembang pada listing Play (`id.cgs.quranku`). Bila kelak ada badan usaha/lembaga resmi, ganti nama penerima di `akadHtml` dan perbarui test.
+
+## 1.4.37 — Akad sekali, bukan setiap donasi
+
+- **Dasar syariat:** ijab-qabul adalah penanda keridhaan, bukan syarat sah sedekah dan bukan ritual berulang. Keridhaan donatur pada akad yang sama tetap berlaku untuk infaq berikutnya. Mengulang akad setiap transaksi mendekati *takalluf* yang tidak dianjurkan.
+- **Perilaku baru:**
+  - Tombol **INFAQ** menampilkan akad hanya bila belum ada persetujuan untuk **versi teks akad yang sekarang**.
+  - Setelah menyetujui, tombol **INFAQ** langsung membuka formulir pembayaran; akad tetap bisa dibaca lewat tautan "Baca akad & tujuan infaq".
+  - Di bawah tautan akad muncul status: *"Anda sudah menyetujui akad ini pada <tanggal>. **Batalkan persetujuan**"*.
+  - Menekan **Batalkan persetujuan** menghapus data dan akad tampil lagi pada donasi berikutnya.
+- **Terikat pada isi, bukan orang.** `akadVersion()` menghitung hash teks akad (tanpa blok tombol). Bila teks akad diubah — misalnya penerima atau penggunaan dana — persetujuan lama **otomatis batal** dan akad tampil lagi. Ini menjaga agar keridhaan selalu terikat pada apa yang benar-benar disetujui.
+- **Bukan penanda "sudah bayar".** Persetujuan akad hanya menyimpan `{versi, tanggal}` di `localStorage['quranku:akad-infaq']`; status pembayaran tetap hanya dari webhook/Public API.
+- **Aman saat localStorage tidak tersedia** (mode privat ketat): persetujuan tidak tersimpan dan akad tampil setiap kali — tidak ada galat.
+- Uji: unit test untuk versi/hash, penolakan versi lama, data rusak, dan pembatalan; e2e untuk alur lengkap (akad → setuju → langsung formulir → batalkan → akad lagi).
+
+## Android & PWA: satu implementasi
+
+- Android **tidak** punya salinan kode infaq. `npm run cap:sync` membangun `dist/` yang sama lalu membungkusnya dengan Capacitor; tidak ada baris `infaq` di folder `android/`.
+- WebView berjalan di `https://localhost` sehingga `localStorage` aktif normal. Konsekuensinya: persetujuan akad **terpisah per perangkat/aplikasi** (PWA dan APK tidak berbagi), dan itu memang disengaja — keridhaan dinyatakan di perangkat yang dipakai.
+- Tombol **Hapus semua data saya** memanggil `localStorage.clear()`, jadi persetujuan akad ikut terhapus dan akad tampil lagi. Ini disengaja.
+- Diawasi tes instrumentasi `InfaqAkadConsentTest` pada emulator API 31 & 36.

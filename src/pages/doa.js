@@ -29,8 +29,8 @@ const TABS = [
 const NU_TITLE_TOTAL = NU_CATEGORIES.reduce((n, c) => n + (c.count || c.items.length), 0)
 const NU_OFFLINE_TOTAL = NU.categories.reduce((n, c) => n + c.items.length, 0)
 const CATALOG_TOTAL = NU_CATEGORIES.length + 2 // Wudhu dan Shalat ditampilkan di tab tersendiri.
-const infaqButton = `<a class="doa-infaq-button" href="#/infaq" aria-label="Dukung QuranKu melalui infaq">${icon('heart')}<span>Infaq</span></a>`
-const infaqCard = () => `<aside class="doa-support"><span class="doa-support-ic">${icon('heart')}</span><span class="doa-support-copy"><strong>Dukung QuranKu</strong><small>Infaq sukarela untuk pemeliharaan dan pengembangan aplikasi.</small></span><a class="btn sm" href="#/infaq">Infaq ${icon('forward')}</a></aside>`
+const infaqButton = `<a class="doa-infaq-button" href="/infaq" aria-label="Dukung QuranKu melalui infaq">${icon('heart')}<span>Infaq</span></a>`
+const infaqCard = () => `<aside class="doa-support"><span class="doa-support-ic">${icon('heart')}</span><span class="doa-support-copy"><strong>Dukung QuranKu</strong><small>Infaq sukarela untuk pemeliharaan dan pengembangan aplikasi.</small></span><a class="btn sm" href="/infaq">Infaq ${icon('forward')}</a></aside>`
 /** Kartu kategori doa harian serta pintasan Wudhu, Usai Salat, Tahlil Lengkap, dan doa Al-Qur’an. */
 const CAT_CARDS = [
   ...NU_CATEGORIES.map((c) => ({ cat: c.slug, name: c.name, icon: c.icon, desc: c.desc, n: c.count || c.items.length, sourceOnly: !!c.sourceOnly })),
@@ -46,7 +46,7 @@ const SOURCE_NOTE = {
 }
 const srcFoot = (html) => `<footer class="src-foot">${fi('book-open')}<p>${html}</p></footer>`
 // Nama sumber di footer menuju halaman Sumber Data di dalam aplikasi, bukan langsung ke situs sumber.
-const nuLink = (_url, label) => `<a class="link" href="#/sumber">${label}</a>`
+const nuLink = (_url, label) => `<a class="link" href="/sumber">${label}</a>`
 /** Bacaan yang sudah ditandai (selama aplikasi terbuka). */
 const done = { wudhu: new Set(), salat: new Set(), tahlil: new Set() }
 const KIND_LABEL = { wirid: 'Wirid', doa: 'Doa', niat: 'Niat' }
@@ -160,7 +160,7 @@ export default function doa(root, { params = {} } = {}) {
     const q = norm(input.value)
     const items = DOA_QURAN.map((d, i) => ({ ...d, i })).filter((d) => !q || norm(d.title).includes(q))
     body.innerHTML = `<div class="list">${items.map((d) => `<details class="doa" data-i="${d.i}"><summary><span><strong>${esc(d.title)}</strong><small>QS. ${d.s}:${d.from}${d.to !== d.from ? '–' + d.to : ''}</small></span>${icon('down')}</summary><div class="doa-body" data-slot>${skeleton(2, 'sk-line')}</div></details>`).join('')}</div>
-      ${srcFoot("<strong>Sumber:</strong> teks ayat dari data Al-Qur'an aplikasi (lihat <a class=\"link\" href=\"#/sumber\">Sumber Data</a>). Ayat ditampilkan utuh; lafaz doa terdapat di dalam ayat tersebut.")}${infaqCard()}`
+      ${srcFoot("<strong>Sumber:</strong> teks ayat dari data Al-Qur'an aplikasi (lihat <a class=\"link\" href=\"/sumber\">Sumber Data</a>). Ayat ditampilkan utuh; lafaz doa terdapat di dalam ayat tersebut.")}${infaqCard()}`
   }
 
   async function fillQuran(det) {
@@ -176,7 +176,7 @@ export default function doa(root, { params = {} } = {}) {
       slot.innerHTML = `<p class="ayah-ar" lang="ar" dir="rtl">${ay.map((a) => `${esc(a.teksArab)} <span class="ayah-num">${ayahMarker(a.nomorAyat)}</span>`).join(' ')}</p>
         ${ay.some((a) => a.teksLatin) ? `<p class="ayah-latin">${ay.map((a) => esc(a.teksLatin || '')).join(' ')}</p>` : ''}
         ${ay.some((a) => a.teksIndonesia) ? `<p class="ayah-id">${ay.map((a) => esc(a.teksIndonesia || '')).join(' ')}</p>` : ''}
-        <div class="doa-foot"><p class="doa-ref">Referensi: ${esc(ref)}</p><div class="doa-acts"><a class="btn sm" href="#/surah/${d.s}/${d.from}">${fi('book-open')}Mushaf</a><button class="btn sm" data-copyq="${det.dataset.i}">${fi('copy')}Salin</button><button class="btn sm" data-share="q:${det.dataset.i}">${fi('share')}Bagikan</button></div></div>`
+        <div class="doa-foot"><p class="doa-ref">Referensi: ${esc(ref)}</p><div class="doa-acts"><a class="btn sm" href="/surah/${d.s}/${d.from}">${fi('book-open')}Mushaf</a><button class="btn sm" data-copyq="${det.dataset.i}">${fi('copy')}Salin</button><button class="btn sm" data-share="q:${det.dataset.i}">${fi('share')}Bagikan</button></div></div>`
     } catch (e) {
       slot.innerHTML = `<p class="muted">${esc(friendlyError(e))}</p>`
     }
@@ -198,7 +198,7 @@ export default function doa(root, { params = {} } = {}) {
       const ref = `QS. ${surah.namaLatin || 'Yā-Sīn'} 36:1–83`
       slot.innerHTML = `<div class="doa-yasin-verses">${verses.map((a) => `<article class="doa-yasin-ayah"><p class="ayah-ar" lang="ar" dir="rtl">${esc(a.teksArab)} <span class="ayah-num">${ayahMarker(a.nomorAyat)}</span></p>${a.teksLatin ? `<p class="ayah-latin">${esc(a.teksLatin)}</p>` : ''}${a.teksIndonesia ? `<p class="ayah-id">${esc(a.teksIndonesia)}</p>` : ''}</article>`).join('')}</div>
         ${!latin || !meaning ? `<p class="hint doa-yasin-hint">${!latin ? 'Transliterasi' : ''}${!latin && !meaning ? ' dan ' : ''}${!meaning ? 'terjemah' : ''} tidak tersedia pada edisi mushaf yang dimuat. Teks Arab lengkap tetap ditampilkan.</p>` : ''}
-        <p class="doa-ref">Referensi: ${esc(ref)}. <a class="link" href="#/sumber">Sumber Data</a>.</p>`
+        <p class="doa-ref">Referensi: ${esc(ref)}. <a class="link" href="/sumber">Sumber Data</a>.</p>`
     } catch (e) {
       slot.dataset.loading = '0'
       slot.innerHTML = `<p class="muted">${esc(friendlyError(e))}</p><button type="button" class="btn sm" data-retry-yasin>${fi('refresh')}Coba lagi</button>`
@@ -221,7 +221,7 @@ export default function doa(root, { params = {} } = {}) {
       <button class="dzikir-check" data-done="${d.i}" aria-pressed="${seen.has(d.i)}" aria-label="Tandai Surah Yasin sudah dibaca">${fi('check')}</button></header>
     <p class="dzikir-note">${icon('info')}<span>Bacaan tambahan setelah rangkaian tahlil, sebelum Doa Arwah. Tandai selesai setelah membaca seluruh surah.</span></p>
     <details class="doa-yasin" data-yasin="${d.surah}"><summary>${icon('book')}<span>Buka Surah Yasin</span><small>83 ayat</small>${icon('down')}</summary><div class="doa-yasin-slot" data-yasin-slot><p class="muted">Buka untuk memuat teks surah dari mushaf QuranKu.</p></div></details>
-    <footer class="dzikir-foot"><div class="dzikir-acts"><a class="btn sm" href="#/surah/${d.surah}/1">${fi('book-open')}Mushaf</a><button class="btn sm" data-copyz="tahlil:${d.i}">${fi('copy')}Salin rujukan</button><button class="btn sm" data-share="tahlil:${d.i}">${fi('share')}Bagikan</button></div></footer>
+    <footer class="dzikir-foot"><div class="dzikir-acts"><a class="btn sm" href="/surah/${d.surah}/1">${fi('book-open')}Mushaf</a><button class="btn sm" data-copyz="tahlil:${d.i}">${fi('copy')}Salin rujukan</button><button class="btn sm" data-share="tahlil:${d.i}">${fi('share')}Bagikan</button></div></footer>
   </article>`
 
   /** Doa harian per kategori: daftar kategori → daftar doa; pencarian menembus semua kategori. */
@@ -281,7 +281,7 @@ export default function doa(root, { params = {} } = {}) {
           ${d.latin ? `<p class="ayah-latin">${esc(d.latin)}</p>` : ''}
           ${d.translation ? `<p class="ayah-id">${esc(d.translation)}</p>` : ''}
           ${d.fawaid ? `<p class="dzikir-note">${icon('info')}<span>${esc(d.fawaid)}</span></p>` : ''}
-          ${d.links && d.links.length ? `<div class="dzikir-links">${d.links.map((l) => `<a class="chip chip-link" href="#/surah/${l.s}/${l.a}">${fi('book-open')}${esc(l.label)}</a>`).join('')}</div>` : ''}
+          ${d.links && d.links.length ? `<div class="dzikir-links">${d.links.map((l) => `<a class="chip chip-link" href="/surah/${l.s}/${l.a}">${fi('book-open')}${esc(l.label)}</a>`).join('')}</div>` : ''}
           <footer class="dzikir-foot">
             <div class="dzikir-acts">
               ${n ? `<button class="btn sm dzikir-count" data-count="${n}" data-n="0" data-for="${d.i}" aria-label="Penghitung bacaan 0 / ${n}">${icon('beads')}<span>0 / ${n}</span></button>` : ''}

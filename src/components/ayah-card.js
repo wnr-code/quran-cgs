@@ -47,7 +47,7 @@ export function focusHtml(surah, marks, { tajweed = false, tajweedIndex = null }
           <span class="ayah-btns">
             <button class="icon-btn sm" data-act="play" aria-label="Putar ayat ${k}">${icon('play')}</button>
             <button class="icon-btn sm bm-btn" data-act="bookmark" aria-label="Bookmark ayat ${k}" aria-pressed="${bm}">${icon('bookmark')}</button>
-            <a class="icon-btn sm" href="#/tafsir/${n}/${k}" aria-label="Tafsir ayat ${k}">${icon('book')}</a>
+            <a class="icon-btn sm" href="/tafsir/${n}/${k}" aria-label="Tafsir ayat ${k}">${icon('book')}</a>
             <button class="icon-btn sm" data-act="copy" aria-label="Salin ayat ${k}">${icon('copy')}</button>
             <button class="icon-btn sm" data-act="share" aria-label="Bagikan ayat ${k}">${icon('share')}</button>
             <button class="icon-btn sm" data-act="more" aria-label="Catatan & aksi lain ayat ${k}">${icon('more')}</button>
@@ -99,7 +99,7 @@ export function pagesHtml(surah, marks, { basmalah = '', tajweed = false, tajwee
   const end = `<section class="mpage mpage-end" data-end dir="ltr">
       <div class="mpage-end-in">${icon('check', 'state-icon')}<h3>Akhir Surah ${esc(surah.namaLatin)}</h3>
       <p>صَدَقَ اللّٰهُ الْعَظِيْمُ</p>
-      <div class="btn-row">${n < 114 ? `<a class="btn btn-primary" href="#/surah/${n + 1}">Surah berikutnya${icon('forward')}</a>` : ''}${n > 1 ? `<a class="btn" href="#/surah/${n - 1}">${icon('back')}Surah sebelumnya</a>` : ''}<a class="btn" href="#/quran">${icon('list')}Daftar surah</a></div></div>
+      <div class="btn-row">${n < 114 ? `<a class="btn btn-primary" href="/surah/${n + 1}">Surah berikutnya${icon('forward')}</a>` : ''}${n > 1 ? `<a class="btn" href="/surah/${n - 1}">${icon('back')}Surah sebelumnya</a>` : ''}<a class="btn" href="/quran">${icon('list')}Daftar surah</a></div></div>
     </section>`
   return pages + end
 }
@@ -177,7 +177,7 @@ export async function openAyahSheet(surah, ayahNo, { onChange, onMarkLast } = {}
           tafsirResult.innerHTML = `
             <div class="ayah-sheet-tafsir-source"><strong>Sumber tafsir</strong><span>${esc(data.edition || 'Sumber tidak dicantumkan')}</span></div>
             <div class="prose ayah-sheet-tafsir-copy">${text}</div>
-            <a class="btn sm ayah-sheet-full-tafsir" href="#/tafsir/${n}/${ayahNo}">${icon('book')}Buka tafsir lengkap surah</a>`
+            <a class="btn sm ayah-sheet-full-tafsir" href="/tafsir/${n}/${ayahNo}">${icon('book')}Buka tafsir lengkap surah</a>`
           tafsirLoaded = true
         } catch {
           tafsirStatus.innerHTML = 'Tafsir belum dapat dimuat. Periksa koneksi lalu coba lagi. <button type="button" class="btn sm" data-act="tafsir-retry">Coba lagi</button>'
@@ -212,7 +212,7 @@ export async function openAyahSheet(surah, ayahNo, { onChange, onMarkLast } = {}
         } else if (act === 'copy') {
           toast((await copyText(ayahShareText(surah, a))) ? 'Ayat disalin' : 'Gagal menyalin')
         } else if (act === 'share') {
-          const shareUrl = `${APP.origin}/#/surah/${n}/${ayahNo}`
+          const shareUrl = `${APP.origin}/surah/${n}/${ayahNo}`
           const shareRef = `QS. ${surah.namaLatin} ${ref}`
           const display = getSettings().reader
           const inTextMode = display.mode === 'focus'
