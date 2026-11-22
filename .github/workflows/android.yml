@@ -236,7 +236,8 @@ jobs:
           fi
 
           {
-            echo "### Android APK for testing: QuranKu-$VER-uji.apk"
+            echo "### Android APK debug (hanya untuk uji cepat, bukan untuk dipasang menimpa aplikasi terpasang)"
+            echo "File: QuranKu-$VER-uji.apk"
             echo '```'
             "$BT/aapt2" dump badging "$DEBUG_APK" | grep -E "^package:|^sdkVersion|^targetSdkVersion|^application-label:"
             ls -lh "$RUNNER_TEMP/apk/QuranKu-$VER-uji.apk" | awk '{print "size: " $5}'
@@ -245,6 +246,9 @@ jobs:
           if [ "$SIGNED" = true ]; then
             {
               echo "### Signed release APK: QuranKu-$VER.apk"
+              echo "Pasang **APK ini** untuk menguji rilis. Jangan pakai file bernama QuranKu-$VER-uji.apk / *-uji.apk:"
+              echo "itu APK debug — ditandatangani kunci debug, jadi **tidak bisa dipasang menimpa** aplikasi yang sudah ada"
+              echo "(pesan Android: \"paket ini bentrok dengan paket yang sudah ada\")."
               echo '```'
               "$BT/aapt2" dump badging "$RELEASE_APK" | grep -E "^package:|^sdkVersion|^targetSdkVersion|^application-label:"
               ls -lh "$RUNNER_TEMP/apk/QuranKu-$VER.apk" | awk '{print "size: " $5}'
