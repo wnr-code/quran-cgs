@@ -231,6 +231,11 @@ jobs:
             fi
             cp "$AAB" "$RUNNER_TEMP/aab/"
             echo 'Release APK and AAB signatures verified. The AAB is available as a GitHub artifact only; this workflow does not publish it to Google Play.' >> "$GITHUB_STEP_SUMMARY"
+            RELEASE_SHA256=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/release-signature.txt" | head -1 | tr -d '\r')
+            RELEASE_SHA256_FMT=$(printf '%s' "$RELEASE_SHA256" | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g; s/:$//')
+            if [ -n "$RELEASE_SHA256_FMT" ]; then
+              echo "::notice title=APK release certificate SHA-256::$RELEASE_SHA256_FMT"
+            fi
           else
             echo 'Release outputs skipped because upload-key secrets are not configured; only the debug test APK is available.' >> "$GITHUB_STEP_SUMMARY"
           fi
@@ -256,10 +261,9 @@ jobs:
               echo '```'
               echo ''
               echo "**Sidik jari sertifikat APK ini** — bandingkan dengan *App signing key certificate* di Play Console → Test and release → Setup → App signing:"
-              FP=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/release-signature.txt" | head -1 | tr -d '\r')
-              if [ -n "$FP" ]; then
+              if [ -n "$RELEASE_SHA256_FMT" ]; then
                 echo '```'
-                echo "$FP" | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g; s/:$//'
+                echo "$RELEASE_SHA256_FMT"
                 echo '```'
               else
                 echo '_Sidik jari SHA-256 tidak terbaca dari keluaran apksigner; lihat langkah "Verify APK and prepare install artifacts"._'
