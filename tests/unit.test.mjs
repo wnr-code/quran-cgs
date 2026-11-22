@@ -1141,6 +1141,38 @@ test('ikon: manifest menunjuk berkas berversi yang benar-benar ada', () => {
   for (const [, href] of html.matchAll(/href="(\/icons\/[^"]+)"/g)) assert.ok(existsSync('public' + href), href)
 })
 
+test("tab Al-Qur'an di halaman Doa: penanda muat tidak boleh memakai data-done", () => {
+  // Bug: fillQuran() menandai wadah ayat dengan slot.dataset.done = '1'. Padahal
+  // [data-done] adalah penanda tombol "tandai sudah dibaca", dan handler klik
+  // memeriksa [data-done] LEBIH DULU daripada [data-share]/[data-copyq]:
+  //   const dn = e.target.closest('[data-done]')
+  //   if (dn) return setDone(tab, ...)      // ← berhenti di sini
+  // Akibatnya klik Bagikan/Salin di dalam kartu ayat tertangkap cabang itu, lalu
+  // setDone('quran', ...) menabrak done['quran'] yang tidak ada →
+  // "TypeError: Cannot read properties of undefined (reading 'add')".
+  const doa = readFileSync(new URL('../src/pages/doa.js', import.meta.url), 'utf8')
+
+  // 1. Penanda muat harus memakai nama sendiri, bukan data-done.
+  assert.doesNotMatch(
+    doa,
+    /slot\.dataset\.done\s*=/,
+    'penanda muat tidak boleh memakai dataset.done (bertabrakan dengan tombol tanda-baca)'
+  )
+  assert.match(doa, /slot\.dataset\.loaded\s*=\s*'1'/, 'fillQuran/fillYasin harus memakai dataset.loaded')
+
+  // 2. setDone harus kebal terhadap tab tanpa daftar tanda (tab "quran").
+  const setDone = doa.slice(doa.indexOf('function setDone'), doa.indexOf('function setDone') + 400)
+  assert.match(
+    setDone,
+    /if \(!done\[kind\]\) return/,
+    'setDone harus berhenti bila tab tidak punya daftar tanda, bukan melempar TypeError'
+  )
+
+  // 3. Urutan pemeriksaan handler: [data-share] harus tetap ada dan tidak boleh
+  //    didahului pengembalian tanpa syarat dari cabang lain.
+  assert.match(doa, /const sh = e\.target\.closest\('\[data-share\]'\)/, 'handler bagikan harus tetap ada')
+})
+
 test('tombol bagikan: sheet tidak ditutup sebelum share native, dan audio tanpa tautan tetap bisa dibagikan', () => {
   // Dua bug yang membuat tombol bagikan terasa "tidak berfungsi":
   //  1. share-sheet menutup dialog SEBELUM memanggil share native. Di Android, menutup dialog

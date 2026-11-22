@@ -4,20 +4,23 @@ Teks untuk **Play Console → Test and release → Rilis → "Apa yang baru"** (
 Batas resmi: **500 karakter per bahasa**. Satu catatan per rilis; rilis berikutnya menimpa yang lama,
 jadi catatan ini hanya perlu memuat perubahan sejak versi yang sedang dipakai pengguna.
 
-## 1.4.46 — 22 November 2026 (untuk rilis yang akan datang)
+## 1.4.47 — 22 November 2026 (untuk rilis yang akan datang)
 
 ```
-Tautan quran.cgs.my.id dari WhatsApp kini terbuka langsung di aplikasi, tepat pada surah, ayat, atau jadwal salat yang dituju. Alamat halaman juga lebih bersih tanpa tanda #.
-?adzan= pada tautan benar-benar memutar adzan, dan posisi bacaan terakhir dilanjutkan.
+Tombol Bagikan dan Salin kini berfungsi di seluruh aplikasi, termasuk pada doa dari Al-Qur'an di halaman Doa yang sebelumnya tidak merespons.
+Tautan quran.cgs.my.id dari WhatsApp terbuka langsung di surah, ayat, atau jadwal salat yang dituju, tanpa tanda #.
+?adzan= benar-benar memutar adzan, dan posisi bacaan terakhir dilanjutkan.
 Pintasan ikon aplikasi membuka halaman yang benar.
-Perbaikan: Kelola Offline normal, tidak ada halaman kosong pada tautan rusak, notifikasi membuka halaman yang tepat.
+Perbaikan: Kelola Offline normal, tautan rusak tidak menampilkan halaman kosong.
 ```
 
-**429/500 karakter.** Aman bila Play menghitung spasi/baris baru (sebagian penghitung melakukannya).
+**463/500 karakter.** Periksa ulang dengan penghitung Play sebelum menempel: sebagian penghitung
+memasukkan baris baru dan spasi ganda.
 
-1.4.44–1.4.45 hanya menyentuh dokumen dan skrip pembuat screenshot. **1.4.46 memperbaiki
-tombol bagikan** (lihat riwayat commit), jadi baris pertama catatan boleh diganti dengan:
-"Tombol bagikan kini berfungsi di semua halaman: ayat, doa, Asmaul Husna, dan murottal." 
+1.4.44–1.4.46 menyentuh dokumen, skrip screenshot, serta perbaikan tombol bagikan
+(sheet ditutup sebelum share native, dan audio murottal tanpa tautan). **1.4.47** menuntaskan
+sisa bug tombol: tab "Al-Qur'an" di halaman Doa, tempat klik Bagikan dan Salin berhenti karena
+`[data-done]` menangkap klik lebih dulu.
 
 ### Mengapa kalimatnya begitu
 
