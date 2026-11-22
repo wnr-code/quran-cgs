@@ -1141,6 +1141,40 @@ test('ikon: manifest menunjuk berkas berversi yang benar-benar ada', () => {
   for (const [, href] of html.matchAll(/href="(\/icons\/[^"]+)"/g)) assert.ok(existsSync('public' + href), href)
 })
 
+test('screenshot Play: 2-8 berkas, 1080x1920, rasio <= 2:1, tanpa alpha', () => {
+  // Play menolak screenshot dengan rasio > 2:1. Berkas lama 824x1830 (2,22:1) melanggar aturan itu,
+  // jadi screenshot di store/screenshots/ harus lolos pemeriksaan ini sebelum diunggah.
+  const dir = new URL('../store/screenshots/', import.meta.url)
+  const files = readdirSync(dir).filter((f) => f.endsWith('.png'))
+  assert.ok(files.length >= 2 && files.length <= 8, `jumlah screenshot ${files.length} (Play: 2-8)`)
+
+  const pngSize = (file) => {
+    const buf = readFileSync(new URL(file, dir))
+    // Header IHDR: lebar & tinggi big-endian di offset 16..24, kedalaman bit di 24, tipe warna di 25.
+    assert.equal(buf.subarray(1, 4).toString('latin1'), 'PNG', `${file} bukan PNG`)
+    const width = buf.readUInt32BE(16)
+    const height = buf.readUInt32BE(20)
+    const bitDepth = buf[24]
+    const colorType = buf[25]
+    return { width, height, bitDepth, colorType }
+  }
+
+  for (const file of files) {
+    const { width, height, bitDepth, colorType } = pngSize(file)
+    assert.ok(width >= 320 && width <= 3840, `${file}: lebar ${width}`)
+    assert.ok(height >= 320 && height <= 3840, `${file}: tinggi ${height}`)
+    assert.ok(Math.max(width, height) / Math.min(width, height) <= 2, `${file}: rasio ${(Math.max(width, height) / Math.min(width, height)).toFixed(2)} melebihi 2:1`)
+    assert.equal(bitDepth, 8, `${file}: kedalaman bit ${bitDepth}`)
+    // 4 = grayscale+alpha, 6 = RGBA. Play tidak menerima transparansi.
+    assert.ok(colorType !== 4 && colorType !== 6, `${file}: PNG ber-alpha (colorType ${colorType})`)
+    assert.ok(readFileSync(new URL(file, dir)).length < 8 * 1024 * 1024, `${file}: lebih dari 8 MB`)
+  }
+
+  // Nomor urut harus 01..nn tanpa lompatan agar urutan di Play Console sesuai naskah.
+  const numbers = files.map((f) => Number(f.slice(0, 2))).sort((a, b) => a - b)
+  assert.deepEqual(numbers, Array.from({ length: files.length }, (_, i) => i + 1))
+})
+
 test('catatan rilis Play: <= 500 karakter, satu blok per versi, tanpa larangan', () => {
   const notes = readFileSync(new URL('../store/release-notes.md', import.meta.url), 'utf8')
   const versi = [...notes.matchAll(/^## (\d+\.\d+\.\d+) — /gm)].map((m) => m[1])

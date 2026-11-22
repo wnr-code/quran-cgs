@@ -56,6 +56,41 @@ Sumber data: EQuran.id dan Al Quran Cloud (teks, terjemahan, tafsir, dan audio);
 **Kebijakan privasi:** https://quran.cgs.my.id/privacy.html
 **Situs:** https://quran.cgs.my.id
 
+## Screenshot
+
+Delapan berkas di `store/screenshots/`, semuanya **1080 × 1920** piksel (9:16, rasio 1,78) — di dalam batas
+Play (sisi 320–3840 px, rasio maksimum 2:1, PNG tanpa transparansi, maksimum 8 berkas per jenis perangkat).
+
+| # | Berkas | Isi |
+|---|---|---|
+| 1 | `01-beranda.png` | Beranda: salam, tanggal Hijriah, progres tilawah, pintasan |
+| 2 | `02-daftar-surah.png` | Daftar 114 surah + surah populer |
+| 3 | `03-mushaf.png` | Al-Fatihah, teks Arab rasm Utsmani |
+| 4 | `04-surah-albaqarah.png` | Mushaf Madinah halaman 2, teks rapat |
+| 5 | `05-doa.png` | Doa & Dzikir: kategori, tab, filter tampilan |
+| 6 | `06-jadwal-salat.png` | Jadwal salat Tasikmalaya, imsak & buka puasa |
+| 7 | `07-asmaul-husna.png` | 99 nama Allah dengan kartu arti |
+| 8 | `08-offline.png` | Kelola Offline: penyimpanan, unduh surah |
+
+**Urutan ini disengaja**: Play hanya menampilkan ~2 gambar pertama tanpa digeser, jadi Beranda
+(siapa aplikasi ini) dan daftar surah (isi utamanya) ditaruh paling depan.
+
+Cara membuat ulang:
+
+```bash
+npm ci
+npm run build
+npm run gen:shots:app          # butuh Chromium; set CHROME_PATH bila tidak di lokasi standar
+TZ=Asia/Jakarta npm run gen:shots:app   # penting: tanpa TZ, jam salat tampil dalam UTC
+```
+
+> **Waktu di screenshot.** Jadwal salat dihitung lokal memakai `getHours()`, jadi hasilnya mengikuti zona
+> waktu perangkat yang menjalankan skrip. Di mesin UTC, Subuh tampil 20:57 — angka yang salah untuk pembaca
+> Indonesia. Selalu jalankan dengan `TZ=Asia/Jakarta` (atau zona Indonesia lain yang sesuai).
+
+Data screenshot berasal dari `scripts/play-shots-fixture.mjs`: teks Arab asli dari `public/data/`
+(paket `quran-json`), terjemahan contoh untuk beberapa ayat, dan tanpa jaringan sama sekali.
+
 ## Catatan penulisan deskripsi
 
 - **Setiap angka harus bisa dicek ke kode.** Pernah tertulis "Tahlil 28 langkah" padahal `src/data/tahlil.json` berisi **29** bacaan. Angka lain yang aman dikutip: 114 surah, 30 juz, 99 Asmaul Husna, 31 qari (6 per ayat + 25 surah penuh), 22 tema poster, poster 720 × 1280 (9:16).
@@ -69,4 +104,4 @@ Sumber data: EQuran.id dan Al Quran Cloud (teks, terjemahan, tafsir, dan audio);
 |---|---|
 | Ikon 512×512 | `store/graphics/icon-512.png` |
 | Feature graphic 1024×500 | `store/quranku-playstore-feature-graphic-1024x500.png` |
-| Screenshot ponsel | `store/screenshots/*.png` — **ambil ulang dari situs produksi sebelum diunggah** (lihat docs/STATUS.md). Play meminta 2–8 screenshot, sisi 320–3840 px, rasio maksimum 2:1; periksa ukuran berkas terhadap ketentuan terbaru. |
+| Screenshot ponsel | `store/screenshots/*.png` — **8 berkas, 1080×1920 (9:16), siap unggah.** Dibuat `npm run gen:shots:app` dari UI asli; lihat `store/screenshots-lama/` untuk arsip versi lama. |
