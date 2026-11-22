@@ -254,6 +254,18 @@ jobs:
               ls -lh "$RUNNER_TEMP/apk/QuranKu-$VER.apk" | awk '{print "size: " $5}'
               echo 'AAB signature verification: passed'
               echo '```'
+              echo ''
+              echo "**Sidik jari sertifikat APK ini** — bandingkan dengan *App signing key certificate* di Play Console → Test and release → Setup → App signing:"
+              FP=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/release-signature.txt" | head -1 | tr -d '\r')
+              if [ -n "$FP" ]; then
+                echo '```'
+                echo "$FP" | tr '[:lower:]' '[:upper:]' | sed 's/../&:/g; s/:$//'
+                echo '```'
+              else
+                echo '_Sidik jari SHA-256 tidak terbaca dari keluaran apksigner; lihat langkah "Verify APK and prepare install artifacts"._'
+              fi
+              echo "Sama? APK ini bisa dipasang menimpa aplikasi dari Play. **Berbeda?** Play memakai app-signing key milik Google,"
+              echo "jadi APK manual tidak akan pernah bisa menimpa — pakai *Internal testing* agar Play yang memperbarui aplikasi (data aman)."
             } >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Remove temporary upload keystore

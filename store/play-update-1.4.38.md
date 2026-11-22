@@ -207,7 +207,25 @@ Bila belum, workflow hanya menghasilkan APK debug (tidak bisa dipakai untuk Play
 | **Data safety** | bagian 3 — **wajib**, lihat peringatan di bawah |
 | Screenshot Infaq | `npm run gen:shots` (bagian 4) |
 
-### 7.4 Peringatan Data safety
+### 7.4 Menguji APK di ponsel yang sudah memasang QuranKu dari Play
+
+Artefak `QuranKu-APK-untuk-dipasang` berisi **dua** APK. Keduanya tidak bisa saling menggantikan:
+
+| Berkas | Tanda tangan | Bisa dipasang menimpa aplikasi dari Play? |
+|---|---|---|
+| `QuranKu-<versi>.apk` | upload key (sama dengan AAB) | Ya — bila Play App Signing memakai upload key ini |
+| `QuranKu-<versi>-uji.apk` | kunci **debug** bawaan Android | **Tidak pernah** |
+
+Memasang APK debug menghasilkan pesan **"Aplikasi tidak diinstal karena paket ini bentrok dengan paket yang sudah ada"** (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Itu bukan bug, melainkan perlindungan Android: aplikasi dengan nama paket sama (`id.cgs.quranku`) wajib memakai sertifikat yang sama.
+
+Bila APK release **juga** ditolak, artinya aplikasi di ponsel ditandatangani **app-signing key milik Google** (Play App Signing), bukan upload key. Memeriksanya di Play Console: **Test and release → Setup → App signing**, lihat sidik jari SHA-256 *App signing key certificate*, lalu bandingkan dengan sidik jari APK release di ringkasan workflow (**Actions → run → Summary**, tertulis di `Signed release APK`). Bila berbeda:
+
+- **Paling aman:** jangan pasang APK manual. Pakai jalur 7.2 (Internal testing) — Play yang memperbarui aplikasi, data pengguna tetap utuh.
+- **Bila tetap ingin APK manual:** cadangkan dulu lewat aplikasi (**Lainnya → Pengaturan → Ekspor cadangan**), lalu copot QuranKu dan pasang APK release. Data lokal (bookmark, catatan, riwayat, progres tilawah) **hilang** bila tidak dicadangkan.
+
+Sidik jari yang sama juga dipakai App Links di `public/.well-known/assetlinks.json` (`56:45:F6:…:03:66`). Bila sidik jari *App signing key* di Play Console berbeda dari nilai itu, tautan `quran.cgs.my.id` tidak akan terbuka di aplikasi — keduanya perlu diperbaiki bersamaan.
+
+### 7.5 Peringatan Data safety
 
 Listing saat ini menyatakan **"Tidak ada data dikumpulkan"** & **"Tidak ada data dibagikan"**, padahal aplikasi mengirim koordinat ke OpenStreetMap Nominatim saat Anda menekan "Gunakan lokasi saya", dan mengirim data transaksi ke Trakteer serta server QuranKu saat berinfaq. Play sendiri sudah menampilkan badge **"Membagikan Lokasi"** di listing.
 
