@@ -204,7 +204,7 @@ Langkah yang dipakai (untuk rilis berikutnya):
 
 Setelah rilis diterima, **jangan unggah AAB dengan `versionCode` lebih kecil** — Play akan menolak. `versionCode` dihitung dari nomor run workflow (`github.run_number * 10`), jadi selalu naik selama build dari workflow.
 
-> **Catatan 22 November 2026:** AAB 1.4.38 yang sudah diunggah dibuat sebelum URL bersih tanpa `#` ditambahkan. Setelah PR #65 di-merge, build berikutnya (run ≥ 217) akan berisi routing baru dan `versionCode` ≥ 2170 — aman diunggah sebagai pembaruan. Perlu build Android baru karena `android/app/src/main/AndroidManifest.xml` berubah (filter App Links).
+> **Catatan 22 November 2026:** AAB 1.4.38 yang sudah diunggah dibuat dari commit `4863179` (run #202), **sebelum** URL bersih ditambahkan — dan manifest-nya hanya mengklaim halaman beranda, sehingga tautan `https://quran.cgs.my.id/surah/2/255` dari WhatsApp pasti terbuka di peramban, bukan di aplikasi. Build **1.4.39** (run ≥ 223) memperbaiki itu: routing URL bersih, filter App Links lengkap (`android:path` per rute satu segmen + `android:pathPrefix` untuk `/surah/`, `/tafsir/`, `/doa/`), serta banner "Buka di aplikasi" yang memakai `intent://` untuk peramban dalam aplikasi seperti WhatsApp. `versionCode` build baru = nomor run × 10 sehingga selalu lebih besar dari 2020 dan aman diunggah sebagai pembaruan.
 
 ### 7.2.1 Checklist uji setelah terpasang dari Internal testing
 
@@ -220,6 +220,19 @@ Pasang lewat tautan *Internal testing* di Play (bukan APK manual) supaya data la
 | Doa selalu tersimpan | Kirim doa lewat formulir | Doa langsung muncul di papan |
 | Animasi & kurangi gerakan | Nyalakan "kurangi gerakan" di pengaturan | Doa tidak beranimasi, tetap terbaca |
 | App Links | Ketuk `https://quran.cgs.my.id/surah/2/255` dari WhatsApp | Terbuka di aplikasi, bukan di Chrome |
+| Buka di aplikasi (cadangan) | Bila tautan tetap terbuka di peramban WhatsApp, ketuk banner **Buka di aplikasi** di beranda | Aplikasi QuranKu terbuka di halaman yang sama — tanpa bergantung pada App Links |
+
+### 7.2.2 Bila tautan dari WhatsApp tetap membuka peramban
+
+Tiga sebab yang mungkin, berurutan dari yang paling sering:
+
+| Sebab | Cara memastikan | Tindakan |
+|---|---|---|
+| Aplikasi di ponsel masih 1.4.38 (AAB run #202) | Tentang → versi tertulis 1.4.38 | Perbarui lewat Play (Internal testing), lalu ulangi. Manifest 1.4.38 hanya mengklaim beranda. |
+| Filter lama `pathPattern="/.*/.*"` | — | Sudah diganti `pathPrefix` pada 1.4.39; `PatternMatcher` Android hanya membuat `.*` cocok satu karakter, jadi pola lama tidak pernah cocok dengan `/surah/2/255`. |
+| WhatsApp membuka tautan di peramban dalam aplikasinya | Alamat bar tetap di dalam WhatsApp | Ketuk banner **Buka di aplikasi** di beranda (memakai `intent://`), atau menu ⋮ → **Buka di peramban**, lalu ulangi |
+
+Verifikasi App Links setelah pembaruan terpasang: **Play Console → Test and release → App Links** (atau `adb shell pm get-app-links id.cgs.quranku`) harus menampilkan `verified` untuk `quran.cgs.my.id`. `assetlinks.json` sudah berisi kunci app signing Google (`56:45:F6:…:03:66`), jadi tidak perlu diubah.
 
 ### 7.3 Perbarui materi listing
 

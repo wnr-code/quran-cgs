@@ -1332,6 +1332,76 @@ test('App Links Android memakai domain, sertifikat, dan rute hash resmi QuranKu'
   assert.match(manifest, /android:scheme="https" android:host="quran\.cgs\.my\.id" android:path="\/"/)
 })
 
+test('App Links: setiap rute aplikasi diklaim, berkas statis tidak', async () => {
+  const manifest = readFileSync(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8')
+  const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8')
+  const paths = [...manifest.matchAll(/android:path="([^"]+)"/g)].map((m) => m[1])
+  const prefixes = [...manifest.matchAll(/android:pathPrefix="([^"]+)"/g)].map((m) => m[1])
+
+  // Setiap rute satu segmen di src/app.js harus punya android:path yang sama persis.
+  const routes = [...app.matchAll(/addRoute\('([^']*)'/g)].map((m) => m[1])
+  const single = routes.filter((r) => r === '/' || (r.startsWith('/') && !r.includes(':') && r.split('/').length === 2))
+  for (const r of single) assert.ok(paths.includes(r), `rute ${r} harus diklaim manifest`)
+  // Rute bertingkat memakai awalan.
+  for (const r of routes.filter((x) => x.includes(':') && x.split('/').length > 2)) {
+    const head = '/' + r.split('/')[1] + '/'
+    assert.ok(prefixes.includes(head), `rute ${r} butuh pathPrefix ${head}`)
+  }
+
+  // pathPattern tidak dipakai: PatternMatcher Android membuat ".*" hanya cocok satu karakter,
+  // sehingga "/.*/.*" tidak pernah cocok dengan /surah/2/255.
+  assert.doesNotMatch(manifest, /android:pathPattern=/)
+  // Kebijakan privasi & berkas statis tetap di peramban.
+  assert.ok(!paths.includes('/privacy.html'))
+  assert.ok(!prefixes.some((x) => x === '/'))
+})
+
+test('tautan peramban dalam aplikasi: halaman perantara membuka aplikasi, bukan Play', async () => {
+  const { appLinkUrl, linkOpenerUrl, isInAppBrowser, nativeAppIntentUrl, appLinkRouteFromRedirect } = await import(
+    '../src/services/app-links.js'
+  )
+  assert.equal(appLinkUrl('/surah/2/255'), 'https://quran.cgs.my.id/surah/2/255')
+  assert.equal(appLinkUrl('surah/2/255'), 'https://quran.cgs.my.id/surah/2/255')
+  assert.equal(linkOpenerUrl('/surah/2/255'), '/buka.html?next=%2Fsurah%2F2%2F255')
+  assert.equal(isInAppBrowser('Mozilla/5.0 (Linux; Android 13) WhatsApp/2.24.1'), true)
+  assert.equal(isInAppBrowser('Mozilla/5.0 (Linux; Android 13; SM-A546E) Chrome/126.0 Mobile Safari/537.36'), false)
+  assert.match(
+    nativeAppIntentUrl('/surah/2/255'),
+    /^intent:\/\/quran\.cgs\.my\.id\/surah\/2\/255#Intent;scheme=https;package=id\.cgs\.quranku;/
+  )
+  assert.match(
+    nativeAppIntentUrl('/surah/2/255'),
+    /S\.browser_fallback_url=https%3A%2F%2Fplay\.google\.com%2Fstore%2Fapps%2Fdetails%3Fid%3Did\.cgs\.quranku/
+  )
+  assert.equal(appLinkRouteFromRedirect('/surah/2/255'), '/surah/2/255')
+  assert.equal(appLinkRouteFromRedirect('https://evil.example/surah/2/255'), null)
+  assert.equal(appLinkRouteFromRedirect('/privacy.html'), null)
+
+  const page = readFileSync(new URL('../public/buka.html', import.meta.url), 'utf8')
+  const script = readFileSync(new URL('../public/buka.js', import.meta.url), 'utf8')
+  // CSP situs melarang skrip inline: skrip harus berkas terpisah.
+  assert.doesNotMatch(page, /<script>[\s\S]/)
+  assert.match(page, /<script src="\/buka\.js"><\/script>/)
+  assert.match(script, /S\.browser_fallback_url/)
+  assert.match(script, /id\.cgs\.quranku/)
+})
+
+test('bar "buka di aplikasi": hanya untuk peramban dalam aplikasi Android, menunjuk halaman aktif', async () => {
+  const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8')
+  const opener = readFileSync(new URL('../src/services/app-opener.js', import.meta.url), 'utf8')
+  // Dipasang global agar halaman baca yang dituju tautan WhatsApp juga punya jalan keluar.
+  assert.match(app, /attachAppOpener\(\)/)
+  assert.match(opener, /isInAppBrowser\(\)/)
+  assert.match(opener, /\/Android\/i/)
+  assert.match(opener, /linkOpenerUrl\(path\)/)
+  assert.match(opener, /qk:route/)
+  assert.match(opener, /Buka di aplikasi QuranKu/)
+  // Ajakan Play di beranda tidak diubah (permintaan pengguna: tampilkan unduhan Play di situs).
+  const home = readFileSync(new URL('../src/pages/home.js', import.meta.url), 'utf8')
+  assert.match(home, /Gratis di Google Play/)
+  assert.doesNotMatch(home, /linkOpenerUrl/, 'beranda tidak perlu tahu soal peramban dalam aplikasi')
+})
+
 test('notifikasi Android memakai status izin sistem dan menyediakan permintaan runtime', async () => {
   const { notifSupported, notifPermission, requestNotifPermission } = await import('../src/services/notification.js')
   globalThis.androidBridge = {}

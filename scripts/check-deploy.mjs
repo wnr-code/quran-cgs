@@ -9,7 +9,8 @@ const site = (process.argv[2] || 'https://quran.cgs.my.id').replace(/\/+$/, '')
 const paths = [
   ['/', 'beranda'],
   ['/surah/2/255', 'URL bersih (fitur baru)'],
-  ['/privacy.html', 'halaman statis']
+  ['/privacy.html', 'halaman statis'],
+  ['/buka.html', 'halaman pembuka aplikasi (peramban WhatsApp)']
 ]
 
 const check = async ([path, label]) => {

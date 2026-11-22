@@ -46,15 +46,45 @@
                 <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/" />
             </intent-filter>
 
-            <!-- URL bersih dua segmen atau lebih: /surah/2/255, /doa/harian, /tafsir/2.
-                 Filter terpisah agar tidak tergabung sebagai perkalian silang dengan path="/".
-                 Halaman statis satu segmen seperti /privacy.html tidak cocok, jadi tetap dibuka
-                 di peramban. -->
+            <!-- Halaman satu segmen (/kiblat, /infaq, /salat, …). Didaftar satu per satu
+                 supaya berkas statis seperti /privacy.html tetap terbuka di peramban:
+                 kebijakan privasi harus bisa dibaca dari tautan Play Store. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="quran.cgs.my.id" android:pathPattern="/.*/.*" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/quran" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/cari" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/murottal" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/bookmark" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/lainnya" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/salat" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/kalender" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/asmaul-husna" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/doa" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/tasbih" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/kiblat" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/target" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/offline" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/infaq" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/pengaturan" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/tentang" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/sumber" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/notifikasi" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/lanjut" />
+            </intent-filter>
+
+            <!-- Jalur bertingkat: /surah/2, /surah/2/255, /tafsir/2/255, /doa/harian.
+                 pathPrefix dipakai, bukan pathPattern: PatternMatcher Android membuat ".*"
+                 hanya cocok dengan satu karakter, sehingga pola "/.*/.*" tidak pernah cocok
+                 dengan /surah/2/255 dan tautan itu terlempar ke peramban. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:pathPrefix="/surah/" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:pathPrefix="/tafsir/" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:pathPrefix="/doa/" />
             </intent-filter>
 
         </activity>
