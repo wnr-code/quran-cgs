@@ -8,11 +8,11 @@ Ringkasan ini mengikuti APK Android Capacitor saat ini. Tinjau lagi setiap kali 
 |---|---|---|
 | Apakah aplikasi mengumpulkan atau membagikan data pengguna? | **Ada transmisi opsional saat pengguna memakai pencarian nama lokasi atau infaq** | Koordinat lokasi dikirim langsung dari perangkat ke OpenStreetMap Nominatim (cadangannya Photon/komoot.io) hanya saat pengguna meminta nama wilayah; data transaksi infaq dikirim ke Trakteer/mitranya dan server QuranKu. Cocokkan klasifikasi lokasi dan transaksi/donasi dengan definisi Data Safety terbaru. Tidak ada iklan atau pelacak iklan/analitik. |
 | Lokasi | Lokasi perkiraan, opsional | `ACCESS_COARSE_LOCATION` diminta setelah tindakan pengguna. Koordinat dipakai lokal untuk jadwal salat/kiblat; saat pengguna meminta pencarian nama wilayah, perangkat mengirim koordinat langsung ke Nominatim (bila gagal, sekali ke Photon/komoot.io). Koordinat tidak dikirim ke server QuranKu oleh APK. APK tidak mendaftar Web Push. |
-| Informasi yang dikirim untuk infaq | Nama dan informasi transaksi/pembelian, hanya bila pengguna memilih berinfaq | Nama tampilan dan nominal ditampilkan di papan donatur. Data pembayaran diproses oleh Trakteer dan mitranya; QuranKu tidak menerima nomor kartu/rekening/dompet digital. Lihat kebijakan privasi. |
+| Informasi yang dikirim untuk infaq | Nama dan informasi transaksi/pembelian, hanya bila pengguna memilih berinfaq | Nama dan nominal tidak ditampilkan di publik; hanya pesan/ucapan (bila dikirim) yang tampil anonim di Papan Kebaikan. Data pembayaran diproses oleh Trakteer dan mitranya; QuranKu tidak menerima nomor kartu/rekening/dompet digital. Lihat kebijakan privasi. |
 | Data dienkripsi saat transit | Ya | Koneksi ke API dan layanan pembayaran memakai HTTPS. |
-| Pengguna dapat meminta penghapusan | Ya | Data lokal dihapus dari Pengaturan; langganan push web dihapus saat dimatikan (fitur PWA, bukan APK). Penghapusan data papan donatur dapat diminta melalui kontak privasi. |
+| Pengguna dapat meminta penghapusan | Ya | Data lokal dihapus dari Pengaturan; langganan push web dihapus saat dimatikan (fitur PWA, bukan APK). Penghapusan data Papan Kebaikan dapat diminta melalui kontak privasi. |
 
-Untuk formulir Play, tinjau kategori lokasi (untuk permintaan nama wilayah) dan data transaksi/donasi (saat infaq) sesuai definisi Play Console terbaru. Nama publik, nominal, dan ucapan dapat tampil pada papan donatur. Jangan menyatakan “tidak mengumpulkan data apa pun” bila kedua alur opsional tersebut tersedia.
+Untuk formulir Play, tinjau kategori lokasi (untuk permintaan nama wilayah) dan data transaksi/donasi (saat infaq) sesuai definisi Play Console terbaru. Pesan/ucapan dapat tampil publik tanpa nama pada Papan Kebaikan; nama dan nominal tidak ditampilkan. Jangan menyatakan “tidak mengumpulkan data apa pun” bila kedua alur opsional tersebut tersedia.
 
 **Catatan khusus PWA:** bila pengguna menyalakan Web Push Adzan di peramban yang mendukung, server QuranKu menyimpan alamat langganan push dan lokasi yang dibulatkan sekitar ±1 km untuk menghitung pemberitahuan. Fitur ini tidak tersedia di APK Capacitor dan bukan alasan untuk menyatakan APK mengirim lokasi.
 
@@ -20,7 +20,7 @@ Untuk formulir Play, tinjau kategori lokasi (untuk permintaan nama wilayah) dan 
 
 - Kategori: Buku & Referensi / Pendidikan.
 - Kekerasan, konten seksual, bahasa kasar, narkoba, judi: Tidak ada.
-- Interaksi antar pengguna / berbagi konten buatan pengguna: Tidak ada chat atau pesan antar pengguna. Namun papan donatur menampilkan nama/ucapan yang dikirim pengguna secara publik; jawab kuesioner IARC dengan mempertimbangkan konten publik ini.
+- Interaksi antar pengguna / berbagi konten buatan pengguna: Tidak ada chat atau pesan antar pengguna. Namun Papan Kebaikan menampilkan ucapan/doa yang dikirim pengguna secara publik (tanpa nama); jawab kuesioner IARC dengan mempertimbangkan konten publik ini.
 - Berbagi lokasi dengan pengguna lain: Tidak.
 - Pembelian digital: Tidak; infaq sukarela bukan pembelian konten digital.
 - Perkiraan hasil: Semua umur / 3+. Rating final ditetapkan oleh kuesioner.

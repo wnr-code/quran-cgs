@@ -16,7 +16,7 @@ aplikasi sendiri (`#/infaq`); dana diterima lewat akun Trakteer `lanteraku`.
      *Buka halaman pembayaran*. Setelah infaq terkonfirmasi, tab yang dibuka aplikasi ditutup kembali.
 3. Layar **Menunggu pembayaran**: aplikasi memeriksa `GET /api/infaq/status` secara berkala. Niat bertahan walau
    aplikasi ditutup atau dimuat ulang.
-4. Begitu pembayaran tercatat → layar **Terima kasih** dan papan donatur diperbarui. Bila kedaluwarsa → layar gagal.
+4. Begitu pembayaran tercatat → layar **Terima kasih** dan papan kebaikan diperbarui. Bila kedaluwarsa → layar gagal.
 5. Bila pembayaran sudah dilakukan tetapi tidak terdeteksi, donatur memasukkan **ID transaksi** dari bukti bayar
    (`POST /api/infaq/claim`); Worker mencocokkannya dengan data yang diterima dari Trakteer.
 
@@ -72,10 +72,14 @@ pengamatan, **belum pernah diuji terhadap Trakteer sungguhan**, dan bisa salah a
 
 Uji dengan satu transaksi nominal kecil sebelum mengandalkannya.
 
-## Papan donatur
+## Papan Kebaikan (anonim)
 
-`GET /api/donors`: 20 teratas Harian / Mingguan / Bulanan / Sepanjang waktu (zona WIB, pekan mulai Senin) dan 30
-infaq terbaru. Nama digabung tanpa membedakan huruf besar-kecil. Transaksi uji (ID berawalan `test`) disembunyikan.
+`GET /api/donors`: hitungan kebaikan tercatat + jumlah doa, dan 30 doa/ucapan terbaru (hanya yang punya pesan).
+Nama donatur dan nominal **tidak dikirim ke publik** demi menjaga keikhlasan & privasi; kolom `name`/`amount`
+tetap disimpan di D1 untuk pencocokan niat infaq di sisi server. Transaksi uji (ID berawalan `test`) disembunyikan.
+Pesan diambil dari `supporter_message` (webhook) dan `support_message` (Public API `/supports`); keduanya dibersihkan
+(tanpa `<>`/karakter kontrol, maks. 280) dan di-escape saat ditampilkan. Field webhook lain (`supporter_avatar`,
+`media`, `unit_icon`, `net_amount`) sengaja diabaikan: avatar = privasi, media = relevansi/keamanan, `net_amount` = keuangan internal.
 
 ## Pembatasan
 
@@ -139,3 +143,14 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 ### Webhook 401 (1.3.13)
 
 `401 unauthorized` saat "Send Webhook Test" berarti nilai secret `TRAKTEER_WEBHOOK_TOKEN` di Worker tidak sama dengan Webhook Token di dasbor Trakteer (bila secret belum ada, jawabannya 503 `not_configured`). Perbandingan kini mengabaikan spasi/baris baru/tanda kutip di tepi, dan jawaban 401 memuat `hint`. Perbaikan: Cloudflare → Workers → quran-cgs → Settings → Variables and Secrets → `TRAKTEER_WEBHOOK_TOKEN` = token dari Trakteer → Deploy. Setelah 3 kegagalan Trakteer mematikan webhook otomatis: aktifkan lagi.
+
+## 1.4.34 — Papan Kebaikan anonim (tanpa nama & nominal)
+
+- Papan donatur lama (podium tiga besar + daftar nominal per periode) diganti **Papan Kebaikan**: statistik **Kebaikan tercatat** (jumlah transaksi) dan **Doa & ucapan** (jumlah entri berpesan), lalu dinding “Mutiara Doa & Ucapan” berisi doa/ucapan terbaru dengan atribusi **Hamba Allah** + tanggal. Nominal dan nama tidak lagi diminta, disusun peringkat, atau ditampilkan.
+- `mapSupport` kini memetakan `supporter_message` (webhook), `support_message` (Public API), atau `message`, sehingga doa dari jalur sinkronisasi tidak lagi hilang.
+- Endpoint `/api/donors` hanya mengirim `totals.count`, `totals.doaCount`, dan 30 `doa { message, at }`. `periodStarts` dipertahankan agar uji periode WIB tetap berjalan, tetapi papan publik tidak lagi memakainya.
+- Alasan: menjaga keikhlasan (tidak ada perlombaan nominal) dan privasi (nama donatur tidak tersimpan di cache/CDN publik), sesuai pilihan pemilik aplikasi.
+- Teks akad, kebijakan privasi, README, STATUS, materi Play Store (Data Safety & deskripsi), dan halaman Tentang/Lainnya/Sumber Data diselaraskan dengan anonimitas ini.
+- Kelas CSS dinding doa di-*scope* ke `.infaq-page` (`.doa-item`, `.doa-msg`, `.doa-meta`, `.doa-ayat`) agar tidak bentrok dengan komponen akordeon `.doa` di halaman Doa Harian.
+- Uji regresi baru di `tests/unit.test.mjs` memastikan halaman/klien API tidak pernah merender `name`/`amount`/podium dan kelas `.doa-item` tetap di-scope ke `.infaq-page`.
+- **Tangkapan layar Play Store `store/screenshots/14-infaq-papan.png` (dan `10-infaq.png`) masih versi lama** (papan donatur bernama & bernominal / isian nominal di aplikasi). Perlu dibuat ulang dengan `SHOTS_DIR=store/screenshots node tests/e2e/infaq.mjs` pada mesin yang punya peramban + `wrangler dev`.

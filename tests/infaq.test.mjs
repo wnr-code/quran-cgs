@@ -32,8 +32,9 @@ const noNetwork = async () => {
 test('pemetaan Public API /supports', () => {
   assert.equal(parseWib('2025-03-11 13:44:07'), Date.UTC(2025, 2, 11, 6, 44, 7))
   const now = Date.UTC(2025, 2, 12)
-  const d = mapSupport({ creator_name: 'Janessa West', support_message: 'x', quantity: 2, amount: 30000, unit_name: 'Kopi', status: 'success', updated_at: '2025-03-11 13:44:07', order_id: 'j1ee3b42-35f8-5cb1-a316-a405bee9d3a1' }, now)
+  const d = mapSupport({ creator_name: 'Janessa West', support_message: '  Semoga   berkah  ', quantity: 2, amount: 30000, unit_name: 'Kopi', status: 'success', updated_at: '2025-03-11 13:44:07', order_id: 'j1ee3b42-35f8-5cb1-a316-a405bee9d3a1' }, now)
   assert.deepEqual({ id: d.id, name: d.name, amount: d.amount, quantity: d.quantity, unit: d.unit }, { id: 'j1ee3b42-35f8-5cb1-a316-a405bee9d3a1', name: 'Janessa West', amount: 30000, quantity: 2, unit: 'Kopi' })
+  assert.equal(d.message, 'Semoga berkah', 'pesan dari Public API ikut disimpan agar tampil di Papan Kebaikan')
   assert.equal(mapSupport({ amount: 1000, status: 'pending', updated_at: '2025-03-11 13:44:07', order_id: 'abcdefg' }, now), null, 'hanya transaksi sukses')
   assert.equal(mapSupport({ amount: 1000, status: 'success', updated_at: '2025-03-11 13:44:07' }, now), null, 'tanpa order_id ditolak')
   assert.ok(mapSupport({ amount: 1000, status: 'success', updated_at: '2025-03-11 13:44:07', order_id: 'abcdefg' }, now).nameUnknown)

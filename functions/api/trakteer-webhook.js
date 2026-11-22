@@ -63,7 +63,7 @@ export async function onRequestPost({ request, env }) {
   }
   const d = parseDonation(body)
   if (!d) return json({ ok: false, error: 'invalid_payload' }, 400)
-  // Transaksi uji dari tombol "Send Webhook Test" Trakteer tidak ditampilkan di papan donatur.
+  // Transaksi uji dari tombol "Send Webhook Test" Trakteer tidak ditampilkan di papan kebaikan.
   const isTest = /^test/i.test(d.id) ? 1 : 0
   await ensureSchema(env.DB)
   await insertDonation(env.DB, { ...d, is_test: isTest }, 'webhook')

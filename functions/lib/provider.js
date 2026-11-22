@@ -39,10 +39,14 @@ export function mapSupport(s, now = Date.now()) {
   if (!id || amount <= 0 || !Number.isFinite(t) || t > now + 3600000) return null
   // Dokumentasi menamai kolom nama `creator_name` pada /supports; `supporter_name` dipakai bila tersedia.
   const name = cleanText(s.supporter_name ?? s.creator_name, 60)
+  // Pesan/doa donatur: webhook memakai `supporter_message`, Public API memakai `support_message`.
+  // Tanpa ini doa dari jalur sinkronisasi hilang dan tidak pernah tampil di Papan Kebaikan.
+  const message = cleanText(String(s.supporter_message ?? s.support_message ?? s.message ?? '').replace(/\s+/g, ' '), 280)
   return {
     id,
     name: name || 'Hamba Allah',
     nameUnknown: !name,
+    message,
     unit: cleanText(s.unit_name, 30),
     quantity: Math.max(1, parseInt(s.quantity, 10) || 1),
     amount,

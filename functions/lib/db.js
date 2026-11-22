@@ -28,7 +28,7 @@ export async function ensureSchema(db) {
   } catch {
     /* kolom sudah ada */
   }
-  // Pesan/doa yang ditulis donatur di formulir Trakteer (ditampilkan di papan donatur).
+  // Pesan/doa yang ditulis donatur di formulir Trakteer (ditampilkan di papan kebaikan).
   try {
     await db.prepare(`ALTER TABLE donations ADD COLUMN message TEXT NOT NULL DEFAULT ''`).run()
   } catch {

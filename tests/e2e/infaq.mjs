@@ -137,7 +137,7 @@ await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol 
   assert.ok(embedRequests.length >= 3)
 })
 
-await step('Papan donatur: menutup popup tidak menambah donatur; webhook menampilkan nama, nominal & ucapan', async () => {
+await step('Papan Kebaikan: menutup popup tidak menambah kebaikan; webhook menampilkan doa anonim tanpa nama & nominal', async () => {
   const name = 'Penguji ' + uniq
   assert.ok(!(await page.$eval('#view', (e) => e.textContent)).includes(name), 'popup ditutup ≠ sudah bayar')
   const r = await webhook({ transaction_id: 'e2e-m-' + uniq, supporter_name: name, supporter_message: 'Semoga berkah <script>x</script> ' + uniq, price: 25000, quantity: 25, unit: 'Kopi' })
@@ -146,15 +146,17 @@ await step('Papan donatur: menutup popup tidak menambah donatur; webhook menampi
   await page.waitForSelector('.trk-overlay.open', T)
   await new Promise((r) => setTimeout(r, 300))
   await page.goBack() // papan dimuat ulang setelah popup ditutup
-  await page.waitForFunction((n) => [...document.querySelectorAll('.wish strong')].some((e) => e.textContent === n), T, name)
-  const wish = await page.evaluate((n) => {
-    const li = [...document.querySelectorAll('.wish')].find((e) => e.querySelector('strong').textContent === n)
-    return { amount: li.querySelector('.wish-head b').textContent, msg: li.querySelector('.wish-msg')?.textContent || '', html: li.innerHTML }
-  }, name)
-  assert.match(wish.amount, /25\.000/)
-  assert.ok(wish.msg.startsWith('Semoga berkah') && wish.msg.includes(uniq), wish.msg)
-  assert.ok(!/<script/i.test(wish.html))
-  assert.ok(await page.$('.podium .podium-col.p1'))
+  await page.waitForFunction((n) => [...document.querySelectorAll('.doa-item .doa-msg')].some((e) => e.textContent.includes(n)), T, uniq)
+  const doa = await page.evaluate((n) => {
+    const li = [...document.querySelectorAll('.doa-item')].find((e) => e.querySelector('.doa-msg').textContent.includes(n))
+    return { msg: li.querySelector('.doa-msg').textContent, meta: li.querySelector('.doa-meta').textContent, html: li.innerHTML }
+  }, uniq)
+  assert.ok(doa.msg.startsWith('Semoga berkah') && doa.msg.includes(uniq), doa.msg)
+  assert.match(doa.meta, /Hamba Allah/)
+  assert.ok(!/<script/i.test(doa.html))
+  assert.ok(!(await page.$eval('#view', (e) => e.textContent)).includes(name), 'nama donatur tidak tampil')
+  assert.ok(!(await page.$eval('#view', (e) => e.textContent)).includes('25.000'), 'nominal tidak tampil')
+  assert.equal(await page.$('.podium'), null, 'podium dihapus')
   assert.equal(await page.$eval('[data-stats]', (e) => e.hidden), false)
   await page.$eval('.infaq-stats', (e) => e.scrollIntoView({ block: 'start' }))
   await page.screenshot({ path: `${SHOTS}/14-infaq-papan.png` })
