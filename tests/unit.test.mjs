@@ -943,6 +943,58 @@ test('akad infaq: penerima jelas, qabul dinyatakan, tanpa klaim imbalan, nafkah 
   assert.doesNotMatch(akad, /amal(nya)? (Anda )?(pasti )?diterima/)
 })
 
+test('persetujuan akad infaq: berlaku per versi teks, batal saat teks berubah, bisa dibatalkan', async () => {
+  // Tiruan localStorage minimal.
+  const store = new Map()
+  globalThis.localStorage = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, String(v)),
+    removeItem: (k) => store.delete(k)
+  }
+  const { akadVersion, akadConsent, setAkadConsent } = await import('../src/pages/infaq.js')
+  const v = akadVersion()
+  assert.match(v, /^[0-9a-z]+$/, 'versi berupa hash pendek')
+
+  // Belum ada persetujuan.
+  assert.equal(akadConsent(), null)
+
+  // Setuju → tersimpan dengan versi & tanggal.
+  const c = setAkadConsent(true)
+  assert.equal(c.versi, v)
+  assert.ok(Date.parse(c.tanggal) > 0, 'tanggal valid')
+  assert.equal(akadConsent().versi, v)
+
+  // Teks akad berubah → persetujuan lama tidak berlaku lagi.
+  store.set('quranku:akad-infaq', JSON.stringify({ versi: 'versi-lama', tanggal: new Date().toISOString() }))
+  assert.equal(akadConsent(), null, 'versi berbeda harus ditolak')
+
+  // Rusak / bukan JSON → dianggap belum setuju, tidak melempar.
+  store.set('quranku:akad-infaq', 'bukan json')
+  assert.equal(akadConsent(), null)
+
+  // Batalkan → terhapus.
+  setAkadConsent(true)
+  assert.equal(setAkadConsent(false), null)
+  assert.equal(akadConsent(), null)
+  assert.equal(store.has('quranku:akad-infaq'), false)
+
+  // localStorage tidak tersedia (mode privat ekstrem) → tidak melempar.
+  globalThis.localStorage = {
+    getItem: () => {
+      throw new Error('blocked')
+    },
+    setItem: () => {
+      throw new Error('blocked')
+    },
+    removeItem: () => {
+      throw new Error('blocked')
+    }
+  }
+  assert.equal(akadConsent(), null)
+  assert.equal(setAkadConsent(true), null)
+  delete globalThis.localStorage
+})
+
 test('dinding doa: sorotan hanya untuk doa yang benar-benar baru sejak render sebelumnya', () => {
   // Meniru aturan di src/pages/infaq.js tanpa DOM.
   const mark = (seenLatest, doa) => {

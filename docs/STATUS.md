@@ -325,3 +325,10 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Akad memuat: jenis pemberian (hibah), penerima jelas (Aep / WNR Code), kanal pembayaran terpisah (Lanteraku), qabul, larangan riba, bukan zakat/fidyah/kafarah/nazar, nafkah wajib lebih utama, dan klausul pengembalian 7 hari.
 - `npm test` **110 lulus, 0 gagal**; `npm run build` berhasil.
 - Batas: **belum ditinjau ustaz/ahli fikih**; teks disusun dari kaidah umum hibah/sedekah.
+
+## 1.4.37 — Akad infaq cukup sekali per versi teks
+
+- Akad diingat di `localStorage` sebagai `{versi, tanggal}`; versi = hash teks akad sehingga perubahan teks membatalkan persetujuan lama.
+- Tombol "Batalkan persetujuan" tersedia; setelah dibatalkan akad tampil lagi.
+- `npm test` **111 lulus, 0 gagal**; `npm run build` berhasil; alur diuji nyata dengan jsdom (6 skenario).
+- Batas: e2e `tests/e2e/infaq.mjs` sudah diperbarui namun belum dijalankan di sandbox (tanpa peramban).

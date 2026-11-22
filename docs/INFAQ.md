@@ -175,3 +175,16 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Uji: `tests/unit.test.mjs` menjaga istilah kunci akad dan melarang frasa yang terkesan meminta; `tests/e2e/infaq.mjs` memeriksa hasil render sesungguhnya.
 - Batas: disusun dari kaidah umum fikih muamalah, **belum ditinjau ustaz/ahli fikih**. Sebaiknya direview sebelum rilis besar.
 - **Nama depan saja.** Penerima ditulis **Aep (WNR Code)** — nama orang lebih dulu, merek sebagai keterangan. Nama lengkap tidak dimuat. Identitas penerima dapat diverifikasi lewat kontak di halaman Tentang dan data pengembang pada listing Play (`id.cgs.quranku`). Bila kelak ada badan usaha/lembaga resmi, ganti nama penerima di `akadHtml` dan perbarui test.
+
+## 1.4.37 — Akad sekali, bukan setiap donasi
+
+- **Dasar syariat:** ijab-qabul adalah penanda keridhaan, bukan syarat sah sedekah dan bukan ritual berulang. Keridhaan donatur pada akad yang sama tetap berlaku untuk infaq berikutnya. Mengulang akad setiap transaksi mendekati *takalluf* yang tidak dianjurkan.
+- **Perilaku baru:**
+  - Tombol **INFAQ** menampilkan akad hanya bila belum ada persetujuan untuk **versi teks akad yang sekarang**.
+  - Setelah menyetujui, tombol **INFAQ** langsung membuka formulir pembayaran; akad tetap bisa dibaca lewat tautan "Baca akad & tujuan infaq".
+  - Di bawah tautan akad muncul status: *"Anda sudah menyetujui akad ini pada <tanggal>. **Batalkan persetujuan**"*.
+  - Menekan **Batalkan persetujuan** menghapus data dan akad tampil lagi pada donasi berikutnya.
+- **Terikat pada isi, bukan orang.** `akadVersion()` menghitung hash teks akad (tanpa blok tombol). Bila teks akad diubah — misalnya penerima atau penggunaan dana — persetujuan lama **otomatis batal** dan akad tampil lagi. Ini menjaga agar keridhaan selalu terikat pada apa yang benar-benar disetujui.
+- **Bukan penanda "sudah bayar".** Persetujuan akad hanya menyimpan `{versi, tanggal}` di `localStorage['quranku:akad-infaq']`; status pembayaran tetap hanya dari webhook/Public API.
+- **Aman saat localStorage tidak tersedia** (mode privat ketat): persetujuan tidak tersimpan dan akad tampil setiap kali — tidak ada galat.
+- Uji: unit test untuk versi/hash, penolakan versi lama, data rusak, dan pembatalan; e2e untuk alur lengkap (akad → setuju → langsung formulir → batalkan → akad lagi).

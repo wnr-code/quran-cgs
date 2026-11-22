@@ -51,10 +51,12 @@ const tap = async (sel) => {
   await page.$eval(sel, (e) => e.scrollIntoView({ block: 'center' }))
   await page.click(sel)
 }
+// Akad hanya tampil bila persetujuan belum ada / teks akad berubah.
 const openForm = async () => {
   await tap('[data-infaq-open]')
-  await page.waitForSelector('.sheet-wrap.open [data-akad-ok]', T)
-  await page.$eval('[data-akad-ok]', (b) => b.click())
+  const akad = await page.waitForSelector('.sheet-wrap.open [data-akad-ok]', { timeout: 4000 }).catch(() => null)
+  if (akad) await page.$eval('[data-akad-ok]', (b) => b.click())
+  await page.waitForSelector('.trk-overlay', T)
 }
 const frameOpened = () =>
   page.evaluate(
@@ -170,6 +172,47 @@ await step('Papan Kebaikan: menutup popup tidak menambah kebaikan; webhook menam
   assert.equal(await page.$eval('[data-stats]', (e) => e.hidden), false)
   await page.$eval('.infaq-stats', (e) => e.scrollIntoView({ block: 'start' }))
   await page.screenshot({ path: `${SHOTS}/14-infaq-papan.png` })
+})
+
+await step('Akad infaq: cukup sekali, berikutnya langsung formulir, dan bisa dibatalkan', async () => {
+  // Bersihkan persetujuan lalu muat ulang halaman.
+  await page.evaluate(() => localStorage.removeItem('quranku:akad-infaq'))
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('[data-infaq-open]', T)
+
+  // 1) Belum setuju → akad tampil.
+  await tap('[data-infaq-open]')
+  await page.waitForSelector('.sheet-wrap.open [data-akad-ok]', T)
+  await page.click('.sheet-head [data-close]')
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap'), T)
+  const statusAwal = await page.$eval('[data-akad-status]', (e) => e.hidden)
+  assert.equal(statusAwal, true, 'belum ada status persetujuan')
+
+  // 2) Setuju → tersimpan, status tampil, formulir terbuka.
+  await openForm()
+  await page.waitForSelector('.trk-overlay.open', T)
+  await page.goBack()
+  await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
+  const consent = await page.evaluate(() => JSON.parse(localStorage.getItem('quranku:akad-infaq') || 'null'))
+  assert.ok(consent && consent.versi && Date.parse(consent.tanggal) > 0, 'persetujuan tersimpan')
+  await page.waitForFunction(() => !document.querySelector('[data-akad-status]').hidden, T)
+  assert.match(await page.$eval('[data-akad-status]', (e) => e.textContent), /sudah menyetujui akad/i)
+
+  // 3) Klik INFAQ lagi → TIDAK ada akad, langsung formulir.
+  await tap('[data-infaq-open]')
+  await page.waitForSelector('.trk-overlay.open', T)
+  assert.equal(await page.$('.sheet-wrap [data-akad]'), null, 'akad tidak muncul lagi')
+  await page.goBack()
+  await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
+
+  // 4) Batalkan persetujuan → akad tampil lagi.
+  await tap('[data-akad-reset]')
+  await page.waitForFunction(() => document.querySelector('[data-akad-status]').hidden, T)
+  assert.equal(await page.evaluate(() => localStorage.getItem('quranku:akad-infaq')), null, 'persetujuan terhapus')
+  await tap('[data-infaq-open]')
+  await page.waitForSelector('.sheet-wrap.open [data-akad-ok]', T) // akad harus tampil lagi setelah dibatalkan
+  await page.click('.sheet-head [data-close]')
+  await page.waitForFunction(() => !document.querySelector('.sheet-wrap'), T)
 })
 
 await step('Halaman Lainnya: identitas, slogan, kartu bertema & menu tampil', async () => {

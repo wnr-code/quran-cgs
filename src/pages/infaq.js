@@ -41,7 +41,7 @@ const TRAKTEER_ORIGIN = new URL(TRBTN.url).origin
 // Isi popup akad: ditampilkan sebelum formulir pembayaran dibuka.
 // Disusun mengikuti kaidah hibah/tabarru': penerima jelas, qabul dinyatakan, dana menjadi milik
 // penerima, tanpa imbalan (menutup riba), bukan zakat/fidyah/kafarah/nazar, dan nafkah wajib lebih utama.
-const akadHtml = () => `<div class="akad" data-akad>
+const akadHtml = ({ lanjut = true } = {}) => `<div class="akad" data-akad>
       <p>QuranKu tidak mewajibkan apa pun. Aplikasi tetap gratis, lengkap, dan tanpa iklan, baik Anda berinfaq maupun tidak.</p>
       <p class="akad-jenis"><b>Ini hibah, bukan jual beli.</b> Anda memberikan uang secara sukarela kepada penerima di bawah ini, dan Anda niatkan sebagai infaq atau sedekah. Bukan pinjaman, bukan titipan, bukan investasi, dan bukan wakaf.</p>
       <p class="akad-pihak"><b>Penerima:</b> Aep (WNR Code), pengembang dan pengelola resmi aplikasi QuranKu. <b>Kanal pembayaran:</b> Lanteraku, akun Trakteer milik pengelola; Trakteer dan mitranya hanya memproses pembayaran dan tidak menjadi penerima dana. <b>Penerimaan (qabul):</b> dinyatakan dengan tersedianya kanal pembayaran ini. <b>Identitas penerima</b> dapat diverifikasi lewat kontak pengelola di halaman Tentang dan data pengembang pada listing aplikasi ini.</p>
@@ -58,7 +58,43 @@ const akadHtml = () => `<div class="akad" data-akad>
       <p class="akad-batal">Bila terjadi pembayaran ganda, salah nominal, atau kesalahan teknis, ajukan pengembalian dalam 7 hari melalui kontak di halaman <b>Tentang</b>.</p>
       <p class="akad-doa">Semoga Allah menerimanya dan menjadikannya amal jariyah.<br /><b>Jazakumullahu khairan katsiran.</b></p>
     </div>
-    <div class="akad-actions"><button type="button" class="btn btn-primary btn-block" data-akad-ok>${icon('check')}Bismillah, saya setuju & lanjut</button><button type="button" class="btn btn-block" data-close>Nanti saja</button></div>`
+    <div class="akad-actions"><button type="button" class="btn btn-primary btn-block" data-akad-ok>${icon('check')}Bismillah, saya setuju${lanjut ? ' & lanjut' : ''}</button><button type="button" class="btn btn-block" data-close>${lanjut ? 'Nanti saja' : 'Tutup'}</button></div>`
+
+// ---------------------------------------------------------------------------
+// Persetujuan akad. Akad hanya perlu sekali (ijab-qabul penanda ridha, bukan
+// syarat sah sedekah), tetapi terikat pada ISI yang disetujui: bila teks akad
+// berubah, persetujuan lama batal dan akad tampil lagi. Selalu bisa dibatalkan.
+// ---------------------------------------------------------------------------
+const AKAD_KEY = 'quranku:akad-infaq'
+
+/** Versi = hash isi teks akad. Berubah otomatis setiap teks akad diubah. */
+export function akadVersion() {
+  // Teks tanpa blok tombol: label tombol bergantung konteks, isi akad tidak.
+  const text = akadHtml().split('<div class="akad-actions">')[0]
+  // djb2 sederhana: cukup untuk mendeteksi perubahan teks, bukan untuk keamanan.
+  let h = 5381
+  for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) >>> 0
+  return h.toString(36)
+}
+
+/** @returns {{versi:string, tanggal:string}|null} persetujuan yang masih berlaku */
+export function akadConsent() {
+  try {
+    const v = JSON.parse(localStorage.getItem(AKAD_KEY) || 'null')
+    if (!v || v.versi !== akadVersion() || !v.tanggal) return null
+    return v
+  } catch {
+    return null
+  }
+}
+
+export function setAkadConsent(ok = true) {
+  try {
+    if (ok) localStorage.setItem(AKAD_KEY, JSON.stringify({ versi: akadVersion(), tanggal: new Date().toISOString() }))
+    else localStorage.removeItem(AKAD_KEY)
+  } catch {}
+  return akadConsent()
+}
 
 export default function infaq(root) {
   root.innerHTML = `<div class="page infaq-page">${pageHeader('Infaq Pengembang')}
@@ -67,6 +103,7 @@ export default function infaq(root) {
       <p class="np-sub">QuranKu tetap gratis dan tanpa iklan, memberi ataupun tidak. Aplikasi tidak memakai pelacak iklan atau analitik. Formulir pembayaran dimuat dari Trakteer setelah Anda menekan tombol.</p>
       <button type="button" class="trbtn-infaq" data-infaq-open><img src="${TRBTN.img}" alt="" width="22" height="22" decoding="async" data-trbtn-img /><span>${TRBTN.text}</span></button>
       <button type="button" class="akad-link" data-akad-open>${icon('info')}Baca akad & tujuan infaq</button>
+      <p class="akad-status" data-akad-status hidden></p>
     </section>
     <p class="hint pad infaq-note">Di dalam aplikasi, gunakan <b>QRIS</b> atau <b>transfer bank/virtual account</b>. Dompet digital seperti GoPay dan ShopeePay perlu membuka aplikasinya sehingga tidak dapat berjalan di jendela ini — untuk itu <a href="${TRBTN.url}" target="_blank" rel="noopener noreferrer" data-trk-direct>buka halaman pembayaran</a>.</p>
     <div class="infaq-stats" data-stats hidden></div>
@@ -79,6 +116,7 @@ export default function infaq(root) {
   const doaEl = $('[data-doa]', root)
   const statsEl = $('[data-stats]', root)
   const trImg = $('[data-trbtn-img]', root)
+  const akadStatus = $('[data-akad-status]', root)
   trImg.addEventListener('error', () => (trImg.hidden = true)) // offline / gambar tidak termuat: tombol tetap tampil
   let alive = true
   let data = null
@@ -166,17 +204,42 @@ export default function infaq(root) {
     overlay = { close }
   }
 
-  // ---------- Popup akad ----------
+  // ---------- Akad & persetujuan ----------
   let sheet = null
-  function openAkad() {
+
+  /** Tampilkan "sudah menyetujui akad" + jalan untuk membatalkannya. */
+  function renderAkadStatus() {
+    const consent = akadConsent()
+    akadStatus.hidden = !consent
+    if (!consent) return
+    const tgl = new Date(consent.tanggal)
+    const label = Number.isFinite(tgl.getTime()) ? tgl.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''
+    akadStatus.innerHTML = `Anda sudah menyetujui akad ini${label ? ` pada ${esc(label)}` : ''}. <button type="button" class="akad-reset" data-akad-reset>Batalkan persetujuan</button>`
+  }
+
+  /**
+   * Alur tombol INFAQ.
+   * - Belum menyetujui akad versi ini → tampilkan akad dulu (ijab-qabul).
+   * - Sudah menyetujui → langsung ke formulir pembayaran; akad tetap bisa dibaca lewat tautan.
+   */
+  function mulaiInfaq() {
+    if (akadConsent()) return openOverlay()
+    openAkad({ lanjut: true })
+  }
+
+  /** @param {{lanjut?: boolean}} [opts] lanjut: setelah setuju, buka formulir pembayaran. */
+  function openAkad({ lanjut = false } = {}) {
     if (sheet || overlay) return
     sheet = openSheet({
       title: 'Akad & Tujuan Infaq',
-      content: akadHtml(),
+      content: akadHtml({ lanjut }),
       onOpen(body, close) {
         body.querySelector('[data-akad-ok]').onclick = () => {
+          setAkadConsent(true)
+          renderAkadStatus()
           close()
-          openOverlay()
+          if (lanjut) openOverlay()
+          else toast('Persetujuan akad disimpan. Infaq berikutnya tidak menampilkan akad lagi.')
         }
       },
       onClose() {
@@ -213,7 +276,14 @@ export default function infaq(root) {
 
   page.addEventListener('click', (e) => {
     const t = e.target
-    if (t.closest('[data-infaq-open]') || t.closest('[data-akad-open]')) return openAkad()
+    if (t.closest('[data-infaq-open]')) return mulaiInfaq()
+    if (t.closest('[data-akad-open]')) return openAkad()
+    if (t.closest('[data-akad-reset]')) {
+      setAkadConsent(false)
+      renderAkadStatus()
+      toast('Persetujuan dibatalkan. Akad akan tampil lagi saat Anda berinfaq.')
+      return
+    }
     if (t.closest('[data-reload]')) {
       doaEl.innerHTML = skeleton(3)
       return load(true)
@@ -222,6 +292,7 @@ export default function infaq(root) {
   const onVisible = () => document.visibilityState === 'visible' && alive && load(true)
   document.addEventListener('visibilitychange', onVisible)
 
+  renderAkadStatus()
   load()
 
   return () => {
