@@ -103,17 +103,31 @@ export async function copyText(text) {
   }
 }
 
+/**
+ * Apakah tombol "Aplikasi lain" (share sheet sistem) layak ditampilkan?
+ *
+ * Di APK, navigator.share TIDAK tersedia: WebView Android tidak mengimplementasikan Web Share API
+ * (hanya Chrome sebagai peramban yang punya). Karena itu jalur native memakai plugin
+ * @capacitor/share, dan keberadaan plugin itulah yang harus diperiksa — bukan navigator.share.
+ * Bila plugin tidak terpasang (APK lama), tombolnya disembunyikan agar pengguna tidak menekan
+ * tombol yang tidak bisa berbuat apa-apa.
+ */
 export const canShareText = () =>
-  Capacitor.isNativePlatform() || (typeof navigator !== 'undefined' && typeof navigator.share === 'function')
+  (Capacitor.isNativePlatform() && Capacitor.isPluginAvailable('Share')) ||
+  (typeof navigator !== 'undefined' && typeof navigator.share === 'function')
 
 /** Share pakai Android/iOS share sheet atau Web Share API; tidak pernah diam-diam menyalin teks. */
 export async function shareText(title, text, url) {
   const options = { title, text, url }
   try {
     if (Capacitor.isNativePlatform()) {
+      if (!Capacitor.isPluginAvailable('Share')) return 'unsupported'
       const { value } = await Share.canShare()
       if (!value) return 'unsupported'
-      await Share.share({ ...options, dialogTitle: title })
+      // Android menggabungkan text + url menjadi satu EXTRA_TEXT (lihat SharePlugin.java).
+      // Kirim url terpisah hanya bila tidak ada teks, supaya tautan tidak muncul dua kali.
+      const payload = text ? { ...options, url: undefined } : options
+      await Share.share({ ...payload, dialogTitle: title })
       return 'shared'
     }
     if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {

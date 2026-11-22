@@ -1141,6 +1141,47 @@ test('ikon: manifest menunjuk berkas berversi yang benar-benar ada', () => {
   for (const [, href] of html.matchAll(/href="(\/icons\/[^"]+)"/g)) assert.ok(existsSync('public' + href), href)
 })
 
+test('tombol bagikan: sheet tidak ditutup sebelum share native, dan audio tanpa tautan tetap bisa dibagikan', () => {
+  // Dua bug yang membuat tombol bagikan terasa "tidak berfungsi":
+  //  1. share-sheet menutup dialog SEBELUM memanggil share native. Di Android, menutup dialog
+  //     melepas fokus WebView, lalu startActivity untuk chooser berbagi gagal tampil.
+  //  2. murottal berhenti dengan toast bila pickSurahAudio() null (daftar surah dari sumber
+  //     cadangan tidak punya audioFull), sehingga tombol bagikan tidak pernah membuka sheet.
+  const sheet = readFileSync(new URL('../src/components/share-sheet.js', import.meta.url), 'utf8')
+  // Cari pernyataan if-nya, bukan komentar (komentar juga menyebut closest('[data-native]')).
+  const awal = sheet.indexOf("if (e.target.closest('[data-native]'))")
+  assert.ok(awal > -1, 'cabang data-native harus ada')
+  const blok = sheet.slice(awal, sheet.indexOf('const themeButton', awal))
+  // `await shareText(...)` harus selesai sebelum close() dijalankan. Periksa dengan regex
+  // yang tidak mudah jenuh oleh pemanggilan tanpa await (bug lama: shareText lalu close).
+  assert.match(
+    blok,
+    /const result = await shareText\([^)]*\)\s*\n\s*close\(\)/,
+    'shareText() harus di-await SEBELUM close() agar chooser Android tidak hilang'
+  )
+
+  const murottal = readFileSync(new URL('../src/pages/murottal.js', import.meta.url), 'utf8')
+  const awalAudio = murottal.indexOf("if (e.target.closest('[data-share-audio]'))")
+  assert.ok(awalAudio > -1, 'cabang bagikan audio harus ada')
+  const blokAudio = murottal.slice(awalAudio, murottal.indexOf("closest('[data-dl]')", awalAudio))
+  assert.doesNotMatch(blokAudio, /if \(!pick\) return toast/, 'jangan berhenti ketika audio tidak diketahui; tetap buka sheet')
+  assert.match(blokAudio, /openShare\(/, 'tombol bagikan audio harus tetap membuka sheet')
+
+  // canShareText() harus memeriksa plugin Share, bukan hanya isNativePlatform:
+  // navigator.share tidak ada di WebView Android, jadi pemeriksaan lama bisa menampilkan
+  // tombol yang tidak bisa berbuat apa-apa pada APK tanpa plugin.
+  const helpers = readFileSync(new URL('../src/utils/helpers.js', import.meta.url), 'utf8')
+  const defCanShare = helpers.slice(helpers.indexOf('export const canShareText'), helpers.indexOf('export async function shareText'))
+  assert.match(defCanShare, /isPluginAvailable\('Share'\)/, 'canShareText harus memeriksa plugin Share, bukan hanya isNativePlatform')
+  assert.doesNotMatch(
+    defCanShare,
+    /Capacitor\.isNativePlatform\(\)\s*\|\|\s*\(\s*typeof navigator/,
+    'isNativePlatform() saja tidak cukup: navigator.share tidak ada di WebView Android'
+  )
+  // Android menggabungkan text+url; kirim url terpisah hanya bila tanpa teks.
+  assert.match(helpers, /const payload = text \?/, 'shareText harus menghindari tautan ganda di Android')
+})
+
 test('skrip screenshot Play: memaksa TZ Indonesia, maksimal 8 gambar, dan memeriksa jam salat', () => {
   // Dua bug yang lolos ke PR sebelumnya:
   //  1. Skrip menghasilkan 9 gambar padahal Play hanya menerima 8.

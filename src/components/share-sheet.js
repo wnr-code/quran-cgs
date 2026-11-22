@@ -157,9 +157,13 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
           return close()
         }
         if (e.target.closest('[data-native]')) {
-          const pending = shareText(p.title, text, url)
+          // JANGAN menutup sheet sebelum share native dipanggil. Di Android, menutup dialog
+          // (yang melepas fokus WebView) tepat sebelum startActivity membuat chooser berbagi
+          // gagal tampil atau langsung hilang — gejalanya "tombol bagikan tidak berfungsi".
+          // Tutup setelah hasilnya diketahui; itu juga memberi waktu animasi chooser berjalan.
+          const result = await shareText(p.title, text, url)
           close()
-          reportShareResult(await pending)
+          reportShareResult(result)
           return
         }
 
@@ -237,8 +241,8 @@ export function openShare(p, { title = 'Bagikan doa', what = 'doa', hint, image 
             title: p.title,
             text: `${text}\n\n${url}`
           })
-          close()
           const result = await pending
+          close()
           if (result === 'saved') toast(`Gambar ${currentFormat.toUpperCase()} tersimpan di Galeri, siap dibagikan.`)
           else if (result === 'downloaded') toast(`Gambar ${currentFormat.toUpperCase()} diunduh, siap dibagikan.`)
           else if (result === 'failed') toast(`Gagal membagikan gambar ${imageKind}.`)
