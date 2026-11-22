@@ -319,3 +319,9 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Animasi `doa-in` (0,5 dtk, stagger 55 ms) dan `doa-glow` (2,4 dtk) pada `.infaq-page .doa-item`; kelas `.is-new` hanya untuk doa yang lebih baru dari render sebelumnya.
 - Keduanya dimatikan pada `prefers-reduced-motion: reduce`. Tidak ada marquee/auto-scroll.
 - Verifikasi: `npm test` **109 lulus, 0 gagal** (termasuk tes logika sorotan sekali-jalan dan larangan animasi berulang); `npm run build` berhasil (61 berkas precache); render nyata di jsdom memastikan `--i` bertahap, `.is-new` hanya sekali, dan tidak ada sorotan pada muat pertama.
+
+## 1.4.36 — Telaah akad infaq
+
+- Akad memuat: jenis pemberian (hibah), penerima jelas (WNR Code / AEP Saepulloh), kanal pembayaran terpisah (Lanteraku), qabul, larangan riba, bukan zakat/fidyah/kafarah/nazar, nafkah wajib lebih utama, dan klausul pengembalian 7 hari.
+- `npm test` **110 lulus, 0 gagal**; `npm run build` berhasil.
+- Batas: **belum ditinjau ustaz/ahli fikih**; teks disusun dari kaidah umum hibah/sedekah.

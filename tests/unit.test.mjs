@@ -915,6 +915,31 @@ test('halaman infaq: dinding doa anonim tanpa nama, nominal, podium, atau tab pe
   assert.match(block, /animation: doa-in 0\.5s ease both/)
 })
 
+test('akad infaq: penerima jelas, qabul dinyatakan, tanpa klaim imbalan, nafkah wajib diutamakan', () => {
+  const page = readFileSync('src/pages/infaq.js', 'utf8')
+  const akad = page.slice(page.indexOf('const akadHtml'), page.indexOf('export default function infaq'))
+  // Penerima harus pihak yang jelas (bukan hanya nama aplikasi) dan dipisahkan dari kanal pembayaran.
+  assert.match(akad, /WNR Code \(AEP Saepulloh\)/)
+  assert.match(akad, /Kanal pembayaran:<\/b> Lanteraku/)
+  assert.match(akad, /tidak menjadi penerima dana/)
+  // Qabul dinyatakan lewat tersedianya kanal pembayaran.
+  assert.match(akad, /Penerimaan \(qabul\)/)
+  // Jenis akad & larangan riba/zakat tercantum.
+  assert.match(akad, /hibah, bukan jual beli/i)
+  assert.match(akad, /Bukan pinjaman, bukan titipan, bukan investasi/)
+  assert.match(akad, /Tanpa imbalan apa pun/)
+  assert.match(akad, /Bukan zakat, fidyah, kafarah, atau nazar/)
+  // Nafkah wajib lebih utama daripada sedekah sunnah (hadis Ka'b bin Malik).
+  assert.match(akad, /Nafkah keluarga lebih utama/)
+  assert.match(akad, /jangan berinfaq dengan berutang/)
+  // Urutan ijab mengikuti tombol yang benar-benar ditekan.
+  assert.match(akad, /menekan “Bismillah, saya setuju &amp; lanjut”/)
+  assert.doesNotMatch(akad, /Dengan menekan tombol INFAQ/)
+  // Tidak ada klaim bahwa amal diterima; hanya doa.
+  assert.match(akad, /Semoga Allah menerimanya/)
+  assert.doesNotMatch(akad, /amal(nya)? (Anda )?(pasti )?diterima/)
+})
+
 test('dinding doa: sorotan hanya untuk doa yang benar-benar baru sejak render sebelumnya', () => {
   // Meniru aturan di src/pages/infaq.js tanpa DOM.
   const mark = (seenLatest, doa) => {

@@ -3618,6 +3618,24 @@ body.has-player {
   margin-top: 2px;
   color: var(--primary);
 }
+/* Dua paragraf pembuka akad: jenis pemberian dan pihak-pihak. */
+.akad > .akad-jenis,
+.akad > .akad-pihak {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+.akad > .akad-pihak {
+  border-inline-start: 3px solid var(--primary);
+}
+.akad > .akad-batal {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
 .akad > .akad-ijab {
   padding: 12px 14px;
   border-radius: 14px;

@@ -161,3 +161,16 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 - Doa yang benar-benar baru sejak muat sebelumnya mendapat sorotan emas singkat (`doa-glow`, 2,4 dtk) lewat kelas `.is-new`. Sorotan hanya sekali: state `seenLatest` di halaman menyimpan waktu doa terbaru yang sudah pernah tampil. Muat pertama tidak menyorot apa pun.
 - **Sengaja tidak memakai** marquee/teks berjalan atau auto-scroll: doa jadi sulit dibaca, terkesan seperti iklan, merebut kendali gulir dari pengguna, dan boros GPU/baterai di HP kelas bawah.
 - `@media (prefers-reduced-motion: reduce)` mematikan kedua animasi. Test `tests/unit.test.mjs` menjaga agar blok dinding doa tidak pernah memakai `infinite`/`animation-play-state` dan aturan reduced-motion tetap ada.
+
+## 1.4.36 — Telaah akad infaq (fikih & nada)
+
+- **Penerima diperjelas.** Sebelumnya akad menyebut "pengelola QuranKu" saja — nama aplikasi, bukan pihak yang cakap menerima hibah. Kini: **WNR Code (AEP Saepulloh)** sebagai pengelola resmi, dengan **Lanteraku** disebut terpisah sebagai *kanal pembayaran* (akun Trakteer) yang **tidak** menjadi penerima dana.
+- **Qabul dinyatakan.** Ditambahkan: penerimaan terjadi karena tersedianya kanal pembayaran (*qabul fi'li*), bukan klaim sepihak.
+- **Nafkah wajib diutamakan.** Tambahan sesuai hadis Ka'b bin Malik: sedekah sunnah tidak boleh dengan berutang atau mengurangi nafkah keluarga yang wajib.
+- **Bukan zakat, fidyah, kafarah, atau nazar** — sebelumnya hanya zakat.
+- **Tanpa imbalan & tanpa hak istimewa** dinyatakan eksplisit (menutup syubhat membeli pengaruh).
+- **Pengembalian** untuk pembayaran ganda/salah nominal/kesalahan teknis: 7 hari.
+- **Urutan ijab diperbaiki**: "menekan tombol INFAQ" → **"menekan 'Bismillah, saya setuju & lanjut'"**, sesuai tombol yang benar-benar ditekan.
+- **Nada:** "Kami membuka kesempatan…" diganti "QuranKu tidak mewajibkan apa pun"; "kebutuhan hidup pengelolanya" → "penghidupan pengelola".
+- Uji: `tests/unit.test.mjs` menjaga istilah kunci akad dan melarang frasa yang terkesan meminta; `tests/e2e/infaq.mjs` memeriksa hasil render sesungguhnya.
+- Batas: disusun dari kaidah umum fikih muamalah, **belum ditinjau ustaz/ahli fikih**. Sebaiknya direview sebelum rilis besar.

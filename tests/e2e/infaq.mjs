@@ -90,7 +90,16 @@ await step('Tombol INFAQ sesuai identitas sematan; nama penyedia tidak tampil', 
   await page.screenshot({ path: `${SHOTS}/13-infaq-akad.png` })
   await page.click('.sheet-head [data-close]')
   await page.waitForFunction(() => !document.querySelector('.sheet-wrap'), T)
-  for (const w of [/sukarela/, /bukan jual beli/, /Bukan pinjaman, investasi/, /Bukan zakat/, /kebutuhan hidup pengelolanya/, /Pernyataan akad/]) assert.match(akad, w)
+  for (const w of [
+    /hibah, bukan jual beli/i,
+    /WNR Code \(AEP Saepulloh\)/,
+    /Kanal pembayaran:\s*Lanteraku/,
+    /Penerimaan \(qabul\)/,
+    /Bukan zakat, fidyah, kafarah, atau nazar/i,
+    /Nafkah keluarga lebih utama/i,
+    /Bismillah, saya setuju & lanjut/,
+    /Pernyataan akad/i
+  ]) assert.match(akad, w)
 })
 
 await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol kembali menutup', async () => {
