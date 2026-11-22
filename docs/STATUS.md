@@ -52,7 +52,7 @@ Terakhir diperbarui: 14 November 2026.
 - **Mode imersif:** PWA tab mencoba Fullscreen API bila didukung; PWA terpasang dan APK Capacitor menyembunyikan UI browser melalui mode standalone tetapi tidak meminta immersive Android khusus.
 - **Audio unduhan** disimpan sebagai respons *opaque* karena server audio EQuran tidak mengirim header CORS. Pemutaran offline berfungsi, tetapi ukuran berkas tidak dapat dibaca aplikasi dan peramban menghitung kuota penyimpanan lebih besar daripada ukuran asli.
 - Beranda memiliki dua pintasan tambahan di luar enam yang diminta: Arah Kiblat dan Infaq.
-- **Screenshot di `store/screenshots/`** dibuat dari API tiruan (edisi teks `quran-json`). Ambil ulang dari situs produksi sebelum diunggah ke Play Store.
+- **Screenshot di `store/screenshots/`** dibuat dari API tiruan (edisi teks `quran-json`). Ambil ulang dari situs produksi sebelum diunggah ke Play Store. Screenshot halaman Infaq dapat dibuat ulang tanpa wrangler/D1: `npm run build && npm run gen:shots` (`scripts/gen-play-screenshots.mjs`).
 
 ## Yang harus Anda isi
 1. Sidik jari SHA-256 di `public/.well-known/assetlinks.json`.

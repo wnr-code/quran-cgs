@@ -25,7 +25,8 @@
     "cap:sync": "npm run build && cap sync android",
     "cap:open": "cap open android",
     "gen:icons": "node scripts/gen-icons.mjs",
-    "gen:og": "node scripts/gen-og.mjs"
+    "gen:og": "node scripts/gen-og.mjs",
+    "gen:shots": "node scripts/gen-play-screenshots.mjs"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.6.2",
