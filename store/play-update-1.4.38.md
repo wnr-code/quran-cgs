@@ -227,7 +227,13 @@ Dua sidik jari yang tercatat di repository memang **berbeda**:
 | Upload key yang menandatangani APK/AAB release (dari GitHub Secrets, tercetak di ringkasan workflow) | `18:A6:5D:42:52:3D:17:11:3D:83:CF:FB:1B:F3:F1:B6:0B:39:43:80:BB:99:BA:40:B7:09:BE:A4:4E:DC:4A:6E` |
 | `public/.well-known/assetlinks.json` (kunci aplikasi yang sudah terpasang dari Play) | `56:45:F6:54:3C:D6:9E:43:30:B3:92:1C:91:C4:03:9C:50:3E:9A:5F:F9:23:CE:DF:43:BE:08:51:1B:DE:03:66` |
 
-Karena berbeda, APK release pun **tidak akan bisa dipasang menimpa** aplikasi dari Play. Ini bukan salah pilih berkas. Kemungkinan besar Play App Signing aktif: Google memegang app-signing key (`56:45:F6:…`), sedangkan CI hanya memegang upload key (`18:A6:5D:…`).
+Karena berbeda, APK release pun **tidak akan bisa dipasang menimpa** aplikasi dari Play. Ini bukan salah pilih berkas: Play App Signing aktif, sehingga Google menandatangani ulang APK sebelum dikirim ke pengguna dengan kunci milik Google.
+
+Halaman **Penandatanganan aplikasi** di Play Console hanya menampilkan **kunci app signing Google** ("Sedang digunakan"), bukan upload key. Artinya `56:45:F6:…` di `assetlinks.json` adalah kunci Google, dan `18:A6:5D:…` di GitHub Secrets adalah upload key milik Anda. Dua kunci berbeda untuk dua tugas berbeda — itu normal.
+
+> **Jangan sentuh "Upgrade kunci penandatanganan aplikasi"** (di layar Anda muncul sebagai *Dapat mengupgrade lagi mulai 16 November 2027*). Mengganti kunci app signing membuat aplikasi yang sudah terpasang **tidak bisa menerima pembaruan** dalam jangka panjang, dan memaksa setiap pengguna memasang ulang. Kunci post-quantum (beta) juga tidak perlu diaktifkan untuk rilis ini.
+
+Satu-satunya yang belum pasti adalah apakah upload key di Play Console sama dengan `18:A6:5D:…`. Halaman yang Anda buka tidak menampilkannya — cek di **Test and release → Setup → App signing → Upload key certificate** (bagian bawah halaman), atau langsung coba unggah AAB: bila kuncinya salah, Play menolak dengan pesan tanda tangan tidak cocok, dan penolakan itu tidak merusak apa pun.
 
 **Cek di Play Console → Test and release → Setup → App signing:**
 

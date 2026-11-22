@@ -55,7 +55,7 @@ Terakhir diperbarui: 14 November 2026.
 - **Screenshot di `store/screenshots/`** dibuat dari API tiruan (edisi teks `quran-json`). Ambil ulang dari situs produksi sebelum diunggah ke Play Store. Screenshot halaman Infaq dapat dibuat ulang tanpa wrangler/D1: `npm run build && npm run gen:shots` (`scripts/gen-play-screenshots.mjs`).
 
 ## Yang harus Anda isi
-1. Sidik jari SHA-256 di `public/.well-known/assetlinks.json`.
+1. **App Links (opsional, tidak memblokir rilis).** `public/.well-known/assetlinks.json` berisi `56:45:F6:…:03:66`. Di Play Console, halaman **Penandatanganan aplikasi** (Test and release → Setup → App signing) hanya menampilkan **kunci app signing milik Google** dengan status "Sedang digunakan" — kunci itu yang menandatangani APK sampai ke pengguna, jadi nilainya yang harus ada di assetlinks. Halaman yang sama juga menampilkan **sertifikat kunci post-quantum (beta)**; jangan pernah memakai sidik jari itu untuk assetlinks. Sebelum mengubah apa pun: tekan **Download sertifikat** pada **Kunci klasik**, hitung sidik jari SHA-256-nya, dan hanya ganti nilai di assetlinks bila berbeda. Mengganti nilai berdasarkan tebakan akan mematikan App Links. Bila tautan `quran.cgs.my.id` memang belum perlu membuka aplikasi, biarkan berkas ini apa adanya — tidak ada dampak pada pemasangan atau pembaruan dari Play. Rincian: [ANDROID.md](ANDROID.md) dan [play-update-1.4.38.md](../store/play-update-1.4.38.md) §7.4.
 2. Secret infaq (`TRAKTEER_WEBHOOK_TOKEN`, `TRAKTEER_API_KEY`) dan pendaftaran webhook; lihat [INFAQ.md](INFAQ.md).
 
 ## Pembaruan 1.1.0
