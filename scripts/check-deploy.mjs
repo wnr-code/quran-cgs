@@ -17,15 +17,19 @@ const paths = [
   ['/.well-known/assetlinks.json', 'App Links', 'json']
 ]
 
+/**
+ * Cloudflare mengalihkan /x.html → /x (dan /index.html → /). Pengalihan itu BUKAN kegagalan:
+ * peramban mengikutinya dan menerima halaman yang sama. Karena itu redirect diikuti (bukan
+ * 'manual'), lalu status & jenis isi diperiksa pada hasil akhirnya.
+ */
 const check = async ([path, label, kind = 'text/html']) => {
   const url = site + path
   try {
-    const res = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(15000) })
+    const res = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(15000) })
     const type = res.headers.get('content-type') || ''
-    // Cloudflare menyajikan .webmanifest sebagai text/html pada beberapa konfigurasi;
-    // yang penting isinya benar-benar manifest (diperiksa terpisah di bawah).
+    // Manifest bisa disajikan sebagai application/manifest+json atau JSON biasa.
     const want = kind === 'json' ? type.includes('json') : kind === 'html' ? /json|html/.test(type) : type.includes('text/html')
-    return { path, label, kind, status: res.status, type, ok: res.status === 200 && want }
+    return { path, label, kind, status: res.status, type, ok: res.status === 200 && want, final: new URL(res.url).pathname }
   } catch (e) {
     return { path, label, kind, status: 0, type: '', ok: false, error: e.message }
   }
@@ -35,7 +39,8 @@ const results = await Promise.all(paths.map(check))
 console.log(`Memeriksa ${site}\n`)
 for (const r of results) {
   const tanda = r.ok ? 'OK  ' : 'GAGAL'
-  console.log(`${tanda} ${String(r.status).padEnd(4)} ${r.path.padEnd(30)} ${r.label}`)
+  const dialihkan = r.final && r.final !== r.path ? ` → ${r.final}` : ''
+  console.log(`${tanda} ${String(r.status).padEnd(4)} ${r.path.padEnd(30)} ${r.label}${dialihkan}`)
 }
 // Manifest tidak boleh lagi memakai bentuk hash lama pada pintasannya.
 const manifest = results.find((r) => r.path === '/manifest.webmanifest')

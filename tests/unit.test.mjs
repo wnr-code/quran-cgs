@@ -11,7 +11,7 @@ import { createAyahImage, createShareImage, wrapCanvasText, AYAH_IMAGE_THEMES, S
 import { toHijri } from '../src/utils/hijri.js'
 import { mapLocalDetail } from '../src/api/local-data.js'
 import { SOURCES } from '../src/data/sources.js'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { fakeD1 } from './helpers.mjs'
 import { ensureSchema } from '../functions/lib/db.js'
 import { periodStarts } from '../functions/api/donors.js'
@@ -1400,6 +1400,9 @@ test('tautan peramban dalam aplikasi: halaman perantara membuka aplikasi, bukan 
   assert.match(deploy, /assetlinks\.json/)
   assert.match(deploy, /version\.json/)
   assert.match(deploy, /includes\('json'\)/)
+  // Cloudflare mengalihkan /x.html → /x; redirect harus diikuti agar tidak GAGAL palsu.
+  assert.match(deploy, /redirect: 'follow'/)
+  assert.doesNotMatch(deploy, /redirect: 'manual'/)
 })
 
 test('tautan adzan (?adzan=) dibaca saat mulai dan saat rute berubah lewat App Link', () => {
@@ -1531,6 +1534,49 @@ test('worker: CORS hanya untuk alamat resmi + preflight', async () => {
   assert.equal(nf.headers.get('Access-Control-Allow-Origin'), 'https://quran.cgs.my.id')
   const bad = await worker.fetch(new Request('https://quran-cgs.appwnr.workers.dev/api/tidak-ada', { headers: { Origin: 'https://evil.example' } }), env, { waitUntil() {} })
   assert.equal(bad.headers.get('Access-Control-Allow-Origin'), null)
+})
+
+test('tidak ada berkas statis yang menutupi rute aplikasi', () => {
+  // Cloudflare memetakan x.html → /x. Bila /x juga rute aplikasi, aset menang dan
+  // pengguna mendapat halaman yang salah (kasus /offline). Setiap bentrok harus
+  // diselesaikan di worker (SHELL_PATHS) — tes ini menjaga agar tidak ada yang terlewat.
+  const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8')
+  const routes = new Set([...app.matchAll(/addRoute\('([^']*)'/g)].map((m) => m[1]).filter((r) => !r.includes(':') && r !== '/'))
+  const staticPages = readdirSync(new URL('../public', import.meta.url))
+    .filter((f) => f.endsWith('.html'))
+    .map((f) => '/' + f.replace(/\.html$/, ''))
+  const clashes = staticPages.filter((p) => routes.has(p))
+  const worker = readFileSync(new URL('../worker/index.js', import.meta.url), 'utf8')
+  const handled = [...worker.matchAll(/SHELL_PATHS = new Set\(\[([^\]]*)\]\)/g)].flatMap((m) => [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]))
+  for (const c of clashes) assert.ok(handled.includes(c), `${c}.html bentrok dengan rute aplikasi dan harus ada di SHELL_PATHS worker`)
+  // Kebijakan privasi wajib tetap statis (Play Store menautkannya di luar aplikasi).
+  assert.ok(staticPages.includes('/privacy'))
+  assert.ok(!handled.includes('/privacy'), '/privacy tidak boleh dialihkan ke shell')
+})
+
+test('worker: /offline tetap halaman Kelola Offline, bukan offline.html', async () => {
+  const { default: worker } = await import('../worker/index.js')
+  // Cloudflare menyajikan aset sebelum Worker dan memetakan offline.html → /offline.
+  // Tanpa pengecualian, rute aplikasi /offline tertutupi halaman darurat "Anda sedang offline".
+  const calls = []
+  const env = {
+    ASSETS: {
+      fetch: async (req) => {
+        calls.push(new URL(req.url).pathname)
+        return new Response('shell', { headers: { 'Content-Type': 'text/html' } })
+      }
+    }
+  }
+  const offline = await worker.fetch(new Request('https://quran.cgs.my.id/offline'), env, { waitUntil() {} })
+  assert.equal(await offline.text(), 'shell')
+  assert.deepEqual(calls, ['/index.html'], '/offline harus memakai shell aplikasi')
+  // Kebijakan privasi harus tetap terbuka sebagai halaman statis (syarat Play Store).
+  calls.length = 0
+  await worker.fetch(new Request('https://quran.cgs.my.id/privacy'), env, { waitUntil() {} })
+  assert.deepEqual(calls, ['/privacy'], '/privacy harus diteruskan ke aset, bukan shell')
+  calls.length = 0
+  await worker.fetch(new Request('https://quran.cgs.my.id/offline.html'), env, { waitUntil() {} })
+  assert.deepEqual(calls, ['/offline.html'], 'berkas offline.html sendiri tetap disajikan sebagai aset')
 })
 
 test('cuplikan tautan: tag Open Graph/Twitter lengkap & gambar 1200×630', async () => {
