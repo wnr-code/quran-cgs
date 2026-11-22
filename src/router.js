@@ -10,6 +10,19 @@ let viewEl
 let onChange
 let initial = true
 
+/**
+ * Nilai parameter rute. decodeURIComponent melempar URIError untuk persen rusak
+ * (tautan terpotong seperti /surah/%E0%A4); tanpa penanganan, render berhenti
+ * sebelum apa pun digambar dan pengguna melihat halaman kosong tanpa pesan.
+ */
+export function decodeParam(value = '') {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
 export function addRoute(pattern, loader, meta = {}) {
   const keys = []
   const re = new RegExp('^' + pattern.replace(/:([a-z]+)/g, (_, k) => (keys.push(k), '([^/]+)')) + '/?$')
@@ -73,7 +86,7 @@ async function render() {
     const m = r.re.exec(path)
     if (m) {
       match = r
-      r.keys.forEach((k, i) => (params[k] = decodeURIComponent(m[i + 1])))
+      r.keys.forEach((k, i) => (params[k] = decodeParam(m[i + 1])))
       break
     }
   }

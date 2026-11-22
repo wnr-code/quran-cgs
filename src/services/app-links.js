@@ -17,17 +17,25 @@ export function appLinkUrl(path = '/') {
 /**
  * Jalur internal hanya untuk tautan yang memang diklaim aplikasi.
  * Mendukung bentuk bersih (/surah/2/255), bentuk hash lama (/#/surah/2/255), dan root.
+ * Query dipertahankan karena dibawa tautan nyata: ?adzan=subuh (notifikasi salat PWA),
+ * ?resume=1 (lanjutkan bacaan), ?tab= (kategori doa). Tanpa ini tautan ke aplikasi
+ * kehilangan maksudnya walau halamannya terbuka.
  */
 export function appLinkRoute(rawUrl) {
   if (typeof rawUrl !== 'string' || !rawUrl) return null
   try {
     const url = new URL(rawUrl)
     if (url.origin !== APP.origin) return null
-    if (url.hash.startsWith('#/')) return url.hash.slice(1)
+    if (url.hash.startsWith('#/')) {
+      // Bentuk lama: /?adzan=subuh#/salat. Query di depan hash dipakai notifikasi adzan,
+      // jadi ia harus ikut pindah ke belakang jalur hash — bukan dibuang.
+      const inner = url.hash.slice(1)
+      return inner.includes('?') || !url.search ? inner : inner + url.search
+    }
     const path = url.pathname.replace(/\/+$/, '') || '/'
     // Halaman statis (privacy.html, dsb.) tetap dibuka sebagai web.
     if (path !== '/' && /\.[a-z0-9]+$/i.test(path)) return null
-    return path
+    return path + url.search
   } catch {
     return null
   }

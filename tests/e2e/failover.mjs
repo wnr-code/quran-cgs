@@ -47,14 +47,14 @@ const step = async (name, fn) => {
   }
 }
 await step('Alamat utama hidup: tidak ada permintaan ke cadangan', async () => {
-  await page.goto(P + '/#/surah/1', { waitUntil: 'networkidle2' })
+  await page.goto(P + '/surah/1', { waitUntil: 'networkidle2' })
   await page.waitForSelector('.mushaf-flow .ayah')
   assert.equal(viaBackup.length, 0)
 })
 await step('Alamat utama mati: surah & API otomatis lewat alamat cadangan', async () => {
   primaryDead = true
   await page.evaluate(() => indexedDB.databases().then((l) => Promise.all(l.map((d) => new Promise((r) => { const q = indexedDB.deleteDatabase(d.name); q.onsuccess = q.onerror = q.onblocked = r })))))
-  await page.evaluate(() => (location.hash = '/surah/36'))
+  await page.evaluate(() => { history.pushState(null, '', '/surah/36'); dispatchEvent(new PopStateEvent('popstate')) })
   await page.waitForSelector('.mushaf-flow .ayah[data-a="83"]', { timeout: 20000 })
   assert.ok(viaBackup.some((r) => r.startsWith('GET /data/surah/36') || r.startsWith('GET /api/quran/')), 'data surah diambil dari cadangan: ' + viaBackup.join(', '))
   const cfg = await page.evaluate(async () => {

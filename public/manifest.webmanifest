@@ -22,9 +22,9 @@
     { "src": "/icons/badge-96-v2.png", "sizes": "96x96", "type": "image/png", "purpose": "monochrome" }
   ],
   "shortcuts": [
-    { "name": "Lanjutkan membaca", "short_name": "Lanjutkan", "url": "/#/lanjut", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] },
-    { "name": "Baca Al-Qur'an", "short_name": "Quran", "url": "/#/quran", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] },
-    { "name": "Murottal", "short_name": "Murottal", "url": "/#/murottal", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] },
-    { "name": "Jadwal Salat", "short_name": "Salat", "url": "/#/salat", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] }
+    { "name": "Lanjutkan membaca", "short_name": "Lanjutkan", "url": "/lanjut", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] },
+    { "name": "Baca Al-Qur'an", "short_name": "Quran", "url": "/quran", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] },
+    { "name": "Murottal", "short_name": "Murottal", "url": "/murottal", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] },
+    { "name": "Jadwal Salat", "short_name": "Salat", "url": "/salat", "icons": [{ "src": "/icons/icon-192-v2.png", "sizes": "192x192" }] }
   ]
 }

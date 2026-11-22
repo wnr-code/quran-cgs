@@ -393,10 +393,21 @@ export function initAdzan() {
   } else if (getSettings().adzan.enabled || getSettings().prayerReminders.enabled || getSettings().ramadanReminders.imsakEnabled) {
     setTimeout(() => syncPush(), 4000)
   }
-  // Dibuka dari pemberitahuan adzan: /salat?adzan=subuh (bentuk lama: /?adzan=subuh#/salat)
-  const key = new URLSearchParams(location.search).get('adzan')
-  if (key) {
-    history.replaceState(null, '', location.pathname)
+  // Dibuka dari pemberitahuan adzan: /salat?adzan=subuh (bentuk lama: /?adzan=subuh#/salat).
+  // Diperiksa saat mulai DAN setiap kali rute berubah: di aplikasi Android tautan App Link
+  // tiba lewat appUrlOpen setelah modul ini dievaluasi, jadi sekali-periksa saja akan melewatkannya.
+  const consumeAdzanQuery = () => {
+    const params = new URLSearchParams(location.search)
+    const key = params.get('adzan')
+    if (!key) return
+    // Hapus hanya parameter adzan; query lain (inboxOpen, resume) tetap dipakai halaman.
+    params.delete('adzan')
+    const rest = params.toString()
+    history.replaceState(history.state, '', location.pathname + (rest ? `?${rest}` : ''))
     if (NAME[key] && getSettings().adzan.enabled) playAdzan(key)
+  }
+  if (typeof location !== 'undefined' && typeof history !== 'undefined') {
+    consumeAdzanQuery()
+    addEventListener('qk:route', consumeAdzanQuery)
   }
 }

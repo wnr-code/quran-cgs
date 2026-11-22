@@ -193,7 +193,7 @@ self.addEventListener('push', (event) => {
         lang: 'id',
         vibrate: [300, 150, 300, 150, 600],
         timestamp: at,
-        data: { url: '/#' + route, route, key, play: isPrayer, at, inboxId: inboxItem.id, inboxItem }
+        data: { url: route, route, key, play: isPrayer, at, inboxId: inboxItem.id, inboxItem }
       })
       for (const c of await self.clients.matchAll({ type: 'window', includeUncontrolled: true })) {
         c.postMessage({ type: 'quranku:inbox-notification', item: inboxItem })
@@ -213,12 +213,12 @@ self.addEventListener('notificationclick', (event) => {
   const inboxItem = data.inboxItem || (data.inboxId ? { id: data.inboxId, title: event.notification.title, body: event.notification.body, route, at: data.at || event.notification.timestamp } : null)
   const routeQuery = new URLSearchParams(route.includes('?') ? route.slice(route.indexOf('?') + 1) : '')
   if (data.inboxId && inboxItem) routeQuery.set('inboxOpen', JSON.stringify({ inboxId: data.inboxId, item: inboxItem }))
-  const routePath = route.split('?')[0]
+  // Buka URL bersih, bukan bentuk hash lama: /salat?adzan=subuh. Aplikasi membaca adzan dari
+  // query di depan (?), dan router tidak lagi mendengarkan hashchange — bentuk /#/… hanya
+  // dikenali saat halaman dimuat pertama kali, jadi tautan itu berisiko berhenti bekerja.
+  if (isSalat && data.play && data.key) routeQuery.set('adzan', String(data.key))
   const serializedRouteQuery = routeQuery.toString()
-  const routeWithQuery = `${routePath}${serializedRouteQuery ? `?${serializedRouteQuery}` : ''}`
-  const target = isSalat
-    ? (data.play ? `/?adzan=${encodeURIComponent(data.key || '')}#${routeWithQuery}` : `/#${routeWithQuery}`)
-    : `/#${routeWithQuery}`
+  const target = `${route.split('?')[0]}${serializedRouteQuery ? `?${serializedRouteQuery}` : ''}`
   event.waitUntil(
     (async () => {
       const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })

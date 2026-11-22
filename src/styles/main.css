@@ -288,6 +288,16 @@ html {
   color: var(--danger);
   border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
 }
+/* Tombol sekunder tanpa latar (mis. "Buka di Chrome" pada panduan pemasangan).
+   Tanpa aturan ini tombol memakai tampilan .btn biasa dan tidak terbedakan dari aksi utama. */
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+}
+.btn-ghost:active {
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
 .btn.on-dark {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.2);

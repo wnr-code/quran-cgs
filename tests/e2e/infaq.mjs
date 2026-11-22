@@ -68,7 +68,7 @@ const frameOpened = () =>
   )
 
 await step('Tombol INFAQ sesuai identitas sematan; nama penyedia tidak tampil', async () => {
-  await page.goto(`${BASE}/#/infaq`, { waitUntil: 'domcontentloaded' })
+  await page.goto(`${BASE}/infaq`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('[data-infaq-open]', T)
   const btn = await page.$eval('[data-infaq-open]', (b) => {
     const probe = document.createElement('span')
@@ -126,11 +126,11 @@ await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol 
   await new Promise((r) => setTimeout(r, 500))
   await page.screenshot({ path: `${SHOTS}/15-infaq-popup.png` })
   assert.equal((await browser.pages()).length, pagesBefore, 'tidak ada tab baru')
-  assert.equal(new URL(page.url()).hash, '#/infaq', 'halaman aplikasi tidak berpindah')
+  assert.equal(new URL(page.url()).pathname, '/infaq', 'halaman aplikasi tidak berpindah')
   // Tombol kembali (Android) menutup popup lebih dulu
   await page.goBack()
   await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
-  assert.equal(new URL(page.url()).hash, '#/infaq')
+  assert.equal(new URL(page.url()).pathname, '/infaq')
   assert.ok(await page.$('[data-infaq-open]'))
   // Penyedia mengirim embed.modalClosed (tombol tutup di formulirnya) → popup hilang
   const again = frameOpened()
@@ -144,7 +144,7 @@ await step('INFAQ membuka popup sematan di atas halaman: tanpa tab baru, tombol 
   await page.waitForSelector('.trk-overlay.open', T)
   await page.goBack()
   await page.waitForFunction(() => !document.querySelector('.trk-overlay'), T)
-  assert.equal(new URL(page.url()).hash, '#/infaq')
+  assert.equal(new URL(page.url()).pathname, '/infaq')
   assert.equal((await browser.pages()).length, pagesBefore)
   assert.ok(embedRequests.length >= 3)
 })
@@ -216,7 +216,7 @@ await step('Akad infaq: cukup sekali, berikutnya langsung formulir, dan bisa dib
 })
 
 await step('Halaman Lainnya: identitas, slogan, kartu bertema & menu tampil', async () => {
-  await page.evaluate(() => (location.hash = '#/lainnya'))
+  await page.evaluate(() => { history.pushState(null, '', '/lainnya'); dispatchEvent(new PopStateEvent('popstate')) })
   await page.waitForSelector('.more-page .more-infaq', T)
   assert.ok((await page.$$('.more-page .menu-item')).length >= 12)
   assert.equal(await page.$eval('.more-hero h2', (e) => e.textContent), 'QuranKu')
