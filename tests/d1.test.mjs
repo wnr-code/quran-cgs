@@ -47,8 +47,18 @@ test('worker: rute /api/* ke handler, selain itu ke aset statis', async () => {
   const env = { DB: fakeD1(), TRAKTEER_WEBHOOK_TOKEN: 't', ASSETS: { fetch: async (r) => new Response('ASET ' + new URL(r.url).pathname) } }
   const ctx = { waitUntil() {} }
   const call = (path, init) => worker.fetch(new Request('https://quran.cgs.my.id' + path, init), env, ctx)
-  assert.equal(await (await call('/')).text(), 'ASET /')
+  // Jalur aplikasi (bersih, tanpa tanda #) dilayani shell yang sama; berkas statis tetap apa adanya.
+  assert.equal(await (await call('/')).text(), 'ASET /index.html')
+  for (const route of ['/surah/2/255', '/infaq', '/doa/harian', '/tafsir/2/255']) {
+    const res = await call(route)
+    assert.equal(await res.text(), 'ASET /index.html', `${route} memakai shell aplikasi`)
+    assert.match(res.headers.get('content-type') || '', /text\/html/, `${route} dikirim sebagai HTML`)
+  }
+  assert.match(await (await call('/surah/2/255')).headers.get('cache-control') || '', /must-revalidate/, 'shell tidak di-cache lama')
   assert.equal(await (await call('/assets/x.js')).text(), 'ASET /assets/x.js')
+  assert.equal(await (await call('/privacy.html')).text(), 'ASET /privacy.html', 'halaman statis tidak diganti shell')
+  assert.equal(await (await call('/icons/icon-192-v2.png')).text(), 'ASET /icons/icon-192-v2.png')
+  assert.notEqual(await (await call('/surah/2/255', { method: 'POST' })).text(), 'ASET /index.html', 'POST ke jalur aplikasi tidak dilayani shell')
   const donors = await call('/api/donors')
   assert.equal(donors.status, 200)
   assert.ok((await donors.json()).ok)

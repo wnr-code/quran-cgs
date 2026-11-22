@@ -38,11 +38,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Beranda: https://quran.cgs.my.id/ -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/" />
+            </intent-filter>
+
+            <!-- URL bersih dua segmen atau lebih: /surah/2/255, /doa/harian, /tafsir/2.
+                 Filter terpisah agar tidak tergabung sebagai perkalian silang dengan path="/".
+                 Halaman statis satu segmen seperti /privacy.html tidak cocok, jadi tetap dibuka
+                 di peramban. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="quran.cgs.my.id" android:pathPattern="/.*/.*" />
             </intent-filter>
 
         </activity>

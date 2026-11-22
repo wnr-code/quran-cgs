@@ -26,7 +26,7 @@ export function openSheet({ title = '', content = '', onOpen, onClose, wide = fa
     closed = true
     wrap.classList.remove('open')
     document.removeEventListener('keydown', onKey)
-    removeEventListener('hashchange', close)
+    removeEventListener('qk:route', close)
     if (--openCount <= 0) {
       openCount = 0
       document.body.classList.remove('sheet-open')
@@ -36,7 +36,7 @@ export function openSheet({ title = '', content = '', onOpen, onClose, wide = fa
   }
   const onKey = (e) => e.key === 'Escape' && close()
   document.addEventListener('keydown', onKey)
-  addEventListener('hashchange', close)
+  addEventListener('qk:route', close)
   wrap.addEventListener('click', (e) => {
     if (e.target.closest('[data-close]')) close()
   })

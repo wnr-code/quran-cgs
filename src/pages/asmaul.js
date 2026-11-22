@@ -22,7 +22,7 @@ export default function asmaul(root) {
     <p class="asma-count" data-count></p>
     <div class="asma-grid" data-list></div>
     <p class="hint pad">Sentuh sebuah nama untuk melihat makna, faedah, dan rujukan ayatnya, lalu salin atau bagikan.</p>
-    <footer class="src-foot">${fi('book-open')}<p><strong>Sumber:</strong> <a class="link" href="#/sumber">${esc(data.source)}</a>. Makna &amp; faedah adalah ringkasan dari sumber tersebut; rujukan ayat dapat dibuka untuk dibaca langsung.</p></footer></div>`
+    <footer class="src-foot">${fi('book-open')}<p><strong>Sumber:</strong> <a class="link" href="/sumber">${esc(data.source)}</a>. Makna &amp; faedah adalah ringkasan dari sumber tersebut; rujukan ayat dapat dibuka untuk dibaca langsung.</p></footer></div>`
   const list = $('[data-list]', root)
   const input = $('input', root)
   const count = $('[data-count]', root)
@@ -57,7 +57,7 @@ export default function asmaul(root) {
     </div>
     ${x.makna ? `<section class="asma-sec"><h4>${icon('book')}Makna</h4><p>${esc(x.makna)}</p></section>` : ''}
     ${x.amalan ? `<section class="asma-sec"><h4>${icon('hands')}Faedah &amp; amalan</h4><p>${esc(x.amalan)}</p></section>` : ''}
-    ${x.ref && x.ref.length ? `<section class="asma-sec"><h4>${icon('bookmark')}Rujukan</h4><div class="asma-refs">${x.ref.map((r) => (r.s ? `<a class="chip chip-link" href="#/surah/${r.s}/${r.a}">${esc(r.t)}</a>` : `<span class="asma-ref-note">${esc(r.t)}</span>`)).join('')}</div></section>` : ''}
+    ${x.ref && x.ref.length ? `<section class="asma-sec"><h4>${icon('bookmark')}Rujukan</h4><div class="asma-refs">${x.ref.map((r) => (r.s ? `<a class="chip chip-link" href="/surah/${r.s}/${r.a}">${esc(r.t)}</a>` : `<span class="asma-ref-note">${esc(r.t)}</span>`)).join('')}</div></section>` : ''}
     <div class="asma-detail-acts">
       <button class="btn" data-copy>${fi('copy')}Salin</button>
       <button class="btn btn-primary" data-share>${fi('share')}Bagikan</button>
@@ -101,7 +101,7 @@ export default function asmaul(root) {
                       translation: [cur.arti, cur.makna].filter(Boolean).join('. ')
                     }],
                     reference: `${cur.id}. ${cur.latin}`,
-                    sourceUrl: `${APP.origin}/#/asmaul-husna`,
+                    sourceUrl: `${APP.origin}/asmaul-husna`,
                     theme,
                     format
                   })
@@ -125,7 +125,7 @@ export default function asmaul(root) {
       if (!alive || !a || !box) return
       box.innerHTML = `<p class="asma-verse-ar" lang="ar" dir="rtl">${esc(a.teksArab)}</p>
         ${a.teksIndonesia ? `<p class="asma-verse-id">“${esc(a.teksIndonesia)}”</p>` : ''}
-        <a class="asma-verse-ref" href="#/surah/7/180">QS. ${esc(s.namaLatin)} 7:180</a>`
+        <a class="asma-verse-ref" href="/surah/7/180">QS. ${esc(s.namaLatin)} 7:180</a>`
     })
     .catch(() => {})
   return () => {

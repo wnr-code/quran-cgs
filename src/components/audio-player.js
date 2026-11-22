@@ -9,7 +9,7 @@ export function initMiniPlayer(el) {
   el.innerHTML = `
     <div class="mp-progress"><i></i></div>
     <span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-    <a class="mp-info" href="#/murottal" aria-label="Buka pemutar murottal"><strong></strong><small></small></a>
+    <a class="mp-info" href="/murottal" aria-label="Buka pemutar murottal"><strong></strong><small></small></a>
     <button class="icon-btn" data-act="prev" aria-label="Ayat sebelumnya">${icon('prev')}</button>
     <button class="icon-btn mp-main" data-act="toggle" aria-label="Putar atau jeda">${icon('play')}</button>
     <button class="icon-btn" data-act="next" aria-label="Ayat berikutnya">${icon('next')}</button>

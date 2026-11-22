@@ -286,7 +286,7 @@ function onServiceWorkerMessage(event) {
 
 function consumeOpenedNotification() {
   if (typeof location === 'undefined' || typeof history === 'undefined') return
-  const raw = location.hash.replace(/^#/, '') || '/'
+  const raw = location.pathname + location.search + (location.hash.startsWith('#/') ? location.hash.slice(1) : '')
   const question = raw.indexOf('?')
   if (question < 0) return
   const route = raw.slice(0, question) || '/'
@@ -302,8 +302,8 @@ function consumeOpenedNotification() {
     if (id) void markInboxItemRead(id)
   } catch {}
   const rest = params.toString()
-  const cleanHash = `#${route}${rest ? `?${rest}` : ''}`
-  history.replaceState(history.state, '', `${location.pathname}${location.search}${cleanHash}`)
+  const cleanPath = `${route === '/' ? '/' : route}${rest ? `?${rest}` : ''}`
+  history.replaceState(history.state, '', cleanPath)
 }
 
 let serviceWorkerBound = false

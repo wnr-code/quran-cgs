@@ -1,7 +1,7 @@
 # Infaq untuk pengembang
 
 Infaq adalah donasi sukarela; tidak ada barang, fitur, atau konten yang dijual. Seluruh alur berjalan di halaman
-aplikasi sendiri (`#/infaq`); dana diterima lewat akun Trakteer `lanteraku`.
+aplikasi sendiri (`/infaq`); dana diterima lewat akun Trakteer `lanteraku`.
 
 ## Alur
 

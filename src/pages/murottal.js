@@ -89,7 +89,7 @@ export default async function murottal(root) {
       <input type="range" class="seek" min="0" max="1000" value="${s.duration ? Math.round((s.currentTime / s.duration) * 1000) : 0}" aria-label="Posisi audio" />
       <div class="np-time"><span data-cur>${formatTime(s.currentTime)}</span><span data-dur>${formatTime(s.duration)}</span></div>
       <div class="np-controls">
-        <a class="icon-btn on-dark" href="#/surah/${s.surah.nomor}${s.mode === 'ayah' ? '/' + s.ayah : ''}" aria-label="Buka di pembaca">${icon('book')}</a>
+        <a class="icon-btn on-dark" href="/surah/${s.surah.nomor}${s.mode === 'ayah' ? '/' + s.ayah : ''}" aria-label="Buka di pembaca">${icon('book')}</a>
         <button class="icon-btn on-dark" data-act="prev" aria-label="Sebelumnya">${icon('prev')}</button>
         <button class="icon-btn on-dark np-main" data-act="toggle" aria-label="${s.playing ? 'Jeda' : 'Lanjutkan'}">${icon(s.playing ? 'pause' : 'play')}</button>
         <button class="icon-btn on-dark" data-act="next" aria-label="Berikutnya" ${s.mode !== 'ayah' ? 'disabled' : ''}>${icon('next')}</button>
@@ -199,7 +199,7 @@ export default async function murottal(root) {
       const title = `${s.namaLatin} — Murottal ${qari}`
       const text = `Dengarkan murottal Surah ${s.namaLatin} oleh ${qari}.\nTautan audio: ${pick.url}`
       openShare(
-        { title, text, url: `${APP.origin}/#/murottal` },
+        { title, text, url: `${APP.origin}/murottal` },
         { title: 'Bagikan audio', what: 'audio', hint: 'Bagikan tautan audio langsung dan halaman Murottal melalui media sosial atau aplikasi lain.' }
       )
       return

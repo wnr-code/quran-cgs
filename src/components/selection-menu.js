@@ -142,7 +142,7 @@ export function initSelectionMenu(content, { surah, onBookmark, onMore }) {
     } else if (act === 'share') {
       clear()
       openShare(
-        { title: refLabel(parts), text: `${selectedText(parts)}\n(${refLabel(parts)})`, url: `${APP.origin}/#/surah/${n}/${parts[0].ayah}` },
+        { title: refLabel(parts), text: `${selectedText(parts)}\n(${refLabel(parts)})`, url: `${APP.origin}/surah/${n}/${parts[0].ayah}` },
         { title: 'Bagikan teks pilihan', what: 'teks pilihan' }
       )
     } else if (act === 'more') {

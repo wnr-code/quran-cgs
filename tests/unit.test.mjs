@@ -146,12 +146,12 @@ test('bagikan: gunakan Web Share atau laporkan tidak didukung, jangan diam-diam 
   const setNavigator = (value) => Object.defineProperty(globalThis, 'navigator', { configurable: true, value })
   try {
     setNavigator({ share: async (payload) => calls.push(payload), clipboard: { writeText: async () => copied++ } })
-    assert.equal(await shareText('Ayat pilihan', 'Teks ayat', 'https://quran.cgs.my.id/#/surah/1/1'), 'shared')
-    assert.deepEqual(calls, [{ title: 'Ayat pilihan', text: 'Teks ayat', url: 'https://quran.cgs.my.id/#/surah/1/1' }])
+    assert.equal(await shareText('Ayat pilihan', 'Teks ayat', 'https://quran.cgs.my.id/surah/1/1'), 'shared')
+    assert.deepEqual(calls, [{ title: 'Ayat pilihan', text: 'Teks ayat', url: 'https://quran.cgs.my.id/surah/1/1' }])
     assert.equal(copied, 0)
 
     setNavigator({ clipboard: { writeText: async () => copied++ } })
-    assert.equal(await shareText('Ayat pilihan', 'Teks ayat', 'https://quran.cgs.my.id/#/surah/1/1'), 'unsupported')
+    assert.equal(await shareText('Ayat pilihan', 'Teks ayat', 'https://quran.cgs.my.id/surah/1/1'), 'unsupported')
     assert.equal(copied, 0, 'share yang tidak tersedia tidak berubah menjadi salin')
 
     setNavigator({ share: async () => { throw new DOMException('dibatalkan', 'AbortError') }, clipboard: { writeText: async () => copied++ } })
@@ -411,7 +411,7 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
         arabic: verse.text,
         translation: verse.translation,
         reference: `QS. ${surah.transliteration} ${sample.surah}:${sample.ayah}`,
-        sourceUrl: `https://quran.cgs.my.id/#/surah/${sample.surah}/${sample.ayah}`
+        sourceUrl: `https://quran.cgs.my.id/surah/${sample.surah}/${sample.ayah}`
       })
       const [renderCanvas, exportCanvas] = harness.canvases
       const [renderCtx, exportCtx] = harness.contexts
@@ -425,7 +425,7 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
       const backgroundIndex = exportCtx.operations.findIndex((op) => op.kind === 'fillRect' && op.x === 0 && op.y === 0 && op.width === 720 && op.height === 1280)
       const quranLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/brand/quranku-logo.png'))
       const cigatasLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/cigatas-identity.png'))
-      const sourceLink = renderCtx.texts.find((row) => row.text === `Sumber: quran.cgs.my.id/#/surah/${sample.surah}/${sample.ayah}`)
+      const sourceLink = renderCtx.texts.find((row) => row.text === `Sumber: quran.cgs.my.id/surah/${sample.surah}/${sample.ayah}`)
       const websiteDivider = renderCtx.texts.find((row) => row.text === '|')
       const websiteLink = renderCtx.texts.find((row) => row.text === 'quran.cgs.my.id')
       const playStoreLine = renderCtx.texts.find((row) => row.text === 'Google Play · QuranKu')
@@ -472,7 +472,7 @@ test('gambar ayat adaptif: pendek, sedang, dan panjang; latar opak, utuh, serta 
       assert.ok(!harness.images.some((image) => image.src.includes('/share-templates/')), 'tema buatan tetap memakai ilustrasi Canvas')
       assert.ok(fullText.includes('RENUNGAN AL-QUR’AN'), `${sample.label}: judul poster tampil di samping logo`)
       assert.ok(fullText.includes(`QS. ${surah.transliteration} ${sample.surah}:${sample.ayah}`))
-      assert.ok(fullText.includes(`quran.cgs.my.id/#/surah/${sample.surah}/${sample.ayah}`))
+      assert.ok(fullText.includes(`quran.cgs.my.id/surah/${sample.surah}/${sample.ayah}`))
       arabicSizes.push(Number.parseFloat(arabicRows[0].font))
     }
     assert.ok(arabicSizes[2] < arabicSizes[0], 'ayat panjang mengecil secara proporsional; ayat pendek tetap besar')
@@ -546,7 +546,7 @@ test('gambar JPG: tema terpilih, latar tetap opak, dan resolusi konsisten', asyn
       arabic: short.text,
       translation: short.translation,
       reference: 'QS. Al-Ikhlas 112:1',
-      sourceUrl: 'https://quran.cgs.my.id/#/surah/112/1',
+      sourceUrl: 'https://quran.cgs.my.id/surah/112/1',
       theme: 'malam',
       format: 'jpg'
     })
@@ -585,7 +585,7 @@ test('gambar doa: Arab, latin, arti, identitas kecil, dan footer unduh', async (
       heading: 'DOA & DZIKIR',
       blocks,
       reference: 'Doa Perjalanan',
-      sourceUrl: 'https://quran.cgs.my.id/#/doa/harian',
+      sourceUrl: 'https://quran.cgs.my.id/doa/harian',
       theme: 'ramadan-lentera'
     })
     const [renderCanvas, exportCanvas] = ramadan.canvases
@@ -607,7 +607,7 @@ test('gambar doa: Arab, latin, arti, identitas kecil, dan footer unduh', async (
     const cigatasImage = ctx.images.find((args) => args[0] === ramadan.getImage('/cigatas-identity.png'))
     assert.deepEqual(cigatasImage?.slice(1, 5), [24, 1162, 84, 56], 'logo Cigatas diperkecil lagi di kiri footer')
     assert.ok(!ramadan.images.some((image) => image.src.includes('/share-templates/')))
-    assert.ok(ctx.texts.some((row) => row.text === 'Sumber: quran.cgs.my.id/#/doa/harian'), 'sumber bacaan terletak di bawah teks')
+    assert.ok(ctx.texts.some((row) => row.text === 'Sumber: quran.cgs.my.id/doa/harian'), 'sumber bacaan terletak di bawah teks')
     assert.ok(ctx.texts.some((row) => row.text === 'Unduh APK') && ctx.texts.some((row) => row.text === 'Google Play · QuranKu'), 'ajakan unduh ada sejajar di kanan footer')
     const renderer = readFileSync('src/utils/ayah-image.js', 'utf8')
     const shareFooter = renderer.split('function drawShareFooter(ctx, palette, cigatasLogo) {')[1].split('\n}\n\n/**')[0]
@@ -728,7 +728,7 @@ test('seluruh 22 tema merender ayat panjang utuh pada kanvas 720×1280 yang opak
         arabic: verse.text,
         translation: verse.translation,
         reference: 'QS. Al-Baqarah 2:282',
-        sourceUrl: 'https://quran.cgs.my.id/#/surah/2/282',
+        sourceUrl: 'https://quran.cgs.my.id/surah/2/282',
         theme: theme.id
       })
       const [renderCanvas, exportCanvas] = harness.canvases
@@ -747,7 +747,7 @@ test('seluruh 22 tema merender ayat panjang utuh pada kanvas 720×1280 yang opak
       assert.ok(bodyRows.every((row) => row.y < 1052), `${theme.id}: teks tidak mencapai footer`)
       const quranLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/brand/quranku-logo.png'))
       const cigatasLogo = renderCtx.images.find((args) => args[0] === harness.getImage('/cigatas-identity.png'))
-      const sourceLink = renderCtx.texts.find((row) => row.text === 'Sumber: quran.cgs.my.id/#/surah/2/282')
+      const sourceLink = renderCtx.texts.find((row) => row.text === 'Sumber: quran.cgs.my.id/surah/2/282')
       assert.deepEqual(quranLogo?.slice(1, 5), [48, 62, 144, 96], `${theme.id}: logo QuranKu diperkecil di header`)
       assert.deepEqual(cigatasLogo?.slice(1, 5), [24, 1162, 84, 56], `${theme.id}: logo Cigatas diperkecil di kiri footer`)
       assert.equal(sourceLink?.color, theme.colors.secondary, `${theme.id}: tautan sumber kontras di bawah ayat`)
@@ -831,7 +831,7 @@ test('Asmaul Husna menyediakan pemilih tema dan pembuat poster gambar', () => {
   const asmaul = readFileSync('src/pages/asmaul.js', 'utf8')
   const shareSheet = readFileSync('src/components/share-sheet.js', 'utf8')
   assert.match(asmaul, /import \{ createShareImage \} from '\.\.\/utils\/ayah-image\.js'/)
-  assert.match(asmaul, /sourceUrl: `\$\{APP\.origin\}\/\#\/asmaul-husna`/)
+  assert.match(asmaul, /sourceUrl: `\$\{APP\.origin\}\/asmaul-husna`/)
   assert.match(asmaul, /what: 'Asmaul Husna'/)
   assert.match(asmaul, /filename: `quranku-asmaul-husna-\$\{cur\.id\}\.png`/)
   assert.match(asmaul, /heading: 'ASMAUL HUSNA'/)
@@ -1315,10 +1315,10 @@ test('Capacitor API routing: API same-app goes to Worker, bundled data and third
 
 test('App Links Android memakai domain, sertifikat, dan rute hash resmi QuranKu', async () => {
   const { appLinkRoute } = await import('../src/services/app-links.js')
-  assert.equal(appLinkRoute('https://quran.cgs.my.id/#/surah/2/255'), '/surah/2/255')
+  assert.equal(appLinkRoute('https://quran.cgs.my.id/surah/2/255'), '/surah/2/255')
   assert.equal(appLinkRoute('https://quran.cgs.my.id/'), '/')
   assert.equal(appLinkRoute('https://quran.cgs.my.id/privacy.html'), null, 'halaman web statis tidak dialihkan ke router APK')
-  assert.equal(appLinkRoute('https://evil.example/#/surah/2/255'), null, 'tautan dari domain lain ditolak')
+  assert.equal(appLinkRoute('https://evil.example/surah/2/255'), null, 'tautan dari domain lain ditolak')
 
   const statement = JSON.parse(readFileSync(new URL('../public/.well-known/assetlinks.json', import.meta.url), 'utf8'))
   assert.deepEqual(statement[0].relation, ['delegate_permission/common.handle_all_urls'])
@@ -1428,11 +1428,11 @@ test('bagikan: teks doa/konten, tautan kontekstual, dan URL media sosial', async
   const p = { title: 'Istighfar', ar: 'أَسْتَغْفِرُ اللهَ', latin: 'Astaghfirullāh', arti: 'Aku memohon ampun kepada Allah.', ref: 'NU Online', tab: 'salat' }
   assert.equal(doaText(p), 'Istighfar\n\nأَسْتَغْفِرُ اللهَ\n\nAstaghfirullāh\n\nArtinya: Aku memohon ampun kepada Allah.\n\n(NU Online)')
   assert.equal(doaText({ title: 'A', ar: 'ب', latin: '', arti: '', ref: '', tab: 'quran' }), 'A\n\nب')
-  assert.equal(doaUrl(p, 'https://quran.cgs.my.id'), 'https://quran.cgs.my.id/#/doa/salat')
+  assert.equal(doaUrl(p, 'https://quran.cgs.my.id'), 'https://quran.cgs.my.id/doa/salat')
   const l = shareLinks(p, 'https://quran.cgs.my.id')
   assert.match(l.whatsapp, /^https:\/\/wa\.me\/\?text=Istighfar%0A/)
-  assert.ok(decodeURIComponent(l.whatsapp).endsWith('https://quran.cgs.my.id/#/doa/salat'))
-  assert.match(l.telegram, /^https:\/\/t\.me\/share\/url\?url=https%3A%2F%2Fquran\.cgs\.my\.id%2F%23%2Fdoa%2Fsalat&text=/)
+  assert.ok(decodeURIComponent(l.whatsapp).endsWith('https://quran.cgs.my.id/doa/salat'))
+  assert.match(l.telegram, /^https:\/\/t\.me\/share\/url\?url=https%3A%2F%2Fquran\.cgs\.my\.id%2Fdoa%2Fsalat&text=/)
   assert.match(l.facebook, /sharer\.php\?u=https%3A/)
   const long = shareLinks({ ...p, ar: 'ا'.repeat(500) }, 'https://quran.cgs.my.id')
   assert.ok(decodeURIComponent(new URL(long.x).searchParams.get('text')).length <= 200)
@@ -1440,14 +1440,14 @@ test('bagikan: teks doa/konten, tautan kontekstual, dan URL media sosial', async
   const ayah = {
     title: 'QS. Al-Fatihah 1:1',
     text: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\n\nDengan nama Allah Yang Maha Pengasih.\n(QS. Al-Fatihah 1:1)',
-    url: 'https://quran.cgs.my.id/#/surah/1/1'
+    url: 'https://quran.cgs.my.id/surah/1/1'
   }
   assert.equal(shareContent(ayah), ayah.text)
   assert.equal(doaUrl(ayah, 'https://quran.cgs.my.id'), ayah.url)
   const social = shareLinks(ayah, 'https://quran.cgs.my.id')
   assert.ok(decodeURIComponent(social.whatsapp).includes(ayah.text))
   assert.ok(decodeURIComponent(social.whatsapp).endsWith(ayah.url))
-  assert.match(social.telegram, /url=https%3A%2F%2Fquran\.cgs\.my\.id%2F%23%2Fsurah%2F1%2F1/)
+  assert.match(social.telegram, /url=https%3A%2F%2Fquran\.cgs\.my\.id%2Fsurah%2F1%2F1/)
   assert.equal(new URL(social.facebook).searchParams.get('u'), ayah.url)
   assert.equal(new URL(social.x).searchParams.get('url'), ayah.url)
   assert.ok(new URL(social.x).searchParams.get('text').startsWith(ayah.title))
@@ -1534,7 +1534,7 @@ test('delapan kategori doa NU tambahan memuat katalog sumber tanpa teks yang bel
   assert.match(doaPage, /const NU_CATEGORIES = \[\.\.\.NU\.categories, \.\.\.NU_EXTRA\.categories\]/)
   assert.match(doaPage, /Jelajahi \$\{NU_TITLE_TOTAL\} judul doa/)
   assert.match(doaPage, /c\.sourceOnly \? 'judul' : 'doa'/)
-  assert.match(doaPage, /href="#\/infaq"/)
+  assert.match(doaPage, /href="\/infaq"/)
   assert.match(doaPage, /Buka sumber/)
   assert.match(doaPage, /nuLink\(page\.url, 'Sumber Data'\)/)
   const morePage = readFileSync('src/pages/more.js', 'utf8')
@@ -1633,7 +1633,7 @@ test('kebijakan privasi menjelaskan pelacak, lokasi, Web Push, dan data papan ke
 
 test('bagikan: tautan Asmaul Husna memakai path', async () => {
   const { doaUrl } = await import('../src/utils/doa-share.js')
-  assert.equal(doaUrl({ path: '/asmaul-husna' }, 'https://quran.cgs.my.id'), 'https://quran.cgs.my.id/#/asmaul-husna')
+  assert.equal(doaUrl({ path: '/asmaul-husna' }, 'https://quran.cgs.my.id'), 'https://quran.cgs.my.id/asmaul-husna')
 })
 
 test('tema kustom: variabel turunan sah, terbaca, dan tahan masukan rusak', async () => {
@@ -1830,7 +1830,7 @@ test('sumber data: halaman terpisah, footer tidak menaut langsung ke situs sumbe
   for (const f of ['pages/doa.js', 'pages/asmaul.js']) {
     const foot = rd(f).split('\n').filter((l) => /nuLink =|src-foot/.test(l)).join('\n')
     assert.ok(!/target="_blank"/.test(foot), f)
-    assert.match(rd(f), /href=\\?"#\/sumber\\?"/)
+    assert.match(rd(f), /href=\\?"\/sumber\\?"/)
   }
   const page = rd('pages/sources.js')
   assert.match(page, /isGithub\(s\.url\)\) return `<a /)
@@ -1861,4 +1861,29 @@ test('assetlinks.json memakai satu sidik jari SHA-256 berformat benar', async ()
   const fps = statement[0].target.sha256_cert_fingerprints
   assert.equal(fps.length, 1, 'satu sidik jari saja agar tidak ada kunci lama yang tertinggal')
   assert.match(fps[0], /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/, 'format harus XX:XX:… huruf besar seperti Play Console')
+})
+
+test('router URL bersih: /surah/2/255, bentuk #/ lama, dan halaman statis', async () => {
+  // Router memakai location.origin halaman; di Node disediakan tiruan agar bisa diuji.
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'location')
+  Object.defineProperty(globalThis, 'location', {
+    configurable: true,
+    value: { origin: 'https://quran.cgs.my.id', href: 'https://quran.cgs.my.id/', pathname: '/', search: '', hash: '' }
+  })
+  try {
+    const { internalPath, currentRoute } = await import('../src/router.js')
+    assert.equal(internalPath('https://quran.cgs.my.id/surah/2/255'), '/surah/2/255')
+    assert.equal(internalPath('/surah/2/255'), '/surah/2/255', 'jalur relatif dipakai untuk pushState')
+    assert.equal(internalPath('https://quran.cgs.my.id/'), '/')
+    assert.equal(internalPath('https://quran.cgs.my.id/#/surah/2/255'), '/surah/2/255', 'URL hash lama tetap dikenali')
+    assert.equal(internalPath('https://quran.cgs.my.id/#'), '/')
+    assert.equal(internalPath('https://quran.cgs.my.id/privacy.html'), null, 'halaman statis bukan rute aplikasi')
+    assert.equal(internalPath('https://quran.cgs.my.id/assets/app.js'), null)
+    assert.equal(internalPath('https://evil.example/surah/2/255'), null, 'domain lain ditolak')
+    assert.equal(internalPath('https://quran.cgs.my.id/surah/2/255?resume=1'), '/surah/2/255?resume=1')
+    assert.deepEqual(currentRoute(), { path: '/', query: {} })
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'location', previous)
+    else delete globalThis.location
+  }
 })

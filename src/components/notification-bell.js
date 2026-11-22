@@ -1,7 +1,7 @@
 import { icon } from './icons.js'
 import { getInboxUnreadCount } from '../services/inbox.js'
 
-export const notificationBell = () => `<a class="icon-btn notification-bell" href="#/notifikasi" data-inbox-bell data-count="0" aria-label="Notifikasi">
+export const notificationBell = () => `<a class="icon-btn notification-bell" href="/notifikasi" data-inbox-bell data-count="0" aria-label="Notifikasi">
   ${icon('bell')}<span class="notification-badge" data-inbox-badge hidden></span>
 </a>`
 

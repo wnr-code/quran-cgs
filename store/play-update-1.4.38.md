@@ -217,7 +217,7 @@ Pasang lewat tautan *Internal testing* di Play (bukan APK manual) supaya data la
 | Papan Kebaikan anonim | Infaq → kirim doa → lihat Papan Kebaikan | Hanya doa + tanggal, **tanpa nama dan tanpa nominal** |
 | Doa selalu tersimpan | Kirim doa lewat formulir | Doa langsung muncul di papan |
 | Animasi & kurangi gerakan | Nyalakan "kurangi gerakan" di pengaturan | Doa tidak beranimasi, tetap terbaca |
-| App Links | Ketuk `https://quran.cgs.my.id/#/surah/2/255` dari WhatsApp | Terbuka di aplikasi, bukan di Chrome |
+| App Links | Ketuk `https://quran.cgs.my.id/surah/2/255` dari WhatsApp | Terbuka di aplikasi, bukan di Chrome |
 
 ### 7.3 Perbarui materi listing
 

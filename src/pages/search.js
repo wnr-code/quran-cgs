@@ -40,21 +40,21 @@ export default async function search(root) {
     const raw = toLatinDigits(input.value.trim())
     lastQuery = input.value
     if (!raw) {
-      res.innerHTML = emptyState('search', 'Cari di QuranKu', 'Contoh: <b>yasin</b>, <b>36</b>, <b>2:255</b>, <b>juz 30</b>, <b>halaman 293</b>, <b>sabar</b>. Pencarian kata terjemahan & Latin bekerja pada surah yang sudah tersimpan offline.', '<a class="btn" href="#/offline">Kelola unduhan teks</a>')
+      res.innerHTML = emptyState('search', 'Cari di QuranKu', 'Contoh: <b>yasin</b>, <b>36</b>, <b>2:255</b>, <b>juz 30</b>, <b>halaman 293</b>, <b>sabar</b>. Pencarian kata terjemahan & Latin bekerja pada surah yang sudah tersimpan offline.', '<a class="btn" href="/offline">Kelola unduhan teks</a>')
       return
     }
     const q = norm(raw)
     let html = ''
     const direct = []
     let m
-    if ((m = /^(\d{1,3})\s*[:.\s]\s*(\d{1,3})$/.exec(raw)) && isAyahNo(+m[1], +m[2])) direct.push([`#/surah/${+m[1]}/${+m[2]}`, `Buka ayat ${+m[1]}:${+m[2]}`, list[+m[1] - 1] ? list[+m[1] - 1].namaLatin : 'Surah ' + m[1]])
+    if ((m = /^(\d{1,3})\s*[:.\s]\s*(\d{1,3})$/.exec(raw)) && isAyahNo(+m[1], +m[2])) direct.push([`/surah/${+m[1]}/${+m[2]}`, `Buka ayat ${+m[1]}:${+m[2]}`, list[+m[1] - 1] ? list[+m[1] - 1].namaLatin : 'Surah ' + m[1]])
     if ((m = /^juz\s*(\d{1,2})$/.exec(q)) && +m[1] >= 1 && +m[1] <= 30) {
       const [s, a] = juzStart(+m[1])
-      direct.push([`#/surah/${s}/${a}`, `Buka Juz ${+m[1]}`, `mulai ${s}:${a}`])
+      direct.push([`/surah/${s}/${a}`, `Buka Juz ${+m[1]}`, `mulai ${s}:${a}`])
     }
     if ((m = /^(?:hal|halaman|hlm|page)\s*(\d{1,3})$/.exec(q)) && +m[1] >= 1 && +m[1] <= TOTAL_PAGES) {
       const [s, a] = pageStart(+m[1])
-      direct.push([`#/surah/${s}/${a}`, `Buka halaman ${+m[1]}`, `mulai ${s}:${a} (Mushaf Madinah)`])
+      direct.push([`/surah/${s}/${a}`, `Buka halaman ${+m[1]}`, `mulai ${s}:${a} (Mushaf Madinah)`])
     }
     if (direct.length) html += `<h3 class="section-title">Buka langsung</h3><div class="list">${direct.map(([h, t, s]) => `<a class="row-link" href="${h}">${icon('forward')}<span><strong>${esc(t)}</strong><small>${esc(s)}</small></span></a>`).join('')}</div>`
 
@@ -78,8 +78,8 @@ export default async function search(root) {
       }
       html += `<h3 class="section-title">Ayat (${hits.length}${hits.length >= 80 ? '+' : ''}) <small>dari ${saved.length} surah tersimpan</small></h3>`
       html += hits.length
-        ? `<div class="list">${hits.map(({ s, a, field }) => `<a class="row-link hit" href="#/surah/${s.nomor}/${a.nomorAyat}"><span><strong>${esc(s.namaLatin)} ${s.nomor}:${a.nomorAyat}</strong><small class="${field === 'teksLatin' ? 'latin' : ''}">${hl(a[field], q)}</small></span></a>`).join('')}</div>`
-        : `<p class="muted pad">Tidak ada ayat yang cocok pada ${saved.length} surah tersimpan. ${saved.length < 114 ? '<a class="link" href="#/offline">Unduh lebih banyak surah</a> untuk memperluas pencarian.' : ''}</p>`
+        ? `<div class="list">${hits.map(({ s, a, field }) => `<a class="row-link hit" href="/surah/${s.nomor}/${a.nomorAyat}"><span><strong>${esc(s.namaLatin)} ${s.nomor}:${a.nomorAyat}</strong><small class="${field === 'teksLatin' ? 'latin' : ''}">${hl(a[field], q)}</small></span></a>`).join('')}</div>`
+        : `<p class="muted pad">Tidak ada ayat yang cocok pada ${saved.length} surah tersimpan. ${saved.length < 114 ? '<a class="link" href="/offline">Unduh lebih banyak surah</a> untuk memperluas pencarian.' : ''}</p>`
     }
     if (my !== token) return
     res.innerHTML = html || emptyState('search', 'Tidak ada hasil', 'Coba kata kunci lain.')

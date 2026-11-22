@@ -34,14 +34,14 @@ export default async function tafsir(root, { params }) {
         const a = surah && surah.ayat[x.ayat - 1]
         return `<article class="tafsir-item" id="t${x.ayat}" data-a="${x.ayat}">
         <header><span class="ayah-num">${ayahMarker(x.ayat)}</span><span class="spacer"></span>
-          <a class="icon-btn sm" href="#/surah/${n}/${x.ayat}" aria-label="Buka ayat ${x.ayat} di pembaca">${icon('book')}</a>
+          <a class="icon-btn sm" href="/surah/${n}/${x.ayat}" aria-label="Buka ayat ${x.ayat} di pembaca">${icon('book')}</a>
           <button class="icon-btn sm bm-btn" data-bm aria-pressed="${bms.has(x.ayat)}" aria-label="Bookmark tafsir ayat ${x.ayat}">${icon('bookmark')}</button></header>
         ${a ? `<p class="ayah-ar" lang="ar" dir="rtl">${esc(a.teksArab)}</p>${a.teksIndonesia ? `<p class="ayah-id">${esc(a.teksIndonesia)}</p>` : ''}` : ''}
         <div class="prose">${esc(x.teks).replace(/\n{2,}/g, '</p><p>').replace(/^/, '<p>').replace(/$/, '</p>').replace(/\n/g, '<br/>')}</div>
       </article>`
       })
       .join('')}</div>
-    <nav class="surah-nav">${n > 1 ? `<a class="btn" href="#/tafsir/${n - 1}">${icon('back')}Surah sebelumnya</a>` : '<span></span>'}${n < 114 ? `<a class="btn" href="#/tafsir/${n + 1}">Surah berikutnya${icon('forward')}</a>` : '<span></span>'}</nav>`
+    <nav class="surah-nav">${n > 1 ? `<a class="btn" href="/tafsir/${n - 1}">${icon('back')}Surah sebelumnya</a>` : '<span></span>'}${n < 114 ? `<a class="btn" href="/tafsir/${n + 1}">Surah berikutnya${icon('forward')}</a>` : '<span></span>'}</nav>`
   const go = (a) => {
     const el = $('#t' + a, body)
     if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 70 })

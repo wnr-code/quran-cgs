@@ -201,7 +201,7 @@ Pita tipis berisi teks berjalan (petunjuk bila pembayaran blank; ketuk untuk mem
 ## 1.3.18 — Doa: lafaz saja, ukuran Arab, bagikan, ikon font
 
 - Bilah tampilan di halaman Doa (semua tab): tombol **Arti** dan **Latin** (tampil/sembunyi) serta **Arab: Normal/Besar/Lebih besar**. Pilihan disimpan di `localStorage` `quranku:doa-tampilan`.
-- Tombol **Bagikan** di tiap doa → lembar pilihan WhatsApp, Telegram, Facebook, X, "Lainnya" (menu bagikan bawaan perangkat bila tersedia), dan Salin teks. Teks berisi judul, Arab, Latin, arti, sumber, dan tautan `…/#/doa/<tab>` (`src/utils/doa-share.js`). Facebook hanya menerima tautan, sehingga teks ikut disalin.
+- Tombol **Bagikan** di tiap doa → lembar pilihan WhatsApp, Telegram, Facebook, X, "Lainnya" (menu bagikan bawaan perangkat bila tersedia), dan Salin teks. Teks berisi judul, Arab, Latin, arti, sumber, dan tautan `…/doa/<tab>` (`src/utils/doa-share.js`). Facebook hanya menerima tautan, sehingga teks ikut disalin.
 - Tab Al-Qur'an kini juga punya tombol Salin.
 - Ikon font: subset Font Awesome Free 6.7.2 (13 glif, ±2,5 KB) di `public/fonts/qk-icons-*.woff2`, lisensi di `public/fonts/LICENSE-fontawesome-free.txt`. Dipakai di halaman Doa; bagian lain aplikasi masih memakai ikon SVG.
 - Tautan media sosial tidak dapat diuji sampai terkirim dari sandbox; hanya bentuk URL yang diuji.

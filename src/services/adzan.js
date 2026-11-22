@@ -393,10 +393,10 @@ export function initAdzan() {
   } else if (getSettings().adzan.enabled || getSettings().prayerReminders.enabled || getSettings().ramadanReminders.imsakEnabled) {
     setTimeout(() => syncPush(), 4000)
   }
-  // Dibuka dari pemberitahuan adzan: /?adzan=subuh#/salat
+  // Dibuka dari pemberitahuan adzan: /salat?adzan=subuh (bentuk lama: /?adzan=subuh#/salat)
   const key = new URLSearchParams(location.search).get('adzan')
   if (key) {
-    history.replaceState(null, '', location.pathname + location.hash)
+    history.replaceState(null, '', location.pathname)
     if (NAME[key] && getSettings().adzan.enabled) playAdzan(key)
   }
 }
