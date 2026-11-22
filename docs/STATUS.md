@@ -63,6 +63,19 @@ Terakhir diperbarui: 14 November 2026.
 
 Sejak 1.4.38, rute aplikasi memakai History API: `https://quran.cgs.my.id/surah/2/255`, `/doa/harian`, `/infaq`. Bentuk lama `/#/surah/2/255` tetap diterima dan dirapikan otomatis ke bentuk bersih.
 
+**Kedua bentuk hidup berdampingan.** Yang didukung:
+
+| URL | Hasil |
+|---|---|
+| `/surah/2/255` | jalur bersih dipakai langsung |
+| `/#/surah/2/255` | dikenali, lalu dirapikan ke `/surah/2/255` |
+| `/#/surah/2/255?resume=1` | query di dalam hash dipertahankan |
+| `/?adzan=subuh#/salat` | query di depan hash dipertahankan (notifikasi adzan) |
+| `/surah/2/255#/doa/harian` | hash menang atas jalur |
+| `/surah/2/255?resume=1` | query biasa |
+
+Bentuk hash tidak lagi **ditulis** oleh aplikasi — semua tautan bagikan, menu, dan teks "Sumber:" pada gambar memakai bentuk bersih. Hash hanya dibaca agar tautan yang sudah tersebar tetap berfungsi.
+
 - **Router** (`src/router.js`): `pushState`/`replaceState` + `popstate`, bukan `hashchange`. Klik tautan internal dicegat agar tidak memuat ulang halaman; tautan luar, `target="_blank"`, `Ctrl`/`Cmd`-klik, dan berkas statis dibiarkan.
 - **Worker** (`worker/index.js`): semua jalur tanpa ekstensi berkas dilayani `index.html` dengan `Cache-Control: must-revalidate`; `/surat`, `/surah`, `/doa`, `/jadwal` dialihkan 301 ke jalur baru. Halaman statis (`/privacy.html`) dan aset tidak disentuh.
 - **Service worker** (`sw.js`): setiap navigasi memakai shell, sehingga URL bersih bisa dibuka saat offline.

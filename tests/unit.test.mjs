@@ -1953,3 +1953,83 @@ test('alat check:deploy tersedia dan melaporkan status URL bersih', async () => 
   const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
   assert.equal(pkg.scripts['check:deploy'], 'node scripts/check-deploy.mjs')
 })
+
+test('kedua bentuk URL hidup berdampingan: bersih dan #/ lama, termasuk query adzan', async () => {
+  // Simulasi lokasi + history ala peramban untuk menguji migrasi hash di startRouter.
+  const store = {
+    pathname: '/', search: '', hash: ''
+  }
+  const previous = {
+    location: Object.getOwnPropertyDescriptor(globalThis, 'location'),
+    history: Object.getOwnPropertyDescriptor(globalThis, 'history')
+  }
+  Object.defineProperty(globalThis, 'location', {
+    configurable: true,
+    get: () => ({
+      origin: 'https://quran.cgs.my.id',
+      get pathname() { return store.pathname },
+      get search() { return store.search },
+      get hash() { return store.hash },
+      get href() { return 'https://quran.cgs.my.id' + store.pathname + store.search + store.hash }
+    })
+  })
+  Object.defineProperty(globalThis, 'history', {
+    configurable: true,
+    value: {
+      replaceState(_s, _t, url) {
+        const u = new URL(url, 'https://quran.cgs.my.id')
+        store.pathname = u.pathname
+        store.search = u.search
+        store.hash = ''
+      },
+      pushState(_s, _t, url) {
+        const u = new URL(url, 'https://quran.cgs.my.id')
+        store.pathname = u.pathname
+        store.search = u.search
+        store.hash = ''
+      },
+      state: null,
+      length: 2
+    }
+  })
+  try {
+    const { internalPath } = await import('../src/router.js')
+    const clean = (from) => {
+      const u = new URL(from)
+      store.pathname = u.pathname
+      store.search = u.search
+      store.hash = u.hash
+      // tiru migrateLegacyHash
+      if (store.hash.startsWith('#/')) {
+        const [path, innerQuery = ''] = store.hash.slice(2).split('?')
+        const query = innerQuery || store.search.replace(/^\?/, '')
+        store.pathname = '/' + path.replace(/^\/+/, '')
+        store.search = query ? '?' + query : ''
+        store.hash = ''
+      }
+      return internalPath()
+    }
+    // Kedua bentuk menghasilkan jalur yang sama.
+    assert.equal(clean('https://quran.cgs.my.id/surah/2/255'), '/surah/2/255')
+    assert.equal(clean('https://quran.cgs.my.id/#/surah/2/255'), '/surah/2/255')
+    // Query di depan hash dipertahankan (notifikasi adzan).
+    assert.equal(clean('https://quran.cgs.my.id/?adzan=subuh#/salat'), '/salat?adzan=subuh')
+    // Query di dalam hash menang.
+    assert.equal(clean('https://quran.cgs.my.id/#/surah/2/255?resume=1'), '/surah/2/255?resume=1')
+    // Bentuk gabungan: hash menang atas jalur.
+    assert.equal(clean('https://quran.cgs.my.id/infaq#/surah/1/1'), '/surah/1/1')
+  } finally {
+    if (previous.location) Object.defineProperty(globalThis, 'location', previous.location)
+    else delete globalThis.location
+    if (previous.history) Object.defineProperty(globalThis, 'history', previous.history)
+    else delete globalThis.history
+  }
+})
+
+test('migrasi hash mempertahankan query luar, bukan membuangnya', () => {
+  const routerSrc = readFileSync('src/router.js', 'utf8')
+  const fn = routerSrc.split('function migrateLegacyHash')[1].split('\n}\n')[0]
+  assert.match(fn, /innerQuery \|\| search\.replace/, 'query di depan hash dipakai bila hash tidak punya query')
+  assert.match(fn, /history\.replaceState/, 'hash lama dirapikan tanpa memuat ulang')
+  assert.ok(!/history\.replaceState\(null, '', '\/' \+ hash\.slice\(2\)\)$/.test(fn.trim()), 'tidak membuang search')
+})

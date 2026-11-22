@@ -116,11 +116,22 @@ async function render() {
   }
 }
 
-/** Rapikan URL hash lama (?adzan=...#/salat) tanpa memuat ulang halaman. */
+/**
+ * Rapikan URL hash lama (?adzan=subuh#/salat) tanpa memuat ulang halaman.
+ * Query di depan hash harus dipertahankan karena dipakai notifikasi adzan;
+ * bila jalur hash sendiri membawa query, query itu yang diutamakan.
+ */
 function migrateLegacyHash() {
-  const { hash } = location
-  if (hash.startsWith('#/')) history.replaceState(null, '', '/' + hash.slice(2))
-  else if (hash === '#' || hash === '#/') history.replaceState(null, '', location.pathname + location.search)
+  const { hash, search, pathname } = location
+  if (hash.startsWith('#/')) {
+    const inner = hash.slice(2)
+    const [path, innerQuery = ''] = inner.split('?')
+    const query = innerQuery || search.replace(/^\?/, '')
+    const clean = '/' + path.replace(/^\/+/, '') + (query ? '?' + query : '')
+    history.replaceState(null, '', clean)
+  } else if (hash === '#' || hash === '#/') {
+    history.replaceState(null, '', pathname + search)
+  }
 }
 
 export function startRouter(el, changeCb) {
