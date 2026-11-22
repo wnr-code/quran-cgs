@@ -37,31 +37,34 @@ public final class InfaqAkadConsentTest {
             waitForUi(scenario);
 
             // Bersihkan sisa tes sebelumnya.
-            assertEquals("true", evaluate(scenario, "(function(){try{localStorage.removeItem('" + KEY + "');return 'true'}catch(e){return 'err:' + e.name}})()"));
+            assertEquals(
+                "true",
+                evaluate(scenario, "(function(){try{localStorage.removeItem('" + KEY + "');return 'true'}catch(e){return 'err:' + e.name}})()")
+            );
 
             // localStorage harus bisa ditulis di origin https://localhost.
-            String wrote = unquote(evaluate(
+            String wrote = evaluate(
                 scenario,
                 "(function(){try{localStorage.setItem('" + KEY + "',JSON.stringify({versi:'uji-webview',tanggal:'2026-11-22T00:00:00.000Z'}));return localStorage.getItem('" + KEY + "')?'true':'false'}catch(e){return 'err:' + e.name}})()"
-            ));
+            );
             assertEquals("localStorage tidak bisa ditulis di WebView Android", "true", wrote);
 
             // Nilai harus terbaca kembali beserta isinya.
-            String stored = unquote(evaluate(scenario, "localStorage.getItem('" + KEY + "')"));
+            String stored = evaluate(scenario, "localStorage.getItem('" + KEY + "')");
             assertNotNull(stored);
             assertTrue("Isi persetujuan tidak utuh: " + stored, stored.contains("uji-webview"));
 
             // Bertahan setelah WebView dimuat ulang (bukan hanya variabel di memori).
             reloadAndWait(scenario);
-            String afterReload = unquote(evaluate(scenario, "localStorage.getItem('" + KEY + "')"));
+            String afterReload = evaluate(scenario, "localStorage.getItem('" + KEY + "')");
             assertNotNull("Persetujuan akad hilang setelah WebView dimuat ulang", afterReload);
             assertTrue(afterReload.contains("uji-webview"));
 
             // Pembatalan lewat jalur aplikasi menghapus kunci.
-            String removed = unquote(evaluate(
+            String removed = evaluate(
                 scenario,
                 "(function(){try{localStorage.removeItem('" + KEY + "');return localStorage.getItem('" + KEY + "')===null?'true':'false'}catch(e){return 'err:' + e.name}})()"
-            ));
+            );
             assertEquals("Batalkan persetujuan tidak menghapus kunci", "true", removed);
         }
     }
@@ -74,23 +77,23 @@ public final class InfaqAkadConsentTest {
             Thread.sleep(1500);
 
             // Tombol utama halaman Infaq tersedia.
-            String hasButton = unquote(evaluate(scenario, "document.querySelector('[data-infaq-open]')?'true':'false'"));
+            String hasButton = evaluate(scenario, "document.querySelector('[data-infaq-open]')?'true':'false'");
             assertEquals("Tombol INFAQ tidak dirender di WebView", "true", hasButton);
 
             // Buka akad lalu pastikan tombol ijab ada.
             evaluate(scenario, "(function(){document.querySelector('[data-infaq-open]').click();return true})()");
             Thread.sleep(800);
-            String okLabel = unquote(evaluate(
+            String okLabel = evaluate(
                 scenario,
                 "(function(){var b=document.querySelector('.sheet-wrap [data-akad-ok]');return b?b.textContent.trim():''})()"
-            ));
+            );
             assertTrue("Tombol setuju akad tidak muncul: '" + okLabel + "'", okLabel.startsWith("Bismillah, saya setuju"));
 
             // Teks penerima harus memakai nama publik yang disepakati.
-            String akadText = unquote(evaluate(
+            String akadText = evaluate(
                 scenario,
                 "(function(){var a=document.querySelector('.sheet-wrap [data-akad]');return a?a.textContent.replace(/\\s+/g,' '):''})()"
-            ));
+            );
             assertTrue("Akad tidak menyebut penerima: " + akadText, akadText.contains("Aep (WNR Code)"));
             assertTrue("Akad tidak memuat klausul qabul", akadText.contains("Penerimaan (qabul)"));
 
@@ -102,7 +105,7 @@ public final class InfaqAkadConsentTest {
     /** Tunggu sampai UI bersama benar-benar siap (bukan halaman kosong/splash). */
     private static void waitForUi(ActivityScenario<MainActivity> scenario) throws InterruptedException {
         for (int attempt = 0; attempt < 120; attempt++) {
-            String ready = unquote(evaluate(scenario, "(document.querySelector('#view')&&document.querySelector('[data-back],.home-hero')?'true':'false')"));
+            String ready = evaluate(scenario, "(document.querySelector('#view')&&document.querySelector('[data-back],.home-hero')?'true':'false')");
             if ("true".equals(ready)) return;
             Thread.sleep(250);
         }
@@ -115,6 +118,11 @@ public final class InfaqAkadConsentTest {
         waitForUi(scenario);
     }
 
+    /**
+     * Jalankan skrip di WebView dan kembalikan hasilnya sebagai teks tanpa kutip JSON.
+     * {@code evaluateJavascript} membungkus hasil string dengan tanda kutip, jadi
+     * unquote dilakukan di sini sekali saja agar asersi bisa membandingkan nilai polos.
+     */
     private static String evaluate(ActivityScenario<MainActivity> scenario, String script) throws InterruptedException {
         AtomicReference<String> result = new AtomicReference<>();
         CountDownLatch done = new CountDownLatch(1);
@@ -127,7 +135,7 @@ public final class InfaqAkadConsentTest {
             });
         });
         done.await(10, TimeUnit.SECONDS);
-        return result.get();
+        return unquote(result.get());
     }
 
     /** evaluateJavascript mengembalikan literal string JSON; buang kutip luar dan escape. */
