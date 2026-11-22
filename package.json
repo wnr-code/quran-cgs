@@ -28,7 +28,8 @@
     "gen:og": "node scripts/gen-og.mjs",
     "gen:shots": "node scripts/gen-play-screenshots.mjs",
     "cert:fp": "node scripts/cert-fingerprint.mjs",
-    "check:deploy": "node scripts/check-deploy.mjs"
+    "check:deploy": "node scripts/check-deploy.mjs",
+    "gen:shots:app": "node scripts/gen-play-shots-app.mjs"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.6.2",
