@@ -1839,23 +1839,20 @@ test('sumber data: halaman terpisah, footer tidak menaut langsung ke situs sumbe
   assert.ok(!/SOURCES/.test(rd('pages/about.js')))
 })
 
-test('alat sidik jari sertifikat: format sama dengan Play Console dan cocok dengan openssl', async () => {
+test('alat sidik jari sertifikat mencetak SHA-256 format Play Console', async () => {
   const { formatFingerprint } = await import('../scripts/cert-fingerprint.mjs')
-  const { readFileSync, existsSync } = await import('node:fs')
-  // Nilai rujukan dari `openssl x509 -noout -fingerprint -sha256` atas sertifikat uji yang
-  // dibuat dengan: openssl req -x509 -newkey rsa:2048 -nodes -subj "/CN=Test" -days 1
-  const derPaths = ['/tmp/cert.der', '/tmp/cert.pem']
-  if (!derPaths.some((p) => existsSync(p))) {
-    // Tanpa openssl di mesin ini, cukup pastikan format keluaran benar.
-    const empty = formatFingerprint(Buffer.alloc(0))
-    assert.match(empty, /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/)
-    return
-  }
-  const der = readFileSync('/tmp/cert.der')
+  const { createHash } = await import('node:crypto')
+  // Nilai rujukan dihitung dengan openssl: sha256 dari isi berkas, huruf besar, dipisah titik dua.
   assert.equal(
-    formatFingerprint(der),
-    'B1:F8:42:F2:C2:E4:25:0A:B0:E6:5B:B1:84:E2:2E:78:19:32:B6:21:C9:0A:B1:39:90:5A:1A:50:FE:0F:CF:F7'
+    formatFingerprint(Buffer.alloc(0)),
+    'E3:B0:C4:42:98:FC:1C:14:9A:FB:F4:C8:99:6F:B9:24:27:AE:41:E4:64:9B:93:4C:A4:95:99:1B:78:52:B8:55'
   )
+  const sample = Buffer.from('QuranKu')
+  assert.equal(
+    formatFingerprint(sample),
+    createHash('sha256').update(sample).digest('hex').toUpperCase().match(/.{2}/g).join(':')
+  )
+  assert.match(formatFingerprint(sample), /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/)
 })
 
 test('assetlinks.json memakai satu sidik jari SHA-256 berformat benar', async () => {
