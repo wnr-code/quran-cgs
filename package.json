@@ -26,7 +26,8 @@
     "cap:open": "cap open android",
     "gen:icons": "node scripts/gen-icons.mjs",
     "gen:og": "node scripts/gen-og.mjs",
-    "gen:shots": "node scripts/gen-play-screenshots.mjs"
+    "gen:shots": "node scripts/gen-play-screenshots.mjs",
+    "cert:fp": "node scripts/cert-fingerprint.mjs"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.6.2",
