@@ -115,6 +115,9 @@ Laporan pengguna dari build Play Store `id.cgs.quranku`: di halaman **Lainnya** 
 | `public/buka.js` memakai deteksi yang sama | Halaman perantara dirender di dalam APK (URL `https://localhost`, tanpa makna bagi pengguna). | Bila berjalan di shell native, `buka.js` langsung `location.replace('/#<rute>')` sehingga rute tujuan dibuka tanpa perantara dan tanpa `intent://`. |
 | Catatan rilis Play tertinggal satu versi | `npm test` gagal di `main`: judul catatan teratas 1.4.47 padahal `package.json` 1.4.48. | `.github/workflows/version.yml` kini ikut menyunting judul catatan teratas ke versi baru (dan meng-`git add` berkasnya); tes memastikan langkah itu ada. |
 
+| Ajakan "Pasang" memakai dialog PWA di Android | Chrome Android menawarkan `beforeinstallprompt`, dan `installApp()` memakainya lebih dulu — pengguna memasang **aplikasi web kedua** di samping APK dari Play Store (dua ikon, data terpisah). | `installTarget()` baru: Android → Play Store (dialog PWA tidak pernah dipakai), iOS → panduan Tambah ke Layar Utama (belum ada aplikasi App Store), desktop → dialog PWA. Teks banner/kartu dipilih `installCopy()`. |
+| Versi pembaruan tidak sinkron dengan Play Store | Nomor versi di aplikasi adalah versi build (`package.json`), yang biasanya lebih baru daripada rilis Play; pengguna APK bisa melihat angka yang tidak ada di Play. | Endpoint `/api/play/version` (Worker, cache 6 jam) membaca versi tayang di halaman Play. Halaman Pengaturan APK menampilkan versi Play + tombol **Buka Play Store** (`market://`), kotak masuk APK memberi notifikasi `Pembaruan di Play Store` yang membuka Play, dan web menampilkan perbandingan versi Play di kartu yang sama. Endpoint gagal/markup berubah → baris disembunyikan, tidak ada gangguan. |
+
 Jalur yang **tetap** berlaku di situs: peramban dalam aplikasi WhatsApp/Instagram/LINE/TikTok/Telegram
 masih melihat bar "Buka di aplikasi" dan halaman perantara, karena keduanya memang ditujukan untuk
 peramban eksternal. Ajakan memasang PWA di APK sudah dimatikan sejak awal (`shouldOfferInstall()`
@@ -137,7 +140,8 @@ memeriksa `isNativePlatform()`), jadi yang bocor hanya dua komponen ini.
   - **Imsak** (Subuh − 10 mnt) dan **Tarhim** (Subuh − 15 mnt): pemberitahuan, hanya bulan Ramadan (kalender Umm al-Qura + koreksi hari pengguna). Belum ada rekaman tarhim dari sumber tepercaya, jadi tanpa audio.
   - Suara adzan: `cdn.aladhan.com` (6 rekaman yang tercantum di aladhan.com/play), diperiksa oleh `tests/live/adzan.mjs`.
 - **Kompas kiblat** baru: piringan SVG berderajat, penanda Ka'bah, pusat derajat, cahaya & getar saat tepat kiblat, kartu statistik.
-- **Versi naik otomatis** tiap merge ke `main` (`.github/workflows/version.yml`, patch +1).
+- **Versi naik otomatis** tiap merge ke `main` (`.github/workflows/version.yml`, patch +1); workflow yang sama menyunting judul catatan rilis Play teratas agar tidak tertinggal satu versi.
+- **Versi Play Store** dibaca server dari halaman publik Play (`/api/play/version`, cache 6 jam) dan dipakai halaman Pengaturan + kotak masuk, karena APK hanya bisa diperbarui lewat Play — bukan lewat bundel web yang lebih baru.
 
 ## Pembaruan 1.3.0 — Navigasi mengambang, baca tanpa gangguan, Murottal & Asmaul Husna baru
 

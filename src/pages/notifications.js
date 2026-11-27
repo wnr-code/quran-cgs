@@ -1,7 +1,7 @@
 import { pageHeader } from '../components/page-layout.js'
 import { icon } from '../components/icons.js'
 import { getInboxItems, markAllInboxRead, markInboxItemRead } from '../services/inbox.js'
-import { esc, on } from '../utils/helpers.js'
+import { esc, on, openExternal } from '../utils/helpers.js'
 import { navigate } from '../router.js'
 
 const TYPE_LABEL = { content: 'Konten baru', update: 'Pembaruan aplikasi', reminder: 'Pengingat' }
@@ -57,6 +57,11 @@ export default function notifications(root) {
     const item = items.find((entry) => entry.id === open.dataset.inboxOpen)
     if (!item) return
     await markInboxItemRead(item.id)
+    // Notifikasi pembaruan APK membuka Play Store (tautan luar), bukan rute aplikasi.
+    if (item.external) {
+      await openExternal(item.external)
+      return render()
+    }
     if (item.route && item.route !== '/notifikasi') navigate(item.route)
     else await render()
   }

@@ -1,7 +1,8 @@
 // Persistent, device-local inbox for product news and reminders. No account or server sync.
 import { APP } from '../config.js'
 import { emit } from '../utils/helpers.js'
-import { isAndroidApp } from './platform.js'
+import { isAndroidApp, isNativePlatform } from './platform.js'
+import { compareVersions, fetchPlayVersion } from './play-version.js'
 import { NativePrayerNotifications } from './native-prayer-plugin.js'
 import { navigate } from '../router.js'
 
@@ -227,6 +228,22 @@ export async function getInboxItems() {
       at: asTime(state.installedUpdate.at),
       unread: !read.has(state.installedUpdate.id)
     })
+  }
+  // Di APK, pembaruan hanya bisa dipasang lewat Play Store — bukan dari bundel web yang lebih baru.
+  if (isNativePlatform()) {
+    const play = await fetchPlayVersion().catch(() => null)
+    if (play && compareVersions(play, APP.version) > 0) {
+      const id = `play:${play}`
+      items.push({
+        id,
+        type: 'update',
+        title: 'Pembaruan di Play Store',
+        body: `QuranKu versi ${play} sudah tersedia di Play Store. Ketuk untuk membuka Play Store dan memperbarui.`,
+        external: APP.playStoreUrl,
+        at: Date.now(),
+        unread: !read.has(id)
+      })
+    }
   }
   for (const item of state.reminders) items.push({ ...item, unread: !read.has(item.id) })
   items.push(...(await getNativeReminders()))

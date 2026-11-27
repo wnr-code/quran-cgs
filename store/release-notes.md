@@ -8,11 +8,12 @@ jadi catatan ini hanya perlu memuat perubahan sejak versi yang sedang dipakai pe
 
 ```
 Pemberitahuan "Buka di aplikasi QuranKu" tidak lagi muncul di dalam aplikasi; bar itu hanya untuk peramban WhatsApp/Instagram saat membuka situs.
-Halaman perantara "Sebaiknya dibuka di aplikasi" juga tidak tampil di dalam APK, termasuk saat tautan /buka.html terbuka.
-Perbaikan: tautan dalam aplikasi tetap membuka halaman yang dituju tanpa perantara.
+Ajakan pasang di Android kini langsung membuka Play Store, bukan memasang aplikasi web kedua.
+Notifikasi pembaruan menyebut versi yang benar-benar ada di Play Store dan membuka Play Store.
+Perbaikan: halaman perantara dan tautan dalam aplikasi tetap membuka halaman yang dituju.
 ```
 
-**351/500 karakter.** Angka di atas dihitung tanpa baris kosong pembuka/penutup.
+**424/500 karakter.** Angka di atas dihitung tanpa baris kosong pembuka/penutup.
 
 ## 1.4.47 — 22 November 2026 (untuk rilis yang akan datang)
 

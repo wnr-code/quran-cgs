@@ -1667,9 +1667,11 @@ test('bar "buka di aplikasi": hanya untuk peramban dalam aplikasi Android, menun
   // render() mengganti innerHTML; penangan klik harus menempel di wadah bar, bukan tombol lama.
   assert.match(opener, /bar\.addEventListener\('click'/)
   assert.doesNotMatch(opener, /bar\.querySelector\('\[data-opener-close\]'\)\.onclick/, 'penangan tombol tutup tidak boleh hilang saat render ulang')
-  // Ajakan Play di beranda tidak diubah (permintaan pengguna: tampilkan unduhan Play di situs).
+  // Ajakan Play di beranda tetap ada di situs (teksnya kini dipilih per platform).
   const home = readFileSync(new URL('../src/pages/home.js', import.meta.url), 'utf8')
-  assert.match(home, /Gratis di Google Play/)
+  const installSrc = readFileSync(new URL('../src/services/install.js', import.meta.url), 'utf8')
+  assert.match(home, /installCopy\(\)/)
+  assert.match(installSrc, /Gratis di Google Play/)
   assert.doesNotMatch(home, /linkOpenerUrl/, 'beranda tidak perlu tahu soal peramban dalam aplikasi')
 })
 
@@ -2294,15 +2296,80 @@ test('router URL bersih: /surah/2/255, bentuk #/ lama, dan halaman statis', asyn
   }
 })
 
-test('ajakan pasang mengutamakan Play Store di Android, PWA tetap tersedia di peramban lain', async () => {
+test('ajakan pasang: Android → Play Store, iOS → layar utama, desktop → PWA', async () => {
   const { readFileSync } = await import('node:fs')
+  const { installTarget, installCopy, detectBrowser } = await import('../src/services/install.js')
   const install = readFileSync('src/services/install.js', 'utf8')
   const config = readFileSync('src/config.js', 'utf8')
   assert.match(config, /playStoreUrl: 'https:\/\/play\.google\.com\/store\/apps\/details\?id=id\.cgs\.quranku'/, 'URL Play Store satu sumber di config')
   assert.match(install, /export const PLAY_URL = APP\.playStoreUrl/)
-  assert.match(install, /if \(detectBrowser\(\)\.android\) \{\s*\n\s*openExternal\(PLAY_URL\)/, 'Android diarahkan ke Play Store lebih dulu')
-  // Panduan PWA hanya untuk non-Android.
-  assert.match(install, /return 'store'/)
+
+  const android = detectBrowser('Mozilla/5.0 (Linux; Android 14; SM-A155F) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36')
+  const ios = detectBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Version/17.5 Mobile/15E148 Safari/604.1')
+  const desktop = detectBrowser('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36')
+  assert.equal(installTarget(android, true), 'play', 'Android tetap ke Play walau Chrome menawarkan instal PWA')
+  assert.equal(installTarget(android, false), 'play')
+  assert.equal(installTarget(ios, true), 'guide', 'iOS belum punya aplikasi App Store')
+  assert.equal(installTarget(desktop, true), 'prompt', 'desktop tetap boleh memasang PWA')
+  assert.equal(installTarget(desktop, false), 'guide')
+  assert.equal(installCopy(android).note, 'Gratis di Google Play')
+  assert.match(installCopy(ios).note, /Layar Utama/, 'iOS diberi tahu cara menambah ke layar utama')
+
+  // Urutan di installApp: target ditentukan lebih dulu, jadi dialog Chrome tidak pernah menang di Android.
+  assert.match(install, /const target = installTarget\(\)/)
+  assert.match(install, /if \(target === 'play'\) \{\s*\n\s*openExternal\(PLAY_URL\)\s*\n\s*return 'store'/, 'Android diarahkan ke Play Store lebih dulu')
+  assert.match(install, /if \(b\.android\) return 'play'/)
+  assert.match(install, /if \(b\.ios\) return 'guide'/)
+})
+
+test('versi Play Store: parser, pembanding, endpoint, dan pemakaian di Pengaturan/kotak masuk', async () => {
+  const { parsePlayVersion } = await import('../functions/api/play-version.js')
+  const { compareVersions, fetchPlayVersion, checkPlayUpdate, showsPlayUpdate } = await import('../src/services/play-version.js')
+  // Bentuk data halaman Play (blob AF_initDataCallback) dan meta lama.
+  assert.equal(parsePlayVersion('AF_initDataCallback({key: \'ds:5\', data:[null,[null,[[["1.4.42"]]]]]})'), '1.4.42')
+  assert.equal(parsePlayVersion('<meta itemprop="softwareVersion" content="2.10.3">'), '2.10.3')
+  assert.equal(parsePlayVersion('"softwareVersion":"3.0.1"'), '3.0.1')
+  assert.equal(parsePlayVersion('<html>Varies with device</html>'), null, 'tanpa angka versi → null, bukan tebakan')
+  assert.equal(parsePlayVersion(''), null)
+
+  assert.equal(compareVersions('1.4.42', '1.4.9'), 1, 'dibandingkan per angka, bukan abjad')
+  assert.equal(compareVersions('1.4.49', '1.4.49'), 0)
+  assert.equal(compareVersions('1.3.99', '1.4.0'), -1)
+
+  // fetchPlayVersion memakai endpoint Worker dan menyimpan hasilnya; kegagalan → null tanpa melempar.
+  const realFetch = globalThis.fetch
+  const calls = []
+  globalThis.fetch = async (url) => {
+    calls.push(String(url))
+    return { ok: true, json: async () => ({ ok: true, version: '1.4.52' }) }
+  }
+  try {
+    assert.equal(await fetchPlayVersion({ force: true }), '1.4.52')
+    assert.equal(calls[0], '/api/play/version')
+    const state = await checkPlayUpdate({ force: true })
+    assert.equal(state.version, '1.4.52')
+    assert.equal(state.installed, state.installed)
+    assert.equal(state.available, compareVersions('1.4.52', state.installed) > 0)
+    globalThis.fetch = async () => ({ ok: false })
+    assert.equal(await fetchPlayVersion({ force: true }), null, 'endpoint gagal tidak mengganggu UI')
+    globalThis.fetch = async () => ({ ok: true, json: async () => ({ ok: false, version: null }) })
+    assert.equal(await fetchPlayVersion({ force: true }), null, 'markup Play berubah → versi tidak diketahui')
+  } finally {
+    globalThis.fetch = realFetch
+  }
+  // Notifikasi pembaruan Play hanya untuk APK; PWA memperbarui diri dari server.
+  assert.equal(typeof showsPlayUpdate, 'function')
+
+  const worker = readFileSync(new URL('../worker/index.js', import.meta.url), 'utf8')
+  assert.match(worker, /'\/api\/play\/version'/, 'rute endpoint versi Play terdaftar')
+  const settings = readFileSync(new URL('../src/pages/settings.js', import.meta.url), 'utf8')
+  assert.match(settings, /checkPlayUpdate/, 'Pengaturan menampilkan versi Play Store')
+  assert.match(settings, /market:\/\/details\?id=\$\{APP\.packageId\}/, 'APK memperbarui lewat Play Store')
+  const inbox = readFileSync(new URL('../src/services/inbox.js', import.meta.url), 'utf8')
+  assert.match(inbox, /Pembaruan di Play Store/)
+  assert.match(inbox, /external: APP\.playStoreUrl/)
+  const notifications = readFileSync(new URL('../src/pages/notifications.js', import.meta.url), 'utf8')
+  assert.match(notifications, /item\.external/, 'notifikasi pembaruan membuka Play Store')
 })
 
 test('halaman Tentang menautkan Play Store; APK memakai market://', async () => {
