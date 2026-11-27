@@ -971,22 +971,31 @@ await step('Teks ayat rapi (rata tengah) & pilih teks → menu kecil: Tandai, Sa
   await page.waitForFunction(() => window.__copied)
   assert.match(await page.evaluate(() => window.__copied), /\(QS\. .+ 36:2–3\)$/)
 })
-await step('Pasang aplikasi: ajakan tampil di semua peramban, panduan sesuai peramban', async () => {
+await step('Pasang aplikasi: Android → Play Store, peramban lain → panduan/prompt', async () => {
   const ua = await browser.userAgent()
+  // Android: tombol Pasang membuka Play Store, bukan dialog pemasangan PWA (hindari dua aplikasi).
+  await page.setUserAgent('Mozilla/5.0 (Linux; Android 14; SM-A155F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36')
   await go('/')
-  await page.waitForSelector('[data-install-banner]')
-  // Peramban tanpa dialog pasang bawaan (Firefox Android) → panduan langkah + tautan buka di Chrome.
-  await page.setUserAgent('Mozilla/5.0 (Android 13; Mobile; rv:127.0) Gecko/127.0 Firefox/127.0')
+  await page.evaluate(() => {
+    window.__opened = []
+    window.open = (u) => { window.__opened.push(String(u)); return null }
+  })
+  await page.waitForSelector('[data-install-now]')
+  await page.click('[data-install-now]')
+  await page.waitForFunction(() => (window.__opened || []).some((u) => u.includes('play.google.com/store/apps/details?id=id.cgs.quranku')))
+  assert.equal(await page.$('.sheet-wrap'), null, 'Android tidak diberi panduan PWA')
+  await shot('25-pasang-aplikasi')
+  // Desktop tanpa dialog pasang bawaan → panduan langkah demi langkah.
+  await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36')
   await page.reload({ waitUntil: 'networkidle2' })
   await page.waitForSelector('[data-install-now]')
   await page.click('[data-install-now]')
   await page.waitForSelector('.sheet-wrap .install-steps li')
   const t = await page.$eval('.sheet-wrap .sheet-body', (e) => e.textContent)
-  assert.match(t, /Firefox/)
-  assert.match(await page.$eval('.sheet-wrap a[data-chrome]', (a) => a.getAttribute('href')), /^intent:\/\/.+package=com\.android\.chrome/)
-  await shot('25-pasang-aplikasi')
+  assert.match(t, /Chrome/)
   await page.$eval('.sheet-wrap button[data-close]', (b) => b.click())
   // Kartu pasang di halaman Lainnya selalu terlihat selama belum terpasang.
+  await page.setUserAgent(ua)
   await go('/lainnya')
   assert.ok(await page.$eval('[data-install]', (e) => e.getBoundingClientRect().height > 0))
   // Dialog bawaan dipakai bila peramban menyediakannya.

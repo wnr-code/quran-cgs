@@ -1,6 +1,6 @@
 # Status fitur — teruji, belum teruji, dan batasan
 
-Terakhir diperbarui: 22 November 2026 (versi 1.4.40).
+Terakhir diperbarui: 27 November 2026 (versi 1.4.49).
 
 ## Pengujian implementasi Capacitor
 
@@ -83,6 +83,7 @@ Bentuk hash tidak lagi **ditulis** oleh aplikasi — semua tautan bagikan, menu,
 - **Tautan bagikan & teks "Sumber:" pada gambar** ikut memakai bentuk bersih, mis. `Sumber: quran.cgs.my.id/surah/2/255`.
 - **Konsekuensi**: URL tanpa `#` memerlukan server yang mengembalikan `index.html` untuk jalur apa pun. Hosting statis murni (tanpa Worker/rewrite) akan memberi 404 pada muat langsung `/surah/2/255`. Konfigurasi Cloudflare proyek ini sudah memakai Worker dengan aset, jadi aman; `vite preview` dan `wrangler dev` juga melakukannya.
 - **Menguji apakah sudah tayang**: `npm run check:deploy` memeriksa situs produksi dan menyebut URL bersih sudah/belum aktif. Jalankan setelah merge. URL bersih pada situs produksi **tidak akan berfungsi sebelum PR di-merge dan Cloudflare selesai deploy**, meskipun build lokal sudah lulus — menghasilkan 404.
+- **Belum diuji**: bar "Buka di aplikasi" dan `/buka.html` tidak muncul di APK 1.4.49 pada perangkat fisik (deteksi sudah diuji unit; WebView sungguhan baru terlihat setelah build Play dipasang).
 - **Belum diuji**: pembukaan tautan bersih dari WhatsApp ke APK di perangkat fisik. Uji manual: kirim `https://quran.cgs.my.id/surah/2/255` ke diri sendiri, ketuk, pastikan terbuka di aplikasi. Bila WhatsApp tetap membuka peramban dalam aplikasinya, ketuk banner **Buka di aplikasi** di beranda — jalur itu memakai `intent://` sehingga tidak bergantung pada App Links.
 - **Catatan 22 November 2026**: AAB 1.4.38 di Play dibuat dari commit `4863179` (run Android #202) yang manifest-nya **hanya** mengklaim beranda (`path="/"`), jadi `/surah/2/255` memang tidak mungkin terbuka di aplikasi — bukan kesalahan pengaturan HP. Diperbaiki pada 1.4.39: filter lengkap + `pathPrefix`, dan banner "Buka di aplikasi" untuk peramban dalam aplikasi.
 
@@ -102,6 +103,33 @@ Delapan cacat ditemukan dan diperbaiki; semuanya punya tes regresi di `tests/uni
 | Tes E2E memakai `location.hash` | Router tidak lagi mendengarkan `hashchange`; `go()` di smoke test tidak berpindah halaman sehingga tes memberi hasil palsu. | Semua E2E memakai `history.pushState` + `popstate` dan URL bersih. `live.mjs` (dijalankan CI) juga ikut diperbarui. |
 | `/offline` tertutupi `offline.html` | **Ditemukan di produksi** saat verifikasi pasca-merge 1.4.41: Cloudflare memetakan `offline.html` → `/offline` **dan aset statis dilayani sebelum Worker**, jadi permintaan `/offline` tidak pernah sampai ke Worker — halaman Kelola Offline menampilkan halaman darurat "Anda sedang offline" dan pengguna tidak bisa mengunduh surah untuk offline. | Halaman darurat diganti nama menjadi `public/offline-fallback.html` (dirujuk `sw.js` dan `vite.config.js`), sehingga tidak ada lagi nama berkas statis yang sama dengan rute aplikasi. Worker tidak bisa memperbaiki ini dari sisi kode karena tidak dipanggil. Tes baru `tidak ada berkas statis yang menutupi rute aplikasi` gagal bila nama bentrok muncul lagi. |
 
+### Audit 27 November 2026 (1.4.49) — pemberitahuan "Buka di aplikasi" bocor ke dalam APK
+
+Laporan pengguna dari build Play Store `id.cgs.quranku`: di halaman **Lainnya** muncul bar
+"Buka di aplikasi QuranKu", dan menekannya membuka halaman perantara `/buka.html`
+("Sebaiknya dibuka di aplikasi QuranKu") dengan alamat `https://localhost/` — di dalam aplikasi itu sendiri.
+
+| Cacat | Akibat sebelum diperbaiki | Perbaikan |
+|---|---|---|
+| `isInAppBrowser()` mengenali WebView lewat `; wv)` | WebView Capacitor memakai penanda yang sama dengan WebView WhatsApp, jadi aplikasi mengira dirinya peramban dalam aplikasi. | `isNativeShell()` baru di `src/services/platform.js` (bridge Capacitor atau origin `https://localhost` / `capacitor://localhost`); `isInAppBrowser()` menerima opsi `nativeShell`/`origin` dan selalu `false` untuk shell native. `attachAppOpener()` juga berhenti lebih awal bila `isNativeShell()`. |
+| `public/buka.js` memakai deteksi yang sama | Halaman perantara dirender di dalam APK (URL `https://localhost`, tanpa makna bagi pengguna). | Bila berjalan di shell native, `buka.js` langsung `location.replace('/#<rute>')` sehingga rute tujuan dibuka tanpa perantara dan tanpa `intent://`. |
+| Catatan rilis Play tertinggal satu versi | `npm test` gagal di `main`: judul catatan teratas 1.4.47 padahal `package.json` 1.4.48. | `.github/workflows/version.yml` kini ikut menyunting judul catatan teratas ke versi baru (dan meng-`git add` berkasnya); tes memastikan langkah itu ada. |
+
+| Ajakan "Pasang" memakai dialog PWA di Android | Chrome Android menawarkan `beforeinstallprompt`, dan `installApp()` memakainya lebih dulu — pengguna memasang **aplikasi web kedua** di samping APK dari Play Store (dua ikon, data terpisah). | `installTarget()` baru: Android → Play Store (dialog PWA tidak pernah dipakai), iOS → panduan Tambah ke Layar Utama (belum ada aplikasi App Store), desktop → dialog PWA. Teks banner/kartu dipilih `installCopy()`. |
+| Versi pembaruan tidak sinkron dengan Play Store | Nomor versi di aplikasi adalah versi build (`package.json`), yang biasanya lebih baru daripada rilis Play; pengguna APK bisa melihat angka yang tidak ada di Play. | Endpoint `/api/play/version` (Worker, cache 6 jam) membaca versi tayang di halaman Play. Halaman Pengaturan APK menampilkan versi Play + tombol **Buka Play Store** (`market://`), kotak masuk APK memberi notifikasi `Pembaruan di Play Store` yang membuka Play, dan web menampilkan perbandingan versi Play di kartu yang sama. Endpoint gagal/markup berubah → baris disembunyikan, tidak ada gangguan. |
+
+| Bar "Buka di aplikasi" butuh dua ketukan | Tombol bar menuju `/buka.html`, lalu pengguna harus menekan tombol kedua di halaman itu. Di WebView WhatsApp, navigasi intent baru dijalankan pada ketukan pengguna, jadi pengalaman nyata terasa seperti "tautannya tidak membuka aplikasi". | Tombol bar kini **langsung** `intent://…;package=id.cgs.quranku;S.browser_fallback_url=<Play>` — satu ketukan. `/buka.html` tetap ada untuk tautan lama, dengan catatan tentang PWA yang terpasang. |
+| PWA terpasang merebut tautan | WebAPK mendaftarkan scope `/` untuk `quran.cgs.my.id`, sehingga sistem mengarahkan tautan ke versi web, bukan APK. | Situs tidak lagi menawarkan PWA di Android, `manifest.webmanifest` memakai `prefer_related_applications: true` + `related_applications` (Play), dan pengguna diarahkan menghapus PWA yang sudah terpasang ([ANDROID.md](ANDROID.md#tautan-dari-whatsapp-dan-pwa-merebut-tautan)). |
+
+| Tautan domain cadangan tidak membuka aplikasi | Hanya `quran.cgs.my.id` yang diklaim di manifest, sehingga tautan `quran-cgs.appwnr.workers.dev` jatuh ke peramban; `appLinkRoute()` juga menolak origin lain. | Manifest mengklaim dua host (5 filter, semuanya `autoVerify`), `appLinkRoute()` menerima `APP.origin` + `APP.mirrors`, dan `npm run check:deploy` memeriksa assetlinks kedua domain (Android 7–11: satu host gagal = semua gagal). |
+
+| `assetlinks.json` produksi ≠ repo | Berkas di `https://quran.cgs.my.id/.well-known/assetlinks.json` memuat **tiga** sertifikat dan relation `get_login_creds`, sedangkan repo hanya satu dan tanpa relation itu. Deploy berikutnya akan **menghapus** dua kunci lama, dan App Links mati pada perangkat yang APK-nya ditandatangani kunci tersebut. | Repo disamakan dengan produksi: tiga sidik jari (`56:45:F6:…`, `FC:42:AC:…`, `09:07:89:…`), relation tetap hanya `handle_all_urls`. Tes baru mewajibkan kunci app signing Play ada dan upload key CI tidak terdaftar. |
+
+Jalur yang **tetap** berlaku di situs: peramban dalam aplikasi WhatsApp/Instagram/LINE/TikTok/Telegram
+masih melihat bar "Buka di aplikasi" dan halaman perantara, karena keduanya memang ditujukan untuk
+peramban eksternal. Ajakan memasang PWA di APK sudah dimatikan sejak awal (`shouldOfferInstall()`
+memeriksa `isNativePlatform()`), jadi yang bocor hanya dua komponen ini.
+
 ## Pembaruan 1.1.0
 
 - **Ikon PWA/APK tidak berganti — diperbaiki.** Penyebab: Service Worker menyimpan `manifest.webmanifest` dan berkas ikon di cache runtime tanpa batas waktu, dan nama berkas ikon tidak berubah, sehingga peramban menganggap ikon sama. Sekarang: nama ikon berversi (`*-v2.png`), manifest selalu diambil dari jaringan, cache runtime lama dibuang (`quranku-runtime-v2`). APK: `versionCode` kini naik otomatis di CI (sebelumnya selalu 1).
@@ -119,7 +147,8 @@ Delapan cacat ditemukan dan diperbaiki; semuanya punya tes regresi di `tests/uni
   - **Imsak** (Subuh − 10 mnt) dan **Tarhim** (Subuh − 15 mnt): pemberitahuan, hanya bulan Ramadan (kalender Umm al-Qura + koreksi hari pengguna). Belum ada rekaman tarhim dari sumber tepercaya, jadi tanpa audio.
   - Suara adzan: `cdn.aladhan.com` (6 rekaman yang tercantum di aladhan.com/play), diperiksa oleh `tests/live/adzan.mjs`.
 - **Kompas kiblat** baru: piringan SVG berderajat, penanda Ka'bah, pusat derajat, cahaya & getar saat tepat kiblat, kartu statistik.
-- **Versi naik otomatis** tiap merge ke `main` (`.github/workflows/version.yml`, patch +1).
+- **Versi naik otomatis** tiap merge ke `main` (`.github/workflows/version.yml`, patch +1); workflow yang sama menyunting judul catatan rilis Play teratas agar tidak tertinggal satu versi.
+- **Versi Play Store** dibaca server dari halaman publik Play (`/api/play/version`, cache 6 jam) dan dipakai halaman Pengaturan + kotak masuk, karena APK hanya bisa diperbarui lewat Play — bukan lewat bundel web yang lebih baru.
 
 ## Pembaruan 1.3.0 — Navigasi mengambang, baca tanpa gangguan, Murottal & Asmaul Husna baru
 

@@ -74,6 +74,48 @@
                 <data android:scheme="https" android:host="quran.cgs.my.id" android:path="/lanjut" />
             </intent-filter>
 
+            <!-- Cadangan: domain Worker (quran-cgs.appwnr.workers.dev). Tautan yang dibagikan
+                 dalam bentuk domain cadangan juga membuka aplikasi. Berkas assetlinks.json
+                 disajikan Worker yang sama di domain ini, jadi verifikasi bisa lolos.
+                 Catatan: di Android 7-11 (verifikasi "legacy") semua host harus lolos —
+                 bila domain cadangan tidak menyajikan assetlinks.json yang sama, tautan
+                 DOMAIN UTAMA ikut berhenti terbuka di aplikasi. Karena itu
+                 `npm run check:deploy` memeriksa sidik jari kedua domain. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/quran" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/cari" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/murottal" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/bookmark" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/lainnya" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/salat" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/kalender" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/asmaul-husna" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/doa" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/tasbih" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/kiblat" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/target" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/offline" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/infaq" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/pengaturan" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/tentang" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/sumber" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/notifikasi" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:path="/lanjut" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:pathPrefix="/surah/" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:pathPrefix="/tafsir/" />
+                <data android:scheme="https" android:host="quran-cgs.appwnr.workers.dev" android:pathPrefix="/doa/" />
+            </intent-filter>
+
             <!-- Jalur bertingkat: /surah/2, /surah/2/255, /tafsir/2/255, /doa/harian.
                  pathPrefix dipakai, bukan pathPattern: PatternMatcher Android membuat ".*"
                  hanya cocok dengan satu karakter, sehingga pola "/.*/.*" tidak pernah cocok

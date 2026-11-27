@@ -17,7 +17,7 @@ import { ayahImageOption } from '../utils/ayah-image.js'
 import { rerender } from '../router.js'
 import { APP } from '../config.js'
 import { openShare } from '../components/share-sheet.js'
-import { installApp, shouldOfferInstall, installDismissed, dismissInstall } from '../services/install.js'
+import { installApp, installCopy, shouldOfferInstall, installDismissed, dismissInstall } from '../services/install.js'
 
 const SHORTCUTS = [
   ['/quran', 'book', 'Baca Quran'],
@@ -110,12 +110,14 @@ export default async function home(root) {
 
   // Ajakan memasang aplikasi (semua peramban; disembunyikan bila sudah terpasang atau ditutup pengguna).
   if (shouldOfferInstall() && !installDismissed()) {
+    // Android → Play Store, iOS → panduan layar utama, desktop → pasang PWA.
+    const copy = installCopy()
     $('.home-hero', root).insertAdjacentHTML(
       'afterend',
       `<div class="install-banner" data-install-banner>
         <span class="shortcut-ic">${icon('download')}</span>
-        <span class="install-banner-text"><strong>Pasang QuranKu</strong><small>Gratis di Google Play</small></span>
-        <button class="btn btn-primary btn-sm" data-install-now>Pasang</button>
+        <span class="install-banner-text"><strong>Pasang QuranKu</strong><small>${esc(copy.note)}</small></span>
+        <button class="btn btn-primary btn-sm" data-install-now aria-label="${esc(copy.label)}">${esc(copy.action)}</button>
         <button class="icon-btn" data-install-close aria-label="Tutup ajakan pasang">${icon('close')}</button>
       </div>`
     )

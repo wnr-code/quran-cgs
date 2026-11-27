@@ -14,6 +14,7 @@ import { clearLegacyNativeData } from '../services/legacy-migration.js'
 import { THEME_PRESETS, deriveTheme } from '../utils/theme.js'
 import { checkForUpdate } from '../services/offline.js'
 import { isNativePlatform } from '../services/platform.js'
+import { checkPlayUpdate } from '../services/play-version.js'
 
 const SEG_LABELS = { theme: 'Pilih tema', numerals: 'Format angka Al-Qur’an', arabicFont: 'Font Arab', hijriAdjust: 'Koreksi tanggal Hijriah' }
 const seg = (key, opts, cur) => `<div class="seg" data-seg="${key}" role="group" aria-label="${SEG_LABELS[key] || key}">${opts.map(([v, l]) => `<button type="button" data-v="${v}" class="${String(cur) === String(v) ? 'on' : ''}" aria-pressed="${String(cur) === String(v)}">${l}</button>`).join('')}</div>`
@@ -64,10 +65,26 @@ export default function settings(root) {
         <div class="btn-row"><button class="btn btn-danger" data-wipe>${icon('trash')}Hapus semua data saya</button></div></section>
       <section class="card version-card" aria-label="Versi dan pembaruan QuranKu">
         <span class="shortcut-ic" aria-hidden="true">${icon('refresh')}</span>
-        <span class="version-text"><strong>QuranKu ${APP.version}</strong><small data-version>${APP.versionLabel}</small><small data-update-note role="status" aria-live="polite">${native ? 'Untuk memperbarui, pasang APK terbaru dari sumber pemasangannya.' : 'Versi yang berjalan di perangkat ini.'}</small></span>
-        ${native ? '' : '<button type="button" class="btn btn-sm" data-update aria-label="Periksa pembaruan QuranKu">Periksa</button>'}
+        <span class="version-text"><strong>QuranKu ${APP.version}</strong><small data-version>${APP.versionLabel}</small><small data-update-note role="status" aria-live="polite">${native ? 'Pembaruan dipasang lewat Play Store.' : 'Versi yang berjalan di perangkat ini.'}</small><small data-play-note></small></span>
+        ${native
+          ? `<a class="btn btn-sm" data-play href="market://details?id=${APP.packageId}" rel="noopener noreferrer">Buka Play Store</a>`
+          : '<button type="button" class="btn btn-sm" data-update aria-label="Periksa pembaruan QuranKu">Periksa</button>'}
       </section>
       <p class="hint pad center">${APP.name} v${APP.version}</p>`
+  }
+  // Versi yang tayang di Play Store: satu-satunya pembaruan yang bisa dipasang pengguna APK.
+  const playNote = body.querySelector('[data-play-note]')
+  if (playNote) {
+    void checkPlayUpdate().then(({ version, available }) => {
+      if (!playNote.isConnected) return
+      if (!version) {
+        playNote.textContent = native ? 'Tidak dapat memeriksa versi di Play Store.' : ''
+        return
+      }
+      if (available) playNote.textContent = `Versi ${version} sudah tersedia di Play Store.`
+      else if (native) playNote.textContent = `Versi terbaru di Play Store: ${version}.`
+      else playNote.textContent = version === APP.version ? `Sama dengan versi di Google Play (${version}).` : `Google Play masih versi ${version}.`
+    })
   }
   body.addEventListener('click', async (e) => {
     const b = e.target.closest('[data-seg] [data-v]')

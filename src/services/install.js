@@ -45,6 +45,29 @@ const WEAK = { mi: 'Mi Browser', uc: 'UC Browser', vendor: 'peramban bawaan pons
 export const canPromptInstall = () => !!window.__installPrompt
 export const shouldOfferInstall = () => !isNativePlatform() && !isStandalone()
 
+/**
+ * Ke mana ajakan "Pasang" mengarah.
+ *
+ * Android → **Play Store**. Aplikasi resmi sudah tayang di sana, dan memasang PWA di Android
+ * membuat dua ikon/aplikasi terpisah (Play + PWA) dengan data yang tidak sama — pengguna lalu
+ * bingung mana yang harus dipakai. Karena itu tombol bawaan Chrome ("Instal aplikasi") tidak
+ * dipakai di Android, walaupun Chrome menawarkannya lewat `beforeinstallprompt`.
+ * iOS → belum ada aplikasi di App Store, jadi panduan "Tambah ke Layar Utama".
+ * Desktop/lainnya → dialog pemasangan PWA bila tersedia, selain itu panduan.
+ */
+export function installTarget(b = detectBrowser(), hasPrompt = canPromptInstall()) {
+  if (b.android) return 'play'
+  if (b.ios) return 'guide'
+  return hasPrompt ? 'prompt' : 'guide'
+}
+
+/** Teks ajakan yang dipakai banner beranda dan kartu di halaman Lainnya. */
+export function installCopy(b = detectBrowser()) {
+  if (b.android) return { note: 'Gratis di Google Play', action: 'Pasang di Play', label: 'Buka Play Store' }
+  if (b.ios) return { note: 'Tambahkan ke Layar Utama (iOS belum ada di App Store)', action: 'Panduan', label: 'Cara memasang' }
+  return { note: 'Tambahkan ke layar utama agar terbuka layar penuh & bisa offline', action: 'Pasang', label: 'Pasang' }
+}
+
 /** URL intent untuk membuka situs langsung di Chrome (Android). */
 export const chromeIntentUrl = () => `intent://${location.host || SITE}/#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent('https://play.google.com/store/apps/details?id=com.android.chrome')};end`
 
@@ -62,9 +85,17 @@ export function installGuideHtml(b = detectBrowser()) {
     <button class="btn btn-ghost btn-block" data-copy-link>${icon('copy')} Salin alamat situs</button>`
 }
 
-/** Pasang aplikasi: dialog bawaan peramban bila tersedia, selain itu panduan. */
+/**
+ * Pasang aplikasi. Android selalu diarahkan ke Play Store (lihat `installTarget`), peramban lain
+ * memakai dialog bawaan bila tersedia, selain itu panduan langkah demi langkah.
+ */
 export async function installApp() {
-  const p = window.__installPrompt
+  const target = installTarget()
+  if (target === 'play') {
+    openExternal(PLAY_URL)
+    return 'store'
+  }
+  const p = target === 'prompt' ? window.__installPrompt : null
   if (p) {
     try {
       p.prompt()
@@ -76,10 +107,6 @@ export async function installApp() {
     } catch {
       window.__installPrompt = null
     }
-  }
-  if (detectBrowser().android) {
-    openExternal(PLAY_URL)
-    return 'store'
   }
   openSheet({
     title: 'Pasang QuranKu',

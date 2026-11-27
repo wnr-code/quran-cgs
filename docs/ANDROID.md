@@ -7,13 +7,51 @@ QuranKu menggunakan **satu aplikasi web bersama** untuk PWA dan APK Android. APK
 - UI PWA dibundel ke APK, jadi shell dan berkas yang sudah dibundel tersedia tanpa internet. API jaringan dan konten yang belum tersimpan tetap memerlukan koneksi; bacaan yang tersimpan di IndexedDB/cache bisa dipakai offline.
 - Tautan QuranKu memakai URL bersih tanpa tanda #, mis. `https://quran.cgs.my.id/surah/2/255`, dan memakai Android App Links terverifikasi melalui `/.well-known/assetlinks.json`. Filter intent dipisah menjadi tiga `<intent-filter>`: `android:path="/"` untuk beranda, `android:path` satu per rute satu segmen (`/quran`, `/kiblat`, `/infaq`, …), dan `android:pathPrefix` untuk jalur bertingkat (`/surah/`, `/tafsir/`, `/doa/`). Bila digabung dalam satu filter, Android memperlakukannya sebagai perkalian silang.
   **Jangan memakai `pathPattern="/.*/.*"` untuk jalur bertingkat.** `PatternMatcher` Android membuat `.*` hanya cocok dengan **satu karakter**, sehingga `/surah/2/255` tidak pernah cocok dan tautan terlempar ke peramban. `pathPrefix` adalah pilihan yang benar.   Halaman statis seperti `/privacy.html` tidak diklaim siapa pun, jadi tetap terbuka di peramban (kebijakan privasi harus bisa dibaca dari tautan Play Store).
-  Di **peramban dalam aplikasi** (WhatsApp, Instagram, Facebook) tautan https tidak diteruskan ke Android, jadi aplikasi tidak pernah terbuka dari ketukan pertama. Untuk itu tersedia `/buka.html?next=/surah/2/255` + `/buka.js`: halaman perantara yang memakai `intent://…;package=id.cgs.quranku;S.browser_fallback_url=<Play Store>;end` sehingga satu ketukan membuka aplikasi, atau Play Store bila belum terpasang. `src/services/app-opener.js` menampilkan bar **Buka di aplikasi QuranKu** di halaman mana pun (termasuk halaman baca yang dituju tautan) saat mendeteksi peramban dalam aplikasi di Android; bar bisa ditutup dan tidak muncul lagi pada sesi itu. Ajakan **Pasang QuranKu — Gratis di Google Play** di beranda tetap seperti biasa untuk peramban umum. URL lama berbentuk `/#/surah/2/255` masih dikenali dan dirapikan otomatis ke bentuk bersih. Verifikasi perlu fingerprint SHA-256 sertifikat yang sama dengan APK yang dipasang — yaitu **kunci app signing milik Google** bila Play App Signing aktif, bukan upload key.
+  Di **peramban dalam aplikasi** (WhatsApp, Instagram, Facebook) tautan https tidak diteruskan ke Android, jadi aplikasi tidak pernah terbuka dari ketukan pertama. Untuk itu tersedia `/buka.html?next=/surah/2/255` + `/buka.js`: halaman perantara yang memakai `intent://…;package=id.cgs.quranku;S.browser_fallback_url=<Play Store>;end` sehingga satu ketukan membuka aplikasi, atau Play Store bila belum terpasang. `src/services/app-opener.js` menampilkan bar **Buka di aplikasi QuranKu** di halaman mana pun (termasuk halaman baca yang dituju tautan) saat mendeteksi peramban dalam aplikasi di Android; bar bisa ditutup dan tidak muncul lagi pada sesi itu. Di Android, ajakan **Pasang QuranKu — Gratis di Google Play** (beranda dan halaman Lainnya) langsung membuka Play Store melalui `installTarget()`; dialog pemasangan PWA Chrome sengaja **tidak** dipakai supaya tidak ada dua aplikasi (Play + PWA) dengan data terpisah. Di iOS yang belum punya aplikasi App Store, ajakan itu menampilkan panduan **Tambah ke Layar Utama**, dan di desktop tetap memakai dialog pemasangan PWA. Pengaturan di APK menampilkan versi yang tayang di Play Store (`/api/play/version`, dibaca server dan di-cache 6 jam) beserta tombol **Buka Play Store**.
+Keduanya **tidak** boleh muncul di dalam APK: WebView Capacitor memakai penanda `; wv)` yang sama dengan WebView WhatsApp, sehingga
+`isNativeShell()` (`src/services/platform.js` — bridge Capacitor atau origin `https://localhost`) dipakai `isInAppBrowser()`,
+`attachAppOpener()`, dan `public/buka.js` untuk mematikannya. Di dalam APK, `/buka.html?next=…` langsung dialihkan ke rute tujuan. URL lama berbentuk `/#/surah/2/255` masih dikenali dan dirapikan otomatis ke bentuk bersih. Verifikasi perlu fingerprint SHA-256 sertifikat yang sama dengan APK yang dipasang — yaitu **kunci app signing milik Google** bila Play App Signing aktif, bukan upload key.
 - Al-Qur'an, doa, jadwal salat, kiblat, tasbih, bookmark, target, kalender, pencarian, murottal, infaq, dan halaman pengaturan memakai implementasi bersama. Fitur online tetap mengikuti ketersediaan API dan layanan terkait.
 - Lokasi bersifat opsional. Aplikasi hanya meminta izin **lokasi perkiraan** (`ACCESS_COARSE_LOCATION`, tanpa `ACCESS_FINE_LOCATION`) setelah pengguna menekan **Gunakan lokasi saya**; pilihan kota dan koordinat manual juga tersedia. Android memproses lokasi di perangkat. Permintaan GPS memakai batas waktu 20 detik dengan cadangan `watchPosition` 20 detik bila GPS masih dingin, lalu memeriksa ulang izin sebelum mencoba sekali lagi; setiap kode error plugin (`OS-PLUG-GLOC-*`) dipetakan ke pesan berbahasa Indonesia berisi langkah lanjutan (izin, layanan lokasi, Play Services, sinyal) yang tampil di kartu lokasi. Manifest menandai perangkat keras lokasi sebagai `required="false"` agar Play Store tidak menyaring perangkat tanpa GPS.
 - Android memakai `AlarmManager` dan receiver native untuk menjadwalkan azan, imsak Ramadan, pengingat sebelum salat, tilawah harian, target halaman, dan catatan kalender bertanggal. Jadwal berulang serta alarm kalender dalam jendela bergulir 14 hari dipulihkan setelah reboot/perubahan tanggal, waktu, atau zona waktu; perubahan catatan, pengaturan, dan progres tilawah meminta jadwal dibangun ulang. Notifikasi sistem memerlukan izin notifikasi; alarm tepat memerlukan izin khusus Android 12 ke atas. Jika izin alarm tepat tidak diberikan, Android memakai alarm inexact yang dapat tertunda oleh Doze atau kebijakan OEM; force-stop, pencabutan izin, dan pembatasan baterai perangkat juga dapat menghambat pengiriman. Rekaman azan panjang dapat diputar lewat layanan media foreground dan memerlukan internet. PWA tetap memakai Service Worker/Web Push untuk pemberitahuan salat; pengiriman bergantung pada browser, koneksi, dan layanan push. Pengingat kalender/tilawah PWA hanya berjalan ketika aplikasi/browser aktif.
 - Service Worker PWA tidak didaftarkan di Capacitor. Aset web Android diperbarui bersama APK; pembaruan dari halaman Pengaturan hanya berlaku untuk PWA.
 - Font Arab Amiri Quran dan Scheherazade New ikut dibundel. Verifikasi bentuk huruf dan pemenggalan baris pada perangkat fisik sebelum rilis.
 - Layar pembuka memakai wordmark `public/brand/quranku-logo.png` (768×512, latar transparan) di splash web (`#splash` pada `index.html`) dan splash Android (`@drawable/splash_brand` sebagai `windowSplashScreenAnimatedIcon`). Ikon launcher, ikon notifikasi, ikon PWA, dan materi Play Store tetap diturunkan dari `assets/logo-source.png`; `npm run gen:icons` memisahkan keduanya (`SPLASH_LOGO` vs `LOGO`). Mengganti wordmark splash tidak perlu menaikkan akhiran `-v2` pada ikon.
+
+## Tautan dari WhatsApp dan "PWA merebut tautan"
+
+Dua hal berbeda sering tertukar saat menguji tautan `quran.cgs.my.id`:
+
+| Gejala | Penyebab | Yang dilakukan QuranKu |
+|---|---|---|
+| Ketuk tautan di WhatsApp/Instagram → terbuka **halaman web** di dalam aplikasi itu, bukan QuranKu | Peramban bawaan WhatsApp **tidak menyerahkan** tautan https ke aplikasi lain (bukan soal App Links). Ini perilaku WhatsApp, bukan bug aplikasi. | Bar **"Buka di aplikasi QuranKu"** muncul di halaman mana pun; tombolnya **langsung** `intent://…;package=id.cgs.quranku;S.browser_fallback_url=<Play>` — satu ketukan, tanpa halaman perantara. `/buka.html` tetap ada untuk tautan lama/manual. |
+| Tautan (dari Chrome, Gmail, dll.) membuka **aplikasi web (PWA)**, bukan APK | Chrome memasang **WebAPK** yang mendaftarkan domain situs pada scope `/`, sehingga sistem memilihnya untuk tautan `quran.cgs.my.id`. | Situs tidak lagi menawarkan pemasangan PWA di Android (`installTarget()` → Play Store) dan `manifest.webmanifest` memakai `prefer_related_applications: true` + `related_applications` (Play). PWA yang **sudah** terpasang harus dihapus pengguna — lihat langkah di bawah. |
+
+### Domain cadangan juga membuka aplikasi
+
+Selain `quran.cgs.my.id`, manifest mengklaim **`quran-cgs.appwnr.workers.dev`** (domain Worker
+cadangan yang dipakai `failover.js`). Tautan berbentuk domain cadangan membuka aplikasi di halaman
+yang dituju, bukan hanya beranda: `appLinkRoute()` menerima kedua origin (`APP.origin` + `APP.mirrors`).
+
+Syaratnya sama seperti domain utama — **setiap** host yang didaftarkan harus menyajikan
+`/.well-known/assetlinks.json` dengan sidik jari yang identik. Di Android 7–11 verifikasi bersifat
+"legacy" (semua host harus lolos), jadi domain cadangan yang rusak bisa **mematikan tautan domain
+utama** di perangkat lama. Karena itu:
+
+- `npm run check:deploy` sekarang juga memeriksa domain cadangan dan membandingkan sidik jarinya
+  dengan `public/.well-known/assetlinks.json`;
+- jangan menambah host lain (mis. domain uji) ke manifest tanpa memastikan berkas di atas tersedia.
+
+### Langkah di perangkat pengguna
+
+1. **Hapus PWA yang sudah terlanjur dipasang:** tekan lama ikon QuranKu dari peramban → **Uninstall/Hapus**. Atau buka **Setelan → Aplikasi → QuranKu** (yang ikonnya dari Chrome) → **Hapus instalasi**. Setelah itu tautan kembali ke Chrome/APK.
+2. **Pastikan App Links terverifikasi untuk APK:** **Setelan → Aplikasi → QuranKu → Buka secara default → Tautan yang didukung** harus memuat `quran.cgs.my.id` **dan** `quran-cgs.appwnr.workers.dev`. Bila kosong, buka `https://quran.cgs.my.id/.well-known/assetlinks.json` di peramban (harus tampil JSON), lalu pasang ulang aplikasi dari Play Store agar verifikasi dijalankan lagi.
+3. **Cek dari komputer (opsional):** `adb shell pm get-app-links id.cgs.quranku` → semua filter `quran.cgs.my.id` harus `verified`. Bila `legacy_failure`/`none`, sidik jari di `assetlinks.json` tidak cocok dengan kunci penandatangan APK yang terpasang (Play App Signing → pakai kunci **app signing**, bukan upload key).
+4. **Uji ulang:** kirim `https://quran.cgs.my.id/surah/2/255` ke diri sendiri di WhatsApp, ketuk, lalu ketuk **Buka** pada bar hijau.
+
+Verifikasi server-side tanpa adb: buka
+`https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://quran.cgs.my.id&relation=delegate_permission/common.handle_all_urls`
+— harus memuat statement `id.cgs.quranku`.
 
 ## Migrasi data dari APK Compose lama
 
@@ -69,6 +107,25 @@ Workflow **Android build** (`.github/workflows/android.yml`) berjalan untuk peru
 ### Memasang APK uji di ponsel
 
 Artefak `QuranKu-APK-untuk-dipasang` memuat dua APK yang tidak bisa saling menggantikan. `QuranKu-<versi>.apk` ditandatangani upload key dan bisa dipasang menimpa aplikasi dari Play **hanya bila** sidik jari SHA-256 sertifikatnya sama dengan *App signing key certificate* di Play Console (Test and release → Setup → App signing). `QuranKu-<versi>-uji.apk` ditandatangani kunci debug dan **selalu** ditolak bila aplikasi bernama paket sama sudah terpasang — pesan Android: "Aplikasi tidak diinstal karena paket ini bentrok dengan paket yang sudah ada" (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Itu perilaku normal sistem, bukan bug. Bila APK release juga ditolak, sertifikat aplikasi terpasang berbeda dari upload key — biasanya karena Play App Signing aktif dan Google memegang app-signing key. Pada kondisi itu gunakan *Internal testing* agar Play yang memperbarui aplikasi tanpa kehilangan data, atau cadangkan data lalu copot aplikasi sebelum memasang APK manual. Untuk memeriksa sertifikat yang diunduh dari Play Console (Test and release → Setup → App signing → **Download sertifikat** pada *Kunci klasik*), jalankan `npm run cert:fp -- <berkas.der|berkas.pem>`; skrip ini mencetak sidik jari SHA-256 dalam format yang sama dengan Play Console dan langsung menyebut cocok atau beda dengan `assetlinks.json`. Halaman Play Console hanya menampilkan app signing key, jadi sertifikat yang diunduh dari sana adalah app-signing key — bukan upload key. Jangan aktifkan **Upgrade kunci penandatanganan aplikasi** atau kunci post-quantum untuk rilis biasa: mengganti app signing key mengharuskan pengguna memasang ulang aplikasi.
+
+### Sidik jari di `assetlinks.json`
+
+Berkas itu mendaftar **tiga** sertifikat yang sah untuk aplikasi ini. Android menerima verifikasi
+bila sertifikat APK yang terpasang cocok dengan **salah satu** entri, jadi semua kunci yang pernah
+menandatangani rilis harus tetap ada — APK lama di perangkat pengguna tidak ikut berubah saat
+Play memakai kunci baru.
+
+| # | Sidik jari | Peran |
+|---|---|---|
+| 1 | `56:45:F6:…:03:66` | **app signing key** Play yang dipakai untuk rilis sekarang (Play Console → App signing) |
+| 2 | `FC:42:AC:…:40:25:EF` | kunci penandatangan lain yang terdaftar di produksi (kunci app signing lama/sertifikat yang pernah dipakai) |
+| 3 | `09:07:89:…:4E:77` | idem |
+
+Aturannya:
+- **Upload key CI (`18:A6:5D:…:4A:6E`) tidak didaftarkan** — Play menandatangani ulang APK, jadi kunci itu tidak pernah sampai ke pengguna.
+- **Jangan hapus** entri lama tanpa memastikan tidak ada instalasi yang masih ditandatangani kunci itu: menghapusnya mematikan App Links pada perangkat tersebut.
+- Hanya relation `delegate_permission/common.handle_all_urls` yang didaftarkan. `get_login_creds` tidak dipakai karena aplikasi tidak punya akun/login; menambahkannya berarti memberi izin berbagi kredensial.
+- Nilai di produksi harus **sama persis** dengan berkas di repo (urutan tidak penting, isi penting). `npm run check:deploy` membandingkan daftar di domain utama dan domain cadangan.
 
 Ringkasan workflow (Actions → run → Summary) mencetak tabel dua sidik jari: **upload key** (yang menandatangani APK/AAB) dan nilai di `public/.well-known/assetlinks.json`. Bandingkan yang pertama dengan *Upload key certificate* dan yang kedua dengan *App signing key certificate* di Play Console → Test and release → Setup → App signing. Workflow memberi peringatan anotasi bila keduanya berbeda; itu normal saat Play App Signing aktif, tetapi berarti APK manual hanya bisa dipasang setelah aplikasi dicopot.
 

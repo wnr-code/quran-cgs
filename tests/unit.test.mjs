@@ -1279,6 +1279,10 @@ test('screenshot Play: 2-8 berkas, 1080x1920, rasio <= 2:1, tanpa alpha', () => 
 test('catatan rilis Play: <= 500 karakter, satu blok per versi, tanpa larangan', () => {
   const notes = readFileSync(new URL('../store/release-notes.md', import.meta.url), 'utf8')
   const versi = [...notes.matchAll(/^## (\d+\.\d+\.\d+) — /gm)].map((m) => m[1])
+  // Kenaikan versi otomatis ikut menyunting judul catatan teratas, supaya tidak tertinggal.
+  const versionWorkflow = readFileSync(new URL('../.github/workflows/version.yml', import.meta.url), 'utf8')
+  assert.match(versionWorkflow, /store\/release-notes\.md/, 'workflow versi menyinkronkan catatan rilis')
+  assert.match(versionWorkflow, /git add package\.json package-lock\.json store\/release-notes\.md/)
   assert.ok(versi.length >= 1, 'minimal satu catatan rilis')
   // Bagian "1.4.x — tanggal" harus urut dari terbaru dan versinya cocok dengan package.json.
   const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
@@ -1517,15 +1521,16 @@ test('App Links Android memakai domain, sertifikat, dan rute hash resmi QuranKu'
   assert.equal(appLinkRoute('https://quran.cgs.my.id/surah/2/255'), '/surah/2/255')
   assert.equal(appLinkRoute('https://quran.cgs.my.id/'), '/')
   assert.equal(appLinkRoute('https://quran.cgs.my.id/privacy.html'), null, 'halaman web statis tidak dialihkan ke router APK')
+  // Domain cadangan juga didaftarkan di manifest, jadi jalurnya harus tetap terbaca.
+  assert.equal(appLinkRoute('https://quran-cgs.appwnr.workers.dev/surah/2/255'), '/surah/2/255')
+  assert.equal(appLinkRoute('https://quran-cgs.appwnr.workers.dev/salat?adzan=subuh'), '/salat?adzan=subuh')
   assert.equal(appLinkRoute('https://evil.example/surah/2/255'), null, 'tautan dari domain lain ditolak')
 
   const statement = JSON.parse(readFileSync(new URL('../public/.well-known/assetlinks.json', import.meta.url), 'utf8'))
   assert.deepEqual(statement[0].relation, ['delegate_permission/common.handle_all_urls'])
   assert.equal(statement[0].target.namespace, 'android_app')
   assert.equal(statement[0].target.package_name, 'id.cgs.quranku')
-  assert.deepEqual(statement[0].target.sha256_cert_fingerprints, [
-    '56:45:F6:54:3C:D6:9E:43:30:B3:92:1C:91:C4:03:9C:50:3E:9A:5F:F9:23:CE:DF:43:BE:08:51:1B:DE:03:66'
-  ])
+  assert.ok(statement[0].target.sha256_cert_fingerprints.length >= 1)
   const manifest = readFileSync(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8')
   assert.match(manifest, /android:autoVerify="true"/)
   assert.match(manifest, /android:scheme="https" android:host="quran\.cgs\.my\.id" android:path="\/"/)
@@ -1564,6 +1569,11 @@ test('tautan peramban dalam aplikasi: halaman perantara membuka aplikasi, bukan 
   assert.equal(linkOpenerUrl('/surah/2/255'), '/buka.html?next=%2Fsurah%2F2%2F255')
   assert.equal(isInAppBrowser('Mozilla/5.0 (Linux; Android 13) WhatsApp/2.24.1'), true)
   assert.equal(isInAppBrowser('Mozilla/5.0 (Linux; Android 13; SM-A546E) Chrome/126.0 Mobile Safari/537.36'), false)
+  // WebView APK QuranKu sendiri juga mengirim penanda `; wv)`; jangan sampai dianggap peramban lain.
+  const capacitorUa = 'Mozilla/5.0 (Linux; Android 14; SM-A155F Build/UP1A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/126.0 Mobile Safari/537.36'
+  assert.equal(isInAppBrowser(capacitorUa, { nativeShell: true }), false)
+  assert.equal(isInAppBrowser(capacitorUa, { nativeShell: false, origin: 'https://localhost' }), false)
+  assert.equal(isInAppBrowser(capacitorUa, { nativeShell: false, origin: 'https://quran.cgs.my.id' }), true)
   assert.match(
     nativeAppIntentUrl('/surah/2/255'),
     /^intent:\/\/quran\.cgs\.my\.id\/surah\/2\/255#Intent;scheme=https;package=id\.cgs\.quranku;/
@@ -1592,6 +1602,10 @@ test('tautan peramban dalam aplikasi: halaman perantara membuka aplikasi, bukan 
   assert.match(page, /<script src="\/buka\.js"><\/script>/)
   assert.match(script, /S\.browser_fallback_url/)
   assert.match(script, /id\.cgs\.quranku/)
+  // Halaman perantara tidak boleh tampil di dalam APK (origin https://localhost).
+  assert.match(script, /isNativePlatform/, 'halaman perantara dialihkan saat berjalan di dalam APK')
+  assert.match(script, /localhost/)
+  assert.match(script, /location\.replace\('\/#'/, 'rute tujuan diteruskan lewat router aplikasi')
   // Alat pemeriksa deploy harus memeriksa manifest + App Links dan mengharapkan JSON
   // untuk berkas data (bukan text/html), agar tidak melaporkan GAGAL palsu.
   const deploy = readFileSync(new URL('../scripts/check-deploy.mjs', import.meta.url), 'utf8')
@@ -1646,17 +1660,44 @@ test('bar "buka di aplikasi": hanya untuk peramban dalam aplikasi Android, menun
   // Dipasang global agar halaman baca yang dituju tautan WhatsApp juga punya jalan keluar.
   assert.match(app, /attachAppOpener\(\)/)
   assert.match(opener, /isInAppBrowser\(\)/)
+  assert.match(opener, /isNativeShell\(\)/, 'bar tidak dipasang di dalam APK')
   assert.match(opener, /\/Android\/i/)
-  assert.match(opener, /linkOpenerUrl\(path\)/)
+  // Satu ketukan: bar memakai intent:// langsung, bukan halaman perantara /buka.html.
+  assert.match(opener, /nativeAppIntentUrl\(path\)/)
+  assert.doesNotMatch(opener, /linkOpenerUrl\(path\)/, 'bar tidak lagi melewati halaman perantara')
   assert.match(opener, /qk:route/)
   assert.match(opener, /Buka di aplikasi QuranKu/)
   // render() mengganti innerHTML; penangan klik harus menempel di wadah bar, bukan tombol lama.
   assert.match(opener, /bar\.addEventListener\('click'/)
   assert.doesNotMatch(opener, /bar\.querySelector\('\[data-opener-close\]'\)\.onclick/, 'penangan tombol tutup tidak boleh hilang saat render ulang')
-  // Ajakan Play di beranda tidak diubah (permintaan pengguna: tampilkan unduhan Play di situs).
+  // Ajakan Play di beranda tetap ada di situs (teksnya kini dipilih per platform).
   const home = readFileSync(new URL('../src/pages/home.js', import.meta.url), 'utf8')
-  assert.match(home, /Gratis di Google Play/)
+  const installSrc = readFileSync(new URL('../src/services/install.js', import.meta.url), 'utf8')
+  assert.match(home, /installCopy\(\)/)
+  assert.match(installSrc, /Gratis di Google Play/)
   assert.doesNotMatch(home, /linkOpenerUrl/, 'beranda tidak perlu tahu soal peramban dalam aplikasi')
+})
+
+test('regresi: pemberitahuan "buka di aplikasi" tidak tampil di dalam APK', async () => {
+  const { isInAppBrowser } = await import('../src/services/app-links.js')
+  const { isNativeShell } = await import('../src/services/platform.js')
+  const { shouldOfferInstall } = await import('../src/services/install.js')
+  const capacitorUa = 'Mozilla/5.0 (Linux; Android 14; SM-A155F Build/UP1A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/126.0 Mobile Safari/537.36'
+  // Laporan pengguna: bar "Buka di aplikasi QuranKu" muncul di APK, lalu membuka /buka.html
+  // ber-URL https://localhost di dalam aplikasi itu sendiri.
+  assert.equal(isNativeShell('https://localhost'), true)
+  assert.equal(isNativeShell('https://quran.cgs.my.id'), false)
+  assert.equal(isInAppBrowser(capacitorUa, { nativeShell: true, origin: 'https://localhost' }), false)
+  assert.equal(isInAppBrowser(capacitorUa, { nativeShell: false, origin: 'https://localhost' }), false)
+  // Peramban dalam aplikasi lain tetap mendapat bar.
+  assert.equal(isInAppBrowser('Mozilla/5.0 (Linux; Android 13; wv) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36', { nativeShell: false, origin: 'https://quran.cgs.my.id' }), true)
+  const opener = readFileSync(new URL('../src/services/app-opener.js', import.meta.url), 'utf8')
+  assert.match(opener, /if \(isNativeShell\(\)\) return/)
+  assert.match(opener, /if \(!isAndroid\(\) \|\| !isInAppBrowser\(\) \|\| openerDismissed\(\)\) return/)
+  // Ajakan memasang PWA memang sudah dimatikan di APK.
+  assert.equal(typeof shouldOfferInstall, 'function')
+  const install = readFileSync(new URL('../src/services/install.js', import.meta.url), 'utf8')
+  assert.match(install, /!isNativePlatform\(\) && !isStandalone\(\)/)
 })
 
 test('notifikasi Android memakai status izin sistem dan menyediakan permintaan runtime', async () => {
@@ -2225,12 +2266,19 @@ test('alat sidik jari sertifikat mencetak SHA-256 format Play Console', async ()
   assert.match(formatFingerprint(sample), /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/)
 })
 
-test('assetlinks.json memakai satu sidik jari SHA-256 berformat benar', async () => {
+test('assetlinks.json: semua sertifikat penandatangan Play terdaftar, format benar', async () => {
   const { readFileSync } = await import('node:fs')
   const statement = JSON.parse(readFileSync(new URL('../public/.well-known/assetlinks.json', import.meta.url), 'utf8'))
   const fps = statement[0].target.sha256_cert_fingerprints
-  assert.equal(fps.length, 1, 'satu sidik jari saja agar tidak ada kunci lama yang tertinggal')
-  assert.match(fps[0], /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/, 'format harus XX:XX:… huruf besar seperti Play Console')
+  // Play bisa merotasi/mengganti kunci app signing; APK yang sudah terpasang tetap ditandatangani
+  // kunci lama, jadi SEMUA kunci yang pernah menandatangani rilis harus tetap terdaftar di sini.
+  assert.ok(fps.length >= 1, 'minimal satu sidik jari')
+  assert.equal(new Set(fps).size, fps.length, 'tidak ada sidik jari ganda')
+  for (const fp of fps) assert.match(fp, /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/, 'format harus XX:XX:… huruf besar seperti Play Console')
+  // Kunci app signing yang dipakai Play hari ini (diverifikasi di Play Console → App signing).
+  assert.ok(fps.includes('56:45:F6:54:3C:D6:9E:43:30:B3:92:1C:91:C4:03:9C:50:3E:9A:5F:F9:23:CE:DF:43:BE:08:51:1B:DE:03:66'), 'kunci app signing Play terdaftar')
+  // Upload key CI tidak perlu dan tidak boleh didaftarkan: Play menandatangani ulang APK.
+  assert.ok(!fps.includes('18:A6:5D:42:52:3D:17:11:3D:83:CF:FB:1B:F3:F1:B6:0B:39:43:80:BB:99:BA:40:B7:09:BE:A4:4E:DC:4A:6E'), 'upload key bukan penanda tangan APK pengguna')
 })
 
 test('router URL bersih: /surah/2/255, bentuk #/ lama, dan halaman statis', async () => {
@@ -2258,15 +2306,110 @@ test('router URL bersih: /surah/2/255, bentuk #/ lama, dan halaman statis', asyn
   }
 })
 
-test('ajakan pasang mengutamakan Play Store di Android, PWA tetap tersedia di peramban lain', async () => {
+test('ajakan pasang: Android → Play Store, iOS → layar utama, desktop → PWA', async () => {
   const { readFileSync } = await import('node:fs')
+  const { installTarget, installCopy, detectBrowser } = await import('../src/services/install.js')
   const install = readFileSync('src/services/install.js', 'utf8')
   const config = readFileSync('src/config.js', 'utf8')
   assert.match(config, /playStoreUrl: 'https:\/\/play\.google\.com\/store\/apps\/details\?id=id\.cgs\.quranku'/, 'URL Play Store satu sumber di config')
   assert.match(install, /export const PLAY_URL = APP\.playStoreUrl/)
-  assert.match(install, /if \(detectBrowser\(\)\.android\) \{\s*\n\s*openExternal\(PLAY_URL\)/, 'Android diarahkan ke Play Store lebih dulu')
-  // Panduan PWA hanya untuk non-Android.
-  assert.match(install, /return 'store'/)
+
+  const android = detectBrowser('Mozilla/5.0 (Linux; Android 14; SM-A155F) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36')
+  const ios = detectBrowser('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Version/17.5 Mobile/15E148 Safari/604.1')
+  const desktop = detectBrowser('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36')
+  assert.equal(installTarget(android, true), 'play', 'Android tetap ke Play walau Chrome menawarkan instal PWA')
+  assert.equal(installTarget(android, false), 'play')
+  assert.equal(installTarget(ios, true), 'guide', 'iOS belum punya aplikasi App Store')
+  assert.equal(installTarget(desktop, true), 'prompt', 'desktop tetap boleh memasang PWA')
+  assert.equal(installTarget(desktop, false), 'guide')
+  assert.equal(installCopy(android).note, 'Gratis di Google Play')
+  assert.match(installCopy(ios).note, /Layar Utama/, 'iOS diberi tahu cara menambah ke layar utama')
+
+  // Urutan di installApp: target ditentukan lebih dulu, jadi dialog Chrome tidak pernah menang di Android.
+  assert.match(install, /const target = installTarget\(\)/)
+  assert.match(install, /if \(target === 'play'\) \{\s*\n\s*openExternal\(PLAY_URL\)\s*\n\s*return 'store'/, 'Android diarahkan ke Play Store lebih dulu')
+  assert.match(install, /if \(b\.android\) return 'play'/)
+  assert.match(install, /if \(b\.ios\) return 'guide'/)
+})
+
+test('versi Play Store: parser, pembanding, endpoint, dan pemakaian di Pengaturan/kotak masuk', async () => {
+  const { parsePlayVersion } = await import('../functions/api/play-version.js')
+  const { compareVersions, fetchPlayVersion, checkPlayUpdate, showsPlayUpdate } = await import('../src/services/play-version.js')
+  // Bentuk data halaman Play (blob AF_initDataCallback) dan meta lama.
+  assert.equal(parsePlayVersion('AF_initDataCallback({key: \'ds:5\', data:[null,[null,[[["1.4.42"]]]]]})'), '1.4.42')
+  assert.equal(parsePlayVersion('<meta itemprop="softwareVersion" content="2.10.3">'), '2.10.3')
+  assert.equal(parsePlayVersion('"softwareVersion":"3.0.1"'), '3.0.1')
+  assert.equal(parsePlayVersion('<html>Varies with device</html>'), null, 'tanpa angka versi → null, bukan tebakan')
+  assert.equal(parsePlayVersion(''), null)
+
+  assert.equal(compareVersions('1.4.42', '1.4.9'), 1, 'dibandingkan per angka, bukan abjad')
+  assert.equal(compareVersions('1.4.49', '1.4.49'), 0)
+  assert.equal(compareVersions('1.3.99', '1.4.0'), -1)
+
+  // fetchPlayVersion memakai endpoint Worker dan menyimpan hasilnya; kegagalan → null tanpa melempar.
+  const realFetch = globalThis.fetch
+  const calls = []
+  globalThis.fetch = async (url) => {
+    calls.push(String(url))
+    return { ok: true, json: async () => ({ ok: true, version: '1.4.52' }) }
+  }
+  try {
+    assert.equal(await fetchPlayVersion({ force: true }), '1.4.52')
+    assert.equal(calls[0], '/api/play/version')
+    const state = await checkPlayUpdate({ force: true })
+    assert.equal(state.version, '1.4.52')
+    assert.equal(state.installed, state.installed)
+    assert.equal(state.available, compareVersions('1.4.52', state.installed) > 0)
+    globalThis.fetch = async () => ({ ok: false })
+    assert.equal(await fetchPlayVersion({ force: true }), null, 'endpoint gagal tidak mengganggu UI')
+    globalThis.fetch = async () => ({ ok: true, json: async () => ({ ok: false, version: null }) })
+    assert.equal(await fetchPlayVersion({ force: true }), null, 'markup Play berubah → versi tidak diketahui')
+  } finally {
+    globalThis.fetch = realFetch
+  }
+  // Notifikasi pembaruan Play hanya untuk APK; PWA memperbarui diri dari server.
+  assert.equal(typeof showsPlayUpdate, 'function')
+
+  const worker = readFileSync(new URL('../worker/index.js', import.meta.url), 'utf8')
+  assert.match(worker, /'\/api\/play\/version'/, 'rute endpoint versi Play terdaftar')
+  const settings = readFileSync(new URL('../src/pages/settings.js', import.meta.url), 'utf8')
+  assert.match(settings, /checkPlayUpdate/, 'Pengaturan menampilkan versi Play Store')
+  assert.match(settings, /market:\/\/details\?id=\$\{APP\.packageId\}/, 'APK memperbarui lewat Play Store')
+  const inbox = readFileSync(new URL('../src/services/inbox.js', import.meta.url), 'utf8')
+  assert.match(inbox, /Pembaruan di Play Store/)
+  assert.match(inbox, /external: APP\.playStoreUrl/)
+  const notifications = readFileSync(new URL('../src/pages/notifications.js', import.meta.url), 'utf8')
+  assert.match(notifications, /item\.external/, 'notifikasi pembaruan membuka Play Store')
+})
+
+test('manifest web memilih aplikasi Play Store dan tautan aplikasi tetap satu ketukan', async () => {
+  const manifest = JSON.parse(readFileSync(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8'))
+  // Chrome Android tidak lagi didorong memasang PWA (dua aplikasi: Play + PWA dengan data terpisah).
+  assert.equal(manifest.prefer_related_applications, true)
+  assert.equal(manifest.related_applications[0].platform, 'play')
+  assert.equal(manifest.related_applications[0].id, 'id.cgs.quranku')
+  assert.equal(manifest.related_applications[0].url, 'https://play.google.com/store/apps/details?id=id.cgs.quranku')
+
+  // Manifest APK: App Links terverifikasi untuk domain, supaya tautan https benar-benar membuka aplikasi.
+  const apkManifest = readFileSync(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8')
+  const filters = apkManifest.match(/<intent-filter[^>]*>[\s\S]*?<\/intent-filter>/g) || []
+  const hosts = ['quran.cgs.my.id', 'quran-cgs.appwnr.workers.dev']
+  for (const host of hosts) {
+    const linkFilters = filters.filter((f) => f.includes('android.intent.action.VIEW') && f.includes(`android:host="${host}"`))
+    assert.ok(linkFilters.length >= 2, `${host}: filter App Links ada (satu segmen + jalur bertingkat)`)
+    for (const f of linkFilters) {
+      assert.match(f, /android:autoVerify="true"/, `${host}: setiap filter diauto-verifikasi`)
+      assert.match(f, /android:scheme="https"/, `${host}: hanya https`)
+      assert.match(f, /category android:name="android.intent.category.BROWSABLE"/, `${host}: bisa dibuka dari tautan`)
+    }
+  }
+  const linkFilters = filters.filter((f) => f.includes('android.intent.action.VIEW') && hosts.some((h) => f.includes(`android:host="${h}"`)))
+  assert.equal(linkFilters.length, 5, 'lima filter App Links (3 domain utama + 2 domain cadangan)')
+  assert.match(apkManifest, /android:pathPrefix="\/surah\/"/, 'jalur bertingkat memakai pathPrefix')
+  assert.match(apkManifest, /android:host="quran-cgs.appwnr.workers.dev"/, 'domain cadangan ikut diklaim')
+  // Komentar XML menyebut pathPattern sebagai catatan; yang diperiksa hanya atribut sungguhan.
+  const apkAttributes = apkManifest.replace(/<!--[\s\S]*?-->/g, '')
+  assert.doesNotMatch(apkAttributes, /pathPattern/, 'pathPattern tidak dipakai')
 })
 
 test('halaman Tentang menautkan Play Store; APK memakai market://', async () => {

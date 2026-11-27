@@ -8,6 +8,7 @@ import { ensureSchema } from '../functions/lib/db.js'
 import { onKey, onSubscribe, onUnsubscribe } from '../functions/api/push.js'
 import { pushDue } from '../functions/lib/adzan.js'
 import { onRequestPost as webhookPost, onRequestGet as webhookGet } from '../functions/api/trakteer-webhook.js'
+import { onRequestGet as playVersionGet } from '../functions/api/play-version.js'
 
 const json = (obj, status) => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } })
 
@@ -55,6 +56,10 @@ const app = {
         if (p.startsWith('/api/quran/')) {
           if (m !== 'GET') return json({ ok: false, error: 'method_not_allowed' }, 405)
           return await quranGet({ ...base, params: { path: p.slice('/api/quran/'.length).split('/') } })
+        }
+        if (p === '/api/play/version') {
+          if (m !== 'GET' && m !== 'HEAD') return json({ ok: false, error: 'method_not_allowed' }, 405)
+          return await playVersionGet({ ...base, params: {} })
         }
         if (p === '/api/donors') {
           if (m !== 'GET') return json({ ok: false, error: 'method_not_allowed' }, 405)

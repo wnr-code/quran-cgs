@@ -1,4 +1,5 @@
 import { APP } from '../config.js'
+import { isNativeShell } from './platform.js'
 
 /**
  * Alamat App Link QuranKu. Semua halaman dibuka dari satu alamat tetap
@@ -7,6 +8,13 @@ import { APP } from '../config.js'
  * https://quran-cgs.appwnr.workers.dev (lihat failover.js).
  */
 export const APP_LINK_BASE = APP.origin
+
+/**
+ * Alamat yang tautannya diterima dari sistem — domain utama **dan** cerminnya. Keduanya
+ * didaftarkan di `AndroidManifest.xml`, jadi tautan domain cadangan pun membuka aplikasi;
+ * tanpa daftar ini aplikasi akan terbuka di beranda dan membuang jalur yang dituju.
+ */
+const LINK_ORIGINS = new Set([APP.origin, ...APP.mirrors])
 
 /** Alamat App Link untuk jalur internal, mis. '/surah/2/255' → 'https://quran.cgs.my.id/surah/2/255'. */
 export function appLinkUrl(path = '/') {
@@ -25,7 +33,7 @@ export function appLinkRoute(rawUrl) {
   if (typeof rawUrl !== 'string' || !rawUrl) return null
   try {
     const url = new URL(rawUrl)
-    if (url.origin !== APP.origin) return null
+    if (!LINK_ORIGINS.has(url.origin)) return null
     if (url.hash.startsWith('#/')) {
       // Bentuk lama: /?adzan=subuh#/salat. Query di depan hash dipakai notifikasi adzan,
       // jadi ia harus ikut pindah ke belakang jalur hash — bukan dibuang.
@@ -62,8 +70,20 @@ export function appLinkRouteFromRedirect(rawUrl, origin = APP.origin) {
  */
 export const linkOpenerUrl = (path = '/') => `/buka.html?next=${encodeURIComponent(path)}`
 
-/** True bila halaman sedang tampil di peramban dalam aplikasi (bukan Chrome/Safari biasa). */
-export function isInAppBrowser(ua = typeof navigator !== 'undefined' ? navigator.userAgent : '') {
+/**
+ * True bila halaman sedang tampil di peramban dalam aplikasi lain (bukan Chrome/Safari biasa).
+ *
+ * WebView milik APK QuranKu sendiri juga memakai penanda `; wv)`, jadi tanpa pengecualian ini
+ * bar "Buka di aplikasi" dan halaman perantara /buka.html muncul DI DALAM aplikasi
+ * (terlihat sebagai https://localhost). Karena itu shell native selalu dianggap bukan
+ * peramban dalam aplikasi, dan origin WebView Capacitor (https://localhost) ikut dikecualikan.
+ */
+export function isInAppBrowser(
+  ua = typeof navigator !== 'undefined' ? navigator.userAgent : '',
+  { nativeShell = isNativeShell(), origin = typeof location !== 'undefined' ? location.origin : '' } = {}
+) {
+  if (!ua || nativeShell) return false
+  if (/^(https?|capacitor):\/\/localhost\/?$/i.test(origin)) return false
   return /FBAN|FBAV|FB_IAB|Instagram|Line\/|WhatsApp|TikTok|musical_ly|Telegram|Twitter|MicroMessenger/i.test(ua) || (/Android/i.test(ua) && /; wv\)/.test(ua))
 }
 
