@@ -4,6 +4,16 @@ Teks untuk **Play Console → Test and release → Rilis → "Apa yang baru"** (
 Batas resmi: **500 karakter per bahasa**. Satu catatan per rilis; rilis berikutnya menimpa yang lama,
 jadi catatan ini hanya perlu memuat perubahan sejak versi yang sedang dipakai pengguna.
 
+## 1.4.49 — 27 November 2026 (untuk rilis yang akan datang)
+
+```
+Pemberitahuan "Buka di aplikasi QuranKu" tidak lagi muncul di dalam aplikasi; bar itu hanya untuk peramban WhatsApp/Instagram saat membuka situs.
+Halaman perantara "Sebaiknya dibuka di aplikasi" juga tidak tampil di dalam APK, termasuk saat tautan /buka.html terbuka.
+Perbaikan: tautan dalam aplikasi tetap membuka halaman yang dituju tanpa perantara.
+```
+
+**351/500 karakter.** Angka di atas dihitung tanpa baris kosong pembuka/penutup.
+
 ## 1.4.47 — 22 November 2026 (untuk rilis yang akan datang)
 
 ```

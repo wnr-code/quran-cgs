@@ -1,6 +1,6 @@
 # Status fitur — teruji, belum teruji, dan batasan
 
-Terakhir diperbarui: 22 November 2026 (versi 1.4.40).
+Terakhir diperbarui: 27 November 2026 (versi 1.4.49).
 
 ## Pengujian implementasi Capacitor
 
@@ -83,6 +83,7 @@ Bentuk hash tidak lagi **ditulis** oleh aplikasi — semua tautan bagikan, menu,
 - **Tautan bagikan & teks "Sumber:" pada gambar** ikut memakai bentuk bersih, mis. `Sumber: quran.cgs.my.id/surah/2/255`.
 - **Konsekuensi**: URL tanpa `#` memerlukan server yang mengembalikan `index.html` untuk jalur apa pun. Hosting statis murni (tanpa Worker/rewrite) akan memberi 404 pada muat langsung `/surah/2/255`. Konfigurasi Cloudflare proyek ini sudah memakai Worker dengan aset, jadi aman; `vite preview` dan `wrangler dev` juga melakukannya.
 - **Menguji apakah sudah tayang**: `npm run check:deploy` memeriksa situs produksi dan menyebut URL bersih sudah/belum aktif. Jalankan setelah merge. URL bersih pada situs produksi **tidak akan berfungsi sebelum PR di-merge dan Cloudflare selesai deploy**, meskipun build lokal sudah lulus — menghasilkan 404.
+- **Belum diuji**: bar "Buka di aplikasi" dan `/buka.html` tidak muncul di APK 1.4.49 pada perangkat fisik (deteksi sudah diuji unit; WebView sungguhan baru terlihat setelah build Play dipasang).
 - **Belum diuji**: pembukaan tautan bersih dari WhatsApp ke APK di perangkat fisik. Uji manual: kirim `https://quran.cgs.my.id/surah/2/255` ke diri sendiri, ketuk, pastikan terbuka di aplikasi. Bila WhatsApp tetap membuka peramban dalam aplikasinya, ketuk banner **Buka di aplikasi** di beranda — jalur itu memakai `intent://` sehingga tidak bergantung pada App Links.
 - **Catatan 22 November 2026**: AAB 1.4.38 di Play dibuat dari commit `4863179` (run Android #202) yang manifest-nya **hanya** mengklaim beranda (`path="/"`), jadi `/surah/2/255` memang tidak mungkin terbuka di aplikasi — bukan kesalahan pengaturan HP. Diperbaiki pada 1.4.39: filter lengkap + `pathPrefix`, dan banner "Buka di aplikasi" untuk peramban dalam aplikasi.
 
@@ -101,6 +102,23 @@ Delapan cacat ditemukan dan diperbaiki; semuanya punya tes regresi di `tests/uni
 | `.btn-ghost` dipakai tetapi tidak ada di CSS | Tombol "Buka di Chrome" pada panduan pemasangan tampil seperti tombol biasa, tak terbedakan dari aksi utama. | Aturan `.btn-ghost` ditambahkan di `main.css`. |
 | Tes E2E memakai `location.hash` | Router tidak lagi mendengarkan `hashchange`; `go()` di smoke test tidak berpindah halaman sehingga tes memberi hasil palsu. | Semua E2E memakai `history.pushState` + `popstate` dan URL bersih. `live.mjs` (dijalankan CI) juga ikut diperbarui. |
 | `/offline` tertutupi `offline.html` | **Ditemukan di produksi** saat verifikasi pasca-merge 1.4.41: Cloudflare memetakan `offline.html` → `/offline` **dan aset statis dilayani sebelum Worker**, jadi permintaan `/offline` tidak pernah sampai ke Worker — halaman Kelola Offline menampilkan halaman darurat "Anda sedang offline" dan pengguna tidak bisa mengunduh surah untuk offline. | Halaman darurat diganti nama menjadi `public/offline-fallback.html` (dirujuk `sw.js` dan `vite.config.js`), sehingga tidak ada lagi nama berkas statis yang sama dengan rute aplikasi. Worker tidak bisa memperbaiki ini dari sisi kode karena tidak dipanggil. Tes baru `tidak ada berkas statis yang menutupi rute aplikasi` gagal bila nama bentrok muncul lagi. |
+
+### Audit 27 November 2026 (1.4.49) — pemberitahuan "Buka di aplikasi" bocor ke dalam APK
+
+Laporan pengguna dari build Play Store `id.cgs.quranku`: di halaman **Lainnya** muncul bar
+"Buka di aplikasi QuranKu", dan menekannya membuka halaman perantara `/buka.html`
+("Sebaiknya dibuka di aplikasi QuranKu") dengan alamat `https://localhost/` — di dalam aplikasi itu sendiri.
+
+| Cacat | Akibat sebelum diperbaiki | Perbaikan |
+|---|---|---|
+| `isInAppBrowser()` mengenali WebView lewat `; wv)` | WebView Capacitor memakai penanda yang sama dengan WebView WhatsApp, jadi aplikasi mengira dirinya peramban dalam aplikasi. | `isNativeShell()` baru di `src/services/platform.js` (bridge Capacitor atau origin `https://localhost` / `capacitor://localhost`); `isInAppBrowser()` menerima opsi `nativeShell`/`origin` dan selalu `false` untuk shell native. `attachAppOpener()` juga berhenti lebih awal bila `isNativeShell()`. |
+| `public/buka.js` memakai deteksi yang sama | Halaman perantara dirender di dalam APK (URL `https://localhost`, tanpa makna bagi pengguna). | Bila berjalan di shell native, `buka.js` langsung `location.replace('/#<rute>')` sehingga rute tujuan dibuka tanpa perantara dan tanpa `intent://`. |
+| Catatan rilis Play tertinggal satu versi | `npm test` gagal di `main`: judul catatan teratas 1.4.47 padahal `package.json` 1.4.48. | `.github/workflows/version.yml` kini ikut menyunting judul catatan teratas ke versi baru (dan meng-`git add` berkasnya); tes memastikan langkah itu ada. |
+
+Jalur yang **tetap** berlaku di situs: peramban dalam aplikasi WhatsApp/Instagram/LINE/TikTok/Telegram
+masih melihat bar "Buka di aplikasi" dan halaman perantara, karena keduanya memang ditujukan untuk
+peramban eksternal. Ajakan memasang PWA di APK sudah dimatikan sejak awal (`shouldOfferInstall()`
+memeriksa `isNativePlatform()`), jadi yang bocor hanya dua komponen ini.
 
 ## Pembaruan 1.1.0
 

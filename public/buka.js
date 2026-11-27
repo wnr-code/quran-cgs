@@ -16,6 +16,16 @@
     jalur = '/'
   }
   var halaman = location.origin + jalur
+  // Di dalam APK, halaman perantara ini tidak berguna (aplikasinya sudah terbuka). Penanda
+  // WebView `; wv)` juga dimiliki WebView QuranKu, jadi jangan sampai halaman ini tampil di
+  // https://localhost — langsung lanjutkan ke rute tujuan di dalam aplikasi.
+  var dalamAplikasiAsli =
+    (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
+    /^(https?|capacitor):\/\/localhost\/?$/i.test(location.origin)
+  if (dalamAplikasiAsli) {
+    location.replace('/#' + jalur.replace(/^\/+/, '/'))
+    return
+  }
   var paket = 'id.cgs.quranku'
   var play = 'https://play.google.com/store/apps/details?id=' + paket
   var intent =

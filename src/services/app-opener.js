@@ -9,6 +9,7 @@ import { icon } from '../components/icons.js'
 import { currentRoute } from '../router.js'
 import { esc } from '../utils/helpers.js'
 import { isInAppBrowser, linkOpenerUrl } from './app-links.js'
+import { isNativeShell } from './platform.js'
 
 const DISMISS_KEY = 'quranku:buka-app-dismissed'
 let attached = false
@@ -45,6 +46,8 @@ export const dismissOpener = () => {
 /** Tampilkan bar hanya bila halaman sedang dibuka di peramban dalam aplikasi di Android. */
 export function attachAppOpener(getPath = defaultPath) {
   if (attached) return
+  // Di dalam APK, aplikasinya sudah terbuka: bar ini hanya untuk peramban dalam aplikasi lain.
+  if (isNativeShell()) return
   if (!isAndroid() || !isInAppBrowser() || openerDismissed()) return
   attached = true
   const bar = document.createElement('div')
