@@ -7,13 +7,16 @@ jadi catatan ini hanya perlu memuat perubahan sejak versi yang sedang dipakai pe
 ## 1.4.49 — 27 November 2026 (untuk rilis yang akan datang)
 
 ```
-Pemberitahuan "Buka di aplikasi QuranKu" tidak lagi muncul di dalam aplikasi; bar itu hanya untuk peramban WhatsApp/Instagram saat membuka situs.
-Ajakan pasang di Android kini langsung membuka Play Store, bukan memasang aplikasi web kedua.
-Notifikasi pembaruan menyebut versi yang benar-benar ada di Play Store dan membuka Play Store.
-Perbaikan: halaman perantara dan tautan dalam aplikasi tetap membuka halaman yang dituju.
+"Gunakan lokasi saya" berhasil pada ketukan pertama, tanpa isi manual.
+Unduh gambar ayat kini tersimpan di Galeri (Pictures/QuranKu).
+Tombol Bagikan dan Salin berfungsi di semua halaman; tautan WhatsApp langsung ke surah atau jadwal salat, ?adzan= memutar adzan.
+Di dalam aplikasi tidak ada lagi tawaran "Buka di aplikasi"; Pasang di Android langsung ke Play Store.
+Perbaikan: Kelola Offline normal, pintasan ikon tepat, tautan rusak tidak halaman kosong.
 ```
 
-**424/500 karakter.** Angka di atas dihitung tanpa baris kosong pembuka/penutup.
+**455/500 karakter.** Angka di atas dihitung tanpa baris kosong pembuka/penutup.
+Pengguna Play masih di **1.4.42**, jadi teks ini mencakup 1.4.43–1.4.49 sekaligus (lokasi, Galeri,
+Bagikan/Salin, tautan WhatsApp, lalu perilaku pasang/perbarui), bukan hanya perubahan terakhir.
 
 ## 1.4.47 — 22 November 2026 (untuk rilis yang akan datang)
 
@@ -35,10 +38,13 @@ sisa bug tombol: tab "Al-Qur'an" di halaman Doa, tempat klik Bagikan dan Salin b
 
 ### Mengapa kalimatnya begitu
 
-Pengguna yang memasang dari Play **masih di 1.4.38** (AAB run #202, commit `4863179`). Yang menekan
-"Perbarui" akan melompati 1.4.39–1.4.43 sekaligus, jadi semua perubahan sejak 1.4.38 harus tercakup —
-bukan hanya yang terakhir. Urutannya sengaja: keluhan paling nyata (tautan WhatsApp) di baris pertama,
-lalu perbaikan, karena hanya ~2 baris pertama yang tampil sebelum pengguna menekan "Selengkapnya".
+Pengguna yang memasang dari Play **masih di 1.4.42**. Yang menekan "Perbarui" akan melompati
+1.4.43–1.4.49 sekaligus, jadi semua perubahan sejak 1.4.42 harus tercakup — bukan hanya yang terakhir.
+Urutannya sengaja: keluhan paling nyata lebih dulu (lokasi, unduhan gambar, tombol Bagikan/Salin),
+karena hanya ~2 baris pertama yang tampil sebelum pengguna menekan "Selengkapnya".
+
+Perubahan kecil (dokumen, skrip screenshot, kata-kata di layar) dan hal yang tidak bisa dilihat
+pengguna (CI, catatan rilis) sengaja tidak ditulis.
 
 | Yang ditulis | Yang berubah | Bukti |
 |---|---|---|
@@ -55,7 +61,9 @@ lalu perbaikan, karena hanya ~2 baris pertama yang tampil sebelum pengguna menek
 
 - **Poster ayat & 22 tema** — sudah ada di 1.4.38, bukan barang baru bagi pengguna.
 - **"Performa lebih cepat", "perbaikan bug umum"** — tidak terukur dan tidak membantu keputusan memperbarui.
-- **Angka versi** ("versi 1.4.43") — Play sudah menampilkannya sendiri di baris atas.
+- **Angka versi** ("versi 1.4.49") — Play sudah menampilkannya sendiri di baris atas.
+- **"Perbaikan bug" saja tanpa menyebut bug apa** — tidak membantu pengguna memutuskan memperbarui;
+  kalimat "Perbaikan: …" dipakai hanya untuk menyebut perbaikan yang benar-benar terasa.
 - **Ajakan memberi rating/ulasan** — dilarang di What's new.
 
 ## 1.4.38 — 17 November 2026 (sudah ditayangkan)
