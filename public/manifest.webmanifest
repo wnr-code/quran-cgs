@@ -13,7 +13,10 @@
   "background_color": "#0b3d2e",
   "theme_color": "#0b3d2e",
   "categories": ["books", "education", "lifestyle"],
-  "prefer_related_applications": false,
+  "prefer_related_applications": true,
+  "related_applications": [
+    { "platform": "play", "id": "id.cgs.quranku", "url": "https://play.google.com/store/apps/details?id=id.cgs.quranku" }
+  ],
   "icons": [
     { "src": "/icons/icon-192-v2.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-512-v2.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },

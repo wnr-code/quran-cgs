@@ -3,12 +3,14 @@
 // Tautan https sebenarnya sudah bisa membuka aplikasi lewat App Links, tetapi peramban
 // bawaan WhatsApp/Instagram menelan tautan itu sehingga aplikasi tidak pernah menerima
 // intent dan pengguna tertahan di halaman web. Bar ini muncul di halaman mana pun (termasuk
-// halaman baca yang dituju tautan), dan satu ketukan membuka aplikasi lewat intent://
-// dengan cadangan ke Google Play bila aplikasi belum terpasang.
+// halaman baca yang dituju tautan), dan tombolnya **langsung** intent:// — bukan halaman
+// perantara /buka.html. Di WebView WhatsApp, navigasi intent baru dijalankan pada ketukan
+// pengguna, jadi satu langkah lebih sedikit berarti tautan benar-benar membuka aplikasi.
+// Bila aplikasi belum terpasang, `S.browser_fallback_url` mengarahkan ke Play Store.
 import { icon } from '../components/icons.js'
 import { currentRoute } from '../router.js'
 import { esc } from '../utils/helpers.js'
-import { isInAppBrowser, linkOpenerUrl } from './app-links.js'
+import { isInAppBrowser, nativeAppIntentUrl } from './app-links.js'
 import { isNativeShell } from './platform.js'
 
 const DISMISS_KEY = 'quranku:buka-app-dismissed'
@@ -59,8 +61,8 @@ export function attachAppOpener(getPath = defaultPath) {
     const path = getPath()
     bar.innerHTML = `
       <span class="app-opener-ic">${icon('forward')}</span>
-      <p class="app-opener-text"><strong>Buka di aplikasi QuranKu</strong><small>Halaman ini terbaca lengkap di aplikasi, gratis di Google Play.</small></p>
-      <a class="btn btn-primary btn-sm" data-opener-open href="${esc(linkOpenerUrl(path))}">Buka</a>
+      <p class="app-opener-text"><strong>Buka di aplikasi QuranKu</strong><small>Satu ketukan membuka aplikasi; bila belum terpasang, diarahkan ke Google Play.</small></p>
+      <a class="btn btn-primary btn-sm" data-opener-open href="${esc(nativeAppIntentUrl(path))}">Buka</a>
       <button class="icon-btn sm" type="button" data-opener-close aria-label="Tutup pemberitahuan">${icon('close')}</button>`
   }
   // Satu pendengar untuk seluruh isi bar: render() mengganti innerHTML, jadi penangan yang

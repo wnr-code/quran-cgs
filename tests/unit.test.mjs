@@ -1661,7 +1661,9 @@ test('bar "buka di aplikasi": hanya untuk peramban dalam aplikasi Android, menun
   assert.match(opener, /isInAppBrowser\(\)/)
   assert.match(opener, /isNativeShell\(\)/, 'bar tidak dipasang di dalam APK')
   assert.match(opener, /\/Android\/i/)
-  assert.match(opener, /linkOpenerUrl\(path\)/)
+  // Satu ketukan: bar memakai intent:// langsung, bukan halaman perantara /buka.html.
+  assert.match(opener, /nativeAppIntentUrl\(path\)/)
+  assert.doesNotMatch(opener, /linkOpenerUrl\(path\)/, 'bar tidak lagi melewati halaman perantara')
   assert.match(opener, /qk:route/)
   assert.match(opener, /Buka di aplikasi QuranKu/)
   // render() mengganti innerHTML; penangan klik harus menempel di wadah bar, bukan tombol lama.
@@ -2370,6 +2372,30 @@ test('versi Play Store: parser, pembanding, endpoint, dan pemakaian di Pengatura
   assert.match(inbox, /external: APP\.playStoreUrl/)
   const notifications = readFileSync(new URL('../src/pages/notifications.js', import.meta.url), 'utf8')
   assert.match(notifications, /item\.external/, 'notifikasi pembaruan membuka Play Store')
+})
+
+test('manifest web memilih aplikasi Play Store dan tautan aplikasi tetap satu ketukan', async () => {
+  const manifest = JSON.parse(readFileSync(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8'))
+  // Chrome Android tidak lagi didorong memasang PWA (dua aplikasi: Play + PWA dengan data terpisah).
+  assert.equal(manifest.prefer_related_applications, true)
+  assert.equal(manifest.related_applications[0].platform, 'play')
+  assert.equal(manifest.related_applications[0].id, 'id.cgs.quranku')
+  assert.equal(manifest.related_applications[0].url, 'https://play.google.com/store/apps/details?id=id.cgs.quranku')
+
+  // Manifest APK: App Links terverifikasi untuk domain, supaya tautan https benar-benar membuka aplikasi.
+  const apkManifest = readFileSync(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8')
+  const filters = apkManifest.match(/<intent-filter[^>]*>[\s\S]*?<\/intent-filter>/g) || []
+  const linkFilters = filters.filter((f) => f.includes('android.intent.action.VIEW') && f.includes('android:host="quran.cgs.my.id"'))
+  assert.equal(linkFilters.length, 3, 'tiga filter App Links (beranda, satu segmen, bertingkat)')
+  for (const f of linkFilters) {
+    assert.match(f, /android:autoVerify="true"/, 'setiap filter App Links diauto-verifikasi')
+    assert.match(f, /android:scheme="https"/)
+    assert.match(f, /category android:name="android.intent.category.BROWSABLE"/)
+  }
+  assert.match(apkManifest, /android:pathPrefix="\/surah\/"/, 'jalur bertingkat memakai pathPrefix')
+  // Komentar XML menyebut pathPattern sebagai catatan; yang diperiksa hanya atribut sungguhan.
+  const apkAttributes = apkManifest.replace(/<!--[\s\S]*?-->/g, '')
+  assert.doesNotMatch(apkAttributes, /pathPattern/, 'pathPattern tidak dipakai')
 })
 
 test('halaman Tentang menautkan Play Store; APK memakai market://', async () => {

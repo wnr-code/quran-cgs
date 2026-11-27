@@ -18,6 +18,26 @@ Keduanya **tidak** boleh muncul di dalam APK: WebView Capacitor memakai penanda 
 - Font Arab Amiri Quran dan Scheherazade New ikut dibundel. Verifikasi bentuk huruf dan pemenggalan baris pada perangkat fisik sebelum rilis.
 - Layar pembuka memakai wordmark `public/brand/quranku-logo.png` (768×512, latar transparan) di splash web (`#splash` pada `index.html`) dan splash Android (`@drawable/splash_brand` sebagai `windowSplashScreenAnimatedIcon`). Ikon launcher, ikon notifikasi, ikon PWA, dan materi Play Store tetap diturunkan dari `assets/logo-source.png`; `npm run gen:icons` memisahkan keduanya (`SPLASH_LOGO` vs `LOGO`). Mengganti wordmark splash tidak perlu menaikkan akhiran `-v2` pada ikon.
 
+## Tautan dari WhatsApp dan "PWA merebut tautan"
+
+Dua hal berbeda sering tertukar saat menguji tautan `quran.cgs.my.id`:
+
+| Gejala | Penyebab | Yang dilakukan QuranKu |
+|---|---|---|
+| Ketuk tautan di WhatsApp/Instagram → terbuka **halaman web** di dalam aplikasi itu, bukan QuranKu | Peramban bawaan WhatsApp **tidak menyerahkan** tautan https ke aplikasi lain (bukan soal App Links). Ini perilaku WhatsApp, bukan bug aplikasi. | Bar **"Buka di aplikasi QuranKu"** muncul di halaman mana pun; tombolnya **langsung** `intent://…;package=id.cgs.quranku;S.browser_fallback_url=<Play>` — satu ketukan, tanpa halaman perantara. `/buka.html` tetap ada untuk tautan lama/manual. |
+| Tautan (dari Chrome, Gmail, dll.) membuka **aplikasi web (PWA)**, bukan APK | Chrome memasang **WebAPK** yang mendaftarkan domain situs pada scope `/`, sehingga sistem memilihnya untuk tautan `quran.cgs.my.id`. | Situs tidak lagi menawarkan pemasangan PWA di Android (`installTarget()` → Play Store) dan `manifest.webmanifest` memakai `prefer_related_applications: true` + `related_applications` (Play). PWA yang **sudah** terpasang harus dihapus pengguna — lihat langkah di bawah. |
+
+### Langkah di perangkat pengguna
+
+1. **Hapus PWA yang sudah terlanjur dipasang:** tekan lama ikon QuranKu dari peramban → **Uninstall/Hapus**. Atau buka **Setelan → Aplikasi → QuranKu** (yang ikonnya dari Chrome) → **Hapus instalasi**. Setelah itu tautan kembali ke Chrome/APK.
+2. **Pastikan App Links terverifikasi untuk APK:** **Setelan → Aplikasi → QuranKu → Buka secara default → Tautan yang didukung** harus memuat `quran.cgs.my.id`. Bila kosong, buka `https://quran.cgs.my.id/.well-known/assetlinks.json` di peramban (harus tampil JSON), lalu pasang ulang aplikasi dari Play Store agar verifikasi dijalankan lagi.
+3. **Cek dari komputer (opsional):** `adb shell pm get-app-links id.cgs.quranku` → semua filter `quran.cgs.my.id` harus `verified`. Bila `legacy_failure`/`none`, sidik jari di `assetlinks.json` tidak cocok dengan kunci penandatangan APK yang terpasang (Play App Signing → pakai kunci **app signing**, bukan upload key).
+4. **Uji ulang:** kirim `https://quran.cgs.my.id/surah/2/255` ke diri sendiri di WhatsApp, ketuk, lalu ketuk **Buka** pada bar hijau.
+
+Verifikasi server-side tanpa adb: buka
+`https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://quran.cgs.my.id&relation=delegate_permission/common.handle_all_urls`
+— harus memuat statement `id.cgs.quranku`.
+
 ## Migrasi data dari APK Compose lama
 
 Package Android tetap `id.cgs.quranku`, sehingga Android dapat mempertahankan data privat lama ketika APK baru dipasang sebagai **pembaruan** dengan tanda tangan yang sama. Pada peluncuran pertama, jembatan native membaca preferensi `quranku_native` dan file `files/quran/surah-*.json` dari APK lama. Data yang dapat dipindahkan:
