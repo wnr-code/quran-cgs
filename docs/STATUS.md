@@ -121,6 +121,8 @@ Laporan pengguna dari build Play Store `id.cgs.quranku`: di halaman **Lainnya** 
 | Bar "Buka di aplikasi" butuh dua ketukan | Tombol bar menuju `/buka.html`, lalu pengguna harus menekan tombol kedua di halaman itu. Di WebView WhatsApp, navigasi intent baru dijalankan pada ketukan pengguna, jadi pengalaman nyata terasa seperti "tautannya tidak membuka aplikasi". | Tombol bar kini **langsung** `intent://…;package=id.cgs.quranku;S.browser_fallback_url=<Play>` — satu ketukan. `/buka.html` tetap ada untuk tautan lama, dengan catatan tentang PWA yang terpasang. |
 | PWA terpasang merebut tautan | WebAPK mendaftarkan scope `/` untuk `quran.cgs.my.id`, sehingga sistem mengarahkan tautan ke versi web, bukan APK. | Situs tidak lagi menawarkan PWA di Android, `manifest.webmanifest` memakai `prefer_related_applications: true` + `related_applications` (Play), dan pengguna diarahkan menghapus PWA yang sudah terpasang ([ANDROID.md](ANDROID.md#tautan-dari-whatsapp-dan-pwa-merebut-tautan)). |
 
+| Tautan domain cadangan tidak membuka aplikasi | Hanya `quran.cgs.my.id` yang diklaim di manifest, sehingga tautan `quran-cgs.appwnr.workers.dev` jatuh ke peramban; `appLinkRoute()` juga menolak origin lain. | Manifest mengklaim dua host (5 filter, semuanya `autoVerify`), `appLinkRoute()` menerima `APP.origin` + `APP.mirrors`, dan `npm run check:deploy` memeriksa assetlinks kedua domain (Android 7–11: satu host gagal = semua gagal). |
+
 Jalur yang **tetap** berlaku di situs: peramban dalam aplikasi WhatsApp/Instagram/LINE/TikTok/Telegram
 masih melihat bar "Buka di aplikasi" dan halaman perantara, karena keduanya memang ditujukan untuk
 peramban eksternal. Ajakan memasang PWA di APK sudah dimatikan sejak awal (`shouldOfferInstall()`

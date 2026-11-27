@@ -1521,6 +1521,9 @@ test('App Links Android memakai domain, sertifikat, dan rute hash resmi QuranKu'
   assert.equal(appLinkRoute('https://quran.cgs.my.id/surah/2/255'), '/surah/2/255')
   assert.equal(appLinkRoute('https://quran.cgs.my.id/'), '/')
   assert.equal(appLinkRoute('https://quran.cgs.my.id/privacy.html'), null, 'halaman web statis tidak dialihkan ke router APK')
+  // Domain cadangan juga didaftarkan di manifest, jadi jalurnya harus tetap terbaca.
+  assert.equal(appLinkRoute('https://quran-cgs.appwnr.workers.dev/surah/2/255'), '/surah/2/255')
+  assert.equal(appLinkRoute('https://quran-cgs.appwnr.workers.dev/salat?adzan=subuh'), '/salat?adzan=subuh')
   assert.equal(appLinkRoute('https://evil.example/surah/2/255'), null, 'tautan dari domain lain ditolak')
 
   const statement = JSON.parse(readFileSync(new URL('../public/.well-known/assetlinks.json', import.meta.url), 'utf8'))
@@ -2385,14 +2388,20 @@ test('manifest web memilih aplikasi Play Store dan tautan aplikasi tetap satu ke
   // Manifest APK: App Links terverifikasi untuk domain, supaya tautan https benar-benar membuka aplikasi.
   const apkManifest = readFileSync(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8')
   const filters = apkManifest.match(/<intent-filter[^>]*>[\s\S]*?<\/intent-filter>/g) || []
-  const linkFilters = filters.filter((f) => f.includes('android.intent.action.VIEW') && f.includes('android:host="quran.cgs.my.id"'))
-  assert.equal(linkFilters.length, 3, 'tiga filter App Links (beranda, satu segmen, bertingkat)')
-  for (const f of linkFilters) {
-    assert.match(f, /android:autoVerify="true"/, 'setiap filter App Links diauto-verifikasi')
-    assert.match(f, /android:scheme="https"/)
-    assert.match(f, /category android:name="android.intent.category.BROWSABLE"/)
+  const hosts = ['quran.cgs.my.id', 'quran-cgs.appwnr.workers.dev']
+  for (const host of hosts) {
+    const linkFilters = filters.filter((f) => f.includes('android.intent.action.VIEW') && f.includes(`android:host="${host}"`))
+    assert.ok(linkFilters.length >= 2, `${host}: filter App Links ada (satu segmen + jalur bertingkat)`)
+    for (const f of linkFilters) {
+      assert.match(f, /android:autoVerify="true"/, `${host}: setiap filter diauto-verifikasi`)
+      assert.match(f, /android:scheme="https"/, `${host}: hanya https`)
+      assert.match(f, /category android:name="android.intent.category.BROWSABLE"/, `${host}: bisa dibuka dari tautan`)
+    }
   }
+  const linkFilters = filters.filter((f) => f.includes('android.intent.action.VIEW') && hosts.some((h) => f.includes(`android:host="${h}"`)))
+  assert.equal(linkFilters.length, 5, 'lima filter App Links (3 domain utama + 2 domain cadangan)')
   assert.match(apkManifest, /android:pathPrefix="\/surah\/"/, 'jalur bertingkat memakai pathPrefix')
+  assert.match(apkManifest, /android:host="quran-cgs.appwnr.workers.dev"/, 'domain cadangan ikut diklaim')
   // Komentar XML menyebut pathPattern sebagai catatan; yang diperiksa hanya atribut sungguhan.
   const apkAttributes = apkManifest.replace(/<!--[\s\S]*?-->/g, '')
   assert.doesNotMatch(apkAttributes, /pathPattern/, 'pathPattern tidak dipakai')

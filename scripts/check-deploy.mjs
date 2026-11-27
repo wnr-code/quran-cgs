@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from 'node:fs'
 // Periksa apakah situs yang sudah tayang mendukung URL bersih tanpa tanda #.
 // Dipakai untuk memastikan perubahan router benar-benar sudah ter-deploy,
 // bukan hanya ada di branch.
@@ -52,6 +53,28 @@ if (manifest?.ok) {
   } catch (e) {
     console.log(`GAGAL  manifest tidak dapat dibaca sebagai JSON: ${e.message}`)
   }
+}
+
+// App Links memakai DUA domain (utama + cadangan). Keduanya harus menyajikan assetlinks.json
+// dengan sidik jari yang sama; domain cadangan yang gagal membuat verifikasi di Android 7-11
+// ikut gagal untuk domain utama.
+try {
+  const { APP } = await import('../src/config.js')
+  const lokal = JSON.parse(readFileSync(new URL('../public/.well-known/assetlinks.json', import.meta.url), 'utf8'))
+  const sidikJari = lokal?.[0]?.target?.sha256_cert_fingerprints?.[0] || ''
+  for (const cermin of APP.mirrors.map((m) => m.replace(/\/+$/, '')).filter((m) => m !== site)) {
+    try {
+      const res = await fetch(cermin + '/.well-known/assetlinks.json', { signal: AbortSignal.timeout(15000) })
+      const body = await res.json()
+      const jauh = body?.[0]?.target?.sha256_cert_fingerprints?.[0] || ''
+      const sama = res.ok && jauh && jauh === sidikJari
+      console.log(`${sama ? 'OK  ' : 'GAGAL'} ${String(res.status).padEnd(4)} domain cadangan ${cermin} ${sama ? 'menyajikan sidik jari yang sama' : 'TIDAK menyajikan assetlinks.json yang sama — tautan dari domain ini tidak akan membuka aplikasi'}`)
+    } catch (e) {
+      console.log(`GAGAL       domain cadangan ${cermin} tidak dapat diperiksa: ${e.message}`)
+    }
+  }
+} catch (e) {
+  console.log(`GAGAL  pemeriksaan domain cadangan gagal dijalankan: ${e.message}`)
 }
 
 const bersih = results.find((r) => r.path === '/surah/2/255')

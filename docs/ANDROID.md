@@ -27,10 +27,25 @@ Dua hal berbeda sering tertukar saat menguji tautan `quran.cgs.my.id`:
 | Ketuk tautan di WhatsApp/Instagram → terbuka **halaman web** di dalam aplikasi itu, bukan QuranKu | Peramban bawaan WhatsApp **tidak menyerahkan** tautan https ke aplikasi lain (bukan soal App Links). Ini perilaku WhatsApp, bukan bug aplikasi. | Bar **"Buka di aplikasi QuranKu"** muncul di halaman mana pun; tombolnya **langsung** `intent://…;package=id.cgs.quranku;S.browser_fallback_url=<Play>` — satu ketukan, tanpa halaman perantara. `/buka.html` tetap ada untuk tautan lama/manual. |
 | Tautan (dari Chrome, Gmail, dll.) membuka **aplikasi web (PWA)**, bukan APK | Chrome memasang **WebAPK** yang mendaftarkan domain situs pada scope `/`, sehingga sistem memilihnya untuk tautan `quran.cgs.my.id`. | Situs tidak lagi menawarkan pemasangan PWA di Android (`installTarget()` → Play Store) dan `manifest.webmanifest` memakai `prefer_related_applications: true` + `related_applications` (Play). PWA yang **sudah** terpasang harus dihapus pengguna — lihat langkah di bawah. |
 
+### Domain cadangan juga membuka aplikasi
+
+Selain `quran.cgs.my.id`, manifest mengklaim **`quran-cgs.appwnr.workers.dev`** (domain Worker
+cadangan yang dipakai `failover.js`). Tautan berbentuk domain cadangan membuka aplikasi di halaman
+yang dituju, bukan hanya beranda: `appLinkRoute()` menerima kedua origin (`APP.origin` + `APP.mirrors`).
+
+Syaratnya sama seperti domain utama — **setiap** host yang didaftarkan harus menyajikan
+`/.well-known/assetlinks.json` dengan sidik jari yang identik. Di Android 7–11 verifikasi bersifat
+"legacy" (semua host harus lolos), jadi domain cadangan yang rusak bisa **mematikan tautan domain
+utama** di perangkat lama. Karena itu:
+
+- `npm run check:deploy` sekarang juga memeriksa domain cadangan dan membandingkan sidik jarinya
+  dengan `public/.well-known/assetlinks.json`;
+- jangan menambah host lain (mis. domain uji) ke manifest tanpa memastikan berkas di atas tersedia.
+
 ### Langkah di perangkat pengguna
 
 1. **Hapus PWA yang sudah terlanjur dipasang:** tekan lama ikon QuranKu dari peramban → **Uninstall/Hapus**. Atau buka **Setelan → Aplikasi → QuranKu** (yang ikonnya dari Chrome) → **Hapus instalasi**. Setelah itu tautan kembali ke Chrome/APK.
-2. **Pastikan App Links terverifikasi untuk APK:** **Setelan → Aplikasi → QuranKu → Buka secara default → Tautan yang didukung** harus memuat `quran.cgs.my.id`. Bila kosong, buka `https://quran.cgs.my.id/.well-known/assetlinks.json` di peramban (harus tampil JSON), lalu pasang ulang aplikasi dari Play Store agar verifikasi dijalankan lagi.
+2. **Pastikan App Links terverifikasi untuk APK:** **Setelan → Aplikasi → QuranKu → Buka secara default → Tautan yang didukung** harus memuat `quran.cgs.my.id` **dan** `quran-cgs.appwnr.workers.dev`. Bila kosong, buka `https://quran.cgs.my.id/.well-known/assetlinks.json` di peramban (harus tampil JSON), lalu pasang ulang aplikasi dari Play Store agar verifikasi dijalankan lagi.
 3. **Cek dari komputer (opsional):** `adb shell pm get-app-links id.cgs.quranku` → semua filter `quran.cgs.my.id` harus `verified`. Bila `legacy_failure`/`none`, sidik jari di `assetlinks.json` tidak cocok dengan kunci penandatangan APK yang terpasang (Play App Signing → pakai kunci **app signing**, bukan upload key).
 4. **Uji ulang:** kirim `https://quran.cgs.my.id/surah/2/255` ke diri sendiri di WhatsApp, ketuk, lalu ketuk **Buka** pada bar hijau.
 

@@ -9,6 +9,13 @@ import { isNativeShell } from './platform.js'
  */
 export const APP_LINK_BASE = APP.origin
 
+/**
+ * Alamat yang tautannya diterima dari sistem — domain utama **dan** cerminnya. Keduanya
+ * didaftarkan di `AndroidManifest.xml`, jadi tautan domain cadangan pun membuka aplikasi;
+ * tanpa daftar ini aplikasi akan terbuka di beranda dan membuang jalur yang dituju.
+ */
+const LINK_ORIGINS = new Set([APP.origin, ...APP.mirrors])
+
 /** Alamat App Link untuk jalur internal, mis. '/surah/2/255' → 'https://quran.cgs.my.id/surah/2/255'. */
 export function appLinkUrl(path = '/') {
   const clean = '/' + String(path).replace(/^\/+/, '')
@@ -26,7 +33,7 @@ export function appLinkRoute(rawUrl) {
   if (typeof rawUrl !== 'string' || !rawUrl) return null
   try {
     const url = new URL(rawUrl)
-    if (url.origin !== APP.origin) return null
+    if (!LINK_ORIGINS.has(url.origin)) return null
     if (url.hash.startsWith('#/')) {
       // Bentuk lama: /?adzan=subuh#/salat. Query di depan hash dipakai notifikasi adzan,
       // jadi ia harus ikut pindah ke belakang jalur hash — bukan dibuang.
