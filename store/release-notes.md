@@ -10,11 +10,11 @@ jadi catatan ini hanya perlu memuat perubahan sejak versi yang sedang dipakai pe
 "Gunakan lokasi saya" berhasil pada ketukan pertama, tanpa isi manual.
 Unduh gambar ayat kini tersimpan di Galeri (Pictures/QuranKu).
 Tombol Bagikan dan Salin berfungsi di semua halaman; tautan WhatsApp langsung ke surah atau jadwal salat, ?adzan= memutar adzan.
-Di dalam aplikasi tidak ada lagi tawaran "Buka di aplikasi"; Pasang di Android langsung ke Play Store.
+Di dalam aplikasi tidak ada lagi tawaran "Buka di aplikasi"; tombol Pasang di Android langsung membuka Play Store.
 Perbaikan: Kelola Offline normal, pintasan ikon tepat, tautan rusak tidak halaman kosong.
 ```
 
-**455/500 karakter.** Angka di atas dihitung tanpa baris kosong pembuka/penutup.
+**467/500 karakter.** Angka di atas dihitung tanpa baris kosong pembuka/penutup.
 Pengguna Play masih di **1.4.42**, jadi teks ini mencakup 1.4.43–1.4.49 sekaligus (lokasi, Galeri,
 Bagikan/Salin, tautan WhatsApp, lalu perilaku pasang/perbarui), bukan hanya perubahan terakhir.
 
