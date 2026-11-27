@@ -123,6 +123,8 @@ Laporan pengguna dari build Play Store `id.cgs.quranku`: di halaman **Lainnya** 
 
 | Tautan domain cadangan tidak membuka aplikasi | Hanya `quran.cgs.my.id` yang diklaim di manifest, sehingga tautan `quran-cgs.appwnr.workers.dev` jatuh ke peramban; `appLinkRoute()` juga menolak origin lain. | Manifest mengklaim dua host (5 filter, semuanya `autoVerify`), `appLinkRoute()` menerima `APP.origin` + `APP.mirrors`, dan `npm run check:deploy` memeriksa assetlinks kedua domain (Android 7–11: satu host gagal = semua gagal). |
 
+| `assetlinks.json` produksi ≠ repo | Berkas di `https://quran.cgs.my.id/.well-known/assetlinks.json` memuat **tiga** sertifikat dan relation `get_login_creds`, sedangkan repo hanya satu dan tanpa relation itu. Deploy berikutnya akan **menghapus** dua kunci lama, dan App Links mati pada perangkat yang APK-nya ditandatangani kunci tersebut. | Repo disamakan dengan produksi: tiga sidik jari (`56:45:F6:…`, `FC:42:AC:…`, `09:07:89:…`), relation tetap hanya `handle_all_urls`. Tes baru mewajibkan kunci app signing Play ada dan upload key CI tidak terdaftar. |
+
 Jalur yang **tetap** berlaku di situs: peramban dalam aplikasi WhatsApp/Instagram/LINE/TikTok/Telegram
 masih melihat bar "Buka di aplikasi" dan halaman perantara, karena keduanya memang ditujukan untuk
 peramban eksternal. Ajakan memasang PWA di APK sudah dimatikan sejak awal (`shouldOfferInstall()`

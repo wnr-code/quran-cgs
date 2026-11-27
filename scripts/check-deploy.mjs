@@ -60,15 +60,16 @@ if (manifest?.ok) {
 // ikut gagal untuk domain utama.
 try {
   const { APP } = await import('../src/config.js')
+  const set = (body) => (body?.[0]?.target?.sha256_cert_fingerprints || []).slice().sort().join('|')
   const lokal = JSON.parse(readFileSync(new URL('../public/.well-known/assetlinks.json', import.meta.url), 'utf8'))
-  const sidikJari = lokal?.[0]?.target?.sha256_cert_fingerprints?.[0] || ''
-  for (const cermin of APP.mirrors.map((m) => m.replace(/\/+$/, '')).filter((m) => m !== site)) {
+  const sidikJari = set(lokal)
+  const daftar = APP.mirrors.map((m) => m.replace(/\/+$/, '')).filter((m) => m !== site)
+  for (const cermin of daftar) {
     try {
       const res = await fetch(cermin + '/.well-known/assetlinks.json', { signal: AbortSignal.timeout(15000) })
       const body = await res.json()
-      const jauh = body?.[0]?.target?.sha256_cert_fingerprints?.[0] || ''
-      const sama = res.ok && jauh && jauh === sidikJari
-      console.log(`${sama ? 'OK  ' : 'GAGAL'} ${String(res.status).padEnd(4)} domain cadangan ${cermin} ${sama ? 'menyajikan sidik jari yang sama' : 'TIDAK menyajikan assetlinks.json yang sama — tautan dari domain ini tidak akan membuka aplikasi'}`)
+      const sama = res.ok && sidikJari && set(body) === sidikJari
+      console.log(`${sama ? 'OK  ' : 'GAGAL'} ${String(res.status).padEnd(4)} domain cadangan ${cermin} ${sama ? 'menyajikan daftar sidik jari yang sama' : 'TIDAK menyajikan assetlinks.json yang sama — tautan dari domain ini tidak akan membuka aplikasi'}`)
     } catch (e) {
       console.log(`GAGAL       domain cadangan ${cermin} tidak dapat diperiksa: ${e.message}`)
     }

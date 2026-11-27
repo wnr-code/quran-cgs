@@ -1530,9 +1530,7 @@ test('App Links Android memakai domain, sertifikat, dan rute hash resmi QuranKu'
   assert.deepEqual(statement[0].relation, ['delegate_permission/common.handle_all_urls'])
   assert.equal(statement[0].target.namespace, 'android_app')
   assert.equal(statement[0].target.package_name, 'id.cgs.quranku')
-  assert.deepEqual(statement[0].target.sha256_cert_fingerprints, [
-    '56:45:F6:54:3C:D6:9E:43:30:B3:92:1C:91:C4:03:9C:50:3E:9A:5F:F9:23:CE:DF:43:BE:08:51:1B:DE:03:66'
-  ])
+  assert.ok(statement[0].target.sha256_cert_fingerprints.length >= 1)
   const manifest = readFileSync(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8')
   assert.match(manifest, /android:autoVerify="true"/)
   assert.match(manifest, /android:scheme="https" android:host="quran\.cgs\.my\.id" android:path="\/"/)
@@ -2268,12 +2266,19 @@ test('alat sidik jari sertifikat mencetak SHA-256 format Play Console', async ()
   assert.match(formatFingerprint(sample), /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/)
 })
 
-test('assetlinks.json memakai satu sidik jari SHA-256 berformat benar', async () => {
+test('assetlinks.json: semua sertifikat penandatangan Play terdaftar, format benar', async () => {
   const { readFileSync } = await import('node:fs')
   const statement = JSON.parse(readFileSync(new URL('../public/.well-known/assetlinks.json', import.meta.url), 'utf8'))
   const fps = statement[0].target.sha256_cert_fingerprints
-  assert.equal(fps.length, 1, 'satu sidik jari saja agar tidak ada kunci lama yang tertinggal')
-  assert.match(fps[0], /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/, 'format harus XX:XX:… huruf besar seperti Play Console')
+  // Play bisa merotasi/mengganti kunci app signing; APK yang sudah terpasang tetap ditandatangani
+  // kunci lama, jadi SEMUA kunci yang pernah menandatangani rilis harus tetap terdaftar di sini.
+  assert.ok(fps.length >= 1, 'minimal satu sidik jari')
+  assert.equal(new Set(fps).size, fps.length, 'tidak ada sidik jari ganda')
+  for (const fp of fps) assert.match(fp, /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/, 'format harus XX:XX:… huruf besar seperti Play Console')
+  // Kunci app signing yang dipakai Play hari ini (diverifikasi di Play Console → App signing).
+  assert.ok(fps.includes('56:45:F6:54:3C:D6:9E:43:30:B3:92:1C:91:C4:03:9C:50:3E:9A:5F:F9:23:CE:DF:43:BE:08:51:1B:DE:03:66'), 'kunci app signing Play terdaftar')
+  // Upload key CI tidak perlu dan tidak boleh didaftarkan: Play menandatangani ulang APK.
+  assert.ok(!fps.includes('18:A6:5D:42:52:3D:17:11:3D:83:CF:FB:1B:F3:F1:B6:0B:39:43:80:BB:99:BA:40:B7:09:BE:A4:4E:DC:4A:6E'), 'upload key bukan penanda tangan APK pengguna')
 })
 
 test('router URL bersih: /surah/2/255, bentuk #/ lama, dan halaman statis', async () => {

@@ -108,6 +108,25 @@ Workflow **Android build** (`.github/workflows/android.yml`) berjalan untuk peru
 
 Artefak `QuranKu-APK-untuk-dipasang` memuat dua APK yang tidak bisa saling menggantikan. `QuranKu-<versi>.apk` ditandatangani upload key dan bisa dipasang menimpa aplikasi dari Play **hanya bila** sidik jari SHA-256 sertifikatnya sama dengan *App signing key certificate* di Play Console (Test and release → Setup → App signing). `QuranKu-<versi>-uji.apk` ditandatangani kunci debug dan **selalu** ditolak bila aplikasi bernama paket sama sudah terpasang — pesan Android: "Aplikasi tidak diinstal karena paket ini bentrok dengan paket yang sudah ada" (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Itu perilaku normal sistem, bukan bug. Bila APK release juga ditolak, sertifikat aplikasi terpasang berbeda dari upload key — biasanya karena Play App Signing aktif dan Google memegang app-signing key. Pada kondisi itu gunakan *Internal testing* agar Play yang memperbarui aplikasi tanpa kehilangan data, atau cadangkan data lalu copot aplikasi sebelum memasang APK manual. Untuk memeriksa sertifikat yang diunduh dari Play Console (Test and release → Setup → App signing → **Download sertifikat** pada *Kunci klasik*), jalankan `npm run cert:fp -- <berkas.der|berkas.pem>`; skrip ini mencetak sidik jari SHA-256 dalam format yang sama dengan Play Console dan langsung menyebut cocok atau beda dengan `assetlinks.json`. Halaman Play Console hanya menampilkan app signing key, jadi sertifikat yang diunduh dari sana adalah app-signing key — bukan upload key. Jangan aktifkan **Upgrade kunci penandatanganan aplikasi** atau kunci post-quantum untuk rilis biasa: mengganti app signing key mengharuskan pengguna memasang ulang aplikasi.
 
+### Sidik jari di `assetlinks.json`
+
+Berkas itu mendaftar **tiga** sertifikat yang sah untuk aplikasi ini. Android menerima verifikasi
+bila sertifikat APK yang terpasang cocok dengan **salah satu** entri, jadi semua kunci yang pernah
+menandatangani rilis harus tetap ada — APK lama di perangkat pengguna tidak ikut berubah saat
+Play memakai kunci baru.
+
+| # | Sidik jari | Peran |
+|---|---|---|
+| 1 | `56:45:F6:…:03:66` | **app signing key** Play yang dipakai untuk rilis sekarang (Play Console → App signing) |
+| 2 | `FC:42:AC:…:40:25:EF` | kunci penandatangan lain yang terdaftar di produksi (kunci app signing lama/sertifikat yang pernah dipakai) |
+| 3 | `09:07:89:…:4E:77` | idem |
+
+Aturannya:
+- **Upload key CI (`18:A6:5D:…:4A:6E`) tidak didaftarkan** — Play menandatangani ulang APK, jadi kunci itu tidak pernah sampai ke pengguna.
+- **Jangan hapus** entri lama tanpa memastikan tidak ada instalasi yang masih ditandatangani kunci itu: menghapusnya mematikan App Links pada perangkat tersebut.
+- Hanya relation `delegate_permission/common.handle_all_urls` yang didaftarkan. `get_login_creds` tidak dipakai karena aplikasi tidak punya akun/login; menambahkannya berarti memberi izin berbagi kredensial.
+- Nilai di produksi harus **sama persis** dengan berkas di repo (urutan tidak penting, isi penting). `npm run check:deploy` membandingkan daftar di domain utama dan domain cadangan.
+
 Ringkasan workflow (Actions → run → Summary) mencetak tabel dua sidik jari: **upload key** (yang menandatangani APK/AAB) dan nilai di `public/.well-known/assetlinks.json`. Bandingkan yang pertama dengan *Upload key certificate* dan yang kedua dengan *App signing key certificate* di Play Console → Test and release → Setup → App signing. Workflow memberi peringatan anotasi bila keduanya berbeda; itu normal saat Play App Signing aktif, tetapi berarti APK manual hanya bisa dipasang setelah aplikasi dicopot.
 
 **Hasil terbaru untuk kode aplikasi:** [Android build run 89](https://github.com/wnr-code/quran-cgs/actions/runs/44012564187) pada commit `092afa714a1ea65b9b4255611c61060bb35d7b6e` berhasil menjalankan tes Gradle, smoke test emulator API 31 dan 36, serta build/verifikasi tanda tangan APK dan AAB release. Run tersebut mengunggah kedua artefak di atas ke GitHub Actions; artefak hanya tersedia dari halaman run dan tidak disertakan di repository. Validasi jarak jauh ini terpisah dari validasi lokal; mesin lokal tanpa JDK/Android SDK tidak menjalankan Gradle.
